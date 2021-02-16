@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+        xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+        xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+        xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+        xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+        IgnorableNamespaces="uap rescap">
+
+    <Identity
+            Name="58593StasG.Volumey"
+            Publisher="CN=978C2FB1-8A3A-4D5E-BC79-3F2149147466"
+            Version="1.1.0.0"/>
+
+    <Properties>
+        <DisplayName>Volumey</DisplayName>
+        <PublisherDisplayName>StasG</PublisherDisplayName>
+        <Logo>Assets\StoreLogo.png</Logo>
+    </Properties>
+
+    <Dependencies>
+        <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0"/>
+        <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0"/>
+    </Dependencies>
+
+    <Resources>
+        <Resource Language="en"/>
+        <Resource Language="ru"/>
+        <Resource Language="de"/>
+        <Resource Language="it"/>
+        <Resource Language="fr"/>
+        <Resource Language="es"/>
+        <Resource Language="pt"/>
+        <Resource Language="ja"/>
+        <Resource Language="zh-Hans"/>
+        <Resource Language="hi"/>
+    </Resources>
+    <Applications>
+        <Application Id="App"
+                     Executable="$targetnametoken$.exe"
+                     EntryPoint="$targetentrypoint$">
+            <Extensions>
+                <uap5:Extension Category="windows.startupTask">
+                    <uap5:StartupTask
+                            TaskId="A86EAB47-B1CF-42FC-9DF8-FBBC90C21AA6"
+                            Enabled="true"
+                            DisplayName="Volumey"/>
+                </uap5:Extension>
+            </Extensions>
+            <uap:VisualElements
+                    DisplayName="Volumey"
+                    BackgroundColor="transparent"
+                    Square150x150Logo="Assets\Square150x150Logo.png"
+                    Square44x44Logo="Assets\Square44x44Logo.png" Description="Volumey">
+                <uap:SplashScreen
+                        xmlns:a="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+                        BackgroundColor="transparent"
+                        Image="Assets\SplashScreen.png"
+                        a:Optional="true"/>
+                <uap:DefaultTile Square71x71Logo="Assets\Square71x71Logo.png">
+                    <uap:ShowNameOnTiles>
+                        <uap:ShowOn Tile="square150x150Logo"/>
+                    </uap:ShowNameOnTiles>
+                </uap:DefaultTile>
+            </uap:VisualElements>
+        </Application>
+    </Applications>
+
+    <Capabilities>
+        <rescap:Capability Name="runFullTrust"/>
+    </Capabilities>
+</Package>

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>音量調整ステップ</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>オープンボリュームミキサー（ホットキー）</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>音量を上げる（ホットキー）</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>音量を下げる（ホットキー）</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>ホットキー（起動したアプリが必要です）</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>カラーテーマ</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>雑多</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>サウンドコントロールパネル</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>サウンド設定</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>出口</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>ボリュームミキサー</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>アプリケーション</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>さまざまなホットキーを設定する</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>ホットキーの登録に失敗しました</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>ホットキーの登録に失敗しました</value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value>Volumeyをご利用いただきありがとうございます。 MicrosoftStoreにレビューを残していただけませんか。</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>いいえ</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>アップデートが利用可能です。 アプリを更新しますか？</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>出力デバイスが検出されません</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>F12はオペレーティングシステムによって予約されています</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>ホットキーはすでに追加されています</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>アプリを追加</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>アプリのホットキー</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>出力デバイスの音量を下げる（ホットキー）</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>出力デバイスの音量を制御するためのホットキー</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>出力デバイスの音量を上げる（ホットキー）</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>アプリを削除する</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>100％の場合、起動するアプリのボリュームを制限します</value>
+  </data>
+</root>

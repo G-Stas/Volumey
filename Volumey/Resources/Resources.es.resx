@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Paso de ajuste de volumen</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>Mezclador de volumen abierto (tecla de acceso rápido)</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>Aumentar el volumen (tecla de acceso rápido)</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>Disminuir el volumen (tecla de acceso rápido)</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>Teclas de acceso rápido (se requiere aplicación iniciada)</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Tema de color</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>Misceláneo</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>Idioma</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Panel de control de sonido</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Ajustes de sonido</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Salida</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>Mezclador de volumen</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Configuraciones</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>Aplicación</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>Establecer diferentes teclas de acceso rápido</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>No se pudieron registrar las teclas de acceso rápido</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>No se pudo registrar la tecla de acceso rápido</value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value>Gracias por usar Volumey. ¿Podrías dejar un comentario en Microsoft Store si tienes un minuto libre?</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>Está bien</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>Más tarde</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>Hay disponible una actualización. ¿Quieres actualizar la aplicación?</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>No se detectó ningún dispositivo de salida</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>F12 está reservado por el sistema operativo</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>Ya se ha agregado la tecla de acceso rápido</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>Agregar aplicación</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>Teclas de acceso rápido de aplicaciones</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>Disminuir el volumen del dispositivo de salida (tecla de acceso rápido)</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Teclas de acceso rápido para controlar el volumen del dispositivo de salida</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>Aumentar el volumen del dispositivo de salida (tecla de acceso rápido)</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>Eliminar aplicaciones</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>Limite el volumen de la aplicación iniciada si es del 100%</value>
+  </data>
+</root>

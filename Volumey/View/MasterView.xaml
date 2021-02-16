@@ -1,0 +1,118 @@
+﻿<UserControl x:Class="Volumey.View.MasterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:Volumey.View.Converters"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:lc="clr-namespace:Volumey.Localization"
+             mc:Ignorable="d">
+    
+    <UserControl.DataContext>
+        <StaticResource ResourceKey="DeviceProviderViewModel"/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <converters:NoDeviceToVisibilityConverter x:Key="NoDeviceToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Grid
+        Width="Auto">
+        <TextBlock
+            Text="{lc:Localization Error_NoDevice}"
+            Foreground="{Binding Source={StaticResource ThemeViewModel}, Path=BaseForegroundBrush}"
+            Height="Auto"
+            TextWrapping="Wrap"
+            FontSize="16"
+            Margin="8 2 8 0"
+            Visibility="{Binding DeviceProvider.NoOutputDevices,
+                  Converter={StaticResource NoDeviceToVisibilityConverter},
+                   ConverterParameter=Label}"/>
+        <Grid
+            Width="Auto"
+            Visibility="{Binding DeviceProvider.NoOutputDevices,
+                  Converter={StaticResource NoDeviceToVisibilityConverter},
+                   ConverterParameter=Master}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="NameColumn" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Border BorderThickness="0">
+                <!-- device icon -->
+                <Image
+                    Source="{Binding SelectedDevice.Master.DeviceIcon}"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    VerticalAlignment="Bottom"
+                    Margin="{StaticResource ImageMargin}"
+                    Height="{StaticResource ImageSize}"
+                    Width="{StaticResource ImageSize}" />
+            </Border>
+            <StackPanel Grid.Column="1">
+                <!-- device combo box -->
+                <ComboBox
+                    ItemsSource="{Binding Path=DeviceProvider.ActiveDevices}"
+                    DisplayMemberPath="Name"
+                    SelectedItem="{Binding Path=SelectedDevice}"
+                    Width="Auto"
+                    MaxWidth="250"
+                    HorizontalAlignment="Left"
+                    Margin="0 0 0 5"
+                    BorderThickness="0"
+                    IsSynchronizedWithCurrentItem="False">
+                    <ComboBox.ItemContainerStyle>
+                        <StaticResource ResourceKey="ComboBoxItemStyle" />
+                    </ComboBox.ItemContainerStyle>
+                </ComboBox>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <Slider
+                            Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource SliderAccentStyle}"
+                            Minimum="0"
+                            Maximum="100"
+                            Margin="{StaticResource SliderMargin}"
+                            Width="{StaticResource SliderWidth}"
+                            Height="{StaticResource SliderHeight}"
+                            controls:SliderHelper.EnableMouseWheel="MouseHover"
+                            IsMoveToPointEnabled="True"
+                            AutoToolTipPlacement="BottomRight"
+                            SmallChange="1" />
+                    <Label
+                        Grid.Column="1"
+                        Content="{Binding SelectedDevice.Master.Volume}"
+                        FontSize="{StaticResource VolumeFontSize}"
+                        Width="45"
+                        HorizontalContentAlignment="Center"
+                        Padding="0"
+                        Margin="0 -4 0 0" />
+                    <Button
+                        Grid.Column="2"
+                        HorizontalContentAlignment="Left"
+                        VerticalContentAlignment="Top"
+                        VerticalAlignment="Top"
+                        Style="{DynamicResource MahApps.Styles.Button.Chromeless}"
+                        Command="{Binding SelectedDevice.Master.MuteCommand}"
+                        Margin="{StaticResource MuteButtonMargin}">
+                        <Image Width="{StaticResource MuteIconSize}" Height="{StaticResource MuteIconSize}">
+                            <Image.Source>
+                                <MultiBinding Converter="{StaticResource IconConverter}">
+                                    <Binding Path="SelectedDevice.Master.IsMuted" ConverterParameter="Session"/>
+                                    <Binding Source="{StaticResource ThemeViewModel}" Path="SelectedTheme" ConverterParameter="Session" />
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

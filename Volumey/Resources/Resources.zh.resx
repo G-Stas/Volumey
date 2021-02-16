@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>音量调整步骤</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>打开音量混合器（热键）</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>增大音量（热键）</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>降低音量（热键）</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>热键（需要启动应用程序）</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>颜色主题</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>杂</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>声音控制面板</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>声音设定</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>出口</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>音量混合器</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>设置不同的热键</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>无法注册热键</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>无法注册热键</value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value>感谢您使用Volumey。如果您有空闲时间，可以在Microsoft Store上留下评论吗？</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>好</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>没有</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>后来</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>有可用的更新。 您要更新应用程序吗？</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>未检测到输出设备</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>F12由操作系统保留</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>热键已被添加</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>添加应用</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>应用程序热键</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>减小输出设备的音量（热键）</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>热键控制输出设备的音量</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>增加输出设备的音量（热键）</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>移除应用</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>限制启动的应用程序量（如果为100％）</value>
+  </data>
+</root>

@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Etapa de ajuste de volume</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>Abrir o mixer de volume (tecla de atalho)</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>Aumente o volume (tecla de atalho)</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>Diminuir o volume (tecla de atalho)</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>Teclas de atalho (aplicativo iniciado necessário)</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Tema de cor</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>Diversos</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>Língua</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Painel de controle de som</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Definições de som</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Sair do aplicativo</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>Mixer de volume</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Configurações</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>Aplicação</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>Defina diferentes teclas de atalho</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>Falha ao registrar teclas de atalho</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>Falha ao registrar a tecla de atalho</value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value>Obrigado por usar o Volumey. Você poderia deixar um comentário na Microsoft Store se tiver um minuto livre?</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>Está bem</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>Não</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>Mais tarde</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>Uma atualização está disponível. Você quer atualizar o aplicativo?</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>Nenhum dispositivo de saída detectado</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>F12 é reservado pelo sistema operacional</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>A tecla de atalho já foi adicionada</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>Adicionar aplicativo</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>Teclas de atalho para aplicativos</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>Diminuir o volume do dispositivo de saída (tecla de atalho)</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Teclas de atalho para controlar o volume do dispositivo de saída</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>Aumentar o volume do dispositivo de saída (tecla de atalho)</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>Remover app</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>Limite o volume do aplicativo iniciado se for 100%</value>
+  </data>
+</root>

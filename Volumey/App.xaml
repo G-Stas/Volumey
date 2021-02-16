@@ -1,0 +1,119 @@
+﻿<Application x:Class="Volumey.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Volumey.ViewModel"
+             xmlns:converters="clr-namespace:Volumey.View.Converters"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             StartupUri="View/MainView.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+                <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary
+                    Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+                
+            <vm:DeviceProviderViewModel x:Key="DeviceProviderViewModel" />
+            <vm:ThemeViewModel x:Key="ThemeViewModel"/>
+            <System:Double x:Key="BaseFontSize">12</System:Double>
+            
+            <BitmapImage x:Key="DarkVolume" UriSource="Resources/Icons/Dark/volume.png"/>
+            <BitmapImage x:Key="DarkMute" UriSource="Resources/Icons/Dark/mute.png"/>
+            <BitmapImage x:Key="LightVolume" UriSource="Resources/Icons/Light/volume.png"/>
+            <BitmapImage x:Key="LightMute" UriSource="Resources/Icons/Light/mute.png"/>
+            
+            <BitmapImage x:Key="TrayHigh" UriSource="Resources/Icons/Light/Tray/high.ico"/>
+            <BitmapImage x:Key="TrayMid" UriSource="Resources/Icons/Light/Tray/mid.ico"/>
+            <BitmapImage x:Key="TrayLow" UriSource="Resources/Icons/Light/Tray/low.ico"/>
+            <BitmapImage x:Key="TrayMute" UriSource="/Resources/Icons/Light/Tray/mute.ico"/>
+            <BitmapImage x:Key="TrayNoDevice" UriSource="Resources/Icons/Light/Tray/no-device.ico"/>
+            
+            <BitmapImage x:Key="TrayHighDark" UriSource="Resources/Icons/Dark/Tray/high.ico"/>
+            <BitmapImage x:Key="TrayMidDark" UriSource="Resources/Icons/Dark/Tray/mid.ico"/>
+            <BitmapImage x:Key="TrayLowDark" UriSource="Resources/Icons/Dark/Tray/low.ico"/>
+            <BitmapImage x:Key="TrayMuteDark" UriSource="/Resources/Icons/Dark/Tray/mute.ico"/>
+            <BitmapImage x:Key="TrayNoDeviceDark" UriSource="Resources/Icons/Dark/Tray/no-device.ico"/>
+
+            <converters:MutedIconConverter x:Key="IconConverter"/>
+
+            <Thickness x:Key="ComboBoxPopupBorderThemePadding">0</Thickness>
+
+            <Style x:Key="ComboBoxItemStyle" TargetType="ComboBoxItem"
+                   BasedOn="{StaticResource MahApps.Styles.ComboBoxItem}">
+                <Setter Property="controls:ItemHelper.SelectedBackgroundBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:ItemHelper.HoverSelectedBackgroundBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:ItemHelper.ActiveSelectionBackgroundBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:ItemHelper.HoverBackgroundBrush"
+                        Value="{DynamicResource MahApps.Brushes.Gray}" />
+            </Style>
+
+            <System:Double x:Key="MahApps.Font.Size.Window.Title">15</System:Double>
+            <System:Double x:Key="SliderWidth">210</System:Double>
+            <System:Double x:Key="SliderHeight">24</System:Double>
+            <System:Double x:Key="MuteIconSize">20</System:Double>
+            <System:Double x:Key="MuteButtonWidth">20</System:Double>
+            <System:Double x:Key="VolumeFontSize">17</System:Double>
+            <System:Double x:Key="ImageSize">24</System:Double>
+            <Thickness x:Key="SliderMargin">5, -4, 0, 0</Thickness>
+            <Thickness x:Key="ImageMargin">7, 0, 8, 0</Thickness>
+            <Thickness x:Key="MuteButtonMargin">0 -3 0 0</Thickness> 
+
+            <Style x:Key="SliderAccentStyle" TargetType="Slider" BasedOn="{StaticResource MahApps.Styles.Slider.Win10}">
+                <Setter Property="controls:SliderHelper.ThumbFillBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:SliderHelper.ThumbFillHoverBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=LightAccentBrush}" />
+                <Setter Property="controls:SliderHelper.TrackValueFillBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:SliderHelper.TrackValueFillHoverBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:SliderHelper.TrackFillBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=LightAccentBrush}" />
+                <Setter Property="controls:SliderHelper.TrackFillHoverBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=LightAccentBrush}" />
+                <Setter Property="controls:SliderHelper.TrackValueFillPressedBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+                <Setter Property="controls:SliderHelper.TrackFillPressedBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=LightAccentBrush}" />
+                <Setter Property="controls:SliderHelper.ThumbFillPressedBrush"
+                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=LightAccentBrush}" />
+            </Style>
+            
+            <!--override mahapps properties-->
+            <system:Double x:Key="MahApps.Sizes.ScrollBar.Width">8</system:Double>
+            <system:Double x:Key="MahApps.Sizes.ScrollBar.VerticalRepeatButton.Height">8</system:Double>
+            
+            <ControlTemplate x:Key="ReservedSpaceScroller" TargetType="ContentControl">
+                    <ScrollViewer VerticalScrollBarVisibility="auto"
+                                  x:Name="scroll">
+                            <Grid>
+                                    <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter/>
+                                    <Border Width="{StaticResource MahApps.Sizes.ScrollBar.Width}"
+                                            x:Name="placeholder" Grid.Column="1"/>
+                            </Grid>
+                    </ScrollViewer>
+                    <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=scroll}"
+                                         Value="Visible">
+                                    <Setter TargetName="placeholder"
+                                            Property="Visibility"
+                                            Value="Collapsed" />
+                            </DataTrigger>
+                    </ControlTemplate.Triggers>
+            </ControlTemplate>
+
+            <Thickness x:Key="ExpanderHeaderThemePadding">1</Thickness>
+            <Thickness x:Key="GroupBoxHeaderThemePadding">3</Thickness>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

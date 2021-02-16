@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>Application</value>
+  </data>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Volume adjustment step</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>Open volume mixer (hotkey)</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>Increase volume (hotkey)</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>Decrease volume (hotkey)</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>Hotkeys (launched app required)</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>Misc</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Sound control panel</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Sound settings</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>Volume mixer</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>Set different hotkeys</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>Failed to register hotkeys</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>Failed to register hotkey</value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value>Thank you for using Volumey. Could you leave a review in the Microsoft Store if you have a spare minute?</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>An update is available. Do you want to update the app?</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>No output device detected</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>F12 is reserved by the OS</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>Hotkey has already been added</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Hotkeys to control the output device volume</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>Increase volume of the output device (hotkey)</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>Decrease volume of the output device (hotkey)</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>Add app</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>Remove app</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>Limit the launched app volume if it is 100%</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>Hotkeys for apps</value>
+  </data>
+</root>

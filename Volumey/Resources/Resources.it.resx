@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Fase di regolazione del volume</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>Apri mixer volume (tasto di scelta rapida)</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>Aumenta il volume (tasto di scelta rapida)</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>Volume giù (tasto di scelta rapida)</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>Tasti di scelta rapida (app avviata richiesta)</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Tema di colore</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>Miscellaneo</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>Linguaggio</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Pannello di controllo del suono</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Impostazioni audio</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Uscita</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>Il mixer del volume</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Impostazioni</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>Applicazione</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>Imposta diversi tasti di scelta rapida</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>Impossibile registrare i tasti di scelta rapida</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>Impossibile registrare il tasto di scelta rapida</value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value>Grazie per aver utilizzato Volumey. Potresti lasciare una recensione su Microsoft Store se hai un minuto libero?</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>Va bene</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>Più tardi</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>È disponibile un aggiornamento. Vuoi aggiornare l'app?</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>Nessun dispositivo di output rilevato</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>F12 è riservato dal sistema operativo</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>Hotkey è già stato aggiunto</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>Aggiungi app</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>Tasti di scelta rapida per le app</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>Diminuisci il volume del dispositivo di output (tasto di scelta rapida)</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Tasti di scelta rapida per controllare il volume del dispositivo di output</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>Aumenta il volume del dispositivo di output (tasto di scelta rapida)</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>Rimuovi l'app</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>Limita il volume dell'app avviata se è del 100%</value>
+  </data>
+</root>

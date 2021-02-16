@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true"></xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="NotificationMessage_Review" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value />
+  </data>
+</root>

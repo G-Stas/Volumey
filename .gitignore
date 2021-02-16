@@ -1,0 +1,12 @@
+.idea/
+.vs/
+*.DotSettings
+Volumey/bin/
+Volumey/obj/
+Volumey.Tests/bin/
+Volumey.Tests/obj/
+Volumey.Package/bin/
+Volumey.Package/obj/
+Volumey.Package/AppPackages/
+Volumey.Package/Volumey.Package.wapproj.user
+Volumey.Package/BundleArtifacts/
