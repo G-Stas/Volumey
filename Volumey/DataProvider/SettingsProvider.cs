@@ -70,7 +70,7 @@ namespace Volumey.DataProvider
                 Logger.Error("Failed to create settings directory", e);
             }
 
-            using(var stream = new MemoryStream())
+            await using(var stream = new MemoryStream())
             {
                 try
                 {
