@@ -1,10 +1,11 @@
 ﻿using System.Windows.Media.Imaging;
+using log4net;
 
 namespace Volumey.View.Converters
 {
 	public partial class TrayIconConverter
 	{
-		private class LightIconProvider : TrayIconProvider
+		internal class LightIconProvider : TrayIconProvider
 		{
 			private BitmapImage trayHigh;
 			protected override BitmapImage High => trayHigh ??= App.Current.FindResource("TrayHigh") as BitmapImage;
@@ -20,6 +21,9 @@ namespace Volumey.View.Converters
 
 			private BitmapImage trayNoDevice;
 			protected override BitmapImage NoDevice => trayNoDevice ??= App.Current.FindResource("TrayNoDevice") as BitmapImage;
+			
+			private ILog _logger;
+			protected override ILog Logger => _logger ??= LogManager.GetLogger(typeof(LightIconProvider));
 		}
 	}
 
