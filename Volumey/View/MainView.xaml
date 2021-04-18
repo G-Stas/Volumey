@@ -104,7 +104,8 @@
                           Command="{Binding TrayExitCommand}" />
             </ContextMenu>
 
-            <converters:TrayTooltipConverter x:Key="TrayTooltipConverter" />
+            <converters:TrayTooltipDeviceNameConverter x:Key="TooltipDeviceNameConverter"/>
+            <converters:TrayTooltipDeviceVolumeConverter x:Key="TooltipDeviceVolumeConverter"/>
             <converters:TrayIconConverter x:Key="TrayIconConverter"/>
         </ResourceDictionary>
     </controls:MetroWindow.Resources>
@@ -131,21 +132,38 @@
                     BorderBrush="Gray"
                     BorderThickness="1"
                     Background="{Binding Source={StaticResource ThemeViewModel}, Path=BaseBackgroundBrush}">
-                    <TextBlock
-                        Background="{Binding Source={StaticResource ThemeViewModel}, Path=BaseBackgroundBrush}"
-                        Foreground="{Binding Source={StaticResource ThemeViewModel}, Path=BaseForegroundBrush}">
-                        <TextBlock.Text>
-                            <MultiBinding
-                                Converter="{StaticResource TrayTooltipConverter}">
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DefaultDevice.Master.DeviceFriendlyName" />
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DefaultDevice.Master.Volume" />
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DeviceProvider.NoOutputDevices" />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            Name="Device"
+                            Background="{Binding Source={StaticResource ThemeViewModel}, Path=BaseBackgroundBrush}"
+                            Foreground="{Binding Source={StaticResource ThemeViewModel}, Path=BaseForegroundBrush}">
+                            <TextBlock.Text>
+                                <MultiBinding
+                                    Converter="{StaticResource TooltipDeviceNameConverter}">
+                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                             Path="DeviceProvider.NoOutputDevices" />
+                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                             Path="DefaultDevice.Master.DeviceFriendlyName" />
+                                    <Binding Source="{x:Static lc:TranslationSource.Instance}"
+                                             Path="CurrentCulture" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock
+                            Name="Volume"
+                            Background="{Binding Source={StaticResource ThemeViewModel}, Path=BaseBackgroundBrush}"
+                            Foreground="{Binding Source={StaticResource ThemeViewModel}, Path=BaseForegroundBrush}">
+                            <TextBlock.Text>
+                                <MultiBinding
+                                    Converter="{StaticResource TooltipDeviceVolumeConverter}">
+                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                             Path="DeviceProvider.NoOutputDevices" />
+                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                             Path="DefaultDevice.Master.Volume" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
                 </ToolTip>
             </tb:TaskbarIcon.TrayToolTip>
         </tb:TaskbarIcon>
