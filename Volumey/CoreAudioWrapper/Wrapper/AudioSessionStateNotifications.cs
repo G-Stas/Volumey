@@ -16,14 +16,14 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public event Action<VolumeChangedEventArgs> VolumeChanged;
         public event Action<ImageSource> IconPathChanged;
         public event Action<string> NameChanged;
-
-        private int prevVolumeValue = -1;
-        private bool prevMuteState;
-
         private readonly IAudioSessionControl2 sessionControl;
+        private readonly ISimpleAudioVolume sVolume;
 
         public AudioSessionStateNotifications(IAudioSessionControl2 sControl)
-            => this.sessionControl = sControl;
+        {
+            this.sessionControl = sControl;
+            this.sVolume = (ISimpleAudioVolume)sControl;
+        }
 
         public int OnChannelVolumeChanged(uint channelCount, float[] channelVolumes, int changedChannel,
             ref Guid eventContext) => 0;
@@ -78,15 +78,15 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             //don't fire event if callback was called because of changes of volume inside the app
             if(eventContext.Equals(GuidValue.Internal.VolumeGUID))
                 return 0;
-
+            
             int newVolumeValue = Convert.ToInt32(newVolume * 100);
-            if(prevVolumeValue != newVolumeValue || prevMuteState != newMuteState)
-            {
-                prevVolumeValue = newVolumeValue;
-                prevMuteState = newMuteState;
-                this.VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, newMuteState));
-            }
 
+            //prevent invoking event if new volume value is not the same as the actual session volume value
+            this.sVolume.GetMasterVolume(out float volume);
+            var actualVolumeValue = Convert.ToInt32(volume * 100);
+            if(newVolumeValue != actualVolumeValue)
+                return 0;
+            this.VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, newMuteState));
             return 0;
         }
 

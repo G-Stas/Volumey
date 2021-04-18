@@ -11,10 +11,6 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
     {
         public event Action<VolumeChangedEventArgs> VolumeChanged;
-
-        private int prevVolume = -1;
-        private bool prevMuteState;
-        
         private IAudioEndpointVolume endpointVolume;
 
         public MasterVolumeNotificationHandler(IAudioEndpointVolume eVolume)
@@ -38,15 +34,14 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             if(data.guidEventContext.Equals(GuidValue.Internal.VolumeGUID))
                 return 0;
             
-            int newVolume = Convert.ToInt32(data.masterVolume * 100);
+			int newVolumeValue = Convert.ToInt32(data.masterVolume * 100);
             
-            if(prevVolume != newVolume || prevMuteState != data.isMuted)
-            {
-                prevVolume = newVolume;
-                prevMuteState = data.isMuted;
-                this.VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolume, data.isMuted));
-            }
-            
+            //prevent invoking event if new volume value is not the same as the actual device volume value
+            this.endpointVolume.GetMasterVolumeLevelScalar(out float volumeLevel);
+            var actualVolumeValue = Convert.ToInt32(volumeLevel * 100);
+            if(newVolumeValue != actualVolumeValue)
+			    return 0;
+            this.VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, data.isMuted));
             Marshal.DestroyStructure<AUDIO_VOLUME_NOTIFICATION_DATA>(notifyData);
             return 0;
         }

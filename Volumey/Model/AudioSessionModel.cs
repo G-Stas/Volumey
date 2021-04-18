@@ -167,10 +167,8 @@ namespace Volumey.Model
 
         private void OnVolumeChanged(VolumeChangedEventArgs e)
         {
-            if(this.Volume != e.NewVolume)
-                this.Volume = e.NewVolume;
-            if(this.IsMuted != e.IsMuted)
-                this.IsMuted = e.IsMuted;
+            this.Volume = e.NewVolume;
+            this.IsMuted = e.IsMuted;
         }
 
         private void OnIconChanged(ImageSource newIcon) 
