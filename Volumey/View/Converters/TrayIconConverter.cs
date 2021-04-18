@@ -15,22 +15,33 @@ namespace Volumey.View.Converters
 		{
 			if(values != null && values[3] is AppTheme theme)
 			{
+				bool newIconProvider = false;
 				if(theme is AppTheme.Dark)
 				{
 					if(!(currentIconProvider is LightIconProvider))
+					{
 						currentIconProvider = new LightIconProvider();
+						newIconProvider = true;
+					}
 				}
 				else
 				{
 					if(!(currentIconProvider is DarkIconProvider))
+					{
 						currentIconProvider = new DarkIconProvider();
+						newIconProvider = true;
+					}
 				}
-				return this.GetIcon(values);
+				return this.GetIcon(values, newIconProvider);
 			}
 			return Binding.DoNothing;
 		}
 
-		private object GetIcon(object[] values)
+		/// <summary></summary>
+		/// <param name="values"></param>
+		/// <param name="newIconProvider">Flag used to indicate that the color of the current icon has to change</param>
+		/// <returns></returns>
+		private object GetIcon(object[] values, bool newIconProvider)
 		{
 			var type = IconType.None;
 			if(values[0] is true) //NoOutputDevices
@@ -42,8 +53,9 @@ namespace Volumey.View.Converters
 				else if(values[1] is int newVolume)
 					type = newVolume > 65 ? IconType.High : (newVolume < 35) ? IconType.Low : IconType.Mid;
 			}
-			if(this.currentIconType == type || type == IconType.None) return Binding.DoNothing;
-			this.currentIconType = type;
+			if((this.currentIconType == type || type == IconType.None) && !newIconProvider) 
+				return Binding.DoNothing;
+			this.currentIconType =  type;
 			return this.currentIconProvider.GetIcon(type);
 		}
 
