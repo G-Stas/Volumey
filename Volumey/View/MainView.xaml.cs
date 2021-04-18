@@ -23,6 +23,7 @@ namespace Volumey.View
 
         private const int WM_EXITSIZEMOVE = 0x0232;
         private const int SC_MOVE = 0xF010;
+        private const int SC_SIZE = 0xF000;
         private const int WM_INITMENU = 0x0116;
         private const int SC_MAXIMIZE = 0xF030;
         private const int SC_MINIMIZE = 0xF020;
@@ -103,7 +104,11 @@ namespace Volumey.View
             {
 	            if(this.IsLoaded)
 	            {
+		            //resize window to fit its content before displaying it
 		            this.SizeToContent = SizeToContent.Height;
+		            
+		            //limit maxheight to 65% of the main desktop's height
+		            this.MaxHeight = SystemParameters.WorkArea.Height * 0.65;
 				
 		            //update layout before setting windows position to use actual height of the window when calculating its position
 		            this.UpdateLayout(); 
@@ -151,12 +156,19 @@ namespace Volumey.View
         {
 	        switch(msg)
 	        {
-		        //Catch a moment when window is starting to move
-		        //to set ResizeMode.NoRisize to prevent snapping window to edges
 		        case WM_SYSCOMMAND:
 		        {
-			        if((wParam.ToInt32() & SC_MOVE) == SC_MOVE && ResizeMode != ResizeMode.NoResize)
+			        //Catch a moment when window is starting to move
+			        //to set ResizeMode.NoRisize to prevent snapping window to edges
+			        var wPar = wParam.ToInt32();
+			        if((wPar & SC_MOVE) == SC_MOVE && ResizeMode != ResizeMode.NoResize)
 				        ResizeMode = ResizeMode.NoResize;
+			        
+			        //the window's MaxHeight is limited for auto-resize.
+			        //but it will reset its MaxHeight when manual resizing starts (which is indicated by the SC_SIZE parameter)
+			        //because the user should be able to resize the window to any height.
+			        else if((wPar & SC_SIZE) == SC_SIZE && !double.IsPositiveInfinity(this.MaxHeight))
+				        this.MaxHeight = double.PositiveInfinity;
 			        break;
 		        }
 				
