@@ -30,7 +30,7 @@ It's built via `WPF` and uses `Core Audio APIs` to control audio devices and ses
 
 ## Built With
 - [MahApps.Metro](https://github.com/MahApps/MahApps.Metro) ❤
-- [NotifyIcon](https://github.com/HavenDV/H.NotifyIcon.WPF)
+- [NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)
 
 ## Copyright
 Volumey is provided under the [MIT license](https://github.com/G-Stas/Volumey/blob/main/LICENSE)
