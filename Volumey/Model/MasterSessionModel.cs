@@ -123,10 +123,7 @@ namespace Volumey.Model
                     return true;
                 }
             }
-            catch(Exception e)
-            {
-                Logger.Error("Failed to register device hotkeys", e);
-            }
+            catch { }
             return false;
         }
 

@@ -121,10 +121,7 @@ namespace Volumey.Model
                     return true;
                 }
             }
-            catch(Exception e)
-            {
-                Logger.Error($"Failed to register app hotkeys [{this.volumeUp}] - [{this.volumeDown}]", e);
-            }
+            catch { }
             return false; 
         }
 
@@ -141,10 +138,7 @@ namespace Volumey.Model
                 {
                     HotkeysControl.UnregisterVolumeHotkeys(this.volumeUp, this.volumeDown);
                 }
-                catch(Exception e)
-                {
-                    Logger.Error($"Failed to unregister hotkeys [{this.volumeUp}] - [{this.volumeDown}]", e);
-                }
+                catch { }
             }
             HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
             this.volumeUp = this.volumeDown = null;

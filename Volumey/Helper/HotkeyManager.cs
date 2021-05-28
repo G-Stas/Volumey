@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -55,8 +56,9 @@ namespace Volumey.Helper
 					keyId++;
 					return;
 				}
-				var errCode = Marshal.GetLastWin32Error();
-				Logger.Error($"Failed to register hotkey: [{hotkey}], id: [{id.ToString()}], error code: [{errCode.ToString()}]");
+				var error = Marshal.GetLastWin32Error();
+				Logger.Error($"Failed to register hotkey: [{hotkey}], id: [{id.ToString()}], error code: [{error.ToString()}]");
+				throw new Win32Exception(error);
 			}
 		}
 
