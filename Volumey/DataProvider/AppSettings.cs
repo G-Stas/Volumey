@@ -93,6 +93,9 @@ namespace Volumey.DataProvider
 			get => launchCount;
 			set => launchCount = value;
 		}
+
+		internal bool HotkeyExists(HotKey key) => this.hotkeysSettings.HotkeyExists(key);
+		internal bool HotkeysExist(HotKey key, HotKey key2) => this.hotkeysSettings.HotkeysExist(key, key2);
 		
 		[Serializable]
 		public class HotkeysAppSettings
@@ -198,6 +201,40 @@ namespace Volumey.DataProvider
 					dictionary.Add(key, new Tuple<HotKey, HotKey>(up.ToHotKey(), down.ToHotKey()));
 				}
 				return dictionary;
+			}
+			
+			internal bool HotkeyExists(HotKey key)
+			{
+				if(DeviceVolumeUp is HotKey up && key.Equals(up))
+					return true;
+				if(DeviceVolumeDown is HotKey down && key.Equals(down))
+					return true;
+				if(OpenMixer is HotKey open && key.Equals(open))
+					return true;
+				foreach(var session in this.serializableRegisteredSessions)
+				{
+					if(session.Value.up.ToHotKey().Equals(key) || session.Value.down.ToHotKey().Equals(key))
+						return true;
+				}
+				return false;
+			}
+			
+			internal bool HotkeysExist(HotKey key, HotKey key2)
+			{
+				if(DeviceVolumeUp is HotKey volUp && (key.Equals(volUp) || key2.Equals(volUp)))
+					return true;
+				if(DeviceVolumeDown is HotKey volDown && (key.Equals(volDown) || key2.Equals(volDown)))
+					return true;
+				if(OpenMixer is HotKey open && (key.Equals(open) || key2.Equals(open)))
+					return true;
+				foreach(var (_, hotkeys) in this.serializableRegisteredSessions)
+				{
+					var up = hotkeys.up.ToHotKey();
+					var down = hotkeys.down.ToHotKey();
+					if(up.Equals(key) || up.Equals(key2) || down.Equals(key) || down.Equals(key2))
+						return true;
+				}
+				return false;
 			}
 
 			internal void AddRegisteredSession(string sessionName, Tuple<HotKey, HotKey> hotkeys)

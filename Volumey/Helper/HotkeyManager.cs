@@ -83,7 +83,7 @@ namespace Volumey.Helper
 			}
 		}
 
-		internal List<HotKey> GetRegisteredHotkeys() => this.RegisteredHotkeys.Keys.ToList();
+		internal int RegisteredHotkeysCount => this.RegisteredHotkeys.Count;
 
 		private bool RegisterHotkey(int modifierKeys, uint virtualKey)
 		{

@@ -2,6 +2,7 @@
 using System.Windows.Input;
 using MahApps.Metro.Controls;
 using Volumey.Helper;
+using Volumey.DataProvider;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -51,7 +52,6 @@ namespace Volumey.ViewModel.Settings
 				hotkeyManager.UnregisterHotkey(volDown);
 				throw;
 			}
-			return false;
 		}
 
 		public static void UnregisterVolumeHotkeys(HotKey volUp, HotKey volDown)
@@ -62,7 +62,7 @@ namespace Volumey.ViewModel.Settings
 			{
 				hotkeyManager.UnregisterHotkey(volUp);
 				hotkeyManager.UnregisterHotkey(volDown);
-				if(hotkeyManager.GetRegisteredHotkeys().Count == 0)
+				if(hotkeyManager.RegisteredHotkeysCount == 0)
 					VolumeHotkeysState = HotkeysState.NotRegistered;
 			}
 			catch { }
@@ -109,11 +109,8 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.OpenReg;
 			if(hotkey.ModifierKeys == ModifierKeys.None && hotkey.Key == Key.F12)
 				return ErrorMessageType.F12;
-			foreach(var hk in hotkeyManager.GetRegisteredHotkeys())
-			{
-				if(hk.Equals(hotkey))
-					return ErrorMessageType.HotkeyExists;
-			}
+			if(SettingsProvider.Settings.HotkeyExists(hotkey))
+				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
 
@@ -132,11 +129,8 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.F12;
 			if(up.Equals(down))
 				return ErrorMessageType.Diff;
-			foreach(var hk in hotkeyManager.GetRegisteredHotkeys())
-			{
-				if(hk.Equals(up) || hk.Equals(down))
-					return ErrorMessageType.HotkeyExists;
-			}
+			if(SettingsProvider.Settings.HotkeysExist(up, down))
+				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
 
