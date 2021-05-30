@@ -267,36 +267,29 @@ namespace Volumey.View
 		        AnimateHide = false,
 		        OwnerCanCloseWithDialog = false,
 	        };
-
-	        try
+	        var dialog = new CustomDialog(settings) { Background = Brushes.Transparent, Content = content };
+	        content.DialogResult += OnDialogResult;
+	        await this.ShowMetroDialogAsync(dialog).ContinueWith(t =>
 	        {
-		        var dialog = new CustomDialog(settings) { Background = Brushes.Transparent, Content = content };
-		        content.DialogResult += OnDialogResult;
-		        await this.ShowMetroDialogAsync(dialog).ConfigureAwait(false);
-		        NativeMethods.FlashWindow(this.Hwnd);
-	        }
-	        catch(Exception e)
-	        {
-		        Logger.Error("Failed to display custom dialog", e);
-	        }
+		        if(t.IsFaulted)
+			        Logger.Error("Failed to display custom dialog", t.Exception?.Flatten());
+	        }).ConfigureAwait(false);
+	        NativeMethods.FlashWindow(this.Hwnd);
         }
-        
+
         private async void OnDialogResult(DialogContent.DialogContent sender)
         {
 	        sender.DialogResult -= OnDialogResult;
-	        try
+	        if(sender.ParentDialog != null)
 	        {
-		        if(sender.ParentDialog != null)
+		        await App.Current.Dispatcher.InvokeAsync(async () =>
 		        {
-			        await App.Current.Dispatcher.InvokeAsync(async () =>
-			        {
-				        await this.HideMetroDialogAsync(sender.ParentDialog).ConfigureAwait(false);
-			        });
-		        }
-	        }
-	        catch(Exception e)
-	        {
-		        Logger.Error("Failed to hide custom dialog", e);
+			        await this.HideMetroDialogAsync(sender.ParentDialog);
+		        }).Task.ContinueWith(t =>
+		        {
+			        if(t.IsFaulted)
+				        Logger.Error("Failed to hide custom dialog", t.Exception?.Flatten());
+		        }).ConfigureAwait(false);
 	        }
         }
         
