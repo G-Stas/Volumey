@@ -7,7 +7,7 @@ namespace Volumey.View.Converters
 {
 	public partial class TrayIconConverter : IMultiValueConverter
 	{
-		private enum IconType { High, Mid, Low, Mute, NoDevice, None}
+		internal enum IconType { High, Mid, Low, Mute, NoDevice, None }
 		private IconType currentIconType = IconType.None;
 		private TrayIconProvider currentIconProvider;
 		
