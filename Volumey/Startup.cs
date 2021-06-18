@@ -25,6 +25,7 @@ namespace Volumey
 		{
 			if(mutex.WaitOne(TimeSpan.Zero, true))
 			{
+				App.InitializeExecutionTimer();
 				InitializeLoggerConfig();
 
 				try
