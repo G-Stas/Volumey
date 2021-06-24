@@ -21,17 +21,6 @@ namespace Volumey.ViewModel
 		public ICommand SoundControlPanelCommand { get; }
 		public ICommand SoundSettingsCommand { get; }
 		
-		private int selectedTabIndex;
-		public int SelectedTabIndex
-		{
-			get => selectedTabIndex;
-			set
-			{
-				selectedTabIndex = value;
-				OnPropertyChanged();
-			}
-		}
-		
 		private bool windowIsVisible;
 		public bool WindowIsVisible
 		{
@@ -43,15 +32,15 @@ namespace Volumey.ViewModel
 			}
 		}
 
-        public event Action OpenCommandEvent;
+        public event Action<bool, bool> OpenCommandEvent;
 
 		public MainViewModel()
 		{
 			this.WindowIsVisible = !Startup.StartMinimized;
 			this.ClosingCommand = new ActionCommand(OnWindowClosing);
-			this.TrayMixerCommand = new ActionCommand(() => OpenCommand(tabIndex: 0));
-			this.TraySettingsCommand = new ActionCommand(() => OpenCommand(tabIndex: 1));
-			this.TrayClickCommand = new ActionCommand(() => OpenCommand(tabIndex: this.SelectedTabIndex));
+			this.TrayMixerCommand = new ActionCommand(() => OpenCommand(false));
+			this.TraySettingsCommand = new ActionCommand(() => OpenCommand(true));
+			this.TrayClickCommand = new ActionCommand(() => OpenCommand(false));
 			this.TrayExitCommand = new ActionCommand(OnExit);
 			this.SoundControlPanelCommand = new ActionCommand(SystemSoundUtilities.StartSoundControlPanel);
 			this.SoundSettingsCommand = new ActionCommand(SystemSoundUtilities.StartSoundSettings);
@@ -69,20 +58,14 @@ namespace Volumey.ViewModel
 			App.Current.Shutdown();
 		}
 
-		private void OpenCommand(int tabIndex)
+		private void OpenCommand(bool isSettingsPage)
 		{
-			if (this.SelectedTabIndex != tabIndex)
-				this.SelectedTabIndex = tabIndex;
-
+			//bring the window to the foreground and change page
+			this.OpenCommandEvent?.Invoke(isSettingsPage, WindowIsVisible);
 			if (!WindowIsVisible)
 				WindowIsVisible = true;
-			else
-			{
-				//bring the window to the foreground if it's already visible 
-				this.OpenCommandEvent?.Invoke();
-			}
 		}
-		
+
 		private void OnThreadFilterMessage(ref MSG msg, ref bool handled)
 		{
 			//"The operating system communicates with your application window by passing messages to it.
@@ -94,12 +77,12 @@ namespace Volumey.ViewModel
 			//if it was minimized to tray
 
 			if(msg.message == Startup.WM_SHOWME)
-				this.OpenCommand(this.SelectedTabIndex);
+				this.OpenCommand(false);
 		}
 		
 		private void OnOpenHotkeyPressed()
 		{
-			this.OpenCommand(0);
+			this.OpenCommand(false);
 		}
 		
 		private void OnWindowClosing(object e)

@@ -3,10 +3,9 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Volumey.Helper;
 using Volumey.Localization;
 using log4net;
-using MahApps.Metro.Controls;
+using Volumey.Controls;
 
 namespace Volumey.DataProvider
 {
@@ -51,7 +50,7 @@ namespace Volumey.DataProvider
             //write default values to file on first launch or if config file doesn't exist or deserialization failed
             Settings = new AppSettings
             {
-                CurrentAppTheme = SystemColorHelper.WindowsTheme,
+                CurrentAppTheme = AppTheme.System,
                 FirstLaunchDate = DateTime.Today
             };
             Settings.AppLanguage = TranslationSource.GetSystemLanguage();

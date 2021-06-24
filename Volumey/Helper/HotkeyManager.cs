@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Input;
 using log4net;
-using MahApps.Metro.Controls;
+using Volumey.Controls;
 
 namespace Volumey.Helper
 {

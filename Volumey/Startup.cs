@@ -67,9 +67,14 @@ namespace Volumey
 				                          IntPtr.Zero);
 			}
 		}
+		
+		#if(DEBUG)
+		private const string PathToDebugLogConfig = @"";
+		#endif
 
 		private static void InitializeLoggerConfig()
 		{
+			#if(!DEBUG)
 			try
 			{
 				var assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -78,7 +83,6 @@ namespace Volumey
 				{
 					var file = new FileInfo(Path.Combine(assembly, "log4net.config"));
 					XmlConfigurator.Configure(repo, file);
-					#if(!DEBUG)
 					try
 					{
 						PackageVersion ver = Package.Current?.Id?.Version ?? new PackageVersion();
@@ -86,10 +90,19 @@ namespace Volumey
 							$"[ver.: {ver.Major.ToString()}.{ver.Minor.ToString()}.{ver.Build.ToString()}.{ver.Revision.ToString()}]";
 					}
 					catch { }
-					#endif
 				}
 			}
 			catch { }
+			#endif
+			
+			#if(DEBUG)
+			if(!string.IsNullOrEmpty(PathToDebugLogConfig))
+			{
+				var file = new FileInfo(PathToDebugLogConfig);
+				var repo = LogManager.GetRepository(Assembly.GetExecutingAssembly());
+				XmlConfigurator.Configure(repo, file);
+			}
+			#endif
 		}
 	}
 }

@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Threading;
-using MahApps.Metro.Controls;
+using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
 
 namespace Volumey.Model

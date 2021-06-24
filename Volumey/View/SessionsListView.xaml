@@ -4,97 +4,91 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:controls1="http://schemas.modernwpf.com/2019"
+             xmlns:controls="clr-namespace:Volumey.Controls"
              DataContext="{StaticResource DeviceProviderViewModel}">
-    <Grid
+
+    <ItemsControl
+        ItemsSource="{Binding SelectedDevice.Sessions}"
         Width="Auto"
-        Margin="0 0 0 8">
-        <ItemsControl
-            ItemsSource="{Binding SelectedDevice.Sessions}"
-            Width="Auto">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid Width="Auto"
-                          Margin="0 0 -3 0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" SharedSizeGroup="NameColumn" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+        Margin="0 0 0 10">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate>
+                <Grid
+                    Width="Auto"
+                    Margin="0 -4 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
 
-                        <Border BorderThickness="0 20 0 0">
-                            <Image Source="{Binding AppIcon}"
-                                   RenderOptions.BitmapScalingMode="HighQuality"
-                                   VerticalAlignment="Bottom"
-                                   Margin="{StaticResource ImageMargin}"
-                                   Height="{StaticResource ImageSize}"
-                                   Width="{StaticResource ImageSize}" />
-                        </Border>
-
-                        <StackPanel
-                            Grid.Column="1"
-                            Orientation="Vertical"
-                            HorizontalAlignment="Center"
-                            Margin="0, 0, 0, -10">
-                            <Label
-                                Content="{Binding Name}"
-                                FontSize="{StaticResource BaseFontSize}"
-                                Width="{StaticResource SliderWidth}"
-                                Height="Auto"
-                                HorizontalAlignment="Left"
-                                VerticalContentAlignment="Bottom"
-                                VerticalAlignment="Bottom" />
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition />
-                                    <ColumnDefinition />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-
-                                <Slider x:Name="SessionSlider"
-                                        Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                                        controls:SliderHelper.EnableMouseWheel="MouseHover"
-                                        Style="{StaticResource SliderAccentStyle}"
-                                        Minimum="0"
-                                        Maximum="100"
-                                        Margin="{StaticResource SliderMargin}"
-                                        Width="{StaticResource SliderWidth}"
-                                        Height="{StaticResource SliderHeight}"
-                                        IsMoveToPointEnabled="True"
-                                        AutoToolTipPlacement="BottomRight"
-                                        SmallChange="1" />
-                                <Label
-                                    Grid.Column="1"
-                                    Content="{Binding Volume}"
-                                    FontSize="{StaticResource VolumeFontSize}"
-                                    Width="45"
-                                    HorizontalContentAlignment="Center"
-                                    Padding="0"
-                                    Margin="0 -4 0 0" />
-                                <Button
-                                    Grid.Column="2"
-                                    Height="Auto"
-                                    HorizontalContentAlignment="Left"
-                                    VerticalContentAlignment="Top"
-                                    VerticalAlignment="Top"
-                                    Command="{Binding MuteCommand}"
-                                    Margin="{StaticResource MuteButtonMargin}"
-                                    Style="{StaticResource MahApps.Styles.Button.Chromeless}">
-                                    <Image Width="{StaticResource MuteIconSize}" Height="{StaticResource MuteIconSize}">
-                                        <Image.Source>
-                                            <MultiBinding Converter="{StaticResource IconConverter}">
-                                                <Binding Path="IsMuted" ConverterParameter="Session"/>
-                                                <Binding Source="{StaticResource ThemeViewModel}" Path="SelectedTheme" ConverterParameter="Session" />
-                                            </MultiBinding>
-                                        </Image.Source>
-                                    </Image>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </Grid>
+                    <Label
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Content="{Binding Name}"
+                        Width="{StaticResource SliderWidth}"
+                        Height="Auto"
+                        HorizontalAlignment="Left"
+                        VerticalContentAlignment="Bottom"
+                        VerticalAlignment="Bottom"
+                        Margin="7 0 0 -2" />
+                    <Image
+                        Grid.Column="0"
+                        Grid.Row="1"
+                        Source="{Binding AppIcon}"
+                        RenderOptions.BitmapScalingMode="HighQuality"
+                        VerticalAlignment="Center"
+                        Margin="{StaticResource ImageMargin}"
+                        Height="{StaticResource ImageSize}"
+                        Width="{StaticResource ImageSize}" />
+                    <Slider
+                        Grid.Column="1"
+                        Grid.Row="1"
+                        x:Name="SessionSlider"
+                        Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                        Minimum="0"
+                        Maximum="100"
+                        Width="{StaticResource SliderWidth}"
+                        Height="{StaticResource SliderHeight}"
+                        IsMoveToPointEnabled="True"
+                        AutoToolTipPlacement="TopLeft"
+                        controls:SliderHelper.EnableMouseWheel="MouseHover"
+                        SmallChange="1"
+                        Margin="2 0 0 0"
+                        VerticalAlignment="Center"/>
+                    <Label
+                        Grid.Column="2"
+                        Grid.Row="1"
+                        Content="{Binding Volume}"
+                        Width="45"
+                        HorizontalContentAlignment="Center"
+                        VerticalAlignment="Center"
+                        Margin="0 -1 0 0"/>
+                    <controls1:AppBarButton
+                        Grid.Column="3"
+                        Grid.Row="1"
+                        Command="{Binding MuteCommand}"
+                        Background="Transparent"
+                        Width="35"
+                        Height="40"
+                        Margin="-7 -8 0 0">
+                        <controls1:AppBarButton.RenderTransform>
+                            <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+                        </controls1:AppBarButton.RenderTransform>
+                        <controls1:AppBarButton.Icon>
+                            <controls1:FontIcon
+                                FontFamily="Segoe MDL2 Assets"
+                                Glyph="{Binding IsMuted, Converter={StaticResource MutedToGlyphConverter}}" />
+                        </controls1:AppBarButton.Icon>
+                    </controls1:AppBarButton>
+                </Grid>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
 </UserControl>

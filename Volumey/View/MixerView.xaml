@@ -1,0 +1,29 @@
+﻿<ui:Page x:Class="Volumey.View.MixerView"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+         xmlns:ui="http://schemas.modernwpf.com/2019"
+         xmlns:view="clr-namespace:Volumey.View"
+         mc:Ignorable="d">
+    <Grid Margin="3 3 0 0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <view:MasterView />
+
+        <Separator
+            Grid.Row="1"
+            VerticalAlignment="Top"
+            Margin="20 10 20 10" />
+
+        <ScrollViewer
+            Grid.Row="2">
+            <view:SessionsListView />
+        </ScrollViewer>
+
+    </Grid>
+</ui:Page>

@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
-using System.Windows.Input;
 using log4net;
-using MahApps.Metro.Controls;
-using Microsoft.Xaml.Behaviors.Core;
+using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.Model;
 
@@ -34,19 +32,29 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private bool hotkeysAreRegistered;
-		public bool HotkeysAreRegistered
+		private bool isOn;
+
+		public bool IsOn
 		{
-			get => hotkeysAreRegistered;
+			get => this.isOn;
 			set
 			{
-				hotkeysAreRegistered = value;
+				if(value)
+				{
+					if(!this.hotkeysRegistered)
+						this.isOn = this.hotkeysRegistered = SaveHotkeys();
+				}
+				else if(this.hotkeysRegistered)
+				{
+					ResetHotkeys();
+					this.isOn = this.hotkeysRegistered = false;
+				}
 				OnPropertyChanged();
 			}
 		}
 
-		public ICommand ToggleDeviceHotkeysCommand { get; }
-		
+		private bool hotkeysRegistered;
+
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceHotkeysViewModel));
 
@@ -55,7 +63,6 @@ namespace Volumey.ViewModel.Settings
 			var deviceProvider = DeviceProvider.GetInstance();
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.defaultDevice = deviceProvider.DefaultDevice;
-			this.ToggleDeviceHotkeysCommand = new ActionCommand(OnToggleMusicHotkeys);
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			var hotkeysSettings = SettingsProvider.HotkeysSettings;
@@ -63,8 +70,11 @@ namespace Volumey.ViewModel.Settings
 			{
 				this.VolumeUp = volUp;
 				this.VolumeDown = volDown;
-				this.HotkeysAreRegistered = true;
-				HotkeysControl.Activated += RegisterLoadedHotkeys;
+				this.hotkeysRegistered = this.isOn = true;
+				if(HotkeysControl.IsActive)
+					this.RegisterLoadedHotkeys();
+				else
+					HotkeysControl.Activated += RegisterLoadedHotkeys;
 			}
 		}
 
@@ -76,63 +86,46 @@ namespace Volumey.ViewModel.Settings
 				this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
 			}
 		}
-		
-		private async void OnToggleMusicHotkeys(object param)
-		{
-			if(param is bool isToggled)
-			{
-				if(isToggled)
-					await SaveDeviceHotkeys().ConfigureAwait(false);
-				else
-					await ResetDeviceHotkeys().ConfigureAwait(false);
-			}
-		}
 
-		private async Task SaveDeviceHotkeys()
+		private bool SaveHotkeys()
 		{
-			if(this.defaultDevice == null)
-				return;
 			var up = this.VolumeUp;
 			var down = this.VolumeDown;
 
 			if(HotkeysControl.HotkeysAreValid(up, down) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
-				this.HotkeysAreRegistered = false;
-				return;
+				return false;
 			}
 
-			if(this.defaultDevice.SetHotkeys(up, down))
+			if(this.defaultDevice != null)
 			{
-				this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
-			}
-			else
-			{
-				SetErrorMessage(ErrorMessageType.VolumeReg);
-				this.HotkeysAreRegistered = false;
-				return;
+				if(this.defaultDevice.SetHotkeys(up, down))
+					this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
+				else
+				{
+					SetErrorMessage(ErrorMessageType.VolumeReg);
+					return false;
+				}
 			}
 
-			this.HotkeysAreRegistered = true;
 			this.SetErrorMessage(ErrorMessageType.None);
-			try
+			SettingsProvider.HotkeysSettings.DeviceVolumeUp = this.VolumeUp;
+			SettingsProvider.HotkeysSettings.DeviceVolumeDown = this.VolumeDown;
+			Task.Run(() =>
 			{
-				SettingsProvider.HotkeysSettings.DeviceVolumeUp = this.VolumeUp;
-				SettingsProvider.HotkeysSettings.DeviceVolumeDown = this.VolumeDown;
-				await SettingsProvider.SaveSettings().ConfigureAwait(false);
-
 				Logger.Info($"Registered device hotkeys, +vol: [{this.VolumeUp}], -vol: [{this.VolumeDown}]");
-			}
-			catch { }
+				_ = SettingsProvider.SaveSettings();
+			});
+			return true;
 		}
 
-		private async Task ResetDeviceHotkeys()
+		private void ResetHotkeys()
 		{
 			this.defaultDevice?.ResetHotkeys();
-			this.HotkeysAreRegistered = false;
 			
 			SettingsProvider.HotkeysSettings.DeviceVolumeUp = SettingsProvider.HotkeysSettings.DeviceVolumeDown = null;
-			await SettingsProvider.SaveSettings().ConfigureAwait(false);
+			_ = SettingsProvider.SaveSettings().ConfigureAwait(false);
 		}
 
 		private void OnDefaultDeviceDisabled(OutputDeviceModel disabledDevice)
@@ -144,7 +137,7 @@ namespace Volumey.ViewModel.Settings
 
 		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
-			if(hotkeysAreRegistered)
+			if(hotkeysRegistered)
 			{
 				if(this.defaultDevice != null)
 				{

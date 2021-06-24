@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using log4net;
 using Volumey.DataProvider;
 using Volumey.Model;
@@ -45,19 +46,21 @@ namespace Volumey.ViewModel.Settings
 					}
 					this.defaultDevice = null;
 				}
-
-				if(SettingsProvider.Settings.VolumeLimitIsOn != value)
+				Task.Run(() =>
 				{
-					if(isOn)
-						Logger.Info($"Volume limit enabled, vol: [{this.VolumeLimit}]");
-					SettingsProvider.Settings.VolumeLimitIsOn = value;
-					SettingsProvider.SaveSettings().GetAwaiter().GetResult();	
-				}
+					if(SettingsProvider.Settings.VolumeLimitIsOn != value)
+					{
+						if(isOn)
+							Logger.Info($"Volume limit enabled, vol: [{this.VolumeLimit}]");
+						SettingsProvider.Settings.VolumeLimitIsOn = value;
+						_ = SettingsProvider.SaveSettings();	
+					}
+				});
 				OnPropertyChanged();
 			}
 		}
 
-		private IDeviceProvider deviceProvider;
+		private readonly IDeviceProvider deviceProvider;
 		private OutputDeviceModel defaultDevice;
 
 		private ILog _logger;

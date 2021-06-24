@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using log4net;
-using MahApps.Metro.Controls;
-using Microsoft.Xaml.Behaviors.Core;
+using Volumey.Controls;
 using Volumey.DataProvider;
 
 namespace Volumey.ViewModel.Settings
@@ -21,32 +19,44 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private bool openHotkeyRegistered;
-		public bool OpenHotkeyRegistered
+		private bool isOn;
+		public bool IsOn
 		{
-			get => openHotkeyRegistered;
+			get => this.isOn;
 			set
 			{
-				this.openHotkeyRegistered = value;
+				if(value)
+				{
+					if(!this.hotkeyRegistered)
+						this.isOn = this.hotkeyRegistered = SaveHotkey();
+					
+				}
+				else if(this.hotkeyRegistered)
+				{
+					ResetHotkey();
+					this.isOn = false;
+				}
 				OnPropertyChanged();
 			}
 		}
-		
-		public ICommand ToggleOpenHotkeyCommand { get; }
 
+		private bool hotkeyRegistered;
+		
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(OpenHotkeyViewModel));
 		
 		internal OpenHotkeyViewModel()
 		{
-			ToggleOpenHotkeyCommand = new ActionCommand(OnToggleOpenHotkey);
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			if(SettingsProvider.HotkeysSettings.OpenMixer is HotKey openHotkey)
 			{
-				this.OpenHotkeyRegistered = true;
+				this.hotkeyRegistered = this.isOn = true;
 				this.Hotkey = openHotkey;
-				HotkeysControl.Activated += RegisterLoadedHotkey;
+				if(HotkeysControl.IsActive)
+					this.RegisterLoadedHotkey();
+				else
+					HotkeysControl.Activated += RegisterLoadedHotkey;
 			}
 		}
 
@@ -58,25 +68,13 @@ namespace Volumey.ViewModel.Settings
 			}
 			catch { }
 		}
-
-		private async void OnToggleOpenHotkey(object param)
-		{
-			if(param is bool isToggled)
-			{
-				if(isToggled)
-					await SaveOpenMixerHotkey().ConfigureAwait(false);
-				else
-					await ResetOpenMixerHotkey().ConfigureAwait(false);
-			}
-		}
-
-		private async Task SaveOpenMixerHotkey(object param = null)
+		
+		private bool SaveHotkey(object param = null)
 		{
 			if(HotkeysControl.HotkeyIsValid(this.hotkey) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
-				this.OpenHotkeyRegistered = false;
-				return;
+				return false;
 			}
 			this.SetErrorMessage(ErrorMessageType.None);
 			try
@@ -84,30 +82,36 @@ namespace Volumey.ViewModel.Settings
 				if(HotkeysControl.RegisterOpenMixerHotkey(this.hotkey))
 				{
 					SettingsProvider.HotkeysSettings.OpenMixer = this.hotkey;
-					await SettingsProvider.SaveSettings().ConfigureAwait(false);
-					Logger.Info($"Registered open mixer hotkey: [{this.hotkey}]");
-					return;
+					Task.Run(() =>
+					{
+						Logger.Info($"Registered open mixer hotkey: [{this.hotkey}]");
+						_ = SettingsProvider.SaveSettings();
+					});	
+					return true;
 				}
 			}
 			catch(Exception e)
 			{
-				Logger.Error($"Failed to register open mixer hotkey, hotkey: [{this.hotkey}]", e);
+				Task.Run(() =>
+				{
+					Logger.Error($"Failed to register open mixer hotkey, hotkey: [{this.hotkey}]", e);
+				});
 			}
 			this.SetErrorMessage(ErrorMessageType.OpenReg);
-			this.OpenHotkeyRegistered = false;
+			return false;
 		}
 
-		private async Task ResetOpenMixerHotkey(object param = null)
+		private void ResetHotkey(object param = null)
 		{
 			try
 			{
-				this.OpenHotkeyRegistered = false;
+				this.hotkeyRegistered = false;
 				HotkeysControl.UnregisterOpenMixerHotkey(this.hotkey);
 			}
 			catch { }
 			this.SetErrorMessage(ErrorMessageType.None);
 			SettingsProvider.HotkeysSettings.OpenMixer = null;
-			await SettingsProvider.SaveSettings().ConfigureAwait(false);
+			_ = SettingsProvider.SaveSettings();
 		}
 	}
 }

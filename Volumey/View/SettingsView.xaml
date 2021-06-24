@@ -1,539 +1,330 @@
-﻿<UserControl x:Class="Volumey.View.SettingsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:converters="clr-namespace:Volumey.View.Converters"
-             xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
-             xmlns:system="clr-namespace:System;assembly=System.Runtime"
-             xmlns:vm="clr-namespace:Volumey.ViewModel"
-             xmlns:lc="clr-namespace:Volumey.Localization"
-             mc:Ignorable="d">
-    <UserControl.DataContext>
-        <vm:SettingsViewModel />
-    </UserControl.DataContext>
-    <UserControl.Resources>
+﻿<ui:Page x:Class="Volumey.View.SettingsView"
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+         xmlns:ui="http://schemas.modernwpf.com/2019"
+         xmlns:controls="clr-namespace:Volumey.Controls"
+         xmlns:converters="clr-namespace:Volumey.View.Converters"
+         xmlns:lc="clr-namespace:Volumey.Localization"
+         xmlns:system="clr-namespace:System;assembly=System.Runtime"
+         mc:Ignorable="d"
+         DataContext="{StaticResource SettingsViewModel}">
+
+    <ui:Page.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles/ToggleSwitchStyle.xaml" />
-                <ResourceDictionary Source="Styles/NumericUpDownStyle.xaml" />
-                <ResourceDictionary Source="Styles/ExpanderHeaderDownStyle.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+            <system:Double x:Key="GroupBoxHeaderFontSize">17</system:Double>
+            <system:Double x:Key="TextBlockWidth">180</system:Double>
+            <system:Double x:Key="TextBlockHeaderWidth">200</system:Double>
+            <Thickness x:Key="ContentMargin">0 5 0 0</Thickness>
+            <Thickness x:Key="BoxMargin">0 2 0 0</Thickness>
+            <Thickness x:Key="SecondColumnTextBoxPadding">0 0 15 0</Thickness>
+
             <converters:HotkeysRegisteredToEnabledConverter x:Key="HotkeysRegisteredToEnabledConverter" />
             <converters:PropertyIsNullToEnabledConverter x:Key="PropertyIsNullToEnabledConverter" />
             <converters:AnyPropertyIsNullToEnabledConverter x:Key="AnyPropertyIsNullToEnabledConverter" />
             <converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" />
-            <system:Double x:Key="InputBoxWidth">100</system:Double>
-            <system:Double x:Key="InputBoxHeight">20</system:Double>
-            <system:Double x:Key="TextBlockWidth">180</system:Double>
-            <Thickness x:Key="InputMargin">5 3 7 0</Thickness>
-            <Thickness x:Key="ToggleSwitchMargin">0 0 1 0</Thickness>
-            <system:Double x:Key="ToggleSwitchWidth">64</system:Double>
-            <x:Static x:Key="ToggleOnText" Member="system:String.Empty" />
-            <x:Static x:Key="ToggleOffText" Member="system:String.Empty" />
 
-            <Style TargetType="{x:Type GroupBox}" BasedOn="{StaticResource MahApps.Styles.GroupBox}">
-                <Setter Property="metro:ControlsHelper.ContentCharacterCasing" Value="Normal" />
+            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource DefaultComboBoxStyle}">
+                <Setter Property="Width" Value="{StaticResource InputBoxWidth}" />
+                <Setter Property="Margin" Value="{StaticResource BoxMargin}" />
             </Style>
 
-            <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource MahApps.Styles.TextBlock}">
+            <Style TargetType="{x:Type controls:HotKeyBox}" BasedOn="{StaticResource DefaultTextBoxStyle}">
+                <Setter Property="ui:ControlHelper.PlaceholderForeground"
+                        Value="{DynamicResource SystemControlHighlightBaseMediumLowBrush}" />
+                <Setter Property="Margin" Value="{StaticResource BoxMargin}" />
+            </Style>
+
+            <Style TargetType="{x:Type GroupBox}" BasedOn="{StaticResource DefaultGroupBoxStyle}">
+                <Setter Property="Margin" Value="0 -7 0 0" />
+            </Style>
+
+            <Style TargetType="{x:Type ui:NumberBox}">
+                <Setter Property="Margin" Value="{StaticResource BoxMargin}" />
+            </Style>
+            <Style TargetType="{x:Type TextBlock}">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="TextWrapping" Value="WrapWithOverflow" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
-                <Setter Property="TextAlignment" Value="Left" />
-                <Setter Property="TextWrapping" Value="Wrap" />
-                <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Height" Value="Auto" />
-                <Setter Property="Margin" Value="6 0 0 0" />
+                <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+                <Setter Property="LineHeight" Value="18" />
+                <Style.Triggers>
+                    <Trigger Property="Text" Value="">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
-            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MahApps.Styles.ComboBox}">
-                <Setter Property="metro:ControlsHelper.FocusBorderBrush"
-                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource SystemControlDisabledChromeDisabledLowBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
-            <Style TargetType="{x:Type metro:HotKeyBox}">
-                <Setter Property="metro:ControlsHelper.FocusBorderBrush"
-                        Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
+            <Style TargetType="ui:TextContextMenu" BasedOn="{StaticResource ContextMenuStyleBase}">
+                <Setter Property="BorderThickness" Value="0" />
             </Style>
 
-            <Style TargetType="{x:Type ListBoxItem}"
-                   BasedOn="{StaticResource MahApps.Styles.ListBoxItem}">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                            <Grid x:Name="RootGrid"
-                                  Background="Transparent"
-                                  RenderOptions.ClearTypeHint="{TemplateBinding RenderOptions.ClearTypeHint}">
-                                <Border x:Name="Border"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                <Grid Margin="{TemplateBinding BorderThickness}">
-                                    <ContentPresenter x:Name="ContentPresenter"
-                                                      Margin="{TemplateBinding Padding}"
-                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                </Grid>
-                            </Grid>
-                        <ControlTemplate.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Border" Property="Background" Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush, Mode=OneWay}" />
-                        </Trigger>
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="IsSelected" Value="True" />
-                                <Condition Property="Selector.IsSelectionActive" Value="True" />
-                            </MultiTrigger.Conditions>
-                            <Setter TargetName="Border" Property="Background" Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush, Mode=OneWay}" />
-                        </MultiTrigger>
-
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="IsMouseOver" Value="True" />
-                                <Condition Property="IsSelected" Value="True" />
-                            </MultiTrigger.Conditions>
-                            <Setter TargetName="Border" Property="Background" Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush, Mode=OneWay}" />
-                        </MultiTrigger>
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="IsMouseOver" Value="True" />
-                                <Condition Property="IsSelected" Value="False" />
-                            </MultiTrigger.Conditions>
-                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource MahApps.Brushes.Gray}" />
-                        </MultiTrigger>
-
-                    </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
+            <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource DefaultListBoxItemStyle}">
+                <Setter Property="Padding" Value="1" />
             </Style>
         </ResourceDictionary>
-    </UserControl.Resources>
+    </ui:Page.Resources>
+    <ScrollViewer Margin="12 1 1 0">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="210" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <StackPanel
+                Grid.Column="0">
+                <!-- device volume hotkeys -->
+                <StackPanel
+                    DataContext="{Binding DeviceHotkeysViewModel}">
+                    <TextBlock
+                        FontSize="{StaticResource GroupBoxHeaderFontSize}"
+                        Width="{StaticResource TextBlockHeaderWidth}"
+                        Text="{lc:Localization Settings_DeviceHotkeys}" />
+                    <StackPanel
+                        Margin="{StaticResource ContentMargin}">
+                        <TextBlock
+                            Text="{lc:Localization Settings_IncreaseDevice}"
+                            Width="{StaticResource TextBlockHeaderWidth}" />
+                        <controls:HotKeyBox
+                            HotKey="{Binding VolumeUp}"
+                            IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+                            Width="{StaticResource InputBoxWidth}"
+                            HorizontalAlignment="Left"
+                            ui:ControlHelper.PlaceholderText="Alt + Shift + Up" />
+                        <TextBlock
+                            Text="{lc:Localization Settings_DecreaseDevice}"
+                            Width="{StaticResource TextBlockWidth}" />
+                        <controls:HotKeyBox
+                            HotKey="{Binding VolumeDown}"
+                            IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+                            Width="{StaticResource InputBoxWidth}"
+                            HorizontalAlignment="Left"
+                            ui:ControlHelper.PlaceholderText="Alt + Shift + Down" />
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+                        <ui:ToggleSwitch
+                            IsOn="{Binding IsOn}">
+                            <ui:ToggleSwitch.IsEnabled>
+                                <MultiBinding Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
+                                    <Binding Path="VolumeUp" />
+                                    <Binding Path="VolumeDown" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.IsEnabled>
+                        </ui:ToggleSwitch>
 
-        <!-- hotkeys -->
-        <GroupBox
-            Grid.Row="0"
-            Header="{lc:Localization Settings_HeaderHotkeys}"
-            BorderThickness="0"
-            metro:HeaderedControlHelper.HeaderBackground="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}"
-            Padding="3">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   Width="{StaticResource TextBlockHeaderWidth}"
+                                   Foreground="Red" />
+                    </StackPanel>
+                </StackPanel>
 
-                <!-- apps hotkeys -->
-                <Expander Grid.Row="0" Header="{lc:Localization Settings_AppsHotkeys}"
-                          metro:ExpanderHelper.HeaderDownStyle="{StaticResource ExpanderHeaderDownStyle}"
-                          BorderThickness="0"
-                          metro:HeaderedControlHelper.HeaderBackground="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}"
-                          metro:ControlsHelper.ContentCharacterCasing="Normal"
-                          Margin="-4 0 -4 0">
-                    <Grid DataContext="{Binding HotkeysViewModel}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
+                <!-- open mixer hotkey -->
+                <StackPanel
+                    Margin="0 5 0 0">
+                    <TextBlock
+                        Text="{lc:Localization Settings_OpenMixer}"
+                        FontSize="{StaticResource GroupBoxHeaderFontSize}"
+                        Width="{StaticResource TextBlockHeaderWidth}" />
+                    <StackPanel
+                        DataContext="{Binding OpenHotkeyViewModel}"
+                        Margin="{StaticResource ContentMargin}">
+                        <controls:HotKeyBox
+                            HotKey="{Binding Hotkey}"
+                            IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+                            Width="{StaticResource InputBoxWidth}"
+                            HorizontalAlignment="Left"
+                            ui:ControlHelper.PlaceholderText="Ctrl + Shift + \" />
+                        <ui:ToggleSwitch
+                            IsEnabled="{Binding Hotkey, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
+                            IsOn="{Binding IsOn}" />
+                        <TextBlock
+                            Text="{Binding ErrorMessage}"
+                            Width="{StaticResource TextBlockHeaderWidth}"
+                            Foreground="Red" />
+                    </StackPanel>
+                </StackPanel>
+                <!-- misc -->
+                <StackPanel
+                    Margin="0 5 0 0">
+                    <TextBlock
+                        Text="{lc:Localization Settings_HeaderMisc}"
+                        FontSize="{StaticResource GroupBoxHeaderFontSize}"
+                        Width="{StaticResource TextBlockHeaderWidth}" />
+                    <StackPanel
+                        DataContext="{Binding VolumeLimitViewModel}"
+                        Margin="{StaticResource ContentMargin}">
+                        <TextBlock
+                            Text="{lc:Localization Settings_VolumeLimit}"
+                            Width="{StaticResource TextBlockWidth}"
+                            HorizontalAlignment="Left" />
+                        <StackPanel Orientation="Horizontal">
+                            <ui:NumberBox
+                                Minimum="1"
+                                Maximum="99"
+                                LargeChange="5"
+                                SmallChange="1"
+                                SpinButtonPlacementMode="Inline"
+                                Value="{Binding VolumeLimit}"
+                                AcceptsExpression="False"
+                                ValueChanged="NumberBox_OnValueChanged"
+                                Width="150"
+                                HorizontalAlignment="Left" />
+                            <TextBlock
+                                Text="%"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="5 0 0 0" />
+                        </StackPanel>
+                        <ui:ToggleSwitch
+                            IsOn="{Binding IsOn}" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock
+                            Text="{lc:Localization Settings_Lang}"
+                            Width="{StaticResource TextBlockWidth}" />
+                        <ComboBox
+                            ItemsSource="{Binding LangSettings.Languages}"
+                            SelectedItem="{Binding LangSettings.SelectedLanguage}" />
 
-                        <!-- launched apps & hotkeys setup -->
-                        <Grid Grid.Row="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
+                        <TextBlock
+                            Text="{lc:Localization Settings_Theme}"
+                            Width="{StaticResource TextBlockWidth}"
+                            Margin="0 5 0 0" />
+                        <ComboBox
+                            ItemsSource="{Binding Source={StaticResource ThemeViewModel}, Path=AppThemes}"
+                            SelectedItem="{Binding Source={StaticResource ThemeViewModel}, Path=SelectedTheme}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
 
-                            <TextBlock Grid.Column="0"
-                                       Grid.Row="0"
-                                       FontSize="{StaticResource BaseFontSize}"
-                                       Text="{lc:Localization Settings_MusicApp}" />
-                            <StackPanel Grid.Column="1"
-                                        Grid.Row="0"
-                                        Orientation="Horizontal"
-                                        HorizontalAlignment="Right">
-                                <ComboBox SelectedItem="{Binding SelectedSession}"
-                                          ItemsSource="{Binding DefaultDevice.Sessions}"
-                                          DisplayMemberPath="Name"
-                                          Height="{StaticResource InputBoxHeight}"
-                                          Width="{StaticResource InputBoxWidth}"
-                                          HorizontalAlignment="Right"
-                                          Margin="{StaticResource InputMargin}"
-                                          IsSynchronizedWithCurrentItem="False">
-                                    <ComboBox.ItemContainerStyle>
-                                        <StaticResource ResourceKey="ComboBoxItemStyle" />
-                                    </ComboBox.ItemContainerStyle>
-                                </ComboBox>
-                            </StackPanel>
-                            <TextBlock Grid.Column="0"
-                                       Grid.Row="1"
-                                       FontSize="{StaticResource BaseFontSize}"
-                                       Text="{lc:Localization Settings_IncreaseHotkey}" />
-                            <metro:HotKeyBox Grid.Column="1"
-                                             Grid.Row="1"
-                                             HorizontalAlignment="Right"
-                                             Width="{StaticResource InputBoxWidth}"
-                                             Margin="{StaticResource InputMargin}"
-                                             HotKey="{Binding VolumeUp}" />
-                            <TextBlock Grid.Column="0"
-                                       Grid.Row="2"
-                                       FontSize="{StaticResource BaseFontSize}"
-                                       Text="{lc:Localization Settings_DecreaseHotkey}" />
-                            <metro:HotKeyBox Grid.Column="1"
-                                             Grid.Row="2"
-                                             HorizontalAlignment="Right"
-                                             Width="{StaticResource InputBoxWidth}"
-                                             Margin="{StaticResource InputMargin}"
-                                             HotKey="{Binding VolumeDown}" />
-                            <TextBlock Grid.Column="0"
-                                       Grid.Row="3"
-                                       FontSize="{StaticResource BaseFontSize}"
-                                       Text="{lc:Localization Settings_VolumeStep}" />
-                            <metro:NumericUpDown Grid.Column="1"
-                                                 Grid.Row="3"
-                                                 FontSize="{StaticResource BaseFontSize}"
-                                                 Minimum="1"
-                                                 Maximum="100"
-                                                 Value="{Binding VolumeStep}"
-                                                 ChangeValueOnTextChanged="False"
-                                                 InterceptArrowKeys="True"
-                                                 InterceptManualEnter="True"
-                                                 InterceptMouseWheel="True"
-                                                 ParsingNumberStyle="Integer"
-                                                 Width="{StaticResource InputBoxWidth}"
-                                                 HorizontalAlignment="Right"
-                                                 Margin="{StaticResource InputMargin}"
-                                                 Style="{StaticResource NumericUpDownStyle}" />
-                            <TextBlock Grid.Row="4"
-                                       Grid.Column="0"
-                                       Text="{Binding ErrorMessage}"
-                                       FontSize="{StaticResource BaseFontSize}"
-                                       Foreground="Red" />
-                            <Button Grid.Row="4"
-                                    Grid.Column="1"
-                                    Content="{lc:Localization Settings_AddApp}"
-                                    Command="{Binding AddAppCommand}"
-                                    Style="{DynamicResource MahApps.Styles.Button.Flat}"
-                                    Height="Auto"
-                                    Width="Auto"
-                                    Margin="{StaticResource InputMargin}"
-                                    HorizontalAlignment="Right"
-                                    FontSize="{StaticResource BaseFontSize}">
-                                <Button.IsEnabled>
-                                    <MultiBinding Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
-                                        <Binding Path="SelectedSession" />
-                                        <Binding Path="VolumeUp" />
-                                        <Binding Path="VolumeDown" />
-                                    </MultiBinding>
-                                </Button.IsEnabled>
-                            </Button>
-                        </Grid>
-
-                        <!-- registered apps list -->
-                        <Grid Grid.Row="1"
-                              Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}">
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <Border Grid.Row="0" BorderThickness="1"
-                                    BorderBrush="{DynamicResource MahApps.Brushes.TextBox.Border}"
-                                    Margin="{StaticResource InputMargin}">
-                                <ContentControl Template="{StaticResource ReservedSpaceScroller}"
-                                                MinHeight="20"
-                                                MaxHeight="91">
-                                    <ListBox ItemsSource="{Binding RegisteredSessions}"
-                                             HorizontalAlignment="Stretch"
-                                             VerticalAlignment="Stretch"
-                                             Margin="8 8 0 8"
-                                             SelectedItem="{Binding SelectedRegApp}"
-                                             SelectionMode="Single">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition />
-                                                        <ColumnDefinition />
-                                                        <ColumnDefinition />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0"
-                                                               FontSize="{StaticResource BaseFontSize}"
-                                                               Text="{Binding Key}"
-                                                               HorizontalAlignment="Left" />
-                                                    <TextBlock Grid.Column="1"
-                                                               FontSize="{StaticResource BaseFontSize}"
-                                                               Text="{Binding Value.Item1}"
-                                                               HorizontalAlignment="Right" />
-                                                    <TextBlock Grid.Column="2"
-                                                               FontSize="{StaticResource BaseFontSize}"
-                                                               Text="{Binding Value.Item2}"
-                                                               HorizontalAlignment="Right"
-                                                               Margin="0 0 5 0" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </ContentControl>
-                            </Border>
-                            <Button
-                                Grid.Row="1"
-                                Content="{lc:Localization Settings_RemoveApp}"
-                                Style="{DynamicResource MahApps.Styles.Button.Flat}"
-                                Height="Auto"
-                                Width="Auto"
-                                Margin="{StaticResource InputMargin}"
-                                FontSize="{StaticResource BaseFontSize}"
-                                HorizontalAlignment="Right"
-                                Command="{Binding RemoveAppCommand}"
-                                IsEnabled="{Binding SelectedRegApp, Converter={StaticResource PropertyIsNullToEnabledConverter}}" />
-                        </Grid>
-                    </Grid>
-                </Expander>
-                <!-- device hotkeys -->
-                <Grid Grid.Row="1"
-                      Margin="0 5 0 0"
-                      DataContext="{Binding DeviceHotkeysViewModel}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="0"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Text="{lc:Localization Settings_IncreaseDevice}" />
-                    <metro:HotKeyBox Grid.Column="1"
-                                     Grid.Row="0"
-                                     HorizontalAlignment="Right"
-                                     Width="{StaticResource InputBoxWidth}"
-                                     Margin="{StaticResource InputMargin}"
-                                     HotKey="{Binding VolumeUp}"
-                                     IsEnabled="{Binding HotkeysAreRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}, ConverterParameter=HotkeyBox}" />
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="1"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Text="{lc:Localization Settings_DecreaseDevice}" />
-                    <metro:HotKeyBox Grid.Column="1"
-                                     Grid.Row="1"
-                                     HorizontalAlignment="Right"
-                                     Width="{StaticResource InputBoxWidth}"
-                                     Margin="{StaticResource InputMargin}"
-                                     HotKey="{Binding VolumeDown}"
-                                     IsEnabled="{Binding HotkeysAreRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}, ConverterParameter=HotkeyBox}" />
-                    <TextBlock Grid.Row="2"
-                               Grid.Column="0"
-                               Text="{Binding ErrorMessage}"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Foreground="Red" />
-                    <metro:ToggleSwitch x:Name="MusicToggleSwitch"
-                                        Grid.Row="2"
-                                        Grid.Column="1"
-                                        Command="{Binding ToggleDeviceHotkeysCommand}"
-                                        CommandParameter="{Binding ElementName=MusicToggleSwitch, Path=IsOn}"
-                                        ContentDirection="LeftToRight"
-                                        IsOn="{Binding HotkeysAreRegistered}"
-                                        Width="{StaticResource ToggleSwitchWidth}"
-                                        Style="{StaticResource ToggleSwitchStyle}"
-                                        OnContent="{StaticResource ToggleOnText}"
-                                        OffContent="{StaticResource ToggleOffText}"
-                                        HorizontalAlignment="Right"
-                                        Margin="{StaticResource ToggleSwitchMargin}">
-                        <metro:ToggleSwitch.IsEnabled>
+            <!-- apps hotkeys -->
+            <!-- launched apps & hotkeys setup -->
+            <StackPanel
+                Grid.Column="1"
+                Grid.Row="0"
+                DataContext="{Binding HotkeysViewModel}">
+                <TextBlock
+                    Text="{lc:Localization Settings_AppsHotkeys}"
+                    FontSize="{StaticResource GroupBoxHeaderFontSize}"
+                    Width="185"
+                    Padding="{StaticResource SecondColumnTextBoxPadding}" />
+                <TextBlock
+                    Text="{lc:Localization Settings_MusicApp}"
+                    Width="{StaticResource TextBlockWidth}"
+                    Margin="{StaticResource ContentMargin}"
+                    Padding="{StaticResource SecondColumnTextBoxPadding}"/>
+                <ComboBox
+                    SelectedItem="{Binding SelectedSession}"
+                    ItemsSource="{Binding DefaultDevice.Sessions}"
+                    DisplayMemberPath="Name"
+                    IsSynchronizedWithCurrentItem="False" />
+                <TextBlock
+                    Text="{lc:Localization Settings_IncreaseHotkey}"
+                    Width="{StaticResource TextBlockWidth}"
+                    Padding="{StaticResource SecondColumnTextBoxPadding}"/>
+                <controls:HotKeyBox
+                    HotKey="{Binding VolumeUp}"
+                    Width="{StaticResource InputBoxWidth}"
+                    HorizontalAlignment="Left"
+                    ui:ControlHelper.PlaceholderText="Ctrl + Shift + Up" />
+                <TextBlock
+                    Text="{lc:Localization Settings_DecreaseHotkey}"
+                    Width="{StaticResource TextBlockWidth}"
+                    Padding="{StaticResource SecondColumnTextBoxPadding}" />
+                <controls:HotKeyBox
+                    HotKey="{Binding VolumeDown}"
+                    Width="{StaticResource InputBoxWidth}"
+                    HorizontalAlignment="Left"
+                    ui:ControlHelper.PlaceholderText="Ctrl + Shift + Down" />
+                <TextBlock
+                    Text="{lc:Localization Settings_VolumeStep}"
+                    Width="{StaticResource TextBlockWidth}"
+                    Padding="{StaticResource SecondColumnTextBoxPadding}"/>
+                <ui:NumberBox
+                    Minimum="1"
+                    Maximum="100"
+                    LargeChange="5"
+                    SmallChange="1"
+                    SpinButtonPlacementMode="Inline"
+                    Value="{Binding VolumeStep}"
+                    AcceptsExpression="False"
+                    ValueChanged="NumberBox_OnValueChanged"
+                    Width="150"
+                    HorizontalAlignment="Left" />
+                <WrapPanel
+                    Orientation="Horizontal"
+                    ClipToBounds="True">
+                    <Button
+                        Margin="0 3 3 0"
+                        Command="{Binding AddAppCommand}"
+                        Content="{lc:Localization Settings_AddApp}">
+                        <Button.IsEnabled>
                             <MultiBinding Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
+                                <Binding Path="SelectedSession" />
                                 <Binding Path="VolumeUp" />
                                 <Binding Path="VolumeDown" />
                             </MultiBinding>
-                        </metro:ToggleSwitch.IsEnabled>
-                    </metro:ToggleSwitch>
-                </Grid>
-                <!-- open mixer hotkey -->
-                <Grid Grid.Row="2"
-                      DataContext="{Binding OpenHotkeyViewModel}"
-                      Margin="0 2 0 0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="0"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Text="{lc:Localization Settings_OpenMixer}" />
-                    <metro:HotKeyBox Grid.Column="1"
-                                     Grid.Row="0"
-                                     HorizontalAlignment="Right"
-                                     HotKey="{Binding Hotkey}"
-                                     Width="{StaticResource InputBoxWidth}"
-                                     IsEnabled="{Binding OpenHotkeyRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}, ConverterParameter=HotkeyBox}"
-                                     Margin="{StaticResource InputMargin}" />
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="1"
-                               Text="{Binding ErrorMessage}"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Foreground="Red" />
-                    <metro:ToggleSwitch Grid.Column="1"
-                                        Grid.Row="1"
-                                        x:Name="OpenToggleSwitch"
-                                        IsEnabled="{Binding Hotkey, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
-                                        Command="{Binding ToggleOpenHotkeyCommand}"
-                                        CommandParameter="{Binding ElementName=OpenToggleSwitch, Path=IsOn}"
-                                        ContentDirection="LeftToRight"
-                                        IsOn="{Binding OpenHotkeyRegistered}"
-                                        Width="{StaticResource ToggleSwitchWidth}"
-                                        Style="{StaticResource ToggleSwitchStyle}"
-                                        HorizontalAlignment="Right"
-                                        OnContent="{StaticResource ToggleOnText}"
-                                        OffContent="{StaticResource ToggleOffText}"
-                                        Margin="{StaticResource ToggleSwitchMargin}" />
-                </Grid>
-            </Grid>
-        </GroupBox>
+                        </Button.IsEnabled>
+                    </Button>
+                    <Button
+                        Margin="0 3 3 0"
+                        Command="{Binding RemoveAppCommand}"
+                        Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+                        IsEnabled="{Binding SelectedRegApp, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
+                        Content="{lc:Localization Settings_RemoveApp}">
+                    </Button>
+                </WrapPanel>
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Width="{StaticResource TextBlockHeaderWidth}"
+                           Foreground="Red"
+                           Padding="{StaticResource SecondColumnTextBoxPadding}"/>
 
-        <!-- misc -->
-        <GroupBox
-            Grid.Row="1"
-            BorderThickness="0"
-            Header="{lc:Localization Settings_HeaderMisc}"
-            metro:HeaderedControlHelper.HeaderBackground="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}">
-
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-
-                <!-- volume limit -->
-                <Grid Grid.Row="0" DataContext="{Binding VolumeLimitViewModel}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="0"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Text="{lc:Localization Settings_VolumeLimit}" />
-                    <StackPanel Grid.Column="1"
-                                Grid.Row="0"
-                                Orientation="Horizontal">
-                        <metro:NumericUpDown FontSize="{StaticResource BaseFontSize}"
-                                             Minimum="1"
-                                             Maximum="99"
-                                             Value="{Binding VolumeLimit}"
-                                             ChangeValueOnTextChanged="False"
-                                             InterceptArrowKeys="True"
-                                             InterceptManualEnter="True"
-                                             InterceptMouseWheel="True"
-                                             ParsingNumberStyle="Integer"
-                                             Width="80"
-                                             Height="20"
-                                             HorizontalAlignment="Right"
-                                             Margin="{StaticResource InputMargin}"
-                                             Style="{StaticResource NumericUpDownStyle}"/>
-                        <TextBlock Text="%" Margin="-4 0 10 0" FontSize="14"/>
-                    </StackPanel>
-                    <metro:ToggleSwitch Grid.Column="1"
-                                        Grid.Row="1"
-                                        ContentDirection="LeftToRight"
-                                        Width="{StaticResource ToggleSwitchWidth}"
-                                        Style="{StaticResource ToggleSwitchStyle}"
-                                        HorizontalAlignment="Right"
-                                        OnContent="{StaticResource ToggleOnText}"
-                                        OffContent="{StaticResource ToggleOffText}"
-                                        Margin="{StaticResource ToggleSwitchMargin}"
-                                        IsOn="{Binding IsOn}"/>
-                </Grid>
-
-                <!-- language & theme -->
-                <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="0"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Width="{StaticResource TextBlockWidth}"
-                               Text="{lc:Localization Settings_Lang}" />
-                    <ComboBox Grid.Column="1"
-                              Grid.Row="0"
-                              Height="{StaticResource InputBoxHeight}"
-                              Width="{StaticResource InputBoxWidth}"
-                              Margin="{StaticResource InputMargin}"
-                              HorizontalAlignment="Right"
-                              ItemsSource="{Binding LangSettings.Languages}"
-                              SelectedItem="{Binding LangSettings.SelectedLanguage}"
-                              >
-                        <ComboBox.ItemContainerStyle>
-                            <StaticResource ResourceKey="ComboBoxItemStyle" />
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
-                    <TextBlock Grid.Column="0"
-                               Grid.Row="1"
-                               FontSize="{StaticResource BaseFontSize}"
-                               Text="{lc:Localization Settings_Theme}" />
-                    <ComboBox Grid.Column="1"
-                              Grid.Row="1"
-                              Height="{StaticResource InputBoxHeight}"
-                              Width="{StaticResource InputBoxWidth}"
-                              Margin="{StaticResource InputMargin}"
-                              HorizontalAlignment="Right"
-                              ItemsSource="{Binding Source={StaticResource ThemeViewModel}, Path=AppThemes}"
-                              SelectedItem="{Binding Source={StaticResource ThemeViewModel}, Path=SelectedTheme}">
-                        <ComboBox.ItemContainerStyle>
-                            <StaticResource ResourceKey="ComboBoxItemStyle" />
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
-                </Grid>
-                
-                <Grid Grid.Row="2" HorizontalAlignment="Center">
-                    <TextBlock>
-                        <Hyperlink Command="{Binding GithubHyperlinkCommand}">
-                            <Hyperlink.Style>
-                                <Style TargetType="{x:Type Hyperlink}" BasedOn="{StaticResource {x:Type Hyperlink}}">
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Foreground" Value="{Binding Source={StaticResource ThemeViewModel}, Path=AccentBrush}" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Hyperlink.Style>
-                            Github
-                        </Hyperlink>
-                    </TextBlock>
-                </Grid>
-            </Grid>
-        </GroupBox>
-    </Grid>
-</UserControl>
+                <!-- registered apps list -->
+                <ComboBox
+                    ItemsSource="{Binding RegisteredSessions}"
+                    SelectedItem="{Binding SelectedRegApp}"
+                    Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+                    Margin="0 3 0 0">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0}   {1}    {2}">
+                                        <Binding Path="Key" />
+                                        <Binding Path="Value.Item1" />
+                                        <Binding Path="Value.Item2" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            <ui:HyperlinkButton
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Margin="0 -3 0 0"
+                HorizontalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                VerticalAlignment="Top"
+                Content="Star on Github"
+                NavigateUri="https://github.com/G-Stas/Volumey" />
+        </Grid>
+    </ScrollViewer>
+</ui:Page>

@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using log4net;
-using MahApps.Metro.Controls;
 using Microsoft.Xaml.Behaviors.Core;
+using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.Model;
 
@@ -121,7 +121,12 @@ namespace Volumey.ViewModel.Settings
 			this.VolumeStep = SettingsProvider.Settings.VolumeStep;
 			this.RegisteredSessions = SettingsProvider.HotkeysSettings.GetRegisteredSessions();
 			if(this.RegisteredSessions.Keys.Count > 0)
-				HotkeysControl.Activated += this.RegisterLoadedHotkeys;
+			{
+				if(HotkeysControl.IsActive)
+					this.RegisterLoadedHotkeys();
+				else
+					HotkeysControl.Activated += this.RegisterLoadedHotkeys;
+			}
 		}
 
 		/// <summary>

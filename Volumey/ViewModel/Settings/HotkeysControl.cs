@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Input;
-using MahApps.Metro.Controls;
+using Volumey.Controls;
 using Volumey.Helper;
 using Volumey.DataProvider;
 
@@ -21,7 +21,8 @@ namespace Volumey.ViewModel.Settings
 		internal static event Action Activated;
 		internal static event Action<HotKey> HotkeyPressed;
 		internal static event Action OpenHotkeyPressed;
-		
+		internal static bool IsActive { get; private set; }
+
 		internal static HotkeysState VolumeHotkeysState { get; private set; } = HotkeysState.NotRegistered;
 
 		private static int volumeStep = 1;
@@ -149,6 +150,7 @@ namespace Volumey.ViewModel.Settings
 			hotkeyManager = hm;
             hm.HotkeyPressed += OnHotkeyPressed;
             Activated?.Invoke();
+            IsActive = true;
 		}
 
 		private static void OnHotkeyPressed(HotKey hotkey)

@@ -8,10 +8,8 @@ namespace Volumey.View.Converters
     {
         public object Convert(object hotkeysRegistered, Type targetType, object parameter, CultureInfo culture)
         {
-            //set IsEnabled property of HotkeyBox
-            //based on SettingsViewModel.MusicHotkeysRegistered/OpenHotkeyRegistered property it's binded to
-            if (parameter?.ToString() != null && parameter.ToString().Equals("HotkeyBox", StringComparison.InvariantCulture) && hotkeysRegistered is bool registered)
-                return !registered;
+            if(hotkeysRegistered is bool registered)
+                return!registered;
             return Binding.DoNothing;
         }
 

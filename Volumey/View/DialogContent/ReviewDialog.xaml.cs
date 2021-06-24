@@ -1,53 +1,63 @@
 ﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using log4net;
+using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 
 namespace Volumey.View.DialogContent
 {
-	public partial class ReviewDialog : DialogContent
+	public partial class ReviewDialog
 	{
-		public override event Action<DialogContent> DialogResult;
+		private ILog _logger;
+		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(ReviewDialog));
 
-		public ReviewDialog() => InitializeComponent();
+		public ICommand PrimaryCommand { get; }
+		public ICommand SecondaryCommand { get; }
+		public ICommand CloseCommand { get; }
 
-		private ILog logger = LogManager.GetLogger(typeof(ReviewDialog));
-		
-		private async void OnResultButtonClick(object sender, RoutedEventArgs e)
+		public ReviewDialog()
+		{
+			this.PrimaryCommand = new ActionCommand(() => {OnReviewResult("Y");});
+			this.SecondaryCommand = new ActionCommand(() => {OnReviewResult("L");});
+			this.CloseCommand = new ActionCommand(() => {OnReviewResult("N");});
+
+			InitializeComponent();
+		}
+
+		private async void OnReviewResult(string param)
 		{
 			try
 			{
-				if(sender is Button btn)
+				switch(param)
 				{
-					switch(btn.Tag)
+					case"Y": //yes
 					{
-						case"Y": //yes
-						{
-							await Windows.System.Launcher
-							             .LaunchUriAsync(new Uri("ms-windows-store://review/?ProductId=9MZCQ03MX0S3"));
-							SettingsProvider.Settings.UserHasRated = true;
-							break;
-						}
-						case"N": //no
-						{
-							SettingsProvider.Settings.UserHasRated = true;
-							break;
-						}
-						case"L": //later
-						{
-							//postpone a review request
-							SettingsProvider.Settings.FirstLaunchDate = DateTime.Today;
-							break;
-						}
+						await Windows.System.Launcher
+						             .LaunchUriAsync(new Uri("ms-windows-store://review/?ProductId=9MZCQ03MX0S3"));
+						SettingsProvider.Settings.UserHasRated = true;
+						break;
 					}
-
-					await SettingsProvider.SaveSettings().ConfigureAwait(false);
-					logger.Info($"Displaying a review request. Result: [{btn.Tag}]");
+					case"N": //no
+					{
+						SettingsProvider.Settings.UserHasRated = true;
+						break;
+					}
+					case"L": //later
+					{
+						//postpone a review request
+						SettingsProvider.Settings.FirstLaunchDate = DateTime.Today;
+						break;
+					}
 				}
+
+				Task.Run(() =>
+				{
+					_ = SettingsProvider.SaveSettings();
+					Logger.Info($"Displaying a review request. Result: [{param}]");
+				});
 			}
-			catch(Exception exc) { logger.Error("An exception occurred during review dialog result processing", exc); }
-			DialogResult?.Invoke(this);
+			catch(Exception exc) { Logger.Error("An exception occurred during review dialog result processing", exc); }
 		}
 	}
 }

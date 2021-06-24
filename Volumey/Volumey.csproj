@@ -22,13 +22,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentWPF" Version="0.9.0" />
     <PackageReference Include="log4net-loggly" Version="9.0.0" />
-    <PackageReference Include="MahApps.Metro" Version="2.4.3" />
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.19041.1" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
+    <PackageReference Include="ModernWpfUI" Version="0.9.4" />
     <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
@@ -78,6 +80,16 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Hardcodet.NotifyIcon.Wpf.dll" />
+    <Resource Include="Resources\Icons\TrayDark\high.ico" />
+    <Resource Include="Resources\Icons\TrayDark\low.ico" />
+    <Resource Include="Resources\Icons\TrayDark\mid.ico" />
+    <Resource Include="Resources\Icons\TrayDark\mute.ico" />
+    <Resource Include="Resources\Icons\TrayDark\no-device.ico" />
+    <Resource Include="Resources\Icons\TrayLight\high.ico" />
+    <Resource Include="Resources\Icons\TrayLight\low.ico" />
+    <Resource Include="Resources\Icons\TrayLight\mid.ico" />
+    <Resource Include="Resources\Icons\TrayLight\mute.ico" />
+    <Resource Include="Resources\Icons\TrayLight\no-device.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -96,23 +108,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Resources\Icons\Dark\Tray\high.ico" />
-    <Resource Include="Resources\Icons\Light\mute.png" />
-    <Resource Include="Resources\Icons\Light\volume.png" />
-    <Resource Include="Resources\Icons\Dark\mute.png" />
-    <Resource Include="Resources\Icons\Dark\volume.png" />
-    <Resource Include="Resources\Icons\Dark\Tray\low.ico" />
-    <Resource Include="Resources\Icons\Dark\Tray\mid.ico" />
-    <Resource Include="Resources\Icons\Dark\Tray\mute.ico" />
-    <Resource Include="Resources\Icons\Dark\Tray\no-device.ico" />
-    <Resource Include="Resources\Icons\Light\Tray\high.ico" />
-    <Resource Include="Resources\Icons\Light\Tray\low.ico" />
-    <Resource Include="Resources\Icons\Light\Tray\mid.ico" />
-    <Resource Include="Resources\Icons\Light\Tray\mute.ico" />
-    <Resource Include="Resources\Icons\Light\Tray\no-device.ico" />
   </ItemGroup>
 
   <ItemGroup>

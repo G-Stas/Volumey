@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Windows.Input;
 using log4net;
-using MahApps.Metro.Controls;
+using Volumey.Controls;
 
 namespace Volumey.DataProvider
 {
@@ -12,7 +12,8 @@ namespace Volumey.DataProvider
 	public enum AppTheme
 	{
 		Dark,
-		Light
+		Light,
+		System
 	};
 	
 	[Serializable]

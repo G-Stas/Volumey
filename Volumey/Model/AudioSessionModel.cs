@@ -7,8 +7,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using log4net;
-using MahApps.Metro.Controls;
 using Microsoft.Xaml.Behaviors.Core;
+using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.ViewModel.Settings;
 
