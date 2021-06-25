@@ -4,11 +4,16 @@
   <img width="300" src="https://i.imgur.com/yBMXIUz.png" alt="volumey">
   <br>
   Volumey
-  <br>
 </h1>
+<h3 align="center">
+  Volume mixer for Windows that allows you to set up global hotkeys to control the volume of any application and current output device. 
+  <br>
+  <br>
+  <a href='//www.microsoft.com/store/apps/9mzcq03mx0s3?cid=storebadge&ocid=badge'>
+<img width="170" src='https://developer.microsoft.com/store/badges/images/English_get-it-from-MS.png' alt='English badge' style='width: 284px; height: 104px;'/></a>
+</h3>
 
-`Volumey` is a volume mixer for Windows that allows you to set up global hotkeys to control the volume of any application and current output device. 
-It's built via `WPF` and uses `Core Audio APIs` to control audio devices and sessions.
+
 
 ## Features
 - Global hotkeys to control the volume of any application
@@ -19,17 +24,15 @@ It's built via `WPF` and uses `Core Audio APIs` to control audio devices and ses
 - Dark/light theme based on your Windows accent color
 
 ## Preview
-<img width="882" src="https://i.imgur.com/CyDE7Qf.png">
-<img src="https://i.imgur.com/zLWcjHk.gif">
+<img src="https://i.imgur.com/UIqymOx.png">
+<img src="https://i.imgur.com/H3wkC9T.gif">
 
 ## System requirements
 `Windows 10 18362.0+`
 
-## Install
-[Get from Microsoft Store](https://www.microsoft.com/store/apps/9MZCQ03MX0S3)
-
 ## Built With
-- [MahApps.Metro](https://github.com/MahApps/MahApps.Metro) ❤
+- [ModernWPF](https://github.com/Kinnara/ModernWpf)
+- [FluentWPF](https://github.com/sourcechord/FluentWPF)
 - [NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)
 
 ## Copyright
