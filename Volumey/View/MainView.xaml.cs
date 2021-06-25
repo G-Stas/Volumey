@@ -207,16 +207,18 @@ namespace Volumey.View
 
 		private void NavigateWithoutTransition(Type sourcePageType)
         {
-            if (ContentFrame.CurrentSourcePageType != sourcePageType)
-                ContentFrame.Navigate(sourcePageType, null, suppressTransition);
-			NavigatedEventHandler eHandler = null;
-			eHandler = (s, e) => 
-			{ 
-				this.UpdateLayout();
-				this.SetWindowPosition();
-				ContentFrame.Navigated -= eHandler;
-			};
-			ContentFrame.Navigated += eHandler;
+	        if(ContentFrame.CurrentSourcePageType != sourcePageType)
+	        {
+		        NavigatedEventHandler eHandler = null;
+		        eHandler = (s, e) => 
+		        { 
+			        this.UpdateLayout();
+			        this.SetWindowPosition();
+			        ContentFrame.Navigated -= eHandler;
+		        };
+		        ContentFrame.Navigated += eHandler;
+		        ContentFrame.Navigate(sourcePageType, null, suppressTransition);
+	        }
         }
 
         private Type GetPageType(NavigationViewItem item)
