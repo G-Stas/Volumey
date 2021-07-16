@@ -199,10 +199,9 @@ namespace Volumey.View
 		
 		private void Navigate(Type sourcePageType)
 		{
-			if (ContentFrame.CurrentSourcePageType != sourcePageType && sourcePageType == typeof(SettingsView))
-				ContentFrame.Navigate(sourcePageType, null, transitionFromRight);
-			else
-				ContentFrame.Navigate(sourcePageType, null, transitionFromLeft);
+			if(ContentFrame.CurrentSourcePageType == sourcePageType)
+				return;
+			ContentFrame.Navigate(sourcePageType, null, sourcePageType == typeof(SettingsView) ? transitionFromRight : transitionFromLeft);
 		}
 
 		private void NavigateWithoutTransition(Type sourcePageType)
