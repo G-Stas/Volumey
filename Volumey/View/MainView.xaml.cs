@@ -32,9 +32,9 @@ namespace Volumey.View
         private const int WM_ACTIVATEAPP = 0x001C;
         private const int RESTART_NO_REBOOT = 0x8;
         private const int WM_HOTKEY = 0x0312;
-        private const int WM_SYSCOMMAND = 0x112;
-        private const int SC_SIZE = 0xF000;
         private int prevMsg;
+
+        private const int SessionControlDefaultHeight = 52;
 
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
@@ -77,7 +77,13 @@ namespace Volumey.View
             
             SetControlsNameScope();
 
-            ContentFrame.Navigated += (sender, args) => this.SizeToContent = SizeToContent.Height;
+            ContentFrame.Navigated += (sender, args) =>
+            {
+	            if(args.SourcePageType() == typeof(SettingsView))
+		            NavView.SelectedItem = NavView.SettingsItem;
+	            else
+		            NavView.SelectedItem = NavView.MenuItems[0];
+            };
             
             if(!SettingsProvider.Settings.UserHasRated)
 	            CheckDateForReviewRequest();
@@ -133,11 +139,7 @@ namespace Volumey.View
             {
 	            if(this.IsLoaded)
 	            {
-		            //resize window to fit its content before displaying it
-		            this.SizeToContent = SizeToContent.Height;
-		            
-		            //limit maxheight to 70% of the main desktop's height
-		            this.MaxHeight = SystemParameters.WorkArea.Height * 0.7;
+		            this.LimitWindowHeightIfNecessary();
 				
 		            //update layout before setting windows position to use actual height of the window when calculating its position
 		            this.UpdateLayout(); 
@@ -165,6 +167,25 @@ namespace Volumey.View
 			this.Top = topPos < 0 ? 0 : topPos;
 		}
 		
+		private void LimitWindowHeightIfNecessary()
+		{
+			var desktopHeight = SystemParameters.WorkArea.Height;
+			var maxHeight = desktopHeight * 0.5;
+			//limit window height only for MixerView
+			if(this.ContentFrame.Content is MixerView view)
+			{
+				//calculate actual window height by the amount of displayed audio sessions
+				var actualHeight = view.SessionsList.ItemsControl.Items.Count * SessionControlDefaultHeight;
+				if(actualHeight > maxHeight)
+				{
+					this.SizeToContent = SizeToContent.Manual;
+					this.Height = desktopHeight * 0.57;
+				}
+			}
+			else
+				this.SizeToContent = SizeToContent.Height;
+		}
+		
 		private void ActivateIfLoaded(bool isSettingsPage, bool windowIsVisible)
 		{
 			var pageType = isSettingsPage ? typeof(SettingsView) : typeof(MixerView);
@@ -179,28 +200,17 @@ namespace Volumey.View
 
 		private void NavigationView_OnItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            if (args.IsSettingsInvoked)
+            if(args.IsSettingsInvoked)
                 Navigate(typeof(SettingsView));
-            else
-                Navigate(args.InvokedItemContainer);
+            else if(args.InvokedItemContainer is NavigationViewItem item)
+					Navigate(GetPageType(item));
         }
-		
-		private void Navigate(object item)
-		{
-			if (item is NavigationViewItem menuItem)
-			{
-				Type pageType = GetPageType(menuItem);
-				if (ContentFrame.CurrentSourcePageType != pageType)
-				{
-					ContentFrame.Navigate(pageType, null, transitionFromLeft);
-				}
-			}
-		}
 		
 		private void Navigate(Type sourcePageType)
 		{
 			if(ContentFrame.CurrentSourcePageType == sourcePageType)
 				return;
+			ContentFrame.Navigated += ContentFrameOnNavigated;
 			ContentFrame.Navigate(sourcePageType, null, sourcePageType == typeof(SettingsView) ? transitionFromRight : transitionFromLeft);
 		}
 
@@ -215,6 +225,7 @@ namespace Volumey.View
 			        this.SetWindowPosition();
 			        ContentFrame.Navigated -= eHandler;
 		        };
+		        ContentFrame.Navigated += ContentFrameOnNavigated;
 		        ContentFrame.Navigated += eHandler;
 		        ContentFrame.Navigate(sourcePageType, null, suppressTransition);
 	        }
@@ -224,30 +235,18 @@ namespace Volumey.View
 		{
 			return item.Tag as Type;
 		}
-		
-		private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
-		{
-			if(e.SourcePageType() == typeof(SettingsView))
-				NavView.SelectedItem = NavView.SettingsItem;
-			else
-				NavView.SelectedItem = NavView.MenuItems[0];
-		}
+
+        private void ContentFrameOnNavigated(object sender, NavigationEventArgs e)
+        {
+	        this.LimitWindowHeightIfNecessary();
+	        ContentFrame.Navigated -= ContentFrameOnNavigated;
+        }
         
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
 	        switch(msg)
 	        {
-		        case WM_SYSCOMMAND:
-		        {   
-			        //the window's MaxHeight is limited for auto-resize.
-			        //but it will reset its MaxHeight when manual resizing starts (which is indicated by the SC_SIZE parameter)
-			        //because the user should be able to resize the window to any height.
-			        if((wParam.ToInt32() & SC_SIZE) == SC_SIZE && !double.IsPositiveInfinity(this.MaxHeight))
-				        this.MaxHeight = double.PositiveInfinity;
-			        break;
-		        }
-		        
-		        //Disable Maximize/Minimize menu items in title bar's context menu every time it opens
+		        //Disable Minimize menu item in title bar's context menu every time it opens
 		        case WM_INITMENU:
 		        {
 			        var menu = NativeMethods.GetSystemMenu(this.Hwnd, false);

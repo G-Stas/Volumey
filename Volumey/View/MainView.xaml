@@ -194,8 +194,7 @@
             </ui:NavigationView.MenuItems>
 
             <ui:Frame
-                x:Name="ContentFrame"
-                Navigated="ContentFrame_Navigated" />
+                x:Name="ContentFrame"/>
 
             <ui:NavigationView.Resources>
                 <!-- override defualt NavigationView resource -->

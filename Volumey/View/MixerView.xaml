@@ -22,7 +22,7 @@
 
         <ScrollViewer
             Grid.Row="2">
-            <view:SessionsListView />
+            <view:SessionsListView x:Name="SessionsList"/>
         </ScrollViewer>
 
     </Grid>

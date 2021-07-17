@@ -9,6 +9,7 @@
              DataContext="{StaticResource DeviceProviderViewModel}">
 
     <ItemsControl
+        x:Name="ItemsControl"
         ItemsSource="{Binding SelectedDevice.Sessions}"
         Width="Auto"
         Margin="0 0 0 10">
