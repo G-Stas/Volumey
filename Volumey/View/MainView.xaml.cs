@@ -54,9 +54,6 @@ namespace Volumey.View
 		public MainView()
 		{
 			InitializeComponent();
-            
-			//handle all double clicks to prevent maximizing window by double clicking on titlebar
-			PreviewMouseDoubleClick += (sender, e) => e.Handled = true;
 
             //force create HWND of the window
             //since the window is hidden at the startup
@@ -170,17 +167,26 @@ namespace Volumey.View
 		private void LimitWindowHeightIfNecessary()
 		{
 			var desktopHeight = SystemParameters.WorkArea.Height;
-			var maxHeight = desktopHeight * 0.5;
-			//limit window height only for MixerView
-			if(this.ContentFrame.Content is MixerView view)
+			var maxHeight = desktopHeight * 0.55;
+			
+			int actualHeight = 0;
+			if(this.ContentFrame.Content is MixerView mixer)
 			{
-				//calculate actual window height by the amount of displayed audio sessions
-				var actualHeight = view.SessionsList.ItemsControl.Items.Count * SessionControlDefaultHeight;
-				if(actualHeight > maxHeight)
-				{
-					this.SizeToContent = SizeToContent.Manual;
-					this.Height = desktopHeight * 0.57;
-				}
+				//calculate actual view height by the amount of displayed audio sessions
+				actualHeight = mixer.SessionsList.ItemsControl.Items.Count * SessionControlDefaultHeight;
+				
+			}
+			else if(this.ContentFrame.Content is SettingsView settings)
+			{
+				//update layout to make sure ActualHeight is not zero
+				this.UpdateLayout();
+				actualHeight = (int)settings.ActualHeight;
+			}
+
+			if(actualHeight > maxHeight)
+			{
+				this.SizeToContent = SizeToContent.Manual;
+				this.Height = desktopHeight * 0.64;
 			}
 			else
 				this.SizeToContent = SizeToContent.Height;
