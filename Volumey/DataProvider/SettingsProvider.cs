@@ -35,10 +35,10 @@ namespace Volumey.DataProvider
             {
                 try
                 {
-                    var bytes = Convert.FromBase64String(File.ReadAllText(SettingsFullPath));
-                    using(var s = new MemoryStream(bytes))
+                    using(var fileStream = new FileStream(SettingsFullPath, FileMode.Open))
                     {
-                        Settings = (AppSettings) new BinaryFormatter().Deserialize(s);
+                        fileStream.Position = 0;
+                        Settings = (AppSettings) new BinaryFormatter().Deserialize(fileStream);
                         if(!Settings.UserHasRated)
                             Settings.LaunchCount++;
                     }
@@ -69,19 +69,16 @@ namespace Volumey.DataProvider
                 Logger.Error("Failed to create settings directory", e);
             }
 
-            await using(var stream = new MemoryStream())
+            try
             {
-                try
+                await using(var fileStream = new FileStream(SettingsFullPath, FileMode.OpenOrCreate))
                 {
-                    new BinaryFormatter().Serialize(stream, Settings);
-                    //convert byte array to base64 string to make config file unreadable
-                    var data = Convert.ToBase64String(stream.ToArray());
-                    await File.WriteAllTextAsync(SettingsFullPath, data).ConfigureAwait(false);
+                    new BinaryFormatter().Serialize(fileStream, Settings);
                 }
-                catch(Exception e)
-                {
-                    Logger.Error("Failed to save settings file", e);
-                }
+            }
+            catch(Exception e)
+            {
+                Logger.Error("Failed to save settings file", e);
             }
         }
 
