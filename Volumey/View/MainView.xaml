@@ -28,6 +28,7 @@
                   BorderThickness="0"
                   ShowInTaskbar="{Binding WindowIsVisible}"
                   IsVisibleChanged="OnIsVisibleChanged"
+                  PreviewKeyDown="OnKeyDown"
                   Loaded="OnLoaded">
 
     <fw:AcrylicWindow.DataContext>

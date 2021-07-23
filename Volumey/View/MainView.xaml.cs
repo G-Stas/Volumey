@@ -142,7 +142,8 @@ namespace Volumey.View
 		            this.UpdateLayout(); 
 		            this.SetWindowPosition();
 					this.Activate();
-				}
+					this.Focus();
+	            }
 	            if(requestReview)
 		            StartIdleTimer();
             }
@@ -361,6 +362,20 @@ namespace Volumey.View
 	        isDialogOpened = false;
 	        if(dialogQueue != null && dialogQueue.Count > 0)
 		        await DisplayContentDialog(dialogQueue.Dequeue());
+        }
+
+        /// <summary>
+        /// Closes window on ESC press
+        /// </summary>
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+	        if(e.Key != Key.Escape)
+		        return;
+	        if(this.ContentFrame.Content is MixerView)
+		        this.Close();
+	        //prevent closing window in settings view if any textbox is focused
+	        else if(!(Keyboard.FocusedElement is TextBox))
+		        this.Close();
         }
 	}
 }
