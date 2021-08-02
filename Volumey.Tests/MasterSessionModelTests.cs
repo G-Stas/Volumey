@@ -1,9 +1,13 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Moq;
+using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.Helper;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 using Xunit;
 
 namespace Volumey.Tests
@@ -16,14 +20,15 @@ namespace Volumey.Tests
 		private OutputDeviceModel deviceOwner;
 		private Mock<IDevice> iDeviceMock;
 		private Mock<IDeviceStateNotificationHandler> deviceStateMock;
+		private Mock<IAudioSessionVolume> sessionVolumeMock;
 
 		public MasterSessionModelTests()
 		{
 			this.mVolumeNotifMock = new Mock<IMasterVolumeNotificationHandler>();
-			var sVolumeMock = new Mock<IAudioSessionVolume>();
+			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			
 			this.model = new MasterSessionModel("speakers", "speakers", 70, 
-				false, new BitmapImage(), sVolumeMock.Object, mVolumeNotifMock.Object);
+				false, new BitmapImage(), this.sessionVolumeMock.Object, mVolumeNotifMock.Object);
 
 			this.deviceStateMock = new Mock<IDeviceStateNotificationHandler>();
 			this.iDeviceMock = new Mock<IDevice>();
@@ -79,6 +84,47 @@ namespace Volumey.Tests
 
 			Assert.Equal(this.model.DeviceFriendlyName, newFriendlyName);
 			Assert.Equal(this.model.DeviceDesc, newDeviceDesc);
+		}
+		
+		[Fact]
+		public void HotkeyShouldIncrementVolume()
+		{
+			//arrange
+			var hManagerMock = new Mock<IHotkeyManager>();
+			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			var upHotkey = new HotKey(Key.A);
+			var downHotkey = new HotKey(Key.B);
+			this.model.SetHotkeys(upHotkey, downHotkey);
+			var newVolume = this.model.Volume + HotkeysControl.VolumeStep;
+			
+			//act
+			hManagerMock.Raise(m => m.HotkeyPressed += null, upHotkey);
+			
+			//assert
+			//verify the call to external API is made
+			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.Empty), Times.AtLeastOnce);
+			//simualate callback from external API
+			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.model.IsMuted));
+			Assert.Equal(newVolume, this.model.Volume);
+		}
+		
+		[Fact]
+		public void RandomHotkeyShouldNotChangeVolume()
+		{
+			//arrange
+			var hManagerMock = new Mock<IHotkeyManager>();
+			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			var upHotkey = new HotKey(Key.A);
+			var downHotkey = new HotKey(Key.B);
+			this.model.SetHotkeys(upHotkey, downHotkey);
+			
+			//act
+			hManagerMock.Raise(m => m.HotkeyPressed += null, new HotKey(Key.C));
+			
+			//assert
+			//verify increment/decrement volume calls to external API are not made
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume + HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
 		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, ImageSource imageSource)

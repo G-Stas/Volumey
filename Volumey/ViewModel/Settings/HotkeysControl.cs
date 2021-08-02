@@ -33,7 +33,7 @@ namespace Volumey.ViewModel.Settings
 		}
 
 		private static HotKey openMixer;
-		private static HotkeyManager hotkeyManager;
+		private static IHotkeyManager hotkeyManager;
 
 		public static bool RegisterVolumeHotkeys(HotKey volUp, HotKey volDown)
 		{
@@ -99,11 +99,6 @@ namespace Volumey.ViewModel.Settings
 			catch {}
 		}
 
-		/// <summary>
-		/// Checks if the hotkey was not registered yet
-		/// </summary>
-		/// <param name="hotkey"></param>
-		/// <returns></returns>
 		public static ErrorMessageType HotkeyIsValid(HotKey hotkey)
 		{
 			if(hotkey == null)
@@ -115,12 +110,6 @@ namespace Volumey.ViewModel.Settings
 			return ErrorMessageType.None;
 		}
 
-		/// <summary>
-		/// Checks if the hotkeys was not registered yet
-		/// </summary>
-		/// <param name="up"></param>
-		/// <param name="down"></param>
-		/// <returns></returns>
 		public static ErrorMessageType HotkeysAreValid(HotKey up, HotKey down)
 		{
 			if(up == null || down == null)
@@ -145,7 +134,7 @@ namespace Volumey.ViewModel.Settings
 			VolumeStep = newValue;
 		}
 
-		internal static void SetHotkeyManager(HotkeyManager hm)
+		public static void SetHotkeyManager(IHotkeyManager hm)
 		{
 			hotkeyManager = hm;
             hm.HotkeyPressed += OnHotkeyPressed;

@@ -88,7 +88,7 @@ namespace Volumey.Tests
 
 			deviceStateNotifMock.Raise(m => m.DefaultDeviceChanged += null, device.Id);
 
-			Assert.Equal(this.model.DefaultDevice, device);
+			Assert.Equal(device, this.model.DefaultDevice);
 		}
 
 		[Fact]

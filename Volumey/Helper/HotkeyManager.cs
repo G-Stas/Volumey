@@ -9,9 +9,9 @@ using Volumey.Controls;
 
 namespace Volumey.Helper
 {
-	internal class HotkeyManager : IDisposable
+	internal class HotkeyManager : IHotkeyManager
 	{
-		internal event Action<HotKey> HotkeyPressed;
+		public event Action<HotKey> HotkeyPressed;
 
 		private readonly Dictionary<HotKey, int> RegisteredHotkeys = new Dictionary<HotKey, int>();
 		private readonly IntPtr handle;
@@ -41,7 +41,7 @@ namespace Volumey.Helper
 		/// <param name="hotkey"></param>
 		/// <exception cref="NullReferenceException">Hotkey is null</exception>
 		/// <exception cref="Exception">Failed to register hotkey</exception>
-		internal void RegisterHotkey(HotKey hotkey)
+		public void RegisterHotkey(HotKey hotkey)
 		{
 			if(hotkey == null)
 				throw new NullReferenceException("Hotkey is null");
@@ -66,7 +66,7 @@ namespace Volumey.Helper
 		/// </summary>
 		/// <param name="hotkey">A hotkey to unregister</param>
 		/// <exception cref="NullReferenceException">Hotkey is null</exception>
-		internal void UnregisterHotkey(HotKey hotkey)
+		public void UnregisterHotkey(HotKey hotkey)
 		{
 			if(hotkey == null)
 				throw new NullReferenceException("Hotkey is null");
@@ -82,7 +82,7 @@ namespace Volumey.Helper
 			}
 		}
 
-		internal int RegisteredHotkeysCount => this.RegisteredHotkeys.Count;
+		public int RegisteredHotkeysCount => this.RegisteredHotkeys.Count;
 
 		private bool RegisterHotkey(int modifierKeys, uint virtualKey)
 		{

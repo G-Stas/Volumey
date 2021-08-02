@@ -3,7 +3,7 @@
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
     //Contains external & internal guid values
-    static class GuidValue
+    public static class GuidValue
     {
         /// <summary>
         /// Contains CoreAudio interfaces guid values

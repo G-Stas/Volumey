@@ -109,7 +109,7 @@ namespace Volumey.Model
         private HotKey volumeUp;
         private HotKey volumeDown;
 
-        internal bool SetHotkeys(HotKey volUp, HotKey volDown)
+        public bool SetHotkeys(HotKey volUp, HotKey volDown)
         {
             try
             {
@@ -125,7 +125,7 @@ namespace Volumey.Model
             return false; 
         }
 
-        internal void ResetHotkeys()
+        public void ResetHotkeys()
         {
             this.UnregisterHotkeys();
         }

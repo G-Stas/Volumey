@@ -111,7 +111,7 @@ namespace Volumey.Model
             this.notificationHandler.VolumeChanged += OnVolumeChanged;
         }
 
-        internal bool SetHotkeys(HotKey volUp, HotKey volDown)
+        public bool SetHotkeys(HotKey volUp, HotKey volDown)
         {
             try
             {

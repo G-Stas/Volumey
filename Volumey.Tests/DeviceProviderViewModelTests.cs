@@ -41,7 +41,7 @@ namespace Volumey.Tests
 
 			this.deviceProviderMock.Raise(m => m.DeviceDisabled += null, disabledDevice);
 			
-			Assert.Equal(this.model.SelectedDevice, this.deviceProviderMock.Object.DefaultDevice);
+			Assert.Equal(this.deviceProviderMock.Object.DefaultDevice, this.model.SelectedDevice);
 		}
 
 		[Fact]
@@ -52,7 +52,7 @@ namespace Volumey.Tests
 			this.deviceProviderMock.Setup(m => m.DefaultDevice).Returns(newDefaultDevice);
 			this.deviceProviderMock.Raise(m => m.DefaultDeviceChanged += null, newDefaultDevice);
 			
-			Assert.Equal(this.model.SelectedDevice, newDefaultDevice);
+			Assert.Equal(newDefaultDevice, this.model.SelectedDevice);
 		}
 	}
 }

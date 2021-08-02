@@ -67,9 +67,9 @@ namespace Volumey.Tests
             
             this.deviceStateMock.Raise(m => m.NameChanged += null, new object[] { this.deviceId });
             
-            Assert.Equal(this.model.Name, newDeviceName);
-            Assert.Equal(this.model.Master.DeviceDesc, newDeviceName);
-            Assert.Equal(this.model.Master.DeviceFriendlyName, newDeviceName);
+            Assert.Equal(newDeviceName, this.model.Name);
+            Assert.Equal(newDeviceName, this.model.Master.DeviceDesc);
+            Assert.Equal(newDeviceName, this.model.Master.DeviceFriendlyName);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace Volumey.Tests
 
             this.deviceStateMock.Raise(m => m.IconPathChanged += null, new object[] { this.deviceId });
             
-            Assert.Equal(this.model.Master.DeviceIcon, newImageSource);
+            Assert.Equal(newImageSource, this.model.Master.DeviceIcon);
         }
         
         [Fact]
@@ -91,7 +91,7 @@ namespace Volumey.Tests
             var foundSession = this.model.GetAudioSession(session.Name);
             
             Assert.NotNull(foundSession);
-            Assert.Equal(foundSession, session);
+            Assert.Equal(session, foundSession);
         }
         
         [Fact]
