@@ -21,6 +21,7 @@
             Margin="20 10 20 10" />
 
         <ScrollViewer
+            Name="ScrollViewer"
             Grid.Row="2">
             <view:SessionsListView x:Name="SessionsList"/>
         </ScrollViewer>

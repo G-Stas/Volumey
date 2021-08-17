@@ -35,6 +35,7 @@ namespace Volumey.View
         private int prevMsg;
 
         private const int SessionControlDefaultHeight = 52;
+        private const int ScrollStep = 30;
 
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
@@ -364,18 +365,41 @@ namespace Volumey.View
 		        await DisplayContentDialog(dialogQueue.Dequeue());
         }
 
-        /// <summary>
-        /// Closes window on ESC press
-        /// </summary>
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
-	        if(e.Key != Key.Escape)
+	        //prevent closing or scrolling if any textbox is focused
+	        if(Keyboard.FocusedElement is TextBox)
 		        return;
-	        if(this.ContentFrame.Content is MixerView)
-		        this.Close();
-	        //prevent closing window in settings view if any textbox is focused
-	        else if(!(Keyboard.FocusedElement is TextBox))
-		        this.Close();
+	        switch(e.Key)
+	        {
+		        case Key.Escape:
+			        this.Close();
+			        break;
+		        case Key.Up:
+		        {
+			        var scrollViewer = this.GetCurrentPageScrollViewer();
+			        if(scrollViewer != null && scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible)
+				        scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - ScrollStep);
+			        break;
+		        }
+		        case Key.Down:
+		        {
+			        var scrollViewer = this.GetCurrentPageScrollViewer();
+			        if(scrollViewer != null && scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible)
+				        scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + ScrollStep);
+			        break;
+		        }
+	        }
+        }
+
+        private ScrollViewer GetCurrentPageScrollViewer()
+        {
+	        ScrollViewer scrollViewer = null;
+	        if(this.ContentFrame.Content is MixerView mixer)
+		        scrollViewer = mixer.ScrollViewer;
+	        else if(this.ContentFrame.Content is SettingsView settings)
+		        scrollViewer = settings.ScrollViewer;
+	        return scrollViewer;
         }
 	}
 }
