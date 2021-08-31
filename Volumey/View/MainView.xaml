@@ -53,6 +53,13 @@
                 BorderThickness="0"
                 Background="{Binding ElementName=GridContainer, Path=Background}"
                 ui:ControlHelper.CornerRadius="12">
+                
+                <ContextMenu.Resources>
+                    <Style TargetType="{x:Type ui:FontIcon}">
+                        <Setter Property="Margin" Value="0 0 0 -2"/>
+                    </Style>
+                </ContextMenu.Resources>
+                
                 <MenuItem
                     Header="{lc:Localization TabHeader_Mixer}"
                     Foreground="{Binding ElementName=Window, Path=Foreground}"
@@ -66,7 +73,7 @@
                     Foreground="{Binding ElementName=Window, Path=Foreground}"
                     Command="{Binding TraySettingsCommand}">
                     <MenuItem.Icon>
-                        <ui:FontIcon Glyph="&#xF8B0;" />
+                        <ui:FontIcon Glyph="&#xE713;" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
