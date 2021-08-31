@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -7,6 +9,7 @@ using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Helper;
+using Volumey.Model;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel
@@ -48,8 +51,35 @@ namespace Volumey.ViewModel
 
 			HotkeysControl.OpenHotkeyPressed += OnOpenHotkeyPressed;
 			ComponentDispatcher.ThreadFilterMessage += OnThreadFilterMessage;
+			DeviceProvider.GetInstance().DeviceFormatChanged += OnDeviceFormatChanged;
 		}
 
+		private bool restartInvoked = false;
+
+		private void OnDeviceFormatChanged(OutputDeviceModel sender)
+		{
+			//Prevent a situation when device format structure changes several times when its format is changed in system thus invoking several restarts
+			if(restartInvoked)
+				return;
+			//After the device format is changed every stream of its sessions become invalid and returns 0x88890004/AUDCLNT_E_DEVICE_INVALIDATED when used
+			//so you have to somehow update this data about sessions.
+			//The only working way of handling this event I have found is restarting the app.
+			//Releasing COM interfaces related to the device and retrieving them again to handle format change as recommended in documentation does nothing.
+			//TODO find a better way to handle device format change
+			restartInvoked = true;
+			RestartApp();	
+		}
+
+		private void RestartApp()
+		{
+			var pathToExe = Assembly.GetExecutingAssembly().Location.Replace(".dll", ".exe");
+			if(this.WindowIsVisible)
+				Process.Start(pathToExe, Startup.RestartArg);
+			else
+				Process.Start(pathToExe, $"{Startup.RestartArg} {Startup.MinimizedArg}");
+			App.Current.Dispatcher.Invoke(OnExit);
+		}
+		
 		private async void OnExit()
 		{
 			await SettingsProvider.SaveSettings().ConfigureAwait(true);

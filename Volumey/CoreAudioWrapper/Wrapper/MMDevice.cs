@@ -119,5 +119,24 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			catch {}
 			return prop ?? string.Empty;
 		}
+		
+		public WAVEFORMATEX? GetDeviceFormat()
+		{
+			try
+			{
+				var key = PROPERTYKEY.DeviceProperties.DeviceFormat;
+				device.OpenPropertyStore(STGM.READ, out IPropertyStore store);
+				if(store != null)
+				{
+					store.GetValue(ref key, out PROPVARIANT propvariant);
+					return Marshal.PtrToStructure<WAVEFORMATEX>(propvariant.blob.blobData);
+				}
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Couldn't read device format structure", e);
+			}
+			return null;
+		}
 	}
 }

@@ -18,6 +18,7 @@ namespace Volumey.DataProvider
 		public ObservableCollection<OutputDeviceModel> ActiveDevices { get; } = new ObservableCollection<OutputDeviceModel>();
 		public event Action<OutputDeviceModel> DeviceDisabled;
 		public event Action<OutputDeviceModel> DefaultDeviceChanged; 
+		public event Action<OutputDeviceModel> DeviceFormatChanged;
 
 		private OutputDeviceModel defaultDevice;
 		public OutputDeviceModel DefaultDevice
@@ -61,6 +62,7 @@ namespace Volumey.DataProvider
 				foreach(var device in devices)
 				{
 					device.Disabled += OnDeviceDisabled;
+					device.FormatChanged += OnDeviceFormatChanged;
 					this.ActiveDevices.Add(device);
 
 					if(device.CompareId(defaultDeviceId))
@@ -79,7 +81,7 @@ namespace Volumey.DataProvider
 		}
 
 		private DeviceProvider() => this.NoOutputDevices = true;
-		
+
 		public static IDeviceProvider GetInstance()
 		{
 			if(instance == null)
@@ -110,6 +112,7 @@ namespace Volumey.DataProvider
 
 				this.DeviceDisabled?.Invoke(device);
 				device.Disabled -= OnDeviceDisabled;
+				device.FormatChanged -= OnDeviceFormatChanged;
 				this.ActiveDevices.Remove(device);
 
 				device.Dispose();
@@ -121,6 +124,7 @@ namespace Volumey.DataProvider
 			dispatcher.Invoke(() =>
 			{
 				newDevice.Disabled += OnDeviceDisabled;
+				newDevice.FormatChanged += OnDeviceFormatChanged;
 				this.ActiveDevices.Add(newDevice);
 				
 				if(NoOutputDevices)
@@ -173,7 +177,10 @@ namespace Volumey.DataProvider
 				}
 			});
 		}
-		
+
+		private void OnDeviceFormatChanged(OutputDeviceModel sender)
+			=> this.DeviceFormatChanged?.Invoke(sender);
+
 		public void Dispose()
 		{
 			this.deviceStateNotificationHandler?.Dispose();

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Threading;
 using Volumey.Controls;
+using Volumey.CoreAudioWrapper.CoreAudio;
 using Volumey.CoreAudioWrapper.Wrapper;
 
 namespace Volumey.Model
@@ -29,10 +30,12 @@ namespace Volumey.Model
 		public ObservableCollection<AudioSessionModel> Sessions { get; }
 		internal event Action<OutputDeviceModel> Disabled;
 		internal event Action<AudioSessionModel> SessionCreated;
+		internal event Action<OutputDeviceModel> FormatChanged;
 		public readonly string Id;
 		private readonly IDevice device;
 		private readonly ISessionProvider sessionProvider;
 		private readonly IDeviceStateNotificationHandler deviceStateEvents;
+		private WAVEFORMATEX? currentStreamFormat;
 
 		private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
@@ -44,11 +47,13 @@ namespace Volumey.Model
 			this.Master = master ?? throw new ArgumentNullException(nameof(master));
 			this.Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
 			this.Name = master.DeviceDesc;
+			this.currentStreamFormat = this.device.GetDeviceFormat();
 
 			this.deviceStateEvents = deviceStateNotifications;
 			this.deviceStateEvents.DeviceDisabled += OnDeviceDisabled;
 			this.deviceStateEvents.NameChanged += OnDeviceNameChanged;
 			this.deviceStateEvents.IconPathChanged += OnIconPathChanged;
+			this.deviceStateEvents.FormatChanged += OnFormatChanged;
 			this.sessionProvider = sessionProvider;
 			this.sessionProvider.SessionCreated += OnSessionCreated;
 			
@@ -87,6 +92,22 @@ namespace Volumey.Model
 						this.Name = this.Master.DeviceDesc = deviceDesc;
 					}
 					catch { }
+				});
+			}
+		}
+
+		private async void OnFormatChanged(string deviceId)
+		{
+			if(this.CompareId(deviceId))
+			{
+				await dispatcher.InvokeAsync(() =>
+				{
+					var newFormat = this.device.GetDeviceFormat();
+					if(newFormat.HasValue && !newFormat.Value.Equals(this.currentStreamFormat))
+					{
+						currentStreamFormat = newFormat.Value;
+						this.FormatChanged?.Invoke(this);
+					}
 				});
 			}
 		}
@@ -166,6 +187,7 @@ namespace Volumey.Model
 			this.deviceStateEvents.DeviceDisabled -= OnDeviceDisabled;
 			this.deviceStateEvents.NameChanged -= OnDeviceNameChanged;
 			this.deviceStateEvents.IconPathChanged -= OnIconPathChanged;
+			this.deviceStateEvents.FormatChanged -= OnFormatChanged;
 			this.Master.Dispose();
 			if(this.Sessions != null)
 			{

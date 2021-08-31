@@ -11,6 +11,10 @@ namespace Volumey.DataProvider
 		
 		event Action<OutputDeviceModel> DeviceDisabled;
 		event Action<OutputDeviceModel> DefaultDeviceChanged;
+		/// <summary>
+		/// Occurrs when stream format of any active device changes
+		/// </summary>
+		event Action<OutputDeviceModel> DeviceFormatChanged;
 		
 		public bool NoOutputDevices { get; set; }
 	}

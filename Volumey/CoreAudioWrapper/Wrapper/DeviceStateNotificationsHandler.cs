@@ -18,6 +18,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public event Action<string> DefaultDeviceChanged;
         public event Action<string> NameChanged;
         public event Action<string> IconPathChanged;
+        public event Action<string> FormatChanged;
         public event Action<string> DeviceDisabled;
         public event Action<OutputDeviceModel> ActiveDeviceAdded;
 
@@ -112,17 +113,24 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
         public int OnPropertyValueChanged(string deviceId, PROPERTYKEY key)
         {
-            PROPERTYKEY friendlyName = PROPERTYKEY.DeviceProperties.FriendlyName;
-            if(key.Guid == friendlyName.Guid)
+            var friendlyName = PROPERTYKEY.DeviceProperties.FriendlyName;
+            if(key.Guid == friendlyName.Guid && key.Id == friendlyName.Id)
             {
                 this.NameChanged?.Invoke(deviceId);
                 return 0;
             }
 
-            PROPERTYKEY iconPath = PROPERTYKEY.DeviceProperties.IconPath;
-            if(key.Guid == iconPath.Guid)
+            var iconPath = PROPERTYKEY.DeviceProperties.IconPath;
+            if(key.Guid == iconPath.Guid && key.Id == iconPath.Id)
             {
                 this.IconPathChanged?.Invoke(deviceId);
+                return 0;
+            }
+
+            var format = PROPERTYKEY.DeviceProperties.DeviceFormat;
+            if(key.Guid == format.Guid && key.Id == format.Id)
+            {
+                this.FormatChanged?.Invoke(deviceId);
             }
             return 0;
         }

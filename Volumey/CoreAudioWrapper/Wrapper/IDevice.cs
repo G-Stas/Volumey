@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
 using log4net;
+using Volumey.CoreAudioWrapper.CoreAudio;
 using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
 using Volumey.DataProvider;
 using Volumey.Helper;
@@ -28,6 +29,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		string GetDeviceDesc();
 
 		ImageSource GetIconSource();
+
+		WAVEFORMATEX? GetDeviceFormat();
 	}
 
 	internal static class IDeviceExtensions

@@ -18,45 +18,59 @@ namespace Volumey
 		public static readonly int WM_SHOWME = NativeMethods.RegisterWindowMessage("WM_SHOWME");
 
 		internal static string MinimizedArg { get; } = "-minimized";
+		internal static string RestartArg { get; } = "-restart";
 		internal static bool StartMinimized { get; private set; }
 
 		[STAThread]
 		private static void Main()
 		{
-			if(mutex.WaitOne(TimeSpan.Zero, true))
+			bool isRestarting = false;
+			bool mutexAcquired = false;
+			foreach(var arg in Environment.GetCommandLineArgs())
+			{
+				if(!isRestarting && arg.Equals(RestartArg))
+				{
+					isRestarting = true;
+					try
+					{
+						//try acquiring a mutex with a bigger timeout if the app is restarting because the previous instance might take some time to close itself and release mutex
+						mutexAcquired = mutex.WaitOne(TimeSpan.FromSeconds(5), true);
+					}
+					catch(AbandonedMutexException)
+					{
+						//AbandonedMutexException is thrown when one thread acquires a Mutex object that another thread has abandoned by exiting without releasing it.
+						mutexAcquired = true;
+					}
+				}
+
+				if(!StartMinimized && arg.Equals(MinimizedArg))
+				{
+					StartMinimized = true;
+				}
+			}
+
+			if(isRestarting && mutexAcquired || mutex.WaitOne(TimeSpan.Zero, true))
 			{
 				App.InitializeExecutionTimer();
 				InitializeLoggerConfig();
 
-				try
+				#if(!DEBUG)
+				if(!StartMinimized)
 				{
-					#if(!DEBUG)
-					var args = AppInstance.GetActivatedEventArgs();
-					if(args != null)
+					try
 					{
-						//when the app was launched on system startup, Kind argument will be "StartupTask"
-						//otherwise i.e. when the app was launched normal way it will be "Launch"
-						if(args.Kind == ActivationKind.StartupTask)
-							StartMinimized = true;
-					}
-					#endif
-
-					if(!StartMinimized)
-					{
-						foreach(var arg in Environment.GetCommandLineArgs())
+						var args = AppInstance.GetActivatedEventArgs();
+						if(args != null)
 						{
-							if(arg == MinimizedArg)
-							{
-								//log the app version since the app launches with minimized arg only after it was updated
-								var ver = Package.Current.Id.Version;
-								LogManager.GetLogger(typeof(Startup))
-								          .Info($"Started with {MinimizedArg} argument, ver.: [{ver.Major.ToString()}.{ver.Minor.ToString()}.{ver.Build.ToString()}.{ver.Revision.ToString()}]");
+							//when the app was launched on system startup, Kind argument will be "StartupTask"
+							//otherwise i.e. when the app was launched normal way it will be "Launch"
+							if(args.Kind == ActivationKind.StartupTask)
 								StartMinimized = true;
-							}
 						}
 					}
+					catch { }
 				}
-				catch { }
+				#endif
 
 				App.Main();
 				mutex.ReleaseMutex();
