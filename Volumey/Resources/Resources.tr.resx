@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>Farklı kısayol tuşları ayarlayın</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>İşletim sistemi tarafından ayrılmış F12</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>Kısayol tuşu zaten eklendi</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>Çıkış aygıtı algılanmadı</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>Kısayol tuşu etkinleştirilemedi</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>Kısayol tuşları etkinleştirilemedi</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>Daha sonra</value>
+  </data>
+  <data name="Notification_No" xml:space="preserve">
+    <value>Hayır</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>Tamam</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>Bir güncelleme mevcut. Uygulamayı güncellemek istiyor musunuz?</value>
+  </data>
+  <data name="Settings_AddApp" xml:space="preserve">
+    <value>Uygulama ekle</value>
+  </data>
+  <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>Uygulamalar için kısayol tuşları</value>
+  </data>
+  <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>Çıkış cihazının sesini azalt (kısayol tuşu)</value>
+  </data>
+  <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>Sesi azalt (kısayol tuşu)</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Çıkış cihazı ses seviyesini kontrol etmek için kısayol tuşları</value>
+  </data>
+  <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>Kısayol tuşları (başlatılan uygulama gerekli)</value>
+  </data>
+  <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>Çeşitli</value>
+  </data>
+  <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>Çıkış cihazının sesini artırın (kısayol tuşu)</value>
+  </data>
+  <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>Sesi artır (kısayol tuşu)</value>
+  </data>
+  <data name="Settings_Lang" xml:space="preserve">
+    <value>Diller</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>Başvuru</value>
+  </data>
+  <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>Açık ses mikseri (kısayol tuşu)</value>
+  </data>
+  <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>Uygulamayı devre dışı bırak</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Renk teması</value>
+  </data>
+  <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>%100 ise başlatılan uygulama hacmini sınırlayın</value>
+  </data>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Ses ayarı adımı</value>
+  </data>
+  <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>Hacim karıştırıcı</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Ayarlar</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>çıkış</value>
+  </data>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Ses kontrol paneli</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Ses ayarları</value>
+  </data>
+</root>
