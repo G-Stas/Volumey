@@ -65,7 +65,7 @@
                     Foreground="{Binding ElementName=Window, Path=Foreground}"
                     Command="{Binding TrayMixerCommand}">
                     <MenuItem.Icon>
-                        <ui:FontIcon Glyph="&#xE995;" />
+                        <ui:FontIcon Glyph="&#xF4C3;" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <MenuItem
@@ -195,7 +195,7 @@
                     Content="{lc:Localization TabHeader_Mixer}"
                     Tag="{x:Type view:MixerView}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:FontIcon Glyph="&#xE767;" />
+                        <ui:FontIcon Glyph="&#xF4C3;" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
 
