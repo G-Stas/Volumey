@@ -16,6 +16,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public event Action<VolumeChangedEventArgs> VolumeChanged;
         public event Action<ImageSource> IconPathChanged;
         public event Action<string> NameChanged;
+        public event Action<AudioSessionDisconnectReason> Disconnected;
         private readonly IAudioSessionControl2 sessionControl;
         private readonly ISimpleAudioVolume sVolume;
 
@@ -71,7 +72,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             return 0;
         }
 
-        public int OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason) => 0;
+        public int OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason)
+        {
+            this.Disconnected?.Invoke(disconnectReason);
+            return 0;
+        }
 
         public int OnSimpleVolumeChanged(float newVolume, bool newMuteState, ref Guid eventContext)
         {

@@ -9,6 +9,7 @@ using System.Windows.Threading;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
+using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.ViewModel.Settings;
 
@@ -104,6 +105,7 @@ namespace Volumey.Model
             this.sessionStateNotifications.SessionEnded += OnSessionEnded;
             this.sessionStateNotifications.IconPathChanged += OnIconChanged;
             this.sessionStateNotifications.NameChanged += OnNameChanged;
+            this.sessionStateNotifications.Disconnected += OnDisconnected;
         }
 
         private HotKey volumeUp;
@@ -171,6 +173,9 @@ namespace Volumey.Model
         private void OnNameChanged(string newName)
             => dispatcher.Invoke(() => { this.Name = newName; });
 
+        private void OnDisconnected(AudioSessionDisconnectReason reason)
+            => OnSessionEnded();
+
         private void SetVolume(int newVol, ref Guid guid)
         {
             try { this.sessionVolume?.SetVolume(newVol, ref guid); }
@@ -213,6 +218,7 @@ namespace Volumey.Model
             this.sessionStateNotifications.SessionEnded -= OnSessionEnded;
             this.sessionStateNotifications.IconPathChanged -= OnIconChanged;
             this.sessionStateNotifications.NameChanged -= OnNameChanged;
+            this.sessionStateNotifications.Disconnected -= OnDisconnected;
             this.sessionStateNotifications.Dispose();
         }
 
