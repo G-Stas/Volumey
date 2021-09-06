@@ -100,15 +100,19 @@ namespace Volumey.Model
 		{
 			if(this.CompareId(deviceId))
 			{
-				await dispatcher.InvokeAsync(() =>
+				try
 				{
-					var newFormat = this.device.GetDeviceFormat();
-					if(newFormat.HasValue && !newFormat.Value.Equals(this.currentStreamFormat))
+					await dispatcher.InvokeAsync(() =>
 					{
-						currentStreamFormat = newFormat.Value;
-						this.FormatChanged?.Invoke(this);
-					}
-				});
+						var newFormat = this.device.GetDeviceFormat();
+						if(newFormat.HasValue && !newFormat.Value.Equals(this.currentStreamFormat))
+						{
+							currentStreamFormat = newFormat.Value;
+							this.FormatChanged?.Invoke(this);
+						}
+					});
+				}
+				catch { }
 			}
 		}
 
