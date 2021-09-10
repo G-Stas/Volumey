@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using log4net;
 using Volumey.CoreAudioWrapper.CoreAudio;
 using Volumey.CoreAudioWrapper.CoreAudio.Enums;
@@ -146,7 +147,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         /// Unregisters the object that was registered in a previous call to RegisterDeviceNotifications
         /// </summary>
         private void UnregisterDeviceNotifications()
-            => this.deviceEnumerator.UnregisterEndpointNotificationCallback(this);
+        {
+            //Unregister on the thread pool because this call occasionally hangs and might hang the entire application when executed in the UI thread :\
+            Task.Run(() => { this.deviceEnumerator.UnregisterEndpointNotificationCallback(this); });
+        }
 
         public void Dispose()
         {
