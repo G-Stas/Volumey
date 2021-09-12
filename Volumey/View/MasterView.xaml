@@ -24,85 +24,74 @@
             TextWrapping="Wrap"
             FontSize="16"
             Margin="8 2 8 0"
-            Visibility="{Binding DeviceProvider.NoOutputDevices,
-                  Converter={StaticResource NoDeviceToVisibilityConverter},
-                   ConverterParameter=Label}" />
-        <Grid
-            Visibility="{Binding DeviceProvider.NoOutputDevices,
-                  Converter={StaticResource NoDeviceToVisibilityConverter},
-                   ConverterParameter=Master}"
-            Width="Auto">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-
+            Visibility="{Binding DeviceProvider.NoOutputDevices, ConverterParameter=Label, Converter={StaticResource NoDeviceToVisibilityConverter}}" />
+        <StackPanel
+            Orientation="Vertical"
+            Visibility="{Binding DeviceProvider.NoOutputDevices, ConverterParameter=Master, Converter={StaticResource NoDeviceToVisibilityConverter}}">
             <ComboBox
-                Grid.Row="0"
-                Grid.Column="1"
-                ItemsSource="{Binding Path=DeviceProvider.ActiveDevices}"
-                DisplayMemberPath="Name"
-                SelectedItem="{Binding Path=SelectedDevice}"
-                Width="{StaticResource InputBoxWidth}"
-                MaxWidth="250"
+                ItemsSource="{Binding DeviceProvider.ActiveDevices}"
+                DisplayMemberPath="Master.DeviceFriendlyName"
+                SelectedItem="{Binding SelectedDevice}"
+                Width="Auto"
+                MaxWidth="310"
                 HorizontalAlignment="Left"
                 BorderThickness="0"
-                IsSynchronizedWithCurrentItem="False" 
-                Margin="5 0 0 0"/>
-            <Image
-                Grid.Row="1"
-                Grid.Column="0"
-                Source="{Binding SelectedDevice.Master.DeviceIcon}"
-                RenderOptions.BitmapScalingMode="HighQuality"
-                Height="{StaticResource ImageSize}"
-                Width="{StaticResource ImageSize}"
-                Margin="{StaticResource ImageMargin}"
-                VerticalAlignment="Center" />
-            <Slider
-                Grid.Row="1"
-                Grid.Column="1"
-                Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
-                Minimum="0"
-                Maximum="100"
-                Width="{StaticResource SliderWidth}"
-                Height="{StaticResource SliderHeight}"
-                Margin="5 0 0 0"
-                IsMoveToPointEnabled="True"
-                AutoToolTipPlacement="TopLeft"
-                SmallChange="1"
-                controls:SliderHelper.EnableMouseWheel="MouseHover"
-                VerticalContentAlignment="Center" />
-            <Label
-                Grid.Row="1"
-                Grid.Column="2"
-                Content="{Binding SelectedDevice.Master.Volume}"
-                Width="45"
-                VerticalContentAlignment="Center"
-                HorizontalContentAlignment="Center"
-                Margin="0 -2 0 0" />
-            <modern:AppBarButton
-                Grid.Row="1"
-                Grid.Column="3"
-                Command="{Binding SelectedDevice.Master.MuteCommand}"
-                Background="Transparent"
-                Width="35"
-                Height="40"
-                Margin="-6 -8 0 0">
-                <modern:AppBarButton.RenderTransform>
-                    <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
-                </modern:AppBarButton.RenderTransform>
-                <modern:AppBarButton.Icon>
-                    <modern:FontIcon
-                        FontFamily="Segoe MDL2 Assets"
-                        Glyph="{Binding SelectedDevice.Master.IsMuted, Converter={StaticResource MutedToGlyphConverter}}" />
-                </modern:AppBarButton.Icon>
-            </modern:AppBarButton>
-        </Grid>
+                IsSynchronizedWithCurrentItem="False"
+                Margin="42 0 0 0"
+                modern:ControlHelper.CornerRadius="4" />
+             <Grid
+                Width="Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" x:Name="IconCol"/>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Image
+                    Grid.Column="0"
+                    Source="{Binding SelectedDevice.Master.DeviceIcon}"
+                    RenderOptions.BitmapScalingMode="HighQuality"
+                    Height="{StaticResource ImageSize}"
+                    Width="{StaticResource ImageSize}"
+                    Margin="{StaticResource ImageMargin}"
+                    VerticalAlignment="Center" />
+                <Slider
+                    Grid.Column="1"
+                    Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
+                    Minimum="0"
+                    Maximum="100"
+                    Width="{StaticResource SliderWidth}"
+                    Height="{StaticResource SliderHeight}"
+                    Margin="5 0 0 0"
+                    IsMoveToPointEnabled="True"
+                    AutoToolTipPlacement="TopLeft"
+                    SmallChange="1"
+                    controls:SliderHelper.EnableMouseWheel="MouseHover"
+                    VerticalContentAlignment="Center" />
+                <Label
+                    Grid.Column="2"
+                    Content="{Binding SelectedDevice.Master.Volume}"
+                    Width="45"
+                    VerticalContentAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    Margin="0 -2 0 0" />
+                <modern:AppBarButton
+                    Grid.Column="3"
+                    Command="{Binding SelectedDevice.Master.MuteCommand}"
+                    Background="Transparent"
+                    Width="35"
+                    Height="40"
+                    Margin="-6 -8 0 0">
+                    <modern:AppBarButton.RenderTransform>
+                        <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+                    </modern:AppBarButton.RenderTransform>
+                    <modern:AppBarButton.Icon>
+                        <modern:FontIcon
+                            FontFamily="Segoe MDL2 Assets"
+                            Glyph="{Binding SelectedDevice.Master.IsMuted, Converter={StaticResource MutedToGlyphConverter}}" />
+                    </modern:AppBarButton.Icon>
+                </modern:AppBarButton>
+            </Grid>
+        </StackPanel>
     </Grid>
 </UserControl>
