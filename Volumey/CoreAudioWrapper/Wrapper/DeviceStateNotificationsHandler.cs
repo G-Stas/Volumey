@@ -115,7 +115,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public int OnPropertyValueChanged(string deviceId, PROPERTYKEY key)
         {
             var friendlyName = PROPERTYKEY.DeviceProperties.FriendlyName;
-            if(key.Guid == friendlyName.Guid && key.Id == friendlyName.Id)
+            if(key.Guid == friendlyName.Guid && (key.Id == friendlyName.Id || key.Id == PROPERTYKEY.DeviceProperties.Description.Id))
             {
                 this.NameChanged?.Invoke(deviceId);
                 return 0;
