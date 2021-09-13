@@ -111,4 +111,7 @@
   <data name="Settings_AppsHotkeys" xml:space="preserve">
     <value />
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

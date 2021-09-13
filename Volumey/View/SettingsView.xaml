@@ -19,21 +19,31 @@
             <Thickness x:Key="ContentMargin">0 5 0 0</Thickness>
             <Thickness x:Key="BoxMargin">0 2 0 0</Thickness>
             <Thickness x:Key="SecondColumnTextBoxPadding">0 0 15 0</Thickness>
+            <Thickness x:Key="BottomCornerButtonMargin">0 3 27 0</Thickness>
+            
+            <!-- override ModernWPF button resources -->
+            <SolidColorBrush x:Key="ButtonBackground" Color="{DynamicResource SystemAltMediumLowColor}"/>
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{DynamicResource SystemAltLowColor}"/>
+            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumHighColor}"/>
+            <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{DynamicResource SystemChromeMediumColor}"/>
 
             <converters:HotkeysRegisteredToEnabledConverter x:Key="HotkeysRegisteredToEnabledConverter" />
             <converters:PropertyIsNullToEnabledConverter x:Key="PropertyIsNullToEnabledConverter" />
             <converters:AnyPropertyIsNullToEnabledConverter x:Key="AnyPropertyIsNullToEnabledConverter" />
             <converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" />
+            <converters:ButtonIconThemeConverter x:Key="ButtonIconThemeConverter"/>
 
             <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource DefaultComboBoxStyle}">
                 <Setter Property="Width" Value="{StaticResource InputBoxWidth}" />
                 <Setter Property="Margin" Value="{StaticResource BoxMargin}" />
+                <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
             </Style>
 
             <Style TargetType="{x:Type controls:HotKeyBox}" BasedOn="{StaticResource DefaultTextBoxStyle}">
                 <Setter Property="ui:ControlHelper.PlaceholderForeground"
                         Value="{DynamicResource SystemControlHighlightBaseMediumLowBrush}" />
                 <Setter Property="Margin" Value="{StaticResource BoxMargin}" />
+                <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
             </Style>
 
             <Style TargetType="{x:Type GroupBox}" BasedOn="{StaticResource DefaultGroupBoxStyle}">
@@ -42,6 +52,7 @@
 
             <Style TargetType="{x:Type ui:NumberBox}">
                 <Setter Property="Margin" Value="{StaticResource BoxMargin}" />
+                <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
             </Style>
             <Style TargetType="{x:Type TextBlock}">
                 <Setter Property="FontSize" Value="13" />
@@ -57,6 +68,9 @@
             </Style>
 
             <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource SystemChromeHighColorBrush}"/>
+                <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Foreground"
@@ -216,48 +230,59 @@
 
             <!-- apps hotkeys -->
             <!-- launched apps & hotkeys setup -->
-            <StackPanel
+            <DockPanel
                 Grid.Column="1"
                 Grid.Row="0"
-                DataContext="{Binding HotkeysViewModel}">
+                DataContext="{Binding HotkeysViewModel}"
+                VerticalAlignment="Stretch"
+                Height="Auto">
                 <TextBlock
+                    DockPanel.Dock="Top"
                     Text="{lc:Localization Settings_AppsHotkeys}"
                     FontSize="{StaticResource GroupBoxHeaderFontSize}"
                     Width="185"
                     Padding="{StaticResource SecondColumnTextBoxPadding}" />
                 <TextBlock
+                    DockPanel.Dock="Top"
                     Text="{lc:Localization Settings_MusicApp}"
                     Width="{StaticResource TextBlockWidth}"
                     Margin="{StaticResource ContentMargin}"
                     Padding="{StaticResource SecondColumnTextBoxPadding}"/>
                 <ComboBox
+                    DockPanel.Dock="Top"
                     SelectedItem="{Binding SelectedSession}"
                     ItemsSource="{Binding DefaultDevice.Sessions}"
                     DisplayMemberPath="Name"
                     IsSynchronizedWithCurrentItem="False" />
                 <TextBlock
+                    DockPanel.Dock="Top"
                     Text="{lc:Localization Settings_IncreaseHotkey}"
                     Width="{StaticResource TextBlockWidth}"
                     Padding="{StaticResource SecondColumnTextBoxPadding}"/>
                 <controls:HotKeyBox
+                    DockPanel.Dock="Top"
                     HotKey="{Binding VolumeUp}"
                     Width="{StaticResource InputBoxWidth}"
                     HorizontalAlignment="Left"
                     ui:ControlHelper.PlaceholderText="Ctrl + Shift + Up" />
                 <TextBlock
+                    DockPanel.Dock="Top"
                     Text="{lc:Localization Settings_DecreaseHotkey}"
                     Width="{StaticResource TextBlockWidth}"
                     Padding="{StaticResource SecondColumnTextBoxPadding}" />
                 <controls:HotKeyBox
+                    DockPanel.Dock="Top"
                     HotKey="{Binding VolumeDown}"
                     Width="{StaticResource InputBoxWidth}"
                     HorizontalAlignment="Left"
                     ui:ControlHelper.PlaceholderText="Ctrl + Shift + Down" />
                 <TextBlock
+                    DockPanel.Dock="Top"
                     Text="{lc:Localization Settings_VolumeStep}"
                     Width="{StaticResource TextBlockWidth}"
                     Padding="{StaticResource SecondColumnTextBoxPadding}"/>
                 <ui:NumberBox
+                    DockPanel.Dock="Top"
                     Minimum="1"
                     Maximum="100"
                     LargeChange="5"
@@ -269,6 +294,7 @@
                     Width="150"
                     HorizontalAlignment="Left" />
                 <WrapPanel
+                    DockPanel.Dock="Top"
                     Orientation="Horizontal"
                     ClipToBounds="True">
                     <Button
@@ -291,13 +317,16 @@
                         Content="{lc:Localization Settings_RemoveApp}">
                     </Button>
                 </WrapPanel>
-                <TextBlock Text="{Binding ErrorMessage}"
+                <TextBlock 
+                           DockPanel.Dock="Top"
+                           Text="{Binding ErrorMessage}"
                            Width="{StaticResource TextBlockHeaderWidth}"
                            Foreground="Red"
                            Padding="{StaticResource SecondColumnTextBoxPadding}"/>
 
                 <!-- registered apps list -->
                 <ComboBox
+                    DockPanel.Dock="Top"
                     ItemsSource="{Binding RegisteredSessions}"
                     SelectedItem="{Binding SelectedRegApp}"
                     Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
@@ -316,17 +345,69 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-            </StackPanel>
-            <ui:HyperlinkButton
-                Grid.Row="1"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
-                Margin="0 -3 0 0"
-                HorizontalAlignment="Center"
-                HorizontalContentAlignment="Center"
-                VerticalAlignment="Top"
-                Content="Star on Github"
-                NavigateUri="https://github.com/G-Stas/Volumey" />
+                <DockPanel
+                    DockPanel.Dock="Bottom"
+                    VerticalAlignment="Bottom"
+                    DataContext="{StaticResource SettingsViewModel}">
+                    <Button 
+                        Command="{Binding TipCommand}"
+                        DockPanel.Dock="Bottom"
+                        x:Name="TipButton"
+                        HorizontalAlignment="Right"
+                        Margin="{StaticResource BottomCornerButtonMargin}"
+                        Padding="3 1 3 1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                                <Image.Source>
+                                    <MultiBinding Converter="{StaticResource ButtonIconThemeConverter}" ConverterParameter="Mug">
+                                        <Binding Source="{StaticResource ThemeViewModel}" Path="SelectedTheme"/>
+                                        <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme"/>
+                                        <Binding ElementName="TipButton" Path="IsMouseOver"/>
+                                    </MultiBinding>
+                                </Image.Source>
+                            </Image>
+                            <TextBlock
+                                Grid.Column="1"
+                                Text="{lc:Localization Settings_Tip}"
+                                VerticalAlignment="Center"
+                                Margin="5 0 0 0"
+                                LineHeight="16"
+                                FontSize="14"
+                                TextWrapping="Wrap"/>
+                        </Grid>
+                    </Button>
+                    <Button
+                        Command="{Binding GitHubCommand}"
+                        DockPanel.Dock="Bottom"
+                        HorizontalAlignment="Right"
+                        Margin="{StaticResource BottomCornerButtonMargin}"
+                        Padding="3 2 3 2">
+                        <StackPanel
+                            Orientation="Horizontal">
+                            <Image>
+                                <Image.Source>
+                                    <MultiBinding Converter="{StaticResource ButtonIconThemeConverter}"
+                                                  ConverterParameter="Git">
+                                        <Binding Source="{StaticResource ThemeViewModel}" Path="SelectedTheme" />
+                                        <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme" />
+                                    </MultiBinding>
+                                </Image.Source>
+                            </Image>
+                            <Label
+                                Grid.Column="1"
+                                Content="GitHub"
+                                VerticalAlignment="Center"
+                                Margin="5 0 0 0" />
+                        </StackPanel>
+                    </Button>
+                </DockPanel>
+            </DockPanel>
         </Grid>
     </ScrollViewer>
 </ui:Page>

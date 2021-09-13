@@ -51,6 +51,13 @@
             <BitmapImage x:Key="TrayMuteDark" UriSource="/Resources/Icons/TrayDark/mute.ico" />
             <BitmapImage x:Key="TrayNoDeviceDark" UriSource="Resources/Icons/TrayDark/no-device.ico" />
 
+            <BitmapImage x:Key="Mug" UriSource="Resources/Icons/ButtonIcon/mug.png" />
+            <BitmapImage x:Key="MugEmpty" UriSource="Resources/Icons/ButtonIcon/mugEmpty.png" />
+            <BitmapImage x:Key="MugDark" UriSource="Resources/Icons/ButtonIcon/mug-dark.png" />
+            <BitmapImage x:Key="MugEmptyDark" UriSource="Resources/Icons/ButtonIcon/mugEmpty-dark.png" />
+            <BitmapImage x:Key="GitHub" UriSource="Resources/Icons/ButtonIcon/github.png" />
+            <BitmapImage x:Key="GitHubDark" UriSource="Resources/Icons/ButtonIcon/github-dark.png" />
+
             <!--override default style properties-->
             <CornerRadius x:Key="SliderThumbCornerRadius">4</CornerRadius>
             <system:Double x:Key="SliderHorizontalThumbWidth">8</system:Double>

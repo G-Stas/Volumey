@@ -154,4 +154,7 @@
   <data name="Settings_VolumeLimit" xml:space="preserve">
     <value>100% होने पर लॉन्च किए गए ऐप की मात्रा को सीमित करें</value>
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value>मुझे एक कॉफी खरीदो :)</value>
+  </data>
 </root>

@@ -151,4 +151,7 @@
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
     <value>Ses ayarları</value>
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value>Bana bir kahve ısmarla :)</value>
+  </data>
 </root>

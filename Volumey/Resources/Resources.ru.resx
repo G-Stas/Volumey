@@ -154,4 +154,7 @@
   <data name="Settings_AppsHotkeys" xml:space="preserve">
     <value>Хоткеи для приложений</value>
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value>Купите мне кофе :)</value>
+  </data>
 </root>

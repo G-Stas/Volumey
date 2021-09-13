@@ -154,4 +154,7 @@
   <data name="Settings_VolumeLimit" xml:space="preserve">
     <value>限制启动的应用程序量（如果为100％）</value>
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value>给我买杯咖啡:)</value>
+  </data>
 </root>

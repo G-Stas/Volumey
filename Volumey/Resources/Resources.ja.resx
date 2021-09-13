@@ -154,4 +154,7 @@
   <data name="Settings_VolumeLimit" xml:space="preserve">
     <value>100％の場合、起動するアプリのボリュームを制限します</value>
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value>私にコーヒーを買ってください:)</value>
+  </data>
 </root>

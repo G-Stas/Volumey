@@ -202,10 +202,11 @@
             </ui:NavigationView.MenuItems>
 
             <ui:Frame
-                x:Name="ContentFrame"/>
+                x:Name="ContentFrame"
+                Margin="0 0 0 7"/>
 
             <ui:NavigationView.Resources>
-                <!-- override defualt NavigationView resource -->
+                <!-- override default NavigationView resource -->
                 <SolidColorBrush x:Key="NavigationViewTopPaneBackground" Color="Transparent" />
             </ui:NavigationView.Resources>
         </ui:NavigationView>

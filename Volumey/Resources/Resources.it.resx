@@ -154,4 +154,7 @@
   <data name="Settings_VolumeLimit" xml:space="preserve">
     <value>Limita il volume dell'app avviata se è del 100%</value>
   </data>
+  <data name="Settings_Tip" xml:space="preserve">
+    <value>Offrimi un caffè :)</value>
+  </data>
 </root>
