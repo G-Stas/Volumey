@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
@@ -56,8 +56,6 @@ namespace Volumey.ViewModel.Settings
 				OnPropertyChanged();
 			}
 		}
-		
-		
 
 		private int volumeStep = 1;
 		public int VolumeStep
@@ -70,8 +68,8 @@ namespace Volumey.ViewModel.Settings
 					this.volumeStep = value;
 					OnPropertyChanged();
 
-					//set new value in AppSettings object but save it only in App Exit event handler
-					//or when other parameters will be written to the file
+					//set new value in AppSettings but save it in App.Exit event handler
+					//or when other parameters will be saved
 					SettingsProvider.Settings.VolumeStep = value;
 					HotkeysControl.SetVolumeStep(value);
 				}
@@ -79,11 +77,6 @@ namespace Volumey.ViewModel.Settings
 		}
 		
 		public ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> RegisteredSessions { get; }
-
-		/// <summary>
-		/// Contains names of the registered sessions that are not launched
-		/// </summary>
-		private List<string> ClosedApps = new List<string>();
 
 		/// <summary>
 		/// Containts registered sessions that are currently launched
@@ -109,8 +102,8 @@ namespace Volumey.ViewModel.Settings
 		
 		public AppsHotkeysViewModel()
 		{
-			this.AddAppCommand = new ActionCommand(AddApp);
-			this.RemoveAppCommand = new ActionCommand(RemoveApp);
+			this.AddAppCommand = new ActionCommand(async () => await AddApp());
+			this.RemoveAppCommand = new ActionCommand(async () => await RemoveApp());
 
 			var dProvider = DeviceProvider.GetInstance();
 			dProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
@@ -130,101 +123,64 @@ namespace Volumey.ViewModel.Settings
 		}
 
 		/// <summary>
-		/// Registers hotkeys for the apps that were loaded from settings on app startup
+		/// Registers hotkeys that were loaded from settings on app startup
 		/// </summary>
 		private void RegisterLoadedHotkeys()
 		{
-			if(this.RegisteredSessions == null)
+			if(this.RegisteredSessions == null || this.DefaultDevice == null)
 				return;
-			
-			if(this.DefaultDevice == null)
-			{
-				this.ClosedApps = this.RegisteredSessions.Keys.ToList();
-				return;
-			}
-
-			foreach(var (name, hotkeys) in this.RegisteredSessions)
-			{
-				try
-				{
-					var model = this.DefaultDevice.GetAudioSession(name);
-					if(model != null)
-					{
-						var (up, down) = hotkeys;
-						model.SetHotkeys(up, down);
-						model.SessionEnded += OnSessionEnded;
-						this.LaunchedSessions.Add(model);
-					}
-					else
-					{
-						this.ClosedApps.Add(name);
-					}
-				}
-				catch { }
-			}
-
-			if(this.ClosedApps.Count > 0)
-				this.DefaultDevice.SessionCreated += OnSessionCreated;
+			this.DefaultDevice.SessionCreated += OnSessionCreated;
+			this.FindAndSetupRegisteredHotkeys();
 		}
 
 		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
 			if(this.DefaultDevice != null)
-			{
 				this.DefaultDevice.SessionCreated -= OnSessionCreated;
-			}
 			
-			//move currently launched sessions to the closed list which will be used to search for these sessions amongst sessions of the new device
+			//Reset hotkeys for all currently launched sessions
 			var launchedSessionCount = this.LaunchedSessions.Count;
 			for(int i = launchedSessionCount-1; i >= 0; i--)
 			{
 				var session = this.LaunchedSessions[i];
 				session.ResetHotkeys();
 				session.SessionEnded -= OnSessionEnded;
-				this.ClosedApps.Add(session.Name);
 				this.LaunchedSessions.Remove(session);
 			}
 			
 			this.DefaultDevice = newDevice;
 			if(this.DefaultDevice == null)
-			{
 				HotkeysControl.SetHotkeysState(HotkeysState.Disabled);
-			}
-			else if(this.ClosedApps.Count > 0)
+			
+			else if(this.RegisteredSessions.Keys.Count != 0)
 			{
-				OnDeviceChanged();
-			}
-		}
-
-		private void OnDeviceChanged()
-		{
-			if(HotkeysControl.VolumeHotkeysState == HotkeysState.Disabled)
-				HotkeysControl.SetHotkeysState(HotkeysState.Enabled);
-
-			//search currently closed apps amongst sessions of the new device
-			var closedAppsCount = this.ClosedApps.Count;
-			for(int i = closedAppsCount-1; i >= 0; i--)
-			{
-				try
-				{
-					var name = this.ClosedApps[i];
-					var s = this.DefaultDevice.GetAudioSession(name);
-					if(s != null)
-					{
-						var (upHotkey, downHotkey) = this.RegisteredSessions[name];
-						s.SetHotkeys(upHotkey, downHotkey);
-						s.SessionEnded += OnSessionEnded;
-						this.ClosedApps.Remove(name);
-						this.LaunchedSessions.Add(s);
-					}
-				}
-				catch {}
-			}
-			if(this.ClosedApps.Count > 0)
+				if(HotkeysControl.VolumeHotkeysState == HotkeysState.Disabled)
+					HotkeysControl.SetHotkeysState(HotkeysState.Enabled);
 				this.DefaultDevice.SessionCreated += OnSessionCreated;
+				this.FindAndSetupRegisteredHotkeys();
+			}
 		}
 
-		private async void AddApp()
+		/// <summary>
+		/// Search for registered sessions amongst sessions of the current default output device and set its hotkeys
+		/// </summary>
+		private void FindAndSetupRegisteredHotkeys()
+		{
+			if(this.DefaultDevice == null)
+				return;
+			for(int i = 0; i < this.DefaultDevice.Sessions.Count; i++)
+			{
+				var session = this.DefaultDevice.Sessions[i];
+				if(this.RegisteredSessions.TryGetValue(session.Name, out var hotkeys))
+				{
+					session.SetHotkeys(hotkeys.Item1, hotkeys.Item2);
+					session.SessionEnded += OnSessionEnded;
+					this.LaunchedSessions.Add(session);
+				}
+			}
+		}
+
+		private async Task AddApp()
 		{
 			var session = this.SelectedSession;
 			if(this.RegisteredSessions.ContainsKey(session.Name))
@@ -241,14 +197,34 @@ namespace Volumey.ViewModel.Settings
 				this.SetErrorMessage(ErrorMessageType.VolumeReg);
 				return;
 			}
-			this.SetErrorMessage(ErrorMessageType.None);
 			session.SessionEnded += OnSessionEnded;
+			this.SetErrorMessage(ErrorMessageType.None);
+
+			try
+			{
+				//Find other sessions with the same name (i.e. sessions of the same process) to set its hotkeys as well
+				for(int i = 0; i < this.DefaultDevice.Sessions.Count; i++)
+				{
+					var otherSession = this.DefaultDevice.Sessions[i];
+					if(otherSession.Name.Equals(session.Name) && otherSession != session)
+					{
+						otherSession.SetHotkeys(this.VolumeUp, this.VolumeDown);
+						otherSession.SessionEnded += OnSessionEnded;
+						this.LaunchedSessions.Add(otherSession);
+					}
+				}
+			}
+			catch { }
 
 			var hotkeys = new Tuple<HotKey, HotKey>(this.VolumeUp, this.VolumeDown);
+
+			//Subscribe to SessionCreated event to search for registered sessions amongst new sessions
+			if (this.RegisteredSessions.Keys.Count == 0 && this.DefaultDevice != null)
+				this.DefaultDevice.SessionCreated += OnSessionCreated;
 			this.RegisteredSessions.Add(session.Name, hotkeys);
 			this.LaunchedSessions.Add(session);
 
-			Logger.Info($"Registered app hotkeys. App: [{session.Name}] +vol: [{this.VolumeUp}] -vol: [{this.VolumeDown}], count: [{this.RegisteredSessions.Keys.Count}]");
+			Logger.Info($"Registered app hotkeys. App: [{session.Name}] +vol: [{this.VolumeUp}] -vol: [{this.VolumeDown}], count: [{this.RegisteredSessions.Keys.Count.ToString()}]");
 			
 			this.VolumeUp = this.VolumeDown = null;
 			this.SelectedSession = null;
@@ -261,74 +237,53 @@ namespace Volumey.ViewModel.Settings
 			catch { }
 		}
 
-		private async void RemoveApp()
+		private async Task RemoveApp()
 		{
 			if(this.SelectedRegApp == null)
 				return;
 
 			var sessionName = this.SelectedRegApp.Value.Key;
-			AudioSessionModel sessionToRemove = null;
-			foreach(var launchedSession in this.LaunchedSessions)
+			
+			//Find sessions with the selected name (i.e. all sessions of this process) and reset its hotkeys
+			var launchedSessionCount = this.LaunchedSessions.Count;
+			for(int i = launchedSessionCount-1; i >= 0; i--)
 			{
-				if(launchedSession.Name.Equals(sessionName))
+				var session = this.LaunchedSessions[i];
+				if(session.Name.Equals(sessionName))
 				{
-					sessionToRemove = launchedSession;
-					break;
+					session.ResetHotkeys();
+					session.SessionEnded -= OnSessionEnded;
+					this.LaunchedSessions.Remove(session);
 				}
 			}
-			if(sessionToRemove == null)
-			{
-				this.ClosedApps.Remove(sessionName);
-				if(this.ClosedApps.Count == 0 && this.DefaultDevice != null)
-				{
-					this.DefaultDevice.SessionCreated -= OnSessionCreated;
-				}
-			}
-			else
-			{
-				sessionToRemove.ResetHotkeys();
-				sessionToRemove.SessionEnded -= OnSessionEnded;
-				this.LaunchedSessions.Remove(sessionToRemove);
-			}
+			
 			this.RegisteredSessions.Remove(sessionName);
+
+			//No need to handle this event if there are no registered hotkeys anymore
+			if(this.RegisteredSessions.Keys.Count == 0 && this.DefaultDevice != null)
+				this.DefaultDevice.SessionCreated -= OnSessionCreated;
 			try
 			{
 				SettingsProvider.HotkeysSettings.RemoveRegisteredSession(sessionName);
-				await SettingsProvider.SaveSettings().ConfigureAwait(false);	
+				await SettingsProvider.SaveSettings().ConfigureAwait(false);
 			}
 			catch { }
 		}
 
 		private void OnSessionEnded(AudioSessionModel session)
 		{
-			//if the list is empty we aren't subscribed to SessionCreated event yet
-			if(this.ClosedApps.Count == 0)
-			{
-				if(this.DefaultDevice != null)
-				{
-					this.DefaultDevice.SessionCreated += OnSessionCreated;
-				}
-			}
 			session.ResetHotkeys();
 			session.SessionEnded -= OnSessionEnded;
 			this.LaunchedSessions.Remove(session);
-			this.ClosedApps.Add(session.Name);
 		}
 
 		private void OnSessionCreated(AudioSessionModel newSession)
 		{
-			var sessionName = newSession.Name;
-			if(this.ClosedApps.Contains(sessionName))
+			if(this.RegisteredSessions.TryGetValue(newSession.Name, out var hotkeys))
 			{
-				var (upHotkey, downHotkey) = this.RegisteredSessions[sessionName];
-				newSession.SetHotkeys(volUp: upHotkey, volDown: downHotkey);
+				newSession.SetHotkeys(volUp: hotkeys.Item1, volDown: hotkeys.Item2);
 				newSession.SessionEnded += OnSessionEnded;
-				this.ClosedApps.Remove(sessionName);
 				this.LaunchedSessions.Add(newSession);
-				if(this.ClosedApps.Count == 0)
-				{
-					this.DefaultDevice.SessionCreated -= OnSessionCreated;
-				}
 			}
 		}
 	}

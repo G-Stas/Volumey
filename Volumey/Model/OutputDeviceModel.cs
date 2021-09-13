@@ -116,32 +116,6 @@ namespace Volumey.Model
 			}
 		}
 
-		/// <summary>
-		/// Search for audio session by its name in the collection of audio sessions of the device
-		/// </summary>
-		/// <param name="appName">The name of audio session</param>
-		public AudioSessionModel GetAudioSession(string appName)
-		{
-			AudioSessionModel musicSession = null;
-			Monitor.Enter(this.Sessions);
-			try
-			{
-				foreach(var session in this.Sessions)
-				{
-					if(session.Name.Equals(appName, StringComparison.CurrentCulture))
-					{
-						musicSession = session;
-						break;
-					}
-				}
-			}
-			finally
-			{
-				Monitor.Exit(this.Sessions);
-			}
-			return musicSession;
-		}
-
 		private void OnDeviceDisabled(string deviceId)
 		{
 			if(this.CompareId(deviceId))
