@@ -157,4 +157,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>给我买杯咖啡:)</value>
   </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>添加设备</value>
+  </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>通过热键设置默认设备</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>输出设备</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>删除设备</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>更改默认设备</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>热键</value>
+  </data>
 </root>

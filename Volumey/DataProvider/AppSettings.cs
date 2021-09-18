@@ -217,6 +217,12 @@ namespace Volumey.DataProvider
 					if(session.Value.up.ToHotKey().Equals(key) || session.Value.down.ToHotKey().Equals(key))
 						return true;
 				}
+				foreach(var value in this.serializableRegisteredDevices)
+				{
+					var hotkey = value.Key.ToHotKey();
+					if(hotkey.Equals(key))
+						return true;
+				}
 				return false;
 			}
 			
@@ -235,6 +241,13 @@ namespace Volumey.DataProvider
 					if(up.Equals(key) || up.Equals(key2) || down.Equals(key) || down.Equals(key2))
 						return true;
 				}
+
+				foreach(var value in this.serializableRegisteredDevices)
+				{
+					var hotkey = value.Key.ToHotKey();
+					if(hotkey.Equals(key) || hotkey.Equals(key2))
+						return true;
+				}
 				return false;
 			}
 
@@ -250,6 +263,37 @@ namespace Volumey.DataProvider
 				if(string.IsNullOrEmpty(sessionName))
 					return;
 				this.serializableRegisteredSessions.Remove(sessionName);
+			}
+
+			[OptionalField]
+			private Dictionary<SerializableHotkey, (string id, string name)> serializableRegisteredDevices;
+
+			internal ObservableConcurrentDictionary<HotKey, Tuple<string, string>> GetRegisteredDevices()
+			{
+				var dict = new ObservableConcurrentDictionary<HotKey, Tuple<string, string>>();
+				if(this.serializableRegisteredDevices == null)
+				{
+					this.serializableRegisteredDevices = new Dictionary<SerializableHotkey, (string id, string name)>();
+					return dict;
+				}
+
+				if(this.serializableRegisteredDevices.Count == 0)
+					return dict;
+
+				foreach(var tuple in this.serializableRegisteredDevices)
+					dict.Add(tuple.Key.ToHotKey(), new Tuple<string, string>(tuple.Value.id, tuple.Value.name));
+
+				return dict;
+			}
+
+			internal void AddRegisteredDevice(HotKey hotkey, string deviceId, string name)
+			{
+				this.serializableRegisteredDevices.Add(hotkey.ToSerializableHotkey(), (deviceId, name));
+			}
+
+			internal void RemoveRegisteredDevice(HotKey hotkey)
+			{
+				this.serializableRegisteredDevices.Remove(hotkey.ToSerializableHotkey());
 			}
 
 			[OnDeserialized]

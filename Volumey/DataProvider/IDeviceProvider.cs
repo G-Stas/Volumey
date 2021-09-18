@@ -17,5 +17,7 @@ namespace Volumey.DataProvider
 		event Action<OutputDeviceModel> DeviceFormatChanged;
 		
 		public bool NoOutputDevices { get; set; }
+
+		public void SetDefaultDevice(string deviceId);
 	}
 }

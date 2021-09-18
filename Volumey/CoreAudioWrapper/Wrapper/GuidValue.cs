@@ -26,6 +26,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             public const string IMMNotificationClient = "7991EEC9-7E89-4D85-8390-6C703CEC60C0";
             public const string IPropertyStore = "886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99";
             public const string IMMEndpoint = "1BE09788-6894-4089-8586-9A2A6C265AC5";
+            public const string IPolicyConfig = "F8679F50-850A-41CF-9C72-430F290290C8";
+            public const string PolicyConfigCOM = "870AF99C-171D-4F9E-AF0D-E63DF40C2BC9";
         }
 
         /// <summary>

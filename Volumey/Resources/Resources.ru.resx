@@ -157,4 +157,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>Купите мне кофе :)</value>
   </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>Добавить устройство</value>
+  </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>Изменить устройство вывода по умолчанию по хоткею</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>Удалить устройство</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>Сменить устройство вывода по умолчанию</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>Устройство вывода</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Хоткей</value>
+  </data>
 </root>

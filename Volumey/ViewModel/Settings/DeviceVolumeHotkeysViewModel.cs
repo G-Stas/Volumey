@@ -6,7 +6,7 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
 {
-	public sealed class DeviceHotkeysViewModel : HotkeyViewModel
+	public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 	{
 		private OutputDeviceModel defaultDevice;
 
@@ -56,9 +56,9 @@ namespace Volumey.ViewModel.Settings
 		private bool hotkeysRegistered;
 
 		private ILog _logger;
-		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceHotkeysViewModel));
+		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceVolumeHotkeysViewModel));
 
-		public DeviceHotkeysViewModel()
+		public DeviceVolumeHotkeysViewModel()
 		{
 			var deviceProvider = DeviceProvider.GetInstance();
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
@@ -151,8 +151,6 @@ namespace Volumey.ViewModel.Settings
 				}
 			}
 			this.defaultDevice = newDevice;
-			if(HotkeysControl.VolumeHotkeysState == HotkeysState.Disabled)
-				HotkeysControl.SetHotkeysState(HotkeysState.Enabled);
 		}
 	}
 }

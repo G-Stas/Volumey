@@ -47,17 +47,35 @@
     <fw:AcrylicWindow.Resources>
         <ResourceDictionary>
 
+            <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
+            <converters:BrushToColorConverter x:Key="BrushToColorConverter"/>
+            
             <ContextMenu
                 x:Key="TrayMenu"
-                HasDropShadow="False"
+                HasDropShadow="True"
                 BorderThickness="0"
                 Background="{Binding ElementName=GridContainer, Path=Background}"
-                ui:ControlHelper.CornerRadius="12">
-                
+                ui:ControlHelper.CornerRadius="6"
+                Opacity="0.95">
                 <ContextMenu.Resources>
                     <Style TargetType="{x:Type ui:FontIcon}">
-                        <Setter Property="Margin" Value="0 0 0 -2"/>
+                        <Setter Property="Margin" Value="0 1 0 0"/>
+                        <Setter Property="RenderTransform">
+                            <Setter.Value>
+                                <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
+                    <Style TargetType="{x:Type MenuItem}">
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="Padding" Value="6 0 4 0"/>
+                        <Setter Property="Height" Value="29"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+
+                    <!-- override default menu item popup properties -->
+                    <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{Binding ElementName=GridContainer, Path=Background, Converter={StaticResource BrushToColorConverter}}"/>
+                    <Thickness x:Key="MenuFlyoutPresenterBorderThemeThickness">0</Thickness>
                 </ContextMenu.Resources>
                 
                 <MenuItem
@@ -93,6 +111,45 @@
                         <ui:FontIcon Glyph="&#xE7F3;" />
                     </MenuItem.Icon>
                 </MenuItem>
+                
+                <MenuItem
+                    Foreground="{Binding ElementName=Window, Path=Foreground}"
+                    ItemsSource="{Binding Source={StaticResource DeviceProviderViewModel}, Path=DeviceProvider.ActiveDevices}"
+                    Height="Auto">
+                    <MenuItem.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock 
+                                Text="{lc:Localization TrayMenu_ChangeDevice}"
+                                TextWrapping="WrapWithOverflow"
+                                MaxWidth="200"
+                                LineStackingStrategy="BlockLineHeight"
+                                Padding="0 5 0 5"/>
+                        </DataTemplate>
+                    </MenuItem.HeaderTemplate>
+                    <MenuItem.Icon>
+                        <ui:FontIcon Glyph="&#xF623;"/>
+                    </MenuItem.Icon>
+                    <MenuItem.ItemContainerStyle>
+                        <Style>
+                            <Setter Property="MenuItem.Icon">
+                                <Setter.Value>
+                                    <MultiBinding Converter="{StaticResource DeviceIsDefaultToIconConverter}">
+                                        <Binding/>
+                                        <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice"/>
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="MenuItem.Height" Value="25"/>
+                            <Setter Property="MenuItem.Padding" Value="4 0 4 0"/>
+                            <Setter Property="MenuItem.FontSize" Value="12"/>
+                            <Setter Property="MenuItem.Header" Value="{Binding Master.DeviceFriendlyName}"/>
+                            <Setter Property="MenuItem.Background" Value="{Binding ElementName=GridContainer, Path=Background}"/>
+                            <Setter Property="MenuItem.Command" Value="{Binding Source={StaticResource DeviceProviderViewModel}, Path=SetDefaultDeviceTrayCommand}"/>
+                            <Setter Property="MenuItem.CommandParameter" Value="{Binding}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                
                 <Separator />
                 <MenuItem
                     Header="{lc:Localization TrayMenu_Exit}"
@@ -203,7 +260,7 @@
 
             <ui:Frame
                 x:Name="ContentFrame"
-                Margin="0 0 0 7"/>
+                Margin="4 3 0 3"/>
 
             <ui:NavigationView.Resources>
                 <!-- override default NavigationView resource -->

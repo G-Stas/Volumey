@@ -1,0 +1,59 @@
+﻿<ui:Page
+	x:Class="Volumey.View.SettingsPage.DeviceVolumeHotkeysPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:lc="clr-namespace:Volumey.Localization"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	xmlns:controls="clr-namespace:Volumey.Controls"
+	mc:Ignorable="d"
+	DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=DeviceVolumeHotkeysViewModel}">
+	<ui:Page.Resources>
+		<ResourceDictionary>
+			<Style
+				TargetType="TextBlock"
+				BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+		</ResourceDictionary>
+	</ui:Page.Resources>
+	<StackPanel>
+		<StackPanel>
+			<TextBlock
+				Text="{lc:Localization Settings_IncreaseDevice}"
+				Width="{StaticResource TextBlockHeaderWidth}"/>
+			<controls:HotKeyBox
+				HotKey="{Binding VolumeUp}"
+				IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				Width="{StaticResource InputBoxWidth}"
+				HorizontalAlignment="Left"
+				ui:ControlHelper.PlaceholderText="Alt + Shift + Up"/>
+			<TextBlock
+				Text="{lc:Localization Settings_DecreaseDevice}"
+				Width="{StaticResource TextBlockWidth}"/>
+			<controls:HotKeyBox
+				HotKey="{Binding VolumeDown}"
+				IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				Width="{StaticResource InputBoxWidth}"
+				HorizontalAlignment="Left"
+				ui:ControlHelper.PlaceholderText="Alt + Shift + Down"/>
+
+			<ui:ToggleSwitch
+				IsOn="{Binding IsOn}">
+				<ui:ToggleSwitch.IsEnabled>
+					<MultiBinding
+						Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
+						<Binding
+							Path="VolumeUp"/>
+						<Binding
+							Path="VolumeDown"/>
+					</MultiBinding>
+				</ui:ToggleSwitch.IsEnabled>
+			</ui:ToggleSwitch>
+
+			<TextBlock
+				Text="{Binding ErrorMessage}"
+				Width="{StaticResource TextBlockHeaderWidth}"
+				Foreground="Red"/>
+		</StackPanel>
+	</StackPanel>
+</ui:Page>

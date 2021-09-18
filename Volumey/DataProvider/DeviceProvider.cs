@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Threading;
@@ -30,6 +31,8 @@ namespace Volumey.DataProvider
 				OnPropertyChanged();
 			}
 		}
+
+		private readonly PolicyClient PolicyClient = new PolicyClient();
 		
 		private bool noOutputDevices;
 		public bool NoOutputDevices
@@ -100,6 +103,27 @@ namespace Volumey.DataProvider
 				}
 			}
 			return instance;
+		}
+
+		public void SetDefaultDevice(string id)
+		{
+			try
+			{
+				//Check if the device to set is enabled
+				if(this.ActiveDevices.Any(device => device.CompareId(id)))
+				{
+					//Prevent if it's already the default device
+					if(DefaultDevice != null && !DefaultDevice.CompareId(id))
+					{
+						// Debug.WriteLine($"Activating device {id}");
+						this.PolicyClient.SetDefaultEndpointDevice(id);
+					}
+				}
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Failed to change default device", e);
+			}
 		}
 
 		private void OnDeviceDisabled(OutputDeviceModel device)

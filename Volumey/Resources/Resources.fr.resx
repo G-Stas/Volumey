@@ -157,4 +157,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>Achetez-moi un café :)</value>
   </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>Ajouter un appareil</value>
+  </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>Définir l'appareil par défaut par raccourci clavier</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>Dispositif</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>Enlevez l'appareil</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>Changer l'appareil par défaut</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Raccourci clavier</value>
+  </data>
 </root>

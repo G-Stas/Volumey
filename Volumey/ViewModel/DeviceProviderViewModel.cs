@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 using System.Windows.Threading;
+using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Model;
 
@@ -45,6 +47,19 @@ namespace Volumey.ViewModel
 
             if(App.Current != null)
                 App.Current.Exit += (s, a) => this.DeviceProvider.Dispose();
+
+            this.SetDefaultDeviceCommand = new ActionCommand(() =>
+            {
+                if(this.SelectedDevice == null)
+                    return;
+                this.DeviceProvider.SetDefaultDevice(this.SelectedDevice.Id);
+            });
+            
+            this.SetDefaultDeviceTrayCommand = new ActionCommand((param) =>
+            {
+                if(param is OutputDeviceModel model)
+                    SetAsDefaultDevice(model.Id);
+            });
         }
 
         private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
@@ -77,6 +92,20 @@ namespace Volumey.ViewModel
                         this.SelectedDevice = this.DefaultDevice = null;
                 }
             });
+        }
+
+        public ICommand SetDefaultDeviceCommand { get; }
+        public ICommand SetDefaultDeviceTrayCommand { get; }
+
+        private void SetAsDefaultDevice(string deviceId)
+        {
+            if(string.IsNullOrEmpty(deviceId))
+                return;
+
+            if(DeviceProvider.DefaultDevice != null && DeviceProvider.DefaultDevice.CompareId(deviceId))
+                return;
+
+            this.DeviceProvider.SetDefaultDevice(deviceId);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

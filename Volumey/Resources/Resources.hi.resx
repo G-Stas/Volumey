@@ -157,4 +157,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>मुझे एक कॉफी खरीदो :)</value>
   </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>डिवाइस जोडे</value>
+  </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>हॉटकी द्वारा डिफ़ॉल्ट डिवाइस बदलें</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>आउटपुट डिवाइस</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>डिवाइस हटाएं</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस बदलें</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>हॉटकी</value>
+  </data>
 </root>

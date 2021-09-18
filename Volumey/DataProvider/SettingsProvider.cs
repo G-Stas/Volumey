@@ -82,7 +82,7 @@ namespace Volumey.DataProvider
             }
         }
 
-        private static AppSettings.SerializableHotkey ToSerializableHotkey(this HotKey hotkey)
+        internal static AppSettings.SerializableHotkey ToSerializableHotkey(this HotKey hotkey)
         {
             if(hotkey == null)
                 return new AppSettings.SerializableHotkey(Key.None, ModifierKeys.None);

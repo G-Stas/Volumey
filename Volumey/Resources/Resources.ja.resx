@@ -157,4 +157,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>私にコーヒーを買ってください:)</value>
   </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>デバイスを追加</value>
+  </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>ホットキーでデフォルトのデバイスを変更する</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>出力機器</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>デバイスを削除</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>デフォルトのデバイスを変更する</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>ホットキー</value>
+  </data>
 </root>

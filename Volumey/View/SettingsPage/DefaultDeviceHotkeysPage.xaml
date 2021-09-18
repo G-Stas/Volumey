@@ -1,0 +1,93 @@
+﻿<ui:Page
+	x:Class="Volumey.View.SettingsPage.DefaultDeviceHotkeysPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	xmlns:controls="clr-namespace:Volumey.Controls"
+	xmlns:lc="clr-namespace:Volumey.Localization"
+	mc:Ignorable="d"
+	DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=DefaultDeviceHotkeysViewModel}">
+	<ui:Page.Resources>
+		<ResourceDictionary>
+			<Style
+				TargetType="TextBlock"
+				BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+		</ResourceDictionary>
+	</ui:Page.Resources>
+	<StackPanel>
+		<StackPanel>
+            <TextBlock
+			Text="{lc:Localization Settings_Device}"
+			Width="{StaticResource TextBlockHeaderWidth}"/>
+            <ComboBox
+				DockPanel.Dock="Top"
+				SelectedItem="{Binding SelectedDevice}"
+				ItemsSource="{Binding DeviceProvider.ActiveDevices}"
+				DisplayMemberPath="Master.DeviceFriendlyName"
+				IsSynchronizedWithCurrentItem="False"
+				Style="{StaticResource SettingsComboBoxStyle}"/>
+            <TextBlock
+				Text="{lc:Localization Settings_Hotkey}"
+				Width="{StaticResource TextBlockHeaderWidth}"/>
+            <controls:HotKeyBox
+				HotKey="{Binding HotKey}"
+				Width="{StaticResource InputBoxWidth}"
+				HorizontalAlignment="Left"
+				ui:ControlHelper.PlaceholderText="F4"/>
+
+			<WrapPanel
+				DockPanel.Dock="Top"
+				Orientation="Horizontal"
+				ClipToBounds="True">
+				<Button
+					Command="{Binding AddDeviceCommand}"
+					Content="{lc:Localization Settings_AddDevice}"
+					Margin="0 3 3 0">
+					<Button.IsEnabled>
+						<MultiBinding Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
+							<Binding Path="SelectedDevice"/>
+							<Binding Path="HotKey"/>
+						</MultiBinding>
+					</Button.IsEnabled>
+				</Button>
+				<Button
+					Content="{lc:Localization Settings_RemoveDevice}"
+					Command="{Binding RemoveDeviceCommand}"
+					Visibility="{Binding RegisteredDevices.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+					IsEnabled="{Binding SelectedRegDev, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
+					Margin="0 3 3 0"/>
+			</WrapPanel>
+
+			<ComboBox
+				DockPanel.Dock="Top"
+				ItemsSource="{Binding RegisteredDevices}"
+				SelectedItem="{Binding SelectedRegDev}"
+				Visibility="{Binding RegisteredDevices.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+				Margin="0 3 0 0"
+				Style="{StaticResource SettingsComboBoxStyle}">
+				<ComboBox.ItemTemplate>
+					<DataTemplate>
+						<TextBlock>
+							<TextBlock.Text>
+								<MultiBinding
+									StringFormat="{}{0}   {1}">
+									<Binding
+										Path="Value.Item2"/>
+									<Binding
+										Path="Key"/>
+								</MultiBinding>
+							</TextBlock.Text>
+						</TextBlock>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<TextBlock
+				Text="{Binding ErrorMessage}"
+				Width="{StaticResource TextBlockHeaderWidth}"
+				Foreground="Red"/>
+		</StackPanel>
+	</StackPanel>
+</ui:Page>

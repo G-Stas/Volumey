@@ -1,0 +1,105 @@
+﻿<ui:Page
+	x:Class="Volumey.View.SettingsPage.AppsHotkeysPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:lc="clr-namespace:Volumey.Localization"
+	xmlns:controls="clr-namespace:Volumey.Controls"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+	mc:Ignorable="d"
+	DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=HotkeysViewModel}">
+
+	<ui:Page.Resources>
+		<ResourceDictionary>
+			<Style TargetType="TextBlock" BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+            <SolidColorBrush x:Key="ButtonBackground" Color="{DynamicResource SystemAltMediumLowColor}"/>
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{DynamicResource SystemAltLowColor}"/>
+            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumHighColor}"/>
+            <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{DynamicResource SystemChromeMediumColor}"/>
+		</ResourceDictionary>
+	</ui:Page.Resources>
+    <StackPanel>
+        <TextBlock
+			Text="{lc:Localization Settings_MusicApp}"
+			Width="{StaticResource TextBlockWidth}"/>
+		<ComboBox
+			SelectedItem="{Binding SelectedSession}"
+			ItemsSource="{Binding DefaultDevice.Sessions}"
+			DisplayMemberPath="Name"
+			IsSynchronizedWithCurrentItem="False"
+			Style="{StaticResource SettingsComboBoxStyle}"/>
+		<TextBlock
+			Text="{lc:Localization Settings_IncreaseHotkey}"
+			Width="{StaticResource TextBlockWidth}"/>
+		<controls:HotKeyBox
+			HotKey="{Binding VolumeUp}"
+			Width="{StaticResource InputBoxWidth}"
+			HorizontalAlignment="Left"
+			ui:ControlHelper.PlaceholderText="Ctrl + Shift + Up"/>
+		<TextBlock
+			Text="{lc:Localization Settings_DecreaseHotkey}"
+			Width="{StaticResource TextBlockWidth}"/>
+		<controls:HotKeyBox
+			HotKey="{Binding VolumeDown}"
+			Width="{StaticResource InputBoxWidth}"
+			HorizontalAlignment="Left"
+			ui:ControlHelper.PlaceholderText="Ctrl + Shift + Down"/>
+		<WrapPanel
+			Orientation="Horizontal"
+			ClipToBounds="True">
+			<Button
+				Margin="0 3 3 0"
+				Command="{Binding AddAppCommand}"
+				Content="{lc:Localization Settings_AddApp}">
+				<Button.IsEnabled>
+					<MultiBinding
+						Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
+						<Binding
+							Path="SelectedSession"/>
+						<Binding
+							Path="VolumeUp"/>
+						<Binding
+							Path="VolumeDown"/>
+					</MultiBinding>
+				</Button.IsEnabled>
+			</Button>
+			<Button
+				Margin="0 3 3 0"
+				Command="{Binding RemoveAppCommand}"
+				Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+				IsEnabled="{Binding SelectedRegApp, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
+				Content="{lc:Localization Settings_RemoveApp}"/>
+		</WrapPanel>
+
+		<!-- registered apps list -->
+		<ComboBox
+			ItemsSource="{Binding RegisteredSessions}"
+			SelectedItem="{Binding SelectedRegApp}"
+			Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+			Margin="0 3 0 0"
+			Style="{StaticResource SettingsComboBoxStyle}">
+			<ComboBox.ItemTemplate>
+				<DataTemplate>
+					<TextBlock>
+						<TextBlock.Text>
+							<MultiBinding
+								StringFormat="{}{0}   {1}    {2}">
+								<Binding
+									Path="Key"/>
+								<Binding
+									Path="Value.Item1"/>
+								<Binding
+									Path="Value.Item2"/>
+							</MultiBinding>
+						</TextBlock.Text>
+					</TextBlock>
+				</DataTemplate>
+			</ComboBox.ItemTemplate>
+		</ComboBox>
+		<TextBlock
+			Text="{Binding ErrorMessage}"
+			Width="{StaticResource TextBlockHeaderWidth}"
+			Foreground="Red"/>
+	</StackPanel>
+</ui:Page>

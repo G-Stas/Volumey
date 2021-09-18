@@ -157,4 +157,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>Offrimi un caffè :)</value>
   </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>Aggiungi dispositivo</value>
+  </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>Cambia dispositivo predefinito tramite tasto di scelta rapida</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>Dispositivo di uscita</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>Rimuovi dispositivo</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>Cambia il dispositivo predefinito</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Tasto di scelta rapida</value>
+  </data>
 </root>

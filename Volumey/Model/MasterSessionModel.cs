@@ -115,7 +115,7 @@ namespace Volumey.Model
         {
             try
             {
-                if(volUp != null && volDown != null && HotkeysControl.RegisterVolumeHotkeys(volUp, volDown))
+                if(volUp != null && volDown != null && HotkeysControl.RegisterHotkeysPair(volUp, volDown))
                 {
                     this.volumeUp = volUp;
                     this.volumeDown = volDown;
@@ -136,7 +136,7 @@ namespace Volumey.Model
         private void UnregisterHotkeys()
         {
             if(this.volumeUp != null && this.volumeDown != null)
-                HotkeysControl.UnregisterVolumeHotkeys(this.volumeUp, this.volumeDown);
+                HotkeysControl.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
             HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
         }
 		

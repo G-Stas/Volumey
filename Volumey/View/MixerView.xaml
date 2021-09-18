@@ -6,7 +6,7 @@
          xmlns:ui="http://schemas.modernwpf.com/2019"
          xmlns:view="clr-namespace:Volumey.View"
          mc:Ignorable="d">
-    <Grid Margin="3 3 0 0">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -25,6 +25,5 @@
             Grid.Row="2">
             <view:SessionsListView x:Name="SessionsList"/>
         </ScrollViewer>
-
     </Grid>
 </ui:Page>

@@ -154,4 +154,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value>Bana bir kahve ısmarla :)</value>
   </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>Kısayol tuşuyla varsayılan cihazı değiştir</value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value>Çıkış aygıtı</value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>Aygıtı kaldır</value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>Varsayılan cihazı değiştir</value>
+  </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value>Cihaz ekle</value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Kısayol tuşu</value>
+  </data>
 </root>

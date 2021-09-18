@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Windows.Threading;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio;

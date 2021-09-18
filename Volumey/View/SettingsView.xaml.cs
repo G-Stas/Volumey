@@ -1,19 +1,51 @@
-﻿using ModernWpf.Controls;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using ModernWpf.Controls;
+using ModernWpf.Media.Animation;
+using Volumey.View.SettingsPage;
 
 namespace Volumey.View
 {
-    public partial class SettingsView
+    public partial class SettingsView : INotifyPropertyChanged
     {
-        public SettingsView()
+        public class NavLink
         {
-            InitializeComponent();
+            public string LocalizationKey { get; }
+            public Type PageType { get; }
+
+            public NavLink(string localizationKey, Type pageType)
+            {
+                this.LocalizationKey = localizationKey;
+                this.PageType = pageType;
+            }
         }
 
-        private void NumberBox_OnValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+        public ObservableCollection<NavLink> NavLinks { get; } = new ObservableCollection<NavLink>();
+        public NavLink SelectedNavLink { get; set; }
+        
+        public SettingsView()
         {
-            //prevent leaving number boxes empty
-            if (double.IsNaN(args.NewValue))
-                sender.Value = args.OldValue;
+            NavLinks.Add(new NavLink("Settings_AppsHotkeys", typeof(AppsHotkeysPage)));
+            NavLinks.Add(new NavLink("Settings_DeviceHotkeys", typeof(DeviceVolumeHotkeysPage)));
+            NavLinks.Add(new NavLink("Settings_DefaultDeviceHotkey", typeof(DefaultDeviceHotkeysPage)));
+            NavLinks.Add(new NavLink("Settings_OpenMixer", typeof(OpenMixerHotkeyPage)));
+            NavLinks.Add(new NavLink("Settings_HeaderMisc", typeof(MiscPage)));
+            InitializeComponent();
+            this.SelectedNavLink = NavLinks[0];
+            this.PageContentFrame.Navigate(this.SelectedNavLink.PageType);
         }
+
+        private NavigationTransitionInfo transition = new DrillInNavigationTransitionInfo();
+
+        private void OnNavLinkItemClick(object sender, ItemClickEventArgs e)
+        {
+            if(this.SelectedNavLink == null)
+                return;
+            if(this.PageContentFrame.CurrentSourcePageType != this.SelectedNavLink.PageType)
+                this.PageContentFrame.Navigate(this.SelectedNavLink.PageType, null, transition);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

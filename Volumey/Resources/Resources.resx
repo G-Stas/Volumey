@@ -114,4 +114,22 @@
   <data name="Settings_Tip" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_AddDevice" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_Device" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_Hotkey" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

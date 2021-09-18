@@ -75,9 +75,9 @@
                         Grid.Row="1"
                         Command="{Binding MuteCommand}"
                         Background="Transparent"
-                        Width="35"
+                        Width="30"
                         Height="40"
-                        Margin="-7 -8 0 0">
+                        Margin="-5 -8 0 0">
                         <controls1:AppBarButton.RenderTransform>
                             <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
                         </controls1:AppBarButton.RenderTransform>

@@ -66,16 +66,110 @@
             <Thickness x:Key="ComboBoxDropdownBorderThickness">0</Thickness>
             <CornerRadius x:Key="OverlayCornerRadius">6</CornerRadius>
 
-            <Style TargetType="{x:Type local:HotKeyBox}" BasedOn="{StaticResource DefaultTextBoxStyle}" />
-            <system:Double x:Key="InputBoxWidth">150</system:Double>
-            <system:Double x:Key="SliderWidth">265</system:Double>
+            <system:Double x:Key="InputBoxWidth">180</system:Double>
+            <system:Double x:Key="SliderWidth">255</system:Double>
             <System:Double x:Key="SliderHeight">35</System:Double>
+            <system:Double x:Key="TextBlockWidth">180</system:Double>
+            <system:Double x:Key="TextBlockHeaderWidth">200</system:Double>
+            <system:Double x:Key="GroupBoxHeaderFontSize">17</system:Double>
             <system:Double x:Key="ImageSize">24</system:Double>
 
-            <converters:MutedToGlyphConverter x:Key="MutedToGlyphConverter" />
             <Thickness x:Key="SliderMargin">5, -4, 0, 0</Thickness>
             <Thickness x:Key="ImageMargin">7, 3, 8, 0</Thickness>
+            <Thickness x:Key="ContentMargin">0 5 0 0</Thickness>
+            <Thickness x:Key="BoxMargin">0 2 0 0</Thickness>
             <Thickness x:Key="MuteButtonMargin">0 -3 0 0</Thickness>
+
+            <converters:AnyPropertyIsNullToEnabledConverter x:Key="AnyPropertyIsNullToEnabledConverter" />
+            <converters:PropertyIsNullToEnabledConverter x:Key="PropertyIsNullToEnabledConverter" />
+            <converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" />
+            <converters:HotkeysRegisteredToEnabledConverter x:Key="HotkeysRegisteredToEnabledConverter" />
+            <converters:MutedToGlyphConverter x:Key="MutedToGlyphConverter" />
+
+            <Style
+                x:Key="SettingsComboBoxStyle"
+                TargetType="{x:Type ComboBox}"
+                BasedOn="{StaticResource DefaultComboBoxStyle}">
+                <Setter
+                    Property="Width"
+                    Value="{StaticResource InputBoxWidth}"/>
+                <Setter
+                    Property="Margin"
+                    Value="{StaticResource BoxMargin}"/>
+                <Setter
+                    Property="ui:ControlHelper.CornerRadius"
+                    Value="4"/>
+            </Style>
+
+            <Style
+                TargetType="{x:Type local:HotKeyBox}"
+                BasedOn="{StaticResource DefaultTextBoxStyle}">
+                <Setter
+                    Property="ui:ControlHelper.PlaceholderForeground"
+                    Value="{DynamicResource SystemControlHighlightBaseMediumLowBrush}"/>
+                <Setter
+                    Property="Margin"
+                    Value="{StaticResource BoxMargin}"/>
+                <Setter
+                    Property="ui:ControlHelper.CornerRadius"
+                    Value="4"/>
+            </Style>
+
+            <Style
+                TargetType="{x:Type ui:NumberBox}">
+                <Setter
+                    Property="Margin"
+                    Value="{StaticResource BoxMargin}"/>
+                <Setter
+                    Property="ui:ControlHelper.CornerRadius"
+                    Value="4"/>
+            </Style>
+
+            <Style
+                x:Key="SettingsTextBlockStyle"
+                TargetType="{x:Type TextBlock}">
+                <Setter
+                    Property="FontSize"
+                    Value="13"/>
+                <Setter
+                    Property="TextWrapping"
+                    Value="WrapWithOverflow"/>
+                <Setter
+                    Property="HorizontalAlignment"
+                    Value="Left"/>
+                <Setter
+                    Property="LineStackingStrategy"
+                    Value="BlockLineHeight"/>
+                <Setter
+                    Property="LineHeight"
+                    Value="16"/>
+                <Setter Property="Margin" Value="0 3 0 0"/>
+                <Style.Triggers>
+                    <Trigger
+                        Property="Text"
+                        Value="">
+                        <Setter
+                            Property="Visibility"
+                            Value="Collapsed"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
+            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource SystemChromeHighColorBrush}"/>
+                <Setter Property="ui:ControlHelper.CornerRadius" Value="4"/>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground"
+                                Value="{DynamicResource SystemControlDisabledChromeDisabledLowBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

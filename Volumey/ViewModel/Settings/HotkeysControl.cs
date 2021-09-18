@@ -6,13 +6,6 @@ using Volumey.DataProvider;
 
 namespace Volumey.ViewModel.Settings
 {
-	public enum HotkeysState
-	{
-		NotRegistered,
-		Enabled,
-		Disabled
-	}
-	
 	public static class HotkeysControl
 	{
 		/// <summary>
@@ -22,8 +15,6 @@ namespace Volumey.ViewModel.Settings
 		internal static event Action<HotKey> HotkeyPressed;
 		internal static event Action OpenHotkeyPressed;
 		internal static bool IsActive { get; private set; }
-
-		internal static HotkeysState VolumeHotkeysState { get; private set; } = HotkeysState.NotRegistered;
 
 		private static int volumeStep = 1;
 		public static int VolumeStep
@@ -35,36 +26,52 @@ namespace Volumey.ViewModel.Settings
 		private static HotKey openMixer;
 		private static IHotkeyManager hotkeyManager;
 
-		public static bool RegisterVolumeHotkeys(HotKey volUp, HotKey volDown)
+		public static bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
 			if(hotkeyManager == null)
 				throw new NullReferenceException("Hotkey manager is not set");
 			try
 			{
-				hotkeyManager.RegisterHotkey(volUp);
-				hotkeyManager.RegisterHotkey(volDown);
-				if(VolumeHotkeysState == HotkeysState.NotRegistered)
-					VolumeHotkeysState = HotkeysState.Enabled;
+				hotkeyManager.RegisterHotkey(hotkey1);
+				hotkeyManager.RegisterHotkey(hotkey2);
 				return true;
 			}
 			catch
 			{
-				hotkeyManager.UnregisterHotkey(volUp);
-				hotkeyManager.UnregisterHotkey(volDown);
+				hotkeyManager.UnregisterHotkey(hotkey1);
+				hotkeyManager.UnregisterHotkey(hotkey2);
 				throw;
 			}
 		}
 
-		public static void UnregisterVolumeHotkeys(HotKey volUp, HotKey volDown)
+		public static void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
 			if(hotkeyManager == null)
 				throw new NullReferenceException("Hotkey manager is not set");
 			try
 			{
-				hotkeyManager.UnregisterHotkey(volUp);
-				hotkeyManager.UnregisterHotkey(volDown);
-				if(hotkeyManager.RegisteredHotkeysCount == 0)
-					VolumeHotkeysState = HotkeysState.NotRegistered;
+				hotkeyManager.UnregisterHotkey(hotkey1);
+				hotkeyManager.UnregisterHotkey(hotkey2);
+			}
+			catch { }
+		}
+
+		public static bool RegisterHotkey(HotKey hotkey)
+		{
+			try
+			{
+				hotkeyManager.RegisterHotkey(hotkey);
+				return true;
+			}
+			catch {}
+			return false;
+		}
+
+		public static void UnregisterHotkey(HotKey hotkey)
+		{
+			try
+			{
+				hotkeyManager.UnregisterHotkey(hotkey);
 			}
 			catch { }
 		}
@@ -96,7 +103,7 @@ namespace Volumey.ViewModel.Settings
 				openMixer = null;
 				hotkeyManager.UnregisterHotkey(hotkey);
 			}
-			catch {}
+			catch { }
 		}
 
 		public static ErrorMessageType HotkeyIsValid(HotKey hotkey)
@@ -124,11 +131,6 @@ namespace Volumey.ViewModel.Settings
 			return ErrorMessageType.None;
 		}
 
-		internal static void SetHotkeysState(HotkeysState newState)
-		{
-			VolumeHotkeysState = newState;
-		}
-
 		internal static void SetVolumeStep(int newValue)
 		{
 			VolumeStep = newValue;
@@ -144,10 +146,10 @@ namespace Volumey.ViewModel.Settings
 
 		private static void OnHotkeyPressed(HotKey hotkey)
 		{
-			if(VolumeHotkeysState == HotkeysState.Enabled)
-				HotkeyPressed?.Invoke(hotkey);
 			if(openMixer != null && hotkey.Equals(openMixer))
 				OpenHotkeyPressed?.Invoke();
+			else
+				HotkeyPressed?.Invoke(hotkey);
 		}
 
 		public static void Dispose()

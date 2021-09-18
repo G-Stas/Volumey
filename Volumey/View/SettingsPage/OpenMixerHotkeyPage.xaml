@@ -1,0 +1,39 @@
+﻿<ui:Page
+	x:Class="Volumey.View.SettingsPage.OpenMixerHotkeyPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:controls="clr-namespace:Volumey.Controls"
+	xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:lc="clr-namespace:Volumey.Localization"
+	mc:Ignorable="d"
+	DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=OpenHotkeyViewModel}">
+	<ui:Page.Resources>
+		<ResourceDictionary>
+			<Style
+				TargetType="TextBlock"
+				BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+		</ResourceDictionary>
+	</ui:Page.Resources>
+	<StackPanel>
+		<StackPanel>
+            <TextBlock
+				Text="{lc:Localization Settings_OpenMixer}"
+				Width="{StaticResource TextBlockWidth}"/>
+			<controls:HotKeyBox
+				HotKey="{Binding Hotkey}"
+				IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				Width="{StaticResource InputBoxWidth}"
+				HorizontalAlignment="Left"
+				ui:ControlHelper.PlaceholderText="Ctrl + Shift + \"/>
+			<ui:ToggleSwitch
+				IsEnabled="{Binding Hotkey, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
+				IsOn="{Binding IsOn}"/>
+			<TextBlock
+				Text="{Binding ErrorMessage}"
+				Width="{StaticResource TextBlockHeaderWidth}"
+				Foreground="Red"/>
+		</StackPanel>
+	</StackPanel>
+</ui:Page>

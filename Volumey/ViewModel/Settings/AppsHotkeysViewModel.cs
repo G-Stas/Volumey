@@ -149,13 +149,9 @@ namespace Volumey.ViewModel.Settings
 			}
 			
 			this.DefaultDevice = newDevice;
-			if(this.DefaultDevice == null)
-				HotkeysControl.SetHotkeysState(HotkeysState.Disabled);
 			
-			else if(this.RegisteredSessions.Keys.Count != 0)
+			if(this.RegisteredSessions.Keys.Count != 0)
 			{
-				if(HotkeysControl.VolumeHotkeysState == HotkeysState.Disabled)
-					HotkeysControl.SetHotkeysState(HotkeysState.Enabled);
 				this.DefaultDevice.SessionCreated += OnSessionCreated;
 				this.FindAndSetupRegisteredHotkeys();
 			}

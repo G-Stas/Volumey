@@ -8,10 +8,11 @@ namespace Volumey.ViewModel
 {
     sealed class SettingsViewModel
     {
-        public DeviceHotkeysViewModel DeviceHotkeysViewModel { get; }
+        public DeviceVolumeHotkeysViewModel DeviceVolumeHotkeysViewModel { get; }
         public AppsHotkeysViewModel HotkeysViewModel { get; }
         public OpenHotkeyViewModel OpenHotkeyViewModel { get; }
         public VolumeLimitViewModel VolumeLimitViewModel { get; }
+        public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
         public LangSettings LangSettings { get; }
         public ICommand GitHubCommand { get; }
         public ICommand TipCommand { get; }
@@ -20,9 +21,10 @@ namespace Volumey.ViewModel
         {
             this.LangSettings = new LangSettings();
             this.HotkeysViewModel = new AppsHotkeysViewModel();
-            this.DeviceHotkeysViewModel = new DeviceHotkeysViewModel();
+            this.DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel();
             this.OpenHotkeyViewModel = new OpenHotkeyViewModel();
             this.VolumeLimitViewModel = new VolumeLimitViewModel();
+            this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel();
             this.GitHubCommand = new ActionCommand(async () => { await OpenWebPage("https://github.com/G-Stas/Volumey"); });
             this.TipCommand = new ActionCommand(async () => { await OpenWebPage("https://ko-fi.com/stasg"); });
         }
