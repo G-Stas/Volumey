@@ -109,9 +109,6 @@
   <data name="Error_OpenReg" xml:space="preserve">
     <value>无法注册热键</value>
   </data>
-  <data name="NotificationMessage_Review" xml:space="preserve">
-    <value>感谢您使用Volumey。如果您有空闲时间，可以在Microsoft Store上留下评论吗？</value>
-  </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>好</value>
   </data>

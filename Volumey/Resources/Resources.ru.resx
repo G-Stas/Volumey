@@ -118,9 +118,6 @@
   <data name="Notification_Later" xml:space="preserve">
     <value>Позже</value>
   </data>
-  <data name="NotificationMessage_Review" xml:space="preserve">
-    <value>Спасибо за использование Volumey. Не могли бы вы оставить отзыв в Microsoft Store, если у вас есть свободная минутка?</value>
-  </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
     <value>Доступно обновление. Вы хотите обновить приложение?</value>
   </data>

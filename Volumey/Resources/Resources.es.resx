@@ -109,9 +109,6 @@
   <data name="Error_OpenReg" xml:space="preserve">
     <value>No se pudo registrar la tecla de acceso rápido</value>
   </data>
-  <data name="NotificationMessage_Review" xml:space="preserve">
-    <value>Gracias por usar Volumey. ¿Podrías dejar un comentario en Microsoft Store si tienes un minuto libre?</value>
-  </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Está bien</value>
   </data>

@@ -109,9 +109,6 @@
   <data name="Error_OpenReg" xml:space="preserve">
     <value>Impossibile registrare il tasto di scelta rapida</value>
   </data>
-  <data name="NotificationMessage_Review" xml:space="preserve">
-    <value>Grazie per aver utilizzato Volumey. Potresti lasciare una recensione su Microsoft Store se hai un minuto libero?</value>
-  </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Va bene</value>
   </data>

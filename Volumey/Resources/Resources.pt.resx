@@ -109,9 +109,6 @@
   <data name="Error_OpenReg" xml:space="preserve">
     <value>Falha ao registrar a tecla de atalho</value>
   </data>
-  <data name="NotificationMessage_Review" xml:space="preserve">
-    <value>Obrigado por usar o Volumey. Você poderia deixar um comentário na Microsoft Store se tiver um minuto livre?</value>
-  </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Está bem</value>
   </data>

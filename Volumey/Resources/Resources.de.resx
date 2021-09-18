@@ -109,9 +109,6 @@
   <data name="Error_OpenReg" xml:space="preserve">
     <value>Hotkey konnte nicht registriert werden</value>
   </data>
-  <data name="NotificationMessage_Review" xml:space="preserve">
-    <value>Vielen Dank, dass Sie Volumey verwenden. Wenn Sie eine freie Minute haben, hinterlassen Sie bitte eine Bewertung im Microsoft Store.</value>
-  </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Okay</value>
   </data>

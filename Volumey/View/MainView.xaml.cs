@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,10 +12,8 @@ using log4net;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
-using Volumey.DataProvider;
 using Volumey.View.DialogContent;
 using Volumey.ViewModel.Settings;
-using Timer = System.Timers.Timer;
 
 namespace Volumey.View
 {
@@ -40,9 +37,6 @@ namespace Volumey.View
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
         private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
-        
-        private Timer idleTimer;
-        private bool requestReview;
         
         private readonly NavigationTransitionInfo transitionFromRight = new SlideNavigationTransitionInfo
 	        { Effect = SlideNavigationTransitionEffect.FromRight };
@@ -82,9 +76,6 @@ namespace Volumey.View
 	            else
 		            NavView.SelectedItem = NavView.MenuItems[0];
             };
-            
-            if(!SettingsProvider.Settings.UserHasRated)
-	            CheckDateForReviewRequest();
 
 			//Load SettingsViewModel from resources so hotkeys could be loaded on app startup instead of waiting when settings view will be opened to load it
 			TryFindResource("SettingsViewModel");
@@ -145,14 +136,7 @@ namespace Volumey.View
 					this.Activate();
 					this.Focus();
 	            }
-	            if(requestReview)
-		            StartIdleTimer();
             }
-			else if(requestReview)
-			{
-				if(this.idleTimer != null)
-				    StopIdleTimer();
-			}
 		}
 
 		/// <summary>
@@ -284,50 +268,6 @@ namespace Volumey.View
 	        }
 	        prevMsg = msg;
 	        return IntPtr.Zero;
-        }
-        
-        private void CheckDateForReviewRequest()
-        {
-	        var settings = SettingsProvider.Settings;
-	        if((DateTime.Today - settings.FirstLaunchDate).Days >= 7 && settings.LaunchCount >= 7)
-		        this.requestReview = true;
-        }
-        
-        private void StartIdleTimer()
-        {
-	        this.PreviewMouseDown += OnPreviewInputDown;
-	        this.PreviewKeyDown += OnPreviewInputDown;
-	        this.idleTimer = new Timer(10000) { AutoReset = false };
-	        this.idleTimer.Elapsed += OnIdleTimeElapsed;
-	        this.idleTimer.Enabled = true;
-        }
-
-        private void StopIdleTimer()
-        {
-	        this.PreviewMouseDown -= OnPreviewInputDown;
-	        this.PreviewKeyDown -= OnPreviewInputDown;
-	        idleTimer.Enabled = false;
-	        idleTimer.Elapsed -= OnIdleTimeElapsed;
-	        idleTimer.Dispose();
-	        idleTimer = null;
-        }
-
-        private async void OnIdleTimeElapsed(object sender, ElapsedEventArgs e)
-        {
-	        StopIdleTimer();
-	        await App.Current.Dispatcher.InvokeAsync(async () =>
-	        {
-		        await DisplayContentDialog(new ReviewDialog());
-	        });
-        }
-        
-        private void OnPreviewInputDown(object sender, InputEventArgs  e)
-        {
-	        if(this.idleTimer != null && this.idleTimer.Enabled)
-	        {
-		        this.idleTimer.Stop();
-		        this.idleTimer.Start();
-	        }
         }
 
         private bool isDialogOpened;
