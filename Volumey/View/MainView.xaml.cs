@@ -29,7 +29,10 @@ namespace Volumey.View
         private const int WM_ACTIVATEAPP = 0x001C;
         private const int RESTART_NO_REBOOT = 0x8;
         private const int WM_HOTKEY = 0x0312;
+        private const int WM_ENTERSIZEMOVE = 0x0231;
         private int prevMsg;
+        private double prevContentHeight;
+        private bool locationChanged;
 
         private const int SessionControlDefaultHeight = 52;
         private const int ScrollStep = 30;
@@ -126,6 +129,7 @@ namespace Volumey.View
 			bool isVisible = (bool) e.NewValue;
 			if(isVisible)
             {
+				this.locationChanged = false;
 	            if(this.IsLoaded)
 	            {
 		            this.LimitWindowHeightIfNecessary();
@@ -202,6 +206,7 @@ namespace Volumey.View
 		{
 			if(ContentFrame.CurrentSourcePageType == sourcePageType)
 				return;
+			this.prevContentHeight = ContentFrame.ActualHeight;
 			ContentFrame.Navigated += ContentFrameOnNavigated;
 			ContentFrame.Navigate(sourcePageType, null, sourcePageType == typeof(SettingsView) ? transitionFromRight : transitionFromLeft);
 		}
@@ -230,6 +235,13 @@ namespace Volumey.View
 
         private void ContentFrameOnNavigated(object sender, NavigationEventArgs e)
         {
+	        if(!this.locationChanged)
+	        {
+		        //Recalculate window position and change it if current content is higher than previous one to prevent clipping with the taskbar
+		        this.UpdateLayout();
+		        if(this.ContentFrame.ActualHeight > this.prevContentHeight)
+			        this.SetWindowPosition();
+	        }
 	        this.LimitWindowHeightIfNecessary();
 	        ContentFrame.Navigated -= ContentFrameOnNavigated;
         }
@@ -238,6 +250,11 @@ namespace Volumey.View
         {
 	        switch(msg)
 	        {
+		        case WM_ENTERSIZEMOVE:
+		        {
+			        this.locationChanged = true;
+			        break;
+		        }
 		        //Disable Minimize menu item in title bar's context menu every time it opens
 		        case WM_INITMENU:
 		        {
