@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>Tecla de atalho</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Bloquear entrada de teclas de atalho registradas</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Permitir teclas de atalho duplicadas</value>
+  </data>
 </root>

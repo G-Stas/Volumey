@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>ホットキー</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>登録されたホットキー入力をブロックする</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>重複するホットキーを許可する</value>
+  </data>
 </root>

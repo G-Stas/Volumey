@@ -129,4 +129,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

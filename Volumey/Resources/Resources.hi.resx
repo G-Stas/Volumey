@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>हॉटकी</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>पंजीकृत हॉटकी इनपुट को ब्लॉक करें</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>डुप्लीकेट हॉटकी की अनुमति दें</value>
+  </data>
 </root>

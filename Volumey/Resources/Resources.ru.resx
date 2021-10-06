@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>Хоткей</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Блокировать зарегистрированные хоткеи в системе</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Разрешить дубликаты хоткеев</value>
+  </data>
 </root>

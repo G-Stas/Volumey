@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,11 +15,10 @@ using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
 using Volumey.View.DialogContent;
-using Volumey.ViewModel.Settings;
 
 namespace Volumey.View
 {
-	public partial class MainView
+	public partial class MainView : INotifyPropertyChanged
 	{
 		private IntPtr Hwnd;
 		
@@ -61,7 +62,6 @@ namespace Volumey.View
             //use created hwnd to register window messages handler & initialize hotkey manager
             var source = HwndSource.FromHwnd(this.Hwnd);
             source?.AddHook(WndProc);
-            InitializeHotkeysManager();
 
             //register the app to restart it automatically in case it's going to be updated while running
             NativeMethods.RegisterApplicationRestart(Startup.MinimizedArg, RESTART_NO_REBOOT);
@@ -81,7 +81,9 @@ namespace Volumey.View
             };
 
 			//Load SettingsViewModel from resources so hotkeys could be loaded on app startup instead of waiting when settings view will be opened to load it
-			TryFindResource("SettingsViewModel");
+			var settingsVm = (SettingsViewModel)TryFindResource("SettingsViewModel");
+			this.HotkeyMessageHandler = settingsVm.GetHotkeyMessageHandler();
+			settingsVm.SetWindowHandle(this.Hwnd);
 		}
 
 		/// <summary>
@@ -99,13 +101,6 @@ namespace Volumey.View
 		}
 
 		private IntPtr ForceCreateHwnd() => this.Hwnd = new WindowInteropHelper(this).EnsureHandle();
-
-		private void InitializeHotkeysManager()
-		{
-			var hotkeyManager = new HotkeyManager(this.Hwnd);
-			this.HotkeyMessageHandler = hotkeyManager.GetMessageHandler();
-			HotkeysControl.SetHotkeyManager(hotkeyManager);
-		}
 
 		private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
 		{
@@ -279,7 +274,7 @@ namespace Volumey.View
 
 		        case WM_HOTKEY:
 		        {
-			        HotkeyMessageHandler(lParam.ToInt32());
+			        HotkeyMessageHandler?.Invoke(lParam.ToInt32());
 			        break;
 		        }
 	        }
@@ -358,5 +353,10 @@ namespace Volumey.View
 		        scrollViewer = settings.ScrollViewer;
 	        return scrollViewer;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }

@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>热键</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>阻止系统中的热键</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>允许重复热键</value>
+  </data>
 </root>

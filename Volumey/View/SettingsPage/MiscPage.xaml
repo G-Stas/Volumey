@@ -6,6 +6,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:lc="clr-namespace:Volumey.Localization"
 	xmlns:ui="http://schemas.modernwpf.com/2019"
+	xmlns:converters="clr-namespace:Volumey.View.Converters"
 	mc:Ignorable="d"
 	DataContext="{Binding Source={StaticResource SettingsViewModel}}">
 	<ui:Page.Resources>
@@ -13,6 +14,7 @@
 			<Style
 				TargetType="TextBlock"
 				BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+			<converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
 		</ResourceDictionary>
 	</ui:Page.Resources>
 	<StackPanel>
@@ -59,6 +61,19 @@
 				ValueChanged="NumberBox_OnValueChanged"
 				Width="{StaticResource InputBoxWidth}"
 				HorizontalAlignment="Left"/>
+			
+			<TextBlock
+				Text="{lc:Localization Settings_BlockHotkeys}"
+				Width="{StaticResource TextBlockWidth}"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding BlockHotkeysInSystem}"/>
+			
+			<TextBlock
+				Text="{lc:Localization Settings_Duplicates}"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding AllowDuplicateHotkeys}"
+				IsEnabled="{Binding BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}"/>
+			
             <TextBlock
 				Text="{lc:Localization Settings_Lang}"
 				Width="{StaticResource TextBlockWidth}"/>

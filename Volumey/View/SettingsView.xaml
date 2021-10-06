@@ -40,12 +40,16 @@
 					Property="Margin"
 					Value="0 -7 0 0"/>
 			</Style>
+
+            <Style TargetType="{x:Type ui:ToggleSwitch}">
+                <Setter Property="Margin" Value="0 -3 0 -4"/>
+            </Style>
 			<converters:LocalizationKeyConverter x:Key="LocalizationKeyConverter"/>
 		</ResourceDictionary>
 	</ui:Page.Resources>
     <ScrollViewer
 		Name="ScrollViewer"
-		Margin="4 0 0 0">
+		Margin="4 0 0 3">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition

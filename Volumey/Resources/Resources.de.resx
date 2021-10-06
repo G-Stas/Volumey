@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>Hotkey</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Blockieren Sie registrierte Hotkeys im Betriebssystem</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Doppelte hotkeys zulassen</value>
+  </data>
 </root>

@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>Raccourci clavier</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Bloquer les raccourcis clavier enregistrés pour le système d'exploitation</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Autoriser les raccourcis clavier en double</value>
+  </data>
 </root>

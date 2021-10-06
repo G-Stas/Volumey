@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>Tasto di scelta rapida</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Blocca l'input dei tasti di scelta rapida registrati</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Consenti tasti di scelta rapida duplicati</value>
+  </data>
 </root>

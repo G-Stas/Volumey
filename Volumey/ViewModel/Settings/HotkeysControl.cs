@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Input;
 using Volumey.Controls;
 using Volumey.Helper;
@@ -26,6 +27,38 @@ namespace Volumey.ViewModel.Settings
 		private static HotKey openMixer;
 		private static IHotkeyManager hotkeyManager;
 
+		/// <summary>
+		/// Keeps track of hotkeys and amount of its users to prevent early unregistering of hotkeys.
+		/// </summary>
+		private static readonly Dictionary<HotKey, int> HotkeysUserCount = new Dictionary<HotKey, int>();
+
+		private static void IncrementHotkeyUserCounter(HotKey hotkey)
+		{
+			if(HotkeysUserCount.ContainsKey(hotkey))
+				HotkeysUserCount[hotkey]++;
+			else
+				HotkeysUserCount.Add(hotkey, 1);
+		}
+
+		/// <param name="hotkey"></param>
+		/// <param name="lastUser">Flag to check if the call was for the last user and hotkey can be unregistered.</param>
+		private static void DecrementHotkeyUserCounter(HotKey hotkey, out bool lastUser)
+		{
+			if(HotkeysUserCount.TryGetValue(hotkey, out var userCount))
+			{
+				if(userCount == 1)
+				{
+					HotkeysUserCount.Remove(hotkey);
+					lastUser = true;
+					return;
+				}
+				HotkeysUserCount[hotkey] = --userCount;
+				lastUser = false;
+				return;
+			}
+			lastUser = true;
+		}
+
 		public static bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
 			if(hotkeyManager == null)
@@ -33,13 +66,20 @@ namespace Volumey.ViewModel.Settings
 			try
 			{
 				hotkeyManager.RegisterHotkey(hotkey1);
+				IncrementHotkeyUserCounter(hotkey1);
 				hotkeyManager.RegisterHotkey(hotkey2);
+				IncrementHotkeyUserCounter(hotkey2);
 				return true;
 			}
 			catch
 			{
-				hotkeyManager.UnregisterHotkey(hotkey1);
-				hotkeyManager.UnregisterHotkey(hotkey2);
+				DecrementHotkeyUserCounter(hotkey1, out bool lastUser);
+				if(lastUser)
+					hotkeyManager.UnregisterHotkey(hotkey1);
+				
+				DecrementHotkeyUserCounter(hotkey2, out lastUser);
+				if(lastUser)
+					hotkeyManager.UnregisterHotkey(hotkey2);
 				throw;
 			}
 		}
@@ -50,8 +90,12 @@ namespace Volumey.ViewModel.Settings
 				throw new NullReferenceException("Hotkey manager is not set");
 			try
 			{
-				hotkeyManager.UnregisterHotkey(hotkey1);
-				hotkeyManager.UnregisterHotkey(hotkey2);
+				DecrementHotkeyUserCounter(hotkey1, out bool lastUser);
+				if(lastUser)
+					hotkeyManager.UnregisterHotkey(hotkey1);
+				DecrementHotkeyUserCounter(hotkey2, out lastUser);
+				if(lastUser)
+					hotkeyManager.UnregisterHotkey(hotkey2);
 			}
 			catch { }
 		}
@@ -60,6 +104,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			try
 			{
+				IncrementHotkeyUserCounter(hotkey);
 				hotkeyManager.RegisterHotkey(hotkey);
 				return true;
 			}
@@ -71,7 +116,9 @@ namespace Volumey.ViewModel.Settings
 		{
 			try
 			{
-				hotkeyManager.UnregisterHotkey(hotkey);
+				DecrementHotkeyUserCounter(hotkey, out bool lastUser);
+				if(lastUser)
+					hotkeyManager.UnregisterHotkey(hotkey);
 			}
 			catch { }
 		}
@@ -85,6 +132,7 @@ namespace Volumey.ViewModel.Settings
 			try
 			{
 				openMixer = hotkey;
+				IncrementHotkeyUserCounter(hotkey);
 				hotkeyManager.RegisterHotkey(hotkey);
 				return true;
 			}
@@ -101,7 +149,9 @@ namespace Volumey.ViewModel.Settings
 			try
 			{
 				openMixer = null;
-				hotkeyManager.UnregisterHotkey(hotkey);
+				DecrementHotkeyUserCounter(hotkey, out bool lastUser);
+				if(lastUser)
+					hotkeyManager.UnregisterHotkey(hotkey);
 			}
 			catch { }
 		}
@@ -112,7 +162,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.OpenReg;
 			if(hotkey.ModifierKeys == ModifierKeys.None && hotkey.Key == Key.F12)
 				return ErrorMessageType.F12;
-			if(SettingsProvider.Settings.HotkeyExists(hotkey))
+			if(!SettingsProvider.Settings.AllowDuplicates && SettingsProvider.Settings.HotkeyExists(hotkey))
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
@@ -126,7 +176,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.F12;
 			if(up.Equals(down))
 				return ErrorMessageType.Diff;
-			if(SettingsProvider.Settings.HotkeysExist(up, down))
+			if(!SettingsProvider.Settings.AllowDuplicates && SettingsProvider.Settings.HotkeysExist(up, down))
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
@@ -138,18 +188,42 @@ namespace Volumey.ViewModel.Settings
 
 		public static void SetHotkeyManager(IHotkeyManager hm)
 		{
+			if(hotkeyManager == hm)
+				return;
+
+			var prevManager = hotkeyManager;
 			hotkeyManager = hm;
-            hm.HotkeyPressed += OnHotkeyPressed;
-            Activated?.Invoke();
-            IsActive = true;
+			hotkeyManager.HotkeyPressed += OnHotkeyPressed;
+			if(prevManager == null)
+			{
+				IsActive = true;
+				Activated?.Invoke();
+			}
+			else
+			{
+				prevManager.HotkeyPressed -= OnHotkeyPressed;
+				ConvertHotkeysToNewManager(prevManager: prevManager, newManager: hm);
+				prevManager.Dispose();
+			}
+		}
+
+		private static void ConvertHotkeysToNewManager(IHotkeyManager prevManager, IHotkeyManager newManager)
+		{
+			var hotkeysCount = prevManager.RegisteredHotkeysCount;
+			var hotkeysList = prevManager.GetRegisteredHotkeys();
+			for(int i = hotkeysCount - 1; i >= 0; i--)
+			{
+				var hotkey = hotkeysList[i];
+				prevManager.UnregisterHotkey(hotkey);
+				newManager.RegisterHotkey(hotkey);
+			}
 		}
 
 		private static void OnHotkeyPressed(HotKey hotkey)
 		{
 			if(openMixer != null && hotkey.Equals(openMixer))
 				OpenHotkeyPressed?.Invoke();
-			else
-				HotkeyPressed?.Invoke(hotkey);
+			HotkeyPressed?.Invoke(hotkey);
 		}
 
 		public static void Dispose()

@@ -172,4 +172,10 @@
   <data name="Settings_Hotkey" xml:space="preserve">
     <value>Tecla de acceso rápido</value>
   </data>
+  <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Bloquear la entrada de teclas de acceso rápido registradas</value>
+  </data>
+  <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Permitir teclas de acceso rápido duplicadas</value>
+  </data>
 </root>

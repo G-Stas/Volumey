@@ -95,6 +95,22 @@ namespace Volumey.DataProvider
 			set => launchCount = value;
 		}
 
+		[OptionalField]
+		private bool blockHotkeys = true;
+		public bool BlockHotkeys
+		{
+			get => blockHotkeys;
+			set => blockHotkeys = value;
+		}
+
+		[OptionalField]
+		private bool allowDuplicates = false;
+		public bool AllowDuplicates
+		{
+			get => allowDuplicates;
+			set => allowDuplicates = value;
+		}
+
 		internal bool HotkeyExists(HotKey key) => this.hotkeysSettings.HotkeyExists(key);
 		internal bool HotkeysExist(HotKey key, HotKey key2) => this.hotkeysSettings.HotkeysExist(key, key2);
 		
