@@ -39,8 +39,6 @@ namespace Volumey.DataProvider
                     {
                         fileStream.Position = 0;
                         Settings = (AppSettings) new BinaryFormatter().Deserialize(fileStream);
-                        if(!Settings.UserHasRated)
-                            Settings.LaunchCount++;
                     }
                     return;
                 }
@@ -48,12 +46,7 @@ namespace Volumey.DataProvider
             }
         
             //write default values to file on first launch or if config file doesn't exist or deserialization failed
-            Settings = new AppSettings
-            {
-                CurrentAppTheme = AppTheme.System,
-                FirstLaunchDate = DateTime.Today
-            };
-            Settings.AppLanguage = TranslationSource.GetSystemLanguage();
+            Settings = new AppSettings { CurrentAppTheme = AppTheme.System, AppLanguage = TranslationSource.GetSystemLanguage() };
             SaveSettings().GetAwaiter().GetResult();
         }
 

@@ -74,6 +74,7 @@ namespace Volumey.DataProvider
 			set => volumeLimit = value;
 		}
 
+		[OptionalField]
 		private bool userHasRated;
 		public bool UserHasRated
 		{
@@ -81,6 +82,7 @@ namespace Volumey.DataProvider
 			set => userHasRated = value;
 		}
 		
+		[OptionalField]
 		private DateTime firstLaunchDate;
 		public DateTime FirstLaunchDate
 		{
@@ -88,6 +90,7 @@ namespace Volumey.DataProvider
 			set => firstLaunchDate = value;
 		}
 
+		[OptionalField]
 		private int launchCount = 1;
 		public int LaunchCount
 		{
