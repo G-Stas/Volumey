@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Input;
@@ -9,6 +10,10 @@ using Volumey.Controls;
 
 namespace Volumey.Helper
 {
+	/// <summary>
+	/// Provides global hotkeys functionality by using native hotkeys functionality from Windows API.
+	/// Blocks registered hotkeys combinations input system-wide.
+	/// </summary>
 	internal class HotkeyManager : IHotkeyManager
 	{
 		public event Action<HotKey> HotkeyPressed;
@@ -33,6 +38,8 @@ namespace Volumey.Helper
 			this.syncContext = SynchronizationContext.Current;
 		}
 
+		public IReadOnlyList<HotKey> GetRegisteredHotkeys() => this.RegisteredHotkeys.Keys.ToArray();
+		
 		internal Action<int> GetMessageHandler() => OnWindowHotkeyMessage;
 
 		/// <summary>
