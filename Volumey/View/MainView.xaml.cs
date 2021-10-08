@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -14,7 +15,6 @@ using log4net;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
-using Volumey.View.DialogContent;
 
 namespace Volumey.View
 {
@@ -32,8 +32,7 @@ namespace Volumey.View
         private const int WM_HOTKEY = 0x0312;
         private const int WM_ENTERSIZEMOVE = 0x0231;
         private int prevMsg;
-        private double prevContentHeight;
-        private bool locationChanged;
+        private bool positionChanged;
 
         private const int SessionControlDefaultHeight = 52;
         private const int ScrollStep = 30;
@@ -59,7 +58,7 @@ namespace Volumey.View
             //and HWND of the window is not going to be created until the window is shown at least once
             this.Hwnd = ForceCreateHwnd();
             
-            //use created hwnd to register window messages handler & initialize hotkey manager
+            //use created hwnd to register window messages handler
             var source = HwndSource.FromHwnd(this.Hwnd);
             source?.AddHook(WndProc);
 
@@ -72,7 +71,8 @@ namespace Volumey.View
             
             SetControlsNameScope();
 
-            ContentFrame.Navigated += (sender, args) =>
+            this.ContentFrame.SizeChanged += (sender, args) => OnCurrentPageSizeChanged();
+            this.ContentFrame.Navigated += (sender, args) =>
             {
 	            if(args.SourcePageType() == typeof(SettingsView))
 		            NavView.SelectedItem = NavView.SettingsItem;
@@ -124,7 +124,7 @@ namespace Volumey.View
 			bool isVisible = (bool) e.NewValue;
 			if(isVisible)
             {
-				this.locationChanged = false;
+				this.positionChanged = false;
 	            if(this.IsLoaded)
 	            {
 		            this.LimitWindowHeightIfNecessary();
@@ -152,7 +152,7 @@ namespace Volumey.View
 		private void LimitWindowHeightIfNecessary()
 		{
 			var desktopHeight = SystemParameters.WorkArea.Height;
-			var maxHeight = desktopHeight * 0.55;
+			var maxHeight = desktopHeight * 0.5;
 			
 			int actualHeight = 0;
 			if(this.ContentFrame.Content is MixerView mixer)
@@ -201,53 +201,78 @@ namespace Volumey.View
 		{
 			if(ContentFrame.CurrentSourcePageType == sourcePageType)
 				return;
-			this.prevContentHeight = ContentFrame.ActualHeight;
-			ContentFrame.Navigated += ContentFrameOnNavigated;
+			//Subscribe to mixer view CollectionChanged event when it'll start loading
+			if(sourcePageType == typeof(MixerView))
+				this.ContentFrame.Navigated += OnMixerViewNavigated;
+			//Unsubscribe if mixer view is changed to another view
+			else
+			{
+				if(this.ContentFrame.Content is MixerView view)
+					view.CollectionChanged -= OnMixerViewCollectionChanged;
+			}
 			ContentFrame.Navigate(sourcePageType, null, sourcePageType == typeof(SettingsView) ? transitionFromRight : transitionFromLeft);
 		}
 
+		/// <summary>
+		/// Handles navigating pages without animations which occurs when app is displayed after being minimized.
+		/// </summary>
 		private void NavigateWithoutTransition(Type sourcePageType)
         {
 	        if(ContentFrame.CurrentSourcePageType != sourcePageType)
 	        {
-		        NavigatedEventHandler eHandler = null;
-		        eHandler = (s, e) => 
-		        { 
-			        this.UpdateLayout();
-			        this.SetWindowPosition();
-			        ContentFrame.Navigated -= eHandler;
-		        };
-		        ContentFrame.Navigated += ContentFrameOnNavigated;
-		        ContentFrame.Navigated += eHandler;
+		        //Subscribe to mixer view CollectionChanged event when it'll start loading
+		        if(sourcePageType == typeof(MixerView))
+			        this.ContentFrame.Navigated += OnMixerViewNavigated;
+		        //Unsubscribe if mixer view is changed to another view
+		        else
+		        {
+			        if(this.ContentFrame.Content is MixerView view)
+				        view.CollectionChanged -= OnMixerViewCollectionChanged;
+		        }
 		        ContentFrame.Navigate(sourcePageType, null, suppressTransition);
 	        }
         }
 
-        private Type GetPageType(NavigationViewItem item)
+		/// <summary>
+		/// Invokes when a mixer view is loading to display. Subscribes to its event to update window position when its items count changes. 
+		/// </summary>
+		private void OnMixerViewNavigated(object sender, NavigationEventArgs e)
+		{
+			this.ContentFrame.Navigated -= OnMixerViewNavigated;
+			if(this.ContentFrame.Content is MixerView view)
+				view.CollectionChanged += OnMixerViewCollectionChanged;
+		}
+
+		/// <summary>
+		/// Invokes when items count of the currently displayed mixer view changes. Calls PageSizeChanged handler to update window position.
+		/// </summary>
+		private void OnMixerViewCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+			=> this.OnCurrentPageSizeChanged();
+
+		/// <summary>
+		/// Updates window position when the currently displayed page changes its size.
+		/// </summary>
+		private void OnCurrentPageSizeChanged()
+		{
+			if(this.Visibility == Visibility.Visible && !this.positionChanged)
+			{
+				this.LimitWindowHeightIfNecessary();
+				this.SetWindowPosition();	
+			}
+		}
+
+		private Type GetPageType(NavigationViewItem item)
 		{
 			return item.Tag as Type;
 		}
 
-        private void ContentFrameOnNavigated(object sender, NavigationEventArgs e)
-        {
-	        if(!this.locationChanged)
-	        {
-		        //Recalculate window position and change it if current content is higher than previous one to prevent clipping with the taskbar
-		        this.UpdateLayout();
-		        if(this.ContentFrame.ActualHeight > this.prevContentHeight)
-			        this.SetWindowPosition();
-	        }
-	        this.LimitWindowHeightIfNecessary();
-	        ContentFrame.Navigated -= ContentFrameOnNavigated;
-        }
-        
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
 	        switch(msg)
 	        {
 		        case WM_ENTERSIZEMOVE:
 		        {
-			        this.locationChanged = true;
+			        this.positionChanged = true;
 			        break;
 		        }
 		        //Disable Minimize menu item in title bar's context menu every time it opens
