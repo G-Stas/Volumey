@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
@@ -21,16 +21,20 @@ namespace Volumey.View
             }
         }
 
-        public ObservableCollection<NavLink> NavLinks { get; } = new ObservableCollection<NavLink>();
+        public static List<NavLink> NavLinks { get; } = new List<NavLink>();
         public NavLink SelectedNavLink { get; set; }
-        
-        public SettingsView()
+
+        static SettingsView()
         {
             NavLinks.Add(new NavLink("Settings_AppsHotkeys", typeof(AppsHotkeysPage)));
             NavLinks.Add(new NavLink("Settings_DeviceHotkeys", typeof(DeviceVolumeHotkeysPage)));
             NavLinks.Add(new NavLink("Settings_DefaultDeviceHotkey", typeof(DefaultDeviceHotkeysPage)));
             NavLinks.Add(new NavLink("Settings_OpenMixer", typeof(OpenMixerHotkeyPage)));
             NavLinks.Add(new NavLink("Settings_HeaderMisc", typeof(MiscPage)));
+        }
+        
+        public SettingsView()
+        {
             InitializeComponent();
             this.SelectedNavLink = NavLinks[0];
             this.PageContentFrame.Navigate(this.SelectedNavLink.PageType);
