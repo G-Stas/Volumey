@@ -82,28 +82,6 @@ namespace Volumey.Tests
             
             Assert.Equal(newImageSource, this.model.Master.DeviceIcon);
         }
-        
-        [Fact]
-        public void GetAudioSession_ShouldReturnExistingSession()
-        {
-            var session = this.model.Sessions[0];
-        
-            var foundSession = this.model.GetAudioSession(session.Name);
-            
-            Assert.NotNull(foundSession);
-            Assert.Equal(session, foundSession);
-        }
-        
-        [Fact]
-        public void GetAudioSession_ShouldReturnNull()
-        {
-            if(this.model.Sessions.Count > 0)
-            {
-                var foundSession = this.model.GetAudioSession("some_session_name");
-            
-                Assert.Null(foundSession);
-            }
-        }
 
         internal static OutputDeviceModel GetDeviceMock(string id, string name, IDeviceStateNotificationHandler deviceStateHandler)
         {
