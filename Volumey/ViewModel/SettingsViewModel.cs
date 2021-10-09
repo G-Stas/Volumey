@@ -73,9 +73,8 @@ namespace Volumey.ViewModel
             this.GitHubCommand = new ActionCommand(async () => { await OpenWebPage("https://github.com/G-Stas/Volumey"); });
             this.TipCommand = new ActionCommand(async () => { await OpenWebPage("https://ko-fi.com/stasg"); });
 
-            this.BlockHotkeysInSystem = SettingsProvider.Settings.BlockHotkeys;
-            this.AllowDuplicateHotkeys = SettingsProvider.Settings.AllowDuplicates;
-            
+            this.blockHotkeysInSystem = SettingsProvider.Settings.BlockHotkeys;
+            this.allowDuplicateHotkeys = SettingsProvider.Settings.AllowDuplicates;
         }
 
         /// <summary>
