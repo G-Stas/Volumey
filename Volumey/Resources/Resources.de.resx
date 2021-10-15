@@ -137,13 +137,10 @@
     <value>Apps-Hotkeys</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Verringern Sie die Lautstärke des Ausgabegeräts (Hotkey)</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Hotkeys zur Steuerung der Lautstärke des Ausgabegeräts</value>
+    <value>Verringern Sie die Lautstärke des Ausgabegeräts</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Erhöhen Sie die Lautstärke des Ausgabegeräts (Hotkey)</value>
+    <value>Erhöhen Sie die Lautstärke des Ausgabegeräts</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>App entfernen</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Doppelte hotkeys zulassen</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Schalten Sie das Ausgabegerät stumm</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Hotkeys zur Steuerung des Ausgabegeräts</value>
   </data>
 </root>

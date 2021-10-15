@@ -130,14 +130,11 @@
   <data name="Error_HotkeyExists" xml:space="preserve">
     <value>Hotkey has already been added</value>
   </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Hotkeys to control the output device volume</value>
-  </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Increase volume of the output device (hotkey)</value>
+    <value>Increase volume of the output device</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Decrease volume of the output device (hotkey)</value>
+    <value>Decrease volume of the output device</value>
   </data>
   <data name="Settings_AddApp" xml:space="preserve">
     <value>Add app</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Allow duplicate hotkeys</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Mute the output device</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Hotkeys to control the output device</value>
   </data>
 </root>

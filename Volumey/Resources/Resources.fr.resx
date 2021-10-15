@@ -137,13 +137,10 @@
     <value>Raccourcis clavier des applications</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Diminuer le volume du périphérique de sortie (raccourci clavier)</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Raccourcis clavier pour contrôler le volume du périphérique de sortie</value>
+    <value>Diminuer le volume du périphérique de sortie</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Augmenter le volume du périphérique de sortie (raccourci clavier)</value>
+    <value>Augmenter le volume du périphérique de sortie</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>Supprimer l'application</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Autoriser les raccourcis clavier en double</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Périphérique de sortie muet</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Raccourcis clavier pour contrôler le périphérique de sortie</value>
   </data>
 </root>

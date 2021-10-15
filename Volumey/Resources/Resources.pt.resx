@@ -137,13 +137,10 @@
     <value>Teclas de atalho para aplicativos</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Diminuir o volume do dispositivo de saída (tecla de atalho)</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Teclas de atalho para controlar o volume do dispositivo de saída</value>
+    <value>Diminuir o volume do dispositivo de saída</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Aumentar o volume do dispositivo de saída (tecla de atalho)</value>
+    <value>Aumentar o volume do dispositivo de saída</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>Remover app</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Permitir teclas de atalho duplicadas</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Silenciar o dispositivo de saída</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Teclas de atalho para controlar o dispositivo de saída</value>
   </data>
 </root>

@@ -137,13 +137,10 @@
     <value>アプリのホットキー</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>出力デバイスの音量を下げる（ホットキー）</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>出力デバイスの音量を制御するためのホットキー</value>
+    <value>出力デバイスの音量を下げる</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>出力デバイスの音量を上げる（ホットキー）</value>
+    <value>出力デバイスの音量を上げる</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>アプリを削除する</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>重複するホットキーを許可する</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>出力デバイスをミュートします</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>出力デバイスを制御するためのホットキー</value>
   </data>
 </root>

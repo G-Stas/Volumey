@@ -130,14 +130,11 @@
   <data name="Error_HotkeyExists" xml:space="preserve">
     <value>Хоткей уже добавлен</value>
   </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Хоткеи для контроля громкости устройства вывода</value>
-  </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Понизить громкость устройства вывода (хоткей)</value>
+    <value>Понизить громкость устройства вывода</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Повысить громкость устройства вывода (хоткей)</value>
+    <value>Повысить громкость устройства вывода</value>
   </data>
   <data name="Settings_AddApp" xml:space="preserve">
     <value>Добавить приложение</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Разрешить дубликаты хоткеев</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Заглушить устройство вывода</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Хоткеи для контроля устройства вывода</value>
   </data>
 </root>

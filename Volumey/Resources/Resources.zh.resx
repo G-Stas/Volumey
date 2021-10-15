@@ -137,13 +137,10 @@
     <value>应用程序热键</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>减小输出设备的音量（热键）</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>热键控制输出设备的音量</value>
+    <value>减小输出设备的音量</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>增加输出设备的音量（热键）</value>
+    <value>增加输出设备的音量</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>移除应用</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>允许重复热键</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>静音输出设备</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>控制输出设备的热键</value>
   </data>
 </root>

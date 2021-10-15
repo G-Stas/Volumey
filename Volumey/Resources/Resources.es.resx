@@ -137,13 +137,10 @@
     <value>Teclas de acceso rápido de aplicaciones</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Disminuir el volumen del dispositivo de salida (tecla de acceso rápido)</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Teclas de acceso rápido para controlar el volumen del dispositivo de salida</value>
+    <value>Disminuir el volumen del dispositivo de salida</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Aumentar el volumen del dispositivo de salida (tecla de acceso rápido)</value>
+    <value>Aumentar el volumen del dispositivo de salida</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>Eliminar aplicaciones</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Permitir teclas de acceso rápido duplicadas</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Silenciar el dispositivo de salida</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Teclas de acceso rápido para controlar el dispositivo de salida</value>
   </data>
 </root>

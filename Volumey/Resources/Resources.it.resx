@@ -137,13 +137,10 @@
     <value>Tasti di scelta rapida per le app</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Diminuisci il volume del dispositivo di output (tasto di scelta rapida)</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Tasti di scelta rapida per controllare il volume del dispositivo di output</value>
+    <value>Diminuisci il volume del dispositivo di output</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Aumenta il volume del dispositivo di output (tasto di scelta rapida)</value>
+    <value>Aumenta il volume del dispositivo di output</value>
   </data>
   <data name="Settings_RemoveApp" xml:space="preserve">
     <value>Rimuovi l'app</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Consenti tasti di scelta rapida duplicati</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Disattivare l'audio del dispositivo di output</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Tasti di scelta rapida per controllare il dispositivo di output</value>
   </data>
 </root>

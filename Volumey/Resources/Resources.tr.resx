@@ -95,13 +95,10 @@
     <value>Uygulamalar için kısayol tuşları</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Çıkış cihazının sesini azalt (kısayol tuşu)</value>
+    <value>Çıkış cihazının sesini azalt</value>
   </data>
   <data name="Settings_DecreaseHotkey" xml:space="preserve">
     <value>Sesi azalt (kısayol tuşu)</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Çıkış cihazı ses seviyesini kontrol etmek için kısayol tuşları</value>
   </data>
   <data name="Settings_HeaderHotkeys" xml:space="preserve">
     <value>Kısayol tuşları (başlatılan uygulama gerekli)</value>
@@ -110,7 +107,7 @@
     <value>Çeşitli</value>
   </data>
   <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Çıkış cihazının sesini artırın (kısayol tuşu)</value>
+    <value>Çıkış cihazının sesini artırın</value>
   </data>
   <data name="Settings_IncreaseHotkey" xml:space="preserve">
     <value>Sesi artır (kısayol tuşu)</value>
@@ -177,5 +174,11 @@
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Yinelenen kısayol tuşlarına izin ver</value>
+  </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Çıkış cihazının sesini kapatın</value>
+  </data>
+  <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Çıkış cihazını kontrol etmek için kısayol tuşları</value>
   </data>
 </root>
