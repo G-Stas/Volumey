@@ -87,6 +87,10 @@ namespace Volumey.Model
         
         private HotKey volumeUp;
         private HotKey volumeDown;
+        private HotKey muteKey;
+
+        private bool volumeHotkeysRegistered;
+        private bool muteHotkeyRegistered;
 
         public ICommand MuteCommand { get; }
 
@@ -111,7 +115,7 @@ namespace Volumey.Model
             this.notificationHandler.VolumeChanged += OnVolumeChanged;
         }
 
-        public bool SetHotkeys(HotKey volUp, HotKey volDown)
+        public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
         {
             try
             {
@@ -120,6 +124,7 @@ namespace Volumey.Model
                     this.volumeUp = volUp;
                     this.volumeDown = volDown;
                     HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+                    this.volumeHotkeysRegistered = true;
                     return true;
                 }
             }
@@ -127,29 +132,59 @@ namespace Volumey.Model
             return false;
         }
 
-        internal void ResetHotkeys()
-        {
-            this.UnregisterHotkeys();
-            this.volumeUp = this.volumeDown = null;
-        }
-
-        private void UnregisterHotkeys()
+        internal void ResetVolumeHotkeys()
         {
             if(this.volumeUp != null && this.volumeDown != null)
                 HotkeysControl.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
-            HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+            if(!this.muteHotkeyRegistered)
+                HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+            this.volumeHotkeysRegistered = false;
+            this.volumeUp = this.volumeDown = null;
+        }
+
+        internal bool SetMuteHotkeys(HotKey key)
+        {
+            try
+            {
+                if(key != null && HotkeysControl.RegisterHotkey(key))
+                {
+                    this.muteKey = key;
+                    HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+                    this.muteHotkeyRegistered = true;
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        internal void ResetMuteHotkey()
+        {
+            if(this.muteKey != null)
+                HotkeysControl.UnregisterHotkey(this.muteKey);
+            if(!this.volumeHotkeysRegistered)
+                HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+            this.muteHotkeyRegistered = false;
+            this.muteKey = null;
         }
 		
         private void OnHotkeyPressed(HotKey hotkey)
         {
-            if(hotkey.Equals(this.volumeUp))
+            if(this.volumeHotkeysRegistered)
             {
-                this.SetVolume(this.Volume + HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
+                if(hotkey.Equals(this.volumeUp))
+                {
+                    this.SetVolume(this.Volume + HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
+                }
+                else if(hotkey.Equals(this.volumeDown))
+                {
+                    this.SetVolume(this.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
+                }
             }
-            else if(hotkey.Equals(this.volumeDown))
-            {
-                this.SetVolume(this.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
-            }
+
+            if(this.muteHotkeyRegistered && hotkey.Equals(this.muteKey))
+                this.IsMuted = !this.isMuted;
+
         }
         
         private void SetVolume(int newVol, ref Guid guid)

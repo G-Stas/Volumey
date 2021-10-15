@@ -13,32 +13,32 @@
 		<ResourceDictionary>
 			<Style
 				TargetType="TextBlock"
-				BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+				BasedOn="{StaticResource SettingsTextBlockStyle}">
+				<Setter Property="Width" Value="{StaticResource TextBlockHeaderWidth}"/>
+			</Style>
 		</ResourceDictionary>
 	</ui:Page.Resources>
 	<StackPanel>
 		<StackPanel>
 			<TextBlock
-				Text="{lc:Localization Settings_IncreaseDevice}"
-				Width="{StaticResource TextBlockHeaderWidth}"/>
+				Text="{lc:Localization Settings_IncreaseDevice}"/>
 			<controls:HotKeyBox
 				HotKey="{Binding VolumeUp}"
-				IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				IsEnabled="{Binding VolumeHotkeysRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
 				Width="{StaticResource InputBoxWidth}"
 				HorizontalAlignment="Left"
 				ui:ControlHelper.PlaceholderText="Alt + Shift + Up"/>
 			<TextBlock
-				Text="{lc:Localization Settings_DecreaseDevice}"
-				Width="{StaticResource TextBlockWidth}"/>
+				Text="{lc:Localization Settings_DecreaseDevice}"/>
 			<controls:HotKeyBox
 				HotKey="{Binding VolumeDown}"
-				IsEnabled="{Binding IsOn, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				IsEnabled="{Binding VolumeHotkeysRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
 				Width="{StaticResource InputBoxWidth}"
 				HorizontalAlignment="Left"
 				ui:ControlHelper.PlaceholderText="Alt + Shift + Down"/>
 
 			<ui:ToggleSwitch
-				IsOn="{Binding IsOn}">
+				IsOn="{Binding VolumeHotkeysRegistered}">
 				<ui:ToggleSwitch.IsEnabled>
 					<MultiBinding
 						Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
@@ -49,11 +49,23 @@
 					</MultiBinding>
 				</ui:ToggleSwitch.IsEnabled>
 			</ui:ToggleSwitch>
-
-			<TextBlock
-				Text="{Binding ErrorMessage}"
-				Width="{StaticResource TextBlockHeaderWidth}"
-				Foreground="Red"/>
 		</StackPanel>
+		<StackPanel>
+			<TextBlock 
+				Text="{lc:Localization Settings_MuteDevice}"/>
+			<controls:HotKeyBox
+				HotKey="{Binding MuteKey}"
+				IsEnabled="{Binding MuteHotkeyRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				Width="{StaticResource InputBoxWidth}"
+				HorizontalAlignment="Left"
+				ui:ControlHelper.PlaceholderText="Ctrl + F1"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding MuteHotkeyRegistered}"
+				IsEnabled="{Binding MuteKey, Converter={StaticResource AnyPropertyIsNullToEnabledConverter}}">
+			</ui:ToggleSwitch>
+		</StackPanel>
+		<TextBlock
+			Text="{Binding ErrorMessage}"
+			Foreground="Red"/>
 	</StackPanel>
 </ui:Page>

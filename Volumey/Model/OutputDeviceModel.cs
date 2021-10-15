@@ -27,7 +27,18 @@ namespace Volumey.Model
 		
 		public MasterSessionModel Master { get; }
 		public ObservableCollection<AudioSessionModel> Sessions { get; }
-		internal event Action<OutputDeviceModel> Disabled;
+
+		private Action<OutputDeviceModel> _disabled;
+		internal event Action<OutputDeviceModel> Disabled
+		{
+			add
+			{
+				//Prevent multiple subscribing of the same event handler
+				this._disabled -= value;
+				this._disabled += value;
+			}
+			remove => this._disabled -= value;
+		}
 		internal event Action<AudioSessionModel> SessionCreated;
 		internal event Action<OutputDeviceModel> FormatChanged;
 		public readonly string Id;
@@ -60,10 +71,16 @@ namespace Volumey.Model
 				session.SessionEnded += OnSessionEnded;
 		}
 
-		internal bool SetHotkeys(HotKey volUp, HotKey volDown) =>
-			this.Master.SetHotkeys(volUp: volUp, volDown: volDown);
+		internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) =>
+			this.Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
-		internal void ResetHotkeys() => this.Master.ResetHotkeys();
+		internal void ResetVolumeHotkeys() => this.Master.ResetVolumeHotkeys();
+
+		internal bool SetMuteHotkeys(HotKey key)
+			=> this.Master.SetMuteHotkeys(key);
+
+		internal void ResetMuteHotkeys()
+			=> this.Master.ResetMuteHotkey();
 
 		private void OnIconPathChanged(string deviceId)
 		{
@@ -118,7 +135,7 @@ namespace Volumey.Model
 		private void OnDeviceDisabled(string deviceId)
 		{
 			if(this.CompareId(deviceId))
-				this.Disabled?.Invoke(this);
+				this._disabled?.Invoke(this);
 		}
 
 		private void OnSessionCreated(AudioSessionModel newSession)
@@ -174,7 +191,7 @@ namespace Volumey.Model
 					session.Dispose();
 				}	
 			}
-			this.Disabled = null;
+			this._disabled = null;
 			this.SessionCreated = null;
 		}
 	}

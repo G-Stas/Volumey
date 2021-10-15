@@ -94,7 +94,7 @@ namespace Volumey.Tests
 			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
-			this.model.SetHotkeys(upHotkey, downHotkey);
+			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
 			var newVolume = this.model.Volume + HotkeysControl.VolumeStep;
 			
 			//act
@@ -116,7 +116,7 @@ namespace Volumey.Tests
 			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
-			this.model.SetHotkeys(upHotkey, downHotkey);
+			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
 			
 			//act
 			hManagerMock.Raise(m => m.HotkeyPressed += null, new HotKey(Key.C));

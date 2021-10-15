@@ -133,7 +133,15 @@ namespace Volumey.DataProvider
 
 			private Key OpenMixerKey;
 			private ModifierKeys OpenMixerModifiers;
-
+			
+			[OptionalField]
+			private Key DeviceMuteKey;
+			[OptionalField]
+			private ModifierKeys DeviceMuteModifiers;
+			
+			/// <summary>
+			/// Default output device increase volume hotkey. Returns null if hotkey is not set. 
+			/// </summary>
 			internal HotKey DeviceVolumeUp
 			{
 				get
@@ -157,6 +165,9 @@ namespace Volumey.DataProvider
 				}
 			}
 
+			/// <summary>
+			/// Default output device decrease volume hotkey. Returns null if hotkey is not set. 
+			/// </summary>
 			internal HotKey DeviceVolumeDown
 			{
 				get
@@ -176,6 +187,32 @@ namespace Volumey.DataProvider
 					{
 						this.VolumeDownKey = value.Key;
 						this.VolumeDownModifiers = value.ModifierKeys;
+					}
+				}
+			}
+
+			/// <summary>
+			/// Default output device mute/unmute hotkey. Returns null if hotkey is not set. 
+			/// </summary>
+			internal HotKey DeviceMute
+			{
+				get
+				{
+					if(DeviceMuteKey != Key.None || DeviceMuteModifiers != ModifierKeys.None)
+						return new HotKey(DeviceMuteKey, DeviceMuteModifiers);
+					return null;
+				}
+				set
+				{
+					if(value == null)
+					{
+						DeviceMuteKey = Key.None;
+						DeviceMuteModifiers = ModifierKeys.None;
+					}
+					else
+					{
+						DeviceMuteKey = value.Key;
+						DeviceMuteModifiers = value.ModifierKeys;
 					}
 				}
 			}

@@ -15,6 +15,7 @@ using log4net;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
+using Volumey.View.DialogContent;
 
 namespace Volumey.View
 {

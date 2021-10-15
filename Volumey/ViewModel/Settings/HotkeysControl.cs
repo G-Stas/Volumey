@@ -13,8 +13,22 @@ namespace Volumey.ViewModel.Settings
 		/// Invokes when a hotkey manager is set and is ready to register hotkeys
 		/// </summary>
 		internal static event Action Activated;
-		internal static event Action<HotKey> HotkeyPressed;
+
+		private static Action<HotKey> _hotkeyPressed;
+		internal static event Action<HotKey> HotkeyPressed
+		{
+			add
+			{
+				//Prevent multiple subscribing of the same event handler
+				_hotkeyPressed -= value;
+				_hotkeyPressed += value;
+			}
+			remove => _hotkeyPressed -= value;
+		}
 		internal static event Action OpenHotkeyPressed;
+		/// <summary>
+		/// Indicates whether a hotkey manager instance is set and hotkeys can be registered.
+		/// </summary>
 		internal static bool IsActive { get; private set; }
 
 		private static int volumeStep = 1;
@@ -223,7 +237,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(openMixer != null && hotkey.Equals(openMixer))
 				OpenHotkeyPressed?.Invoke();
-			HotkeyPressed?.Invoke(hotkey);
+			_hotkeyPressed?.Invoke(hotkey);
 		}
 
 		public static void Dispose()

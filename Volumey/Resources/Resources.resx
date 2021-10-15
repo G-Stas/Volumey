@@ -135,4 +135,7 @@
   <data name="Settings_Duplicates" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_MuteDevice" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

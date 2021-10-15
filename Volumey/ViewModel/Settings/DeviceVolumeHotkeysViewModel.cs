@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using log4net;
+﻿using log4net;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.Model;
@@ -32,28 +31,54 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private bool isOn;
-
-		public bool IsOn
+		private HotKey muteKey;
+		public HotKey MuteKey
 		{
-			get => this.isOn;
+			get => this.muteKey;
+			set
+			{
+				this.muteKey = value;
+				OnPropertyChanged();
+			}
+		}
+
+		private bool volumeHotkeysRegistered;
+		public bool VolumeHotkeysRegistered
+		{
+			get => this.volumeHotkeysRegistered;
 			set
 			{
 				if(value)
 				{
-					if(!this.hotkeysRegistered)
-						this.isOn = this.hotkeysRegistered = SaveHotkeys();
+					this.volumeHotkeysRegistered = this.SaveVolumeHotkeys();
 				}
-				else if(this.hotkeysRegistered)
+				else
 				{
-					ResetHotkeys();
-					this.isOn = this.hotkeysRegistered = false;
+					this.volumeHotkeysRegistered = false;
+					this.ResetVolumeHotkeys();
 				}
 				OnPropertyChanged();
 			}
 		}
 
-		private bool hotkeysRegistered;
+		private bool muteHotkeyRegistered;
+		public bool MuteHotkeyRegistered
+		{
+			get => this.muteHotkeyRegistered;
+			set
+			{
+				if(value)
+				{
+					this.muteHotkeyRegistered = this.SaveMuteHotkey();
+				}
+				else
+				{
+					this.muteHotkeyRegistered = false;
+					this.ResetMuteHotkey();
+				}
+				OnPropertyChanged();
+			}
+		}
 
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceVolumeHotkeysViewModel));
@@ -66,15 +91,31 @@ namespace Volumey.ViewModel.Settings
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			var hotkeysSettings = SettingsProvider.HotkeysSettings;
+			var anyHotkeysRegistered = false;
+			
+			//set volume hotkeys if they are exist in settings
 			if(hotkeysSettings.DeviceVolumeUp is HotKey volUp && hotkeysSettings.DeviceVolumeDown is HotKey volDown)
 			{
+				anyHotkeysRegistered = true;
 				this.VolumeUp = volUp;
 				this.VolumeDown = volDown;
-				this.hotkeysRegistered = this.isOn = true;
+				this.volumeHotkeysRegistered = true;
+			}
+
+			if(hotkeysSettings.DeviceMute is HotKey mute)
+			{
+				anyHotkeysRegistered = true;
+				this.muteKey = mute;
+				this.muteHotkeyRegistered = true;
+			}
+
+			//register hotkeys if there are any if the hotkey manager is set or wait for activation via event
+			if(anyHotkeysRegistered)
+			{
 				if(HotkeysControl.IsActive)
 					this.RegisterLoadedHotkeys();
 				else
-					HotkeysControl.Activated += RegisterLoadedHotkeys;
+					HotkeysControl.Activated += this.RegisterLoadedHotkeys;
 			}
 		}
 
@@ -82,12 +123,15 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(this.defaultDevice != null)
 			{
-				this.defaultDevice.SetHotkeys(this.VolumeUp, this.VolumeDown);
+				if(this.muteHotkeyRegistered)
+					this.defaultDevice.SetMuteHotkeys(this.muteKey);
+				if(this.volumeHotkeysRegistered)
+					this.defaultDevice.SetVolumeHotkeys(this.volumeUp, this.volumeDown);
 				this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
 			}
 		}
 
-		private bool SaveHotkeys()
+		private bool SaveVolumeHotkeys()
 		{
 			var up = this.VolumeUp;
 			var down = this.VolumeDown;
@@ -100,7 +144,7 @@ namespace Volumey.ViewModel.Settings
 
 			if(this.defaultDevice != null)
 			{
-				if(this.defaultDevice.SetHotkeys(up, down))
+				if(this.defaultDevice.SetVolumeHotkeys(up, down))
 					this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
 				else
 				{
@@ -112,43 +156,91 @@ namespace Volumey.ViewModel.Settings
 			this.SetErrorMessage(ErrorMessageType.None);
 			SettingsProvider.HotkeysSettings.DeviceVolumeUp = this.VolumeUp;
 			SettingsProvider.HotkeysSettings.DeviceVolumeDown = this.VolumeDown;
-			Task.Run(() =>
-			{
-				Logger.Info($"Registered device hotkeys, +vol: [{this.VolumeUp}], -vol: [{this.VolumeDown}]");
-				_ = SettingsProvider.SaveSettings();
-			});
+			_ = SettingsProvider.SaveSettings().ConfigureAwait(false);
+			Logger.Info($"Registered device hotkeys, +vol: [{this.VolumeUp}], -vol: [{this.VolumeDown}]");
 			return true;
 		}
 
-		private void ResetHotkeys()
+		private void ResetVolumeHotkeys()
 		{
-			this.defaultDevice?.ResetHotkeys();
-			
+			if(this.defaultDevice != null)
+			{
+				this.defaultDevice.ResetVolumeHotkeys();
+				if(!this.muteHotkeyRegistered)
+					this.defaultDevice.Disabled -= OnDefaultDeviceDisabled;
+			}
 			SettingsProvider.HotkeysSettings.DeviceVolumeUp = SettingsProvider.HotkeysSettings.DeviceVolumeDown = null;
+			_ = SettingsProvider.SaveSettings().ConfigureAwait(false);
+		}
+
+		private bool SaveMuteHotkey()
+		{
+			var key = this.muteKey;
+			if(HotkeysControl.HotkeyIsValid(key) is var error && error != ErrorMessageType.None)
+			{
+				this.SetErrorMessage(error);
+				return false;
+			}
+
+			if(this.defaultDevice != null)
+			{
+				if(this.defaultDevice.SetMuteHotkeys(key))
+					this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
+				else
+				{
+					SetErrorMessage(ErrorMessageType.OpenReg);
+					return false;
+				}
+			}
+			
+			this.SetErrorMessage(ErrorMessageType.None);
+
+			SettingsProvider.HotkeysSettings.DeviceMute = key;
+			_ = SettingsProvider.SaveSettings().ConfigureAwait(false);
+			Logger.Info($"Registered device mute hotkey: [{key}]");
+			return true;
+		}
+
+		private void ResetMuteHotkey()
+		{
+			if(this.defaultDevice != null)
+			{
+				this.defaultDevice.ResetMuteHotkeys();
+				if(!this.volumeHotkeysRegistered)
+					this.defaultDevice.Disabled -= OnDefaultDeviceDisabled;
+			}
+			SettingsProvider.HotkeysSettings.DeviceMute = null;
 			_ = SettingsProvider.SaveSettings().ConfigureAwait(false);
 		}
 
 		private void OnDefaultDeviceDisabled(OutputDeviceModel disabledDevice)
 		{
-			disabledDevice.ResetHotkeys();
+			if(volumeHotkeysRegistered)
+				disabledDevice.ResetVolumeHotkeys();
+			if(muteHotkeyRegistered)
+				disabledDevice.ResetMuteHotkeys();
 			disabledDevice.Disabled -= OnDefaultDeviceDisabled;
 			this.defaultDevice = null;
 		}
 
 		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
-			if(hotkeysRegistered)
+			if(this.defaultDevice != null)
 			{
-				if(this.defaultDevice != null)
-				{
-					this.defaultDevice.ResetHotkeys();
-					this.defaultDevice.Disabled -= OnDefaultDeviceDisabled;
-				}
-				if(newDevice != null)
-				{
-					newDevice.SetHotkeys(this.VolumeUp, this.VolumeDown);
-					newDevice.Disabled += OnDefaultDeviceDisabled;
-				}
+				if(volumeHotkeysRegistered)
+					this.defaultDevice.ResetVolumeHotkeys();
+				if(muteHotkeyRegistered)
+					this.defaultDevice.ResetMuteHotkeys();
+				this.defaultDevice.Disabled -= OnDefaultDeviceDisabled;
+			}
+
+			if(newDevice != null)
+			{
+				if(volumeHotkeysRegistered)
+					newDevice.SetVolumeHotkeys(this.volumeUp, this.volumeDown);
+				if(muteHotkeyRegistered)
+					newDevice.SetMuteHotkeys(this.muteKey);
+				newDevice.Disabled += OnDefaultDeviceDisabled;
 			}
 			this.defaultDevice = newDevice;
 		}

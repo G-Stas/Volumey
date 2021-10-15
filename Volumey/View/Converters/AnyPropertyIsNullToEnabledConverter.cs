@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters
 {
-	public class AnyPropertyIsNullToEnabledConverter : IMultiValueConverter
+	public class AnyPropertyIsNullToEnabledConverter : IMultiValueConverter, IValueConverter
 	{
 		public object Convert(object[] properties, Type targetType, object parameter, CultureInfo culture)
 		{
@@ -18,7 +18,15 @@ namespace Volumey.View.Converters
 			return true;
 		}
 
-		public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) =>
-			null;
+		public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) 
+			=> null;
+
+		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+		{
+			return value != null;
+		}
+
+		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+			=> null;
 	}
 }
