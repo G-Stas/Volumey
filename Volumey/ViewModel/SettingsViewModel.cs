@@ -23,44 +23,42 @@ namespace Volumey.ViewModel
 
         private IntPtr windowHandle;
         
-        private bool blockHotkeysInSystem;
-        public bool BlockHotkeysInSystem
-        {
-            get => this.blockHotkeysInSystem;
-            set
-            {
-                this.blockHotkeysInSystem = value;
-                SetupHotkeyManager();
-                OnPropertyChanged();
+        // private bool blockHotkeysInSystem;
+        // public bool BlockHotkeysInSystem
+        // {
+        //     get => this.blockHotkeysInSystem;
+        //     set
+        //     {
+        //         this.blockHotkeysInSystem = value;
+        //         SetupHotkeyManager();
+        //         OnPropertyChanged();
+        //
+        //         if(value && this.AllowDuplicateHotkeys)
+        //         {
+        //             this.AllowDuplicateHotkeys = false;
+        //             return;
+        //         }
+        //         
+        //         SettingsProvider.Settings.BlockHotkeys = value;
+        //         _ = SettingsProvider.SaveSettings();
+        //     }
+        // }
 
-                if(value && this.AllowDuplicateHotkeys)
-                {
-                    this.AllowDuplicateHotkeys = false;
-                    return;
-                }
-                
-                SettingsProvider.Settings.BlockHotkeys = value;
-                _ = SettingsProvider.SaveSettings();
-            }
-        }
-
-        private bool allowDuplicateHotkeys;
-        /// <summary>
-        /// Allows to set same hotkeys for different types of hotkeys.
-        /// Works only when blocking hotkeys in system is disabled.
-        /// </summary>
-        public bool AllowDuplicateHotkeys
-        {
-            get => this.allowDuplicateHotkeys;
-            set
-            {
-                this.allowDuplicateHotkeys = value;
-                OnPropertyChanged();
-
-                SettingsProvider.Settings.AllowDuplicates = value;
-                _ = SettingsProvider.SaveSettings();
-            }
-        }
+        // private bool allowDuplicateHotkeys;
+        // Allows to set same hotkeys for different types of hotkeys.
+        // Works only when blocking hotkeys in system is disabled.
+        // public bool AllowDuplicateHotkeys
+        // {
+        //     get => this.allowDuplicateHotkeys;
+        //     set
+        //     {
+        //         this.allowDuplicateHotkeys = value;
+        //         OnPropertyChanged();
+        //
+        //         SettingsProvider.Settings.AllowDuplicates = value;
+        //         _ = SettingsProvider.SaveSettings();
+        //     }
+        // }
         
         public SettingsViewModel()
         {
@@ -73,8 +71,8 @@ namespace Volumey.ViewModel
             this.GitHubCommand = new ActionCommand(async () => { await OpenWebPage("https://github.com/G-Stas/Volumey"); });
             this.TipCommand = new ActionCommand(async () => { await OpenWebPage("https://ko-fi.com/stasg"); });
 
-            this.blockHotkeysInSystem = SettingsProvider.Settings.BlockHotkeys;
-            this.allowDuplicateHotkeys = SettingsProvider.Settings.AllowDuplicates;
+            // this.blockHotkeysInSystem = SettingsProvider.Settings.BlockHotkeys;
+            // this.allowDuplicateHotkeys = SettingsProvider.Settings.AllowDuplicates;
         }
 
         /// <summary>
@@ -86,8 +84,8 @@ namespace Volumey.ViewModel
             if(this.windowHandle != IntPtr.Zero)
                 return;
             this.windowHandle = handle;
-            if(BlockHotkeysInSystem)
-                SetupHotkeyManager();
+            // if(BlockHotkeysInSystem)
+            SetupHotkeyManager();
         }
 
         private Action<int> HotkeyManagerMessageHandler;
@@ -106,22 +104,26 @@ namespace Volumey.ViewModel
 
         private void SetupHotkeyManager()
         {
-            IHotkeyManager hm = null;
-            if(blockHotkeysInSystem)
-            {
-                //Prevent creating manager right now since it's dependent on the window handle, which was not passed yet by window.
-                if(this.windowHandle == IntPtr.Zero)
-                    return;
-                var hotkeyManager = new HotkeyManager(this.windowHandle);
-                this.HotkeyManagerMessageHandler = hotkeyManager.GetMessageHandler();
-                hm = hotkeyManager;
-            }
-            else
-            {
-                this.HotkeyManagerMessageHandler = null;
-                hm = new HotkeyHookManager();
-            }
-            HotkeysControl.SetHotkeyManager(hm);
+            var hotkeyManager = new HotkeyManager(this.windowHandle);
+            this.HotkeyManagerMessageHandler = hotkeyManager.GetMessageHandler();
+            HotkeysControl.SetHotkeyManager(hotkeyManager);
+            
+            // IHotkeyManager hm = null;
+            // if(blockHotkeysInSystem)
+            // {
+            //     //Prevent creating manager right now since it's dependent on the window handle, which was not passed yet by window.
+            //     if(this.windowHandle == IntPtr.Zero)
+            //         return;
+            //     var hotkeyManager = new HotkeyManager(this.windowHandle);
+            //     this.HotkeyManagerMessageHandler = hotkeyManager.GetMessageHandler();
+            //     hm = hotkeyManager;
+            // }
+            // else
+            // {
+            //     this.HotkeyManagerMessageHandler = null;
+            //     hm = new HotkeyHookManager();
+            // }
+            // HotkeysControl.SetHotkeyManager(hm);
         }
         
         private async Task OpenWebPage(string url)

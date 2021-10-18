@@ -62,17 +62,17 @@
 				Width="{StaticResource InputBoxWidth}"
 				HorizontalAlignment="Left"/>
 			
-			<TextBlock
-				Text="{lc:Localization Settings_BlockHotkeys}"
-				Width="{StaticResource TextBlockWidth}"/>
-			<ui:ToggleSwitch
-				IsOn="{Binding BlockHotkeysInSystem}"/>
-			
-			<TextBlock
-				Text="{lc:Localization Settings_Duplicates}"/>
-			<ui:ToggleSwitch
-				IsOn="{Binding AllowDuplicateHotkeys}"
-				IsEnabled="{Binding BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}"/>
+			<!-- <TextBlock -->
+			<!-- 	Text="{lc:Localization Settings_BlockHotkeys}" -->
+			<!-- 	Width="{StaticResource TextBlockWidth}"/> -->
+			<!-- <ui:ToggleSwitch -->
+			<!-- 	IsOn="{Binding BlockHotkeysInSystem}"/> -->
+			<!-- -->
+			<!-- <TextBlock -->
+			<!-- 	Text="{lc:Localization Settings_Duplicates}"/> -->
+			<!-- <ui:ToggleSwitch -->
+			<!-- 	IsOn="{Binding AllowDuplicateHotkeys}" -->
+			<!-- 	IsEnabled="{Binding BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}"/> -->
 			
             <TextBlock
 				Text="{lc:Localization Settings_Lang}"

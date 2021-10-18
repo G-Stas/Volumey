@@ -176,7 +176,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.OpenReg;
 			if(hotkey.ModifierKeys == ModifierKeys.None && hotkey.Key == Key.F12)
 				return ErrorMessageType.F12;
-			if(!SettingsProvider.Settings.AllowDuplicates && SettingsProvider.Settings.HotkeyExists(hotkey))
+			if(SettingsProvider.Settings.HotkeyExists(hotkey)) //!SettingsProvider.Settings.AllowDuplicates && 
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
@@ -190,7 +190,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.F12;
 			if(up.Equals(down))
 				return ErrorMessageType.Diff;
-			if(!SettingsProvider.Settings.AllowDuplicates && SettingsProvider.Settings.HotkeysExist(up, down))
+			if(SettingsProvider.Settings.HotkeysExist(up, down)) //!SettingsProvider.Settings.AllowDuplicates && 
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
@@ -204,34 +204,33 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(hotkeyManager == hm)
 				return;
-
-			var prevManager = hotkeyManager;
+			// var prevManager = hotkeyManager;
 			hotkeyManager = hm;
 			hotkeyManager.HotkeyPressed += OnHotkeyPressed;
-			if(prevManager == null)
-			{
-				IsActive = true;
-				Activated?.Invoke();
-			}
-			else
-			{
-				prevManager.HotkeyPressed -= OnHotkeyPressed;
-				ConvertHotkeysToNewManager(prevManager: prevManager, newManager: hm);
-				prevManager.Dispose();
-			}
+			// if(prevManager == null)
+			// {
+			IsActive = true;
+			Activated?.Invoke();
+			// }
+			// else
+			// {
+			// 	prevManager.HotkeyPressed -= OnHotkeyPressed;
+			// 	ConvertHotkeysToNewManager(prevManager: prevManager, newManager: hm);
+			// 	prevManager.Dispose();
+			// }
 		}
 
-		private static void ConvertHotkeysToNewManager(IHotkeyManager prevManager, IHotkeyManager newManager)
-		{
-			var hotkeysCount = prevManager.RegisteredHotkeysCount;
-			var hotkeysList = prevManager.GetRegisteredHotkeys();
-			for(int i = hotkeysCount - 1; i >= 0; i--)
-			{
-				var hotkey = hotkeysList[i];
-				prevManager.UnregisterHotkey(hotkey);
-				newManager.RegisterHotkey(hotkey);
-			}
-		}
+		// private static void ConvertHotkeysToNewManager(IHotkeyManager prevManager, IHotkeyManager newManager)
+		// {
+		// 	var hotkeysCount = prevManager.RegisteredHotkeysCount;
+		// 	var hotkeysList = prevManager.GetRegisteredHotkeys();
+		// 	for(int i = hotkeysCount - 1; i >= 0; i--)
+		// 	{
+		// 		var hotkey = hotkeysList[i];
+		// 		prevManager.UnregisterHotkey(hotkey);
+		// 		newManager.RegisterHotkey(hotkey);
+		// 	}
+		// }
 
 		private static void OnHotkeyPressed(HotKey hotkey)
 		{
