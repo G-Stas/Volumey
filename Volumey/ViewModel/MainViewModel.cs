@@ -41,9 +41,9 @@ namespace Volumey.ViewModel
 		{
 			this.WindowIsVisible = !Startup.StartMinimized;
 			this.ClosingCommand = new ActionCommand(OnWindowClosing);
-			this.TrayMixerCommand = new ActionCommand(() => OpenCommand(false));
-			this.TraySettingsCommand = new ActionCommand(() => OpenCommand(true));
-			this.TrayClickCommand = new ActionCommand(() => OpenCommand(false));
+			this.TrayMixerCommand = new ActionCommand(() => OpenCommand(isSettingsPage: false, reverseDisplaying: false));
+			this.TraySettingsCommand = new ActionCommand(() => OpenCommand(isSettingsPage: true, reverseDisplaying: false));
+			this.TrayClickCommand = new ActionCommand(() => OpenCommand(isSettingsPage: false, reverseDisplaying: true));
 			this.TrayExitCommand = new ActionCommand(OnExit);
 			this.SoundControlPanelCommand = new ActionCommand(SystemSoundUtilities.StartSoundControlPanel);
 			this.SoundSettingsCommand = new ActionCommand(SystemSoundUtilities.StartSoundSettings);
@@ -88,12 +88,29 @@ namespace Volumey.ViewModel
 			App.Current.Shutdown();
 		}
 
-		private void OpenCommand(bool isSettingsPage)
+		/// <summary>
+		/// Changes window visibility if requested and invokes event which is used by the view to open the requested page 
+		/// </summary>
+		/// <param name="reverseDisplaying">Flag to control whether to close the window if it's displayed or not</param>
+		private void OpenCommand(bool isSettingsPage, bool reverseDisplaying = false)
 		{
-			//bring the window to the foreground and change page
-			this.OpenCommandEvent?.Invoke(isSettingsPage, WindowIsVisible);
-			if (!WindowIsVisible)
-				WindowIsVisible = true;
+			if(reverseDisplaying)
+			{
+				if(!windowIsVisible)
+				{
+					//bring the window to the foreground and change page
+					this.OpenCommandEvent?.Invoke(isSettingsPage, WindowIsVisible);
+					this.WindowIsVisible = true;
+				}
+				else
+					this.WindowIsVisible = false;
+			}
+			else
+			{
+				this.OpenCommandEvent?.Invoke(isSettingsPage, WindowIsVisible);
+				if (!WindowIsVisible)
+					WindowIsVisible = true;
+			}
 		}
 
 		private void OnThreadFilterMessage(ref MSG msg, ref bool handled)
