@@ -6,6 +6,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:lc="clr-namespace:Volumey.Localization"
 	xmlns:ui="http://schemas.modernwpf.com/2019"
+	xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
 	xmlns:converters="clr-namespace:Volumey.View.Converters"
 	mc:Ignorable="d"
 	DataContext="{Binding Source={StaticResource SettingsViewModel}}">
@@ -46,6 +47,18 @@
 			<ui:ToggleSwitch
 				IsOn="{Binding IsOn}"/>
 		</StackPanel>
+
+		<!-- set data context to the window's MainViewModel to access properties related to the window's behavior -->
+		<StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor, 
+									AncestorType={x:Type fw:AcrylicWindow}},
+									Path=DataContext}">
+			<TextBlock
+				Text="{lc:Localization Settings_Popup}"
+				Width="{StaticResource TextBlockWidth}"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding PopupEnabled}"/>
+		</StackPanel>
+		
 		<StackPanel>
             <TextBlock
 				Text="{lc:Localization Settings_VolumeStep}"

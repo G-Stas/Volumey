@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>Raccourcis clavier pour contrôler le périphérique de sortie</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>Mode fenêtre contextuelle</value>
+  </data>
 </root>

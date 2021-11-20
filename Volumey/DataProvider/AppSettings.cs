@@ -98,6 +98,14 @@ namespace Volumey.DataProvider
 			set => launchCount = value;
 		}
 
+		[OptionalField]
+		private bool popupEnabled;
+		public bool PopupEnabled
+		{
+			get => popupEnabled;
+			set => popupEnabled = value;
+		}
+
 		// [OptionalField]
 		// private bool blockHotkeys = true;
 		// public bool BlockHotkeys

@@ -37,6 +37,7 @@ namespace Volumey.View
 
         private const int SessionControlDefaultHeight = 52;
         private const int ScrollStep = 30;
+        private const double NavPaneHeight = 32;
 
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
@@ -66,9 +67,9 @@ namespace Volumey.View
             //register the app to restart it automatically in case it's going to be updated while running
             NativeMethods.RegisterApplicationRestart(Startup.MinimizedArg, RESTART_NO_REBOOT);
 
-            this.ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: this.ContentFrame.Content is SettingsView, windowIsVisible: false));
+            this.ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: this.ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: false));
             if(this.DataContext is MainViewModel vm)
-	            vm.OpenCommandEvent += ActivateIfLoaded;
+	            vm.DisplayAppRequested += ActivateIfLoaded;
             
             SetControlsNameScope();
 
@@ -178,9 +179,16 @@ namespace Volumey.View
 				this.SizeToContent = SizeToContent.Height;
 		}
 		
-		private void ActivateIfLoaded(bool isSettingsPage, bool windowIsVisible)
+		private void ActivateIfLoaded(bool isSettingsPage, bool windowIsVisible, bool isPopupMode)
 		{
 			var pageType = isSettingsPage ? typeof(SettingsView) : typeof(MixerView);
+			
+			//hide navigation pane if in popup mode 
+			if(isPopupMode)
+				this.Resources["NavigationViewTopPaneHeight"] = (double)0;
+			else
+				this.Resources["NavigationViewTopPaneHeight"] = NavPaneHeight;
+			
 			if(windowIsVisible)
 				Navigate(pageType);
 			else

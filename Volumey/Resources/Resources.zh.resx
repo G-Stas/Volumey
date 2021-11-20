@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>控制输出设备的热键</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>弹出窗口模式</value>
+  </data>
 </root>

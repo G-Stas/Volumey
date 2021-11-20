@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>Teclas de atalho para controlar o dispositivo de saída</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>Modo de janela pop-up</value>
+  </data>
 </root>

@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>Хоткеи для контроля устройства вывода</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>Режим всплывающего окна</value>
+  </data>
 </root>

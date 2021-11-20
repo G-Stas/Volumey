@@ -26,7 +26,6 @@
                   MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=Width}"
                   SizeToContent="Height"
                   BorderThickness="0"
-                  ShowInTaskbar="{Binding WindowIsVisible}"
                   IsVisibleChanged="OnIsVisibleChanged"
                   PreviewKeyDown="OnKeyDown"
                   Loaded="OnLoaded">
@@ -42,11 +41,15 @@
                 Command="{Binding Path=ClosingCommand}"
                 PassEventArgsToCommand="True" />
         </behaviors:EventTrigger>
+        
+        <behaviors:EventTrigger EventName="Deactivated" SourceObject="{Binding ElementName=Window}">
+            <behaviors:InvokeCommandAction Command="{Binding Path=LostFocusCommand}" />
+        </behaviors:EventTrigger>
+        
     </behaviors:Interaction.Triggers>
 
     <fw:AcrylicWindow.Resources>
         <ResourceDictionary>
-
             <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
             <converters:BrushToColorConverter x:Key="BrushToColorConverter"/>
             
@@ -174,9 +177,14 @@
             <converters:TrayTooltipDeviceNameConverter x:Key="TooltipDeviceNameConverter" />
             <converters:TrayTooltipDeviceVolumeConverter x:Key="TooltipDeviceVolumeConverter" />
             <converters:TrayIconConverter x:Key="TrayIconConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
 
         </ResourceDictionary>
     </fw:AcrylicWindow.Resources>
+    
+    <fw:AcrylicWindow.ShowInTaskbar>
+        <Binding Path="DisplayMinimalistic" Converter="{StaticResource InverseBoolConverter}"/>
+    </fw:AcrylicWindow.ShowInTaskbar>
 
     <fw:AcrylicWindow.Visibility>
         <Binding Path="WindowIsVisible" Converter="{StaticResource WindowVisibilityConverter}" />

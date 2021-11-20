@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>Tasti di scelta rapida per controllare il dispositivo di output</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>Modalità finestra pop-up</value>
+  </data>
 </root>

@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>出力デバイスを制御するためのホットキー</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>ポップアップウィンドウモード</value>
+  </data>
 </root>

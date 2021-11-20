@@ -181,4 +181,7 @@
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
     <value>आउटपुट डिवाइस को नियंत्रित करने के लिए हॉटकी</value>
   </data>
+  <data name="Settings_Popup" xml:space="preserve">
+    <value>पॉप-अप विंडो मोड</value>
+  </data>
 </root>
