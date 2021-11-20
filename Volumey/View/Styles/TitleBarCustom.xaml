@@ -25,7 +25,8 @@
                     <Grid
                         x:Name="LayoutRoot"
                         Background="{DynamicResource SystemChromeMediumLowColorBrush}"
-                        SnapsToDevicePixels="True">
+                        SnapsToDevicePixels="True"
+                        Opacity="0.94">
                         <Grid
                             Visibility="{Binding DataContext.DisplayMinimalistic, 
                                          ElementName=Window, 
