@@ -38,6 +38,7 @@ namespace Volumey.View
         private const int SessionControlDefaultHeight = 52;
         private const int ScrollStep = 30;
         private const double NavPaneHeight = 32;
+        private const int BorderIndent = 11;
 
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
@@ -146,8 +147,8 @@ namespace Volumey.View
 		private void SetWindowPosition()
 		{
 			var deskWorkArea = SystemParameters.WorkArea;
-			this.Left = deskWorkArea.Right - this.ActualWidth;
-			var topPos = deskWorkArea.Bottom - this.ActualHeight;
+			this.Left = deskWorkArea.Right - this.ActualWidth - BorderIndent;
+			var topPos = deskWorkArea.Bottom - this.ActualHeight - BorderIndent;
 			this.Top = topPos < 0 ? 0 : topPos;
 		}
 		
