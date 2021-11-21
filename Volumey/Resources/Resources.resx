@@ -141,4 +141,7 @@
   <data name="Settings_Popup" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

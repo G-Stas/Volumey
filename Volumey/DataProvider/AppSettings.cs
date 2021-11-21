@@ -106,6 +106,14 @@ namespace Volumey.DataProvider
 			set => popupEnabled = value;
 		}
 
+		[OptionalField]
+		private bool alwaysOnTop;
+		public bool AlwaysOnTop
+		{
+			get => alwaysOnTop;
+			set => alwaysOnTop = value;
+		}
+
 		// [OptionalField]
 		// private bool blockHotkeys = true;
 		// public bool BlockHotkeys

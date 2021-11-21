@@ -184,4 +184,7 @@
   <data name="Settings_Popup" xml:space="preserve">
     <value>弹出窗口模式</value>
   </data>
+  <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value>总在最前面</value>
+  </data>
 </root>

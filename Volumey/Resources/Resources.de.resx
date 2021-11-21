@@ -184,4 +184,7 @@
   <data name="Settings_Popup" xml:space="preserve">
     <value>Popup-Fenstermodus</value>
   </data>
+  <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value>Immer oben</value>
+  </data>
 </root>

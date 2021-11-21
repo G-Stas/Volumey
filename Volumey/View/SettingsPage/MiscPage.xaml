@@ -12,9 +12,9 @@
 	DataContext="{Binding Source={StaticResource SettingsViewModel}}">
 	<ui:Page.Resources>
 		<ResourceDictionary>
-			<Style
-				TargetType="TextBlock"
-				BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+			<Style TargetType="TextBlock" BasedOn="{StaticResource SettingsTextBlockStyle}">
+				<Setter Property="Width" Value="{StaticResource TextBlockWidth}"/>
+			</Style>
 			<converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
 		</ResourceDictionary>
 	</ui:Page.Resources>
@@ -23,7 +23,6 @@
 			DataContext="{Binding VolumeLimitViewModel}">
 			<TextBlock
 				Text="{lc:Localization Settings_VolumeLimit}"
-				Width="{StaticResource TextBlockWidth}"
 				HorizontalAlignment="Left"/>
 			<StackPanel
 				Orientation="Horizontal">
@@ -42,7 +41,8 @@
 					Text="%"
 					HorizontalAlignment="Center"
 					VerticalAlignment="Center"
-					Margin="5 0 0 0"/>
+					Margin="5 0 0 0"
+					Width="Auto"/>
 			</StackPanel>
 			<ui:ToggleSwitch
 				IsOn="{Binding IsOn}"/>
@@ -53,16 +53,19 @@
 									AncestorType={x:Type fw:AcrylicWindow}},
 									Path=DataContext}">
 			<TextBlock
-				Text="{lc:Localization Settings_Popup}"
-				Width="{StaticResource TextBlockWidth}"/>
+				Text="{lc:Localization Settings_Popup}"/>
 			<ui:ToggleSwitch
 				IsOn="{Binding PopupEnabled}"/>
+			
+			<TextBlock
+				Text="{lc:Localization Settings_AlwaysTop}"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding AlwaysOnTop}"/>
 		</StackPanel>
 		
 		<StackPanel>
             <TextBlock
-				Text="{lc:Localization Settings_VolumeStep}"
-				Width="{StaticResource TextBlockWidth}"/>
+				Text="{lc:Localization Settings_VolumeStep}"/>
             <ui:NumberBox
 				Minimum="1"
 				Maximum="100"
@@ -88,15 +91,13 @@
 			<!-- 	IsEnabled="{Binding BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}"/> -->
 			
             <TextBlock
-				Text="{lc:Localization Settings_Lang}"
-				Width="{StaticResource TextBlockWidth}"/>
+				Text="{lc:Localization Settings_Lang}"/>
 			<ComboBox
 				ItemsSource="{Binding LangSettings.Languages}"
 				SelectedItem="{Binding LangSettings.SelectedLanguage}"
                 Style="{StaticResource SettingsComboBoxStyle}"/>
 			<TextBlock
 				Text="{lc:Localization Settings_Theme}"
-				Width="{StaticResource TextBlockWidth}"
 				Margin="0 5 0 0"/>
 			<ComboBox
 				ItemsSource="{Binding Source={StaticResource ThemeViewModel}, Path=AppThemes}"

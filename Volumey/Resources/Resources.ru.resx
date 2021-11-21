@@ -184,4 +184,7 @@
   <data name="Settings_Popup" xml:space="preserve">
     <value>Режим всплывающего окна</value>
   </data>
+  <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value>Отображать всегда сверху</value>
+  </data>
 </root>

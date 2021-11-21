@@ -184,4 +184,7 @@
   <data name="Settings_Popup" xml:space="preserve">
     <value>Modo de ventana emergente</value>
   </data>
+  <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value>Siempre en la cima</value>
+  </data>
 </root>

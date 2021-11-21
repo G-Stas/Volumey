@@ -184,4 +184,7 @@
   <data name="Settings_Popup" xml:space="preserve">
     <value>Açılır pencere modu</value>
   </data>
+  <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value>Her zaman üstte</value>
+  </data>
 </root>

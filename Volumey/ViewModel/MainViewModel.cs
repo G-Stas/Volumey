@@ -78,7 +78,22 @@ namespace Volumey.ViewModel
 		        OnPropertyChanged();
 	        }
         }
-        
+
+        private bool alwaysOnTop;
+        public bool AlwaysOnTop
+        {
+	        get => this.alwaysOnTop;
+	        set
+	        {
+		        this.alwaysOnTop = value;
+		        
+		        SettingsProvider.Settings.AlwaysOnTop = value;
+		        _ = SettingsProvider.SaveSettings();
+		        
+		        OnPropertyChanged();
+	        }
+        }
+
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
         /// </summary>
@@ -128,6 +143,7 @@ namespace Volumey.ViewModel
 			this.trayBlockTimer.Elapsed += OnBlockTrayTimerElapsed;
 
 			this.popupEnabled = SettingsProvider.Settings.PopupEnabled;
+			this.alwaysOnTop = SettingsProvider.Settings.AlwaysOnTop;
 		}
 
 		/// <summary>

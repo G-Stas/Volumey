@@ -189,6 +189,10 @@
     <fw:AcrylicWindow.Visibility>
         <Binding Path="WindowIsVisible" Converter="{StaticResource WindowVisibilityConverter}" />
     </fw:AcrylicWindow.Visibility>
+    
+    <fw:AcrylicWindow.Topmost>
+        <Binding Path="AlwaysOnTop"/>
+    </fw:AcrylicWindow.Topmost>
 
     <Grid
         Name="GridContainer"
