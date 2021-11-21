@@ -252,7 +252,7 @@ namespace Volumey.ViewModel
 
 		private void OnOpenHotkeyPressed()
 		{
-			this.OpenCommand(isSettingsPage: false, displayAsPopup: true, reverseDisplaying: true);
+			this.OpenCommand(isSettingsPage: false, displayAsPopup: this.popupEnabled, reverseDisplaying: true);
 		}
 
 		private void OnWindowClosing(object e)
