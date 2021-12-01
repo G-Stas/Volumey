@@ -155,7 +155,7 @@ namespace Volumey.View
 		private void LimitWindowHeightIfNecessary()
 		{
 			var desktopHeight = SystemParameters.WorkArea.Height;
-			var maxHeight = desktopHeight * 0.5;
+			var maxHeight = desktopHeight * 0.6;
 			
 			int actualHeight = 0;
 			if(this.ContentFrame.Content is MixerView mixer)
