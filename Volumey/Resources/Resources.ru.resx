@@ -185,6 +185,6 @@
     <value>Режим всплывающего окна</value>
   </data>
   <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>Отображать всегда сверху</value>
+    <value>Отображать поверх других окон</value>
   </data>
 </root>
