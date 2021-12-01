@@ -16,7 +16,7 @@
                   Name="Window"
                   Title="Volumey"
                   Width="400"
-                  MinHeight="230"
+                  MinHeight="200"
                   ui:TitleBar.IsBackEnabled="False"
                   ui:TitleBar.Style="{StaticResource TitleBarCustom}"
                   ui:ThemeManager.IsThemeAware="True"
