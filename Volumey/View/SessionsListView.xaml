@@ -47,19 +47,13 @@
                         Margin="{StaticResource ImageMargin}"
                         Height="{StaticResource ImageSize}"
                         Width="{StaticResource ImageSize}" />
-                    <Slider
+                    <controls:VolumeSlider
                         Grid.Column="1"
                         Grid.Row="1"
                         x:Name="SessionSlider"
                         Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                        Minimum="0"
-                        Maximum="100"
                         Width="{StaticResource SliderWidth}"
                         Height="{StaticResource SliderHeight}"
-                        IsMoveToPointEnabled="True"
-                        AutoToolTipPlacement="TopLeft"
-                        controls:SliderHelper.EnableMouseWheel="MouseHover"
-                        SmallChange="1"
                         Margin="2 0 0 0"
                         VerticalAlignment="Center"/>
                     <Label

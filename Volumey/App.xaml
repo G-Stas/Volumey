@@ -102,6 +102,29 @@
             </Style>
 
             <Style
+                TargetType="{x:Type local:VolumeSlider}"
+                BasedOn="{StaticResource DefaultSliderStyle}">
+                <Setter
+                    Property="Minimum"
+                    Value="0"/>
+                <Setter
+                    Property="Maximum"
+                    Value="100"/>
+                <Setter
+                    Property="SmallChange"
+                    Value="1"/>
+                <Setter
+                    Property="IsMoveToPointEnabled"
+                    Value="True"/>
+                <Setter
+                    Property="EnableMouseWheel"
+                    Value="True"/>
+                <Setter 
+                    Property="AutoToolTipPlacement"
+                    Value="TopLeft"/>
+            </Style>
+            
+            <Style
                 TargetType="{x:Type local:HotKeyBox}"
                 BasedOn="{StaticResource DefaultTextBoxStyle}">
                 <Setter

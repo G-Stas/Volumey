@@ -105,18 +105,12 @@
                     Width="{StaticResource ImageSize}"
                     Margin="{StaticResource ImageMargin}"
                     VerticalAlignment="Center" />
-                <Slider
+                <controls:VolumeSlider
                     Grid.Column="1"
                     Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
-                    Minimum="0"
-                    Maximum="100"
                     Width="{StaticResource SliderWidth}"
                     Height="{StaticResource SliderHeight}"
                     Margin="5 0 0 0"
-                    IsMoveToPointEnabled="True"
-                    AutoToolTipPlacement="TopLeft"
-                    SmallChange="1"
-                    controls:SliderHelper.EnableMouseWheel="MouseHover"
                     VerticalContentAlignment="Center" />
                 <Label
                     Grid.Column="2"
