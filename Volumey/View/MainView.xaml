@@ -28,7 +28,7 @@
                   BorderThickness="0"
                   IsVisibleChanged="OnIsVisibleChanged"
                   PreviewKeyDown="OnKeyDown"
-                  Loaded="OnLoaded">
+                  Loaded="OnLoaded" ShowInTaskbar="False" ResizeMode="NoResize">
 
     <fw:AcrylicWindow.DataContext>
         <viewModel:MainViewModel />
@@ -41,18 +41,18 @@
                 Command="{Binding Path=ClosingCommand}"
                 PassEventArgsToCommand="True" />
         </behaviors:EventTrigger>
-        
+
         <behaviors:EventTrigger EventName="Deactivated" SourceObject="{Binding ElementName=Window}">
             <behaviors:InvokeCommandAction Command="{Binding Path=LostFocusCommand}" />
         </behaviors:EventTrigger>
-        
+
     </behaviors:Interaction.Triggers>
 
     <fw:AcrylicWindow.Resources>
         <ResourceDictionary>
             <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
             <converters:BrushToColorConverter x:Key="BrushToColorConverter"/>
-            
+
             <ContextMenu
                 x:Key="TrayMenu"
                 HasDropShadow="True"
@@ -80,7 +80,7 @@
                     <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{Binding ElementName=GridContainer, Path=Background, Converter={StaticResource BrushToColorConverter}}"/>
                     <Thickness x:Key="MenuFlyoutPresenterBorderThemeThickness">0</Thickness>
                 </ContextMenu.Resources>
-                
+
                 <MenuItem
                     Header="{lc:Localization TabHeader_Mixer}"
                     Foreground="{Binding ElementName=Window, Path=Foreground}"
@@ -114,7 +114,7 @@
                         <ui:FontIcon Glyph="&#xE7F3;" />
                     </MenuItem.Icon>
                 </MenuItem>
-                
+
                 <MenuItem
                     Foreground="{Binding ElementName=Window, Path=Foreground}"
                     ItemsSource="{Binding Source={StaticResource DeviceProviderViewModel}, Path=DeviceProvider.ActiveDevices}"
@@ -152,7 +152,7 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
-                
+
                 <Separator />
                 <MenuItem
                     Header="{lc:Localization TrayMenu_Exit}"
@@ -181,15 +181,11 @@
 
         </ResourceDictionary>
     </fw:AcrylicWindow.Resources>
-    
-    <fw:AcrylicWindow.ShowInTaskbar>
-        <Binding Path="DisplayMinimalistic" Converter="{StaticResource InverseBoolConverter}"/>
-    </fw:AcrylicWindow.ShowInTaskbar>
 
     <fw:AcrylicWindow.Visibility>
         <Binding Path="WindowIsVisible" Converter="{StaticResource WindowVisibilityConverter}" />
     </fw:AcrylicWindow.Visibility>
-    
+
     <fw:AcrylicWindow.Topmost>
         <Binding Path="AlwaysOnTop"/>
     </fw:AcrylicWindow.Topmost>
@@ -198,11 +194,15 @@
         Name="GridContainer"
         Background="{DynamicResource SystemChromeMediumLowColorBrush}"
         Opacity="0.94">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="89*"/>
+            <RowDefinition Height="96*"/>
+        </Grid.RowDefinitions>
         <tb:TaskbarIcon
             Name="Tray"
             NoLeftClickDelay="True"
             LeftClickCommand="{Binding TrayClickCommand}"
-            ContextMenu="{StaticResource TrayMenu}">
+            ContextMenu="{StaticResource TrayMenu}" Grid.RowSpan="2">
 
             <tb:TaskbarIcon.IconSource>
                 <MultiBinding Converter="{StaticResource TrayIconConverter}">
@@ -256,7 +256,7 @@
             IsSettingsVisible="True"
             ItemInvoked="NavigationView_OnItemInvoked"
             IsBackEnabled="False"
-            IsBackButtonVisible="Collapsed">
+            IsBackButtonVisible="Collapsed" Grid.RowSpan="2">
 
             <ui:NavigationView.MenuItems>
 
