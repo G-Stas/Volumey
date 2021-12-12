@@ -28,7 +28,7 @@
                   BorderThickness="0"
                   IsVisibleChanged="OnIsVisibleChanged"
                   PreviewKeyDown="OnKeyDown"
-                  Loaded="OnLoaded" ShowInTaskbar="False" ResizeMode="NoResize">
+                  Loaded="OnLoaded">
 
     <fw:AcrylicWindow.DataContext>
         <viewModel:MainViewModel />
@@ -182,6 +182,10 @@
         </ResourceDictionary>
     </fw:AcrylicWindow.Resources>
 
+    <fw:AcrylicWindow.ShowInTaskbar>
+        <Binding Path="DisplayMinimalistic" Converter="{StaticResource InverseBoolConverter}"/>
+    </fw:AcrylicWindow.ShowInTaskbar>
+
     <fw:AcrylicWindow.Visibility>
         <Binding Path="WindowIsVisible" Converter="{StaticResource WindowVisibilityConverter}" />
     </fw:AcrylicWindow.Visibility>
@@ -194,15 +198,11 @@
         Name="GridContainer"
         Background="{DynamicResource SystemChromeMediumLowColorBrush}"
         Opacity="0.94">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="89*"/>
-            <RowDefinition Height="96*"/>
-        </Grid.RowDefinitions>
         <tb:TaskbarIcon
             Name="Tray"
             NoLeftClickDelay="True"
             LeftClickCommand="{Binding TrayClickCommand}"
-            ContextMenu="{StaticResource TrayMenu}" Grid.RowSpan="2">
+            ContextMenu="{StaticResource TrayMenu}">
 
             <tb:TaskbarIcon.IconSource>
                 <MultiBinding Converter="{StaticResource TrayIconConverter}">
@@ -256,7 +256,7 @@
             IsSettingsVisible="True"
             ItemInvoked="NavigationView_OnItemInvoked"
             IsBackEnabled="False"
-            IsBackButtonVisible="Collapsed" Grid.RowSpan="2">
+            IsBackButtonVisible="Collapsed">
 
             <ui:NavigationView.MenuItems>
 

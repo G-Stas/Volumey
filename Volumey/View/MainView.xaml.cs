@@ -107,7 +107,6 @@ namespace Volumey.View
 
 		private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
 		{
-			GetTaskBarLocation();
 			SetWindowPosition();
 			#if(!DEBUG)
 			try
@@ -135,7 +134,6 @@ namespace Volumey.View
 				
 		            //update layout before setting windows position to use actual height of the window when calculating its position
 		            this.UpdateLayout();
-					this.GetTaskBarLocation();
 					this.SetWindowPosition();
 					this.Activate();
 					this.Focus();
@@ -157,7 +155,7 @@ namespace Volumey.View
 		}
 
 		/// <summary>
-		/// Move window to the right bottom corner of display
+		/// Move window to the right corner depending on the taskbar location
 		/// </summary>
 		private void SetWindowPosition()
 		{
@@ -168,29 +166,29 @@ namespace Volumey.View
 			{
 				case TaskBarLocation.TOP:
 
-					this.Left = SystemParameters.WorkArea.Right - this.ActualWidth;
-					topPos = SystemParameters.WorkArea.Top;
+					this.Left = SystemParameters.WorkArea.Right - this.ActualWidth - BorderIndent;
+					topPos = SystemParameters.WorkArea.Top + BorderIndent;
 					this.Top = topPos < 0 ? 0 : topPos;
 					break;
 
                 case TaskBarLocation.BOTTOM:
 
-                    this.Left = SystemParameters.WorkArea.Right - this.ActualWidth;
-                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight;
+                    this.Left = SystemParameters.WorkArea.Right - this.ActualWidth - BorderIndent;
+                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight - BorderIndent;
                     this.Top = topPos < 0 ? 0 : topPos;
                     break;
 
                 case TaskBarLocation.LEFT:
 
-                    this.Left = SystemParameters.WorkArea.Left;
-                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight;
+                    this.Left = SystemParameters.WorkArea.Left + BorderIndent;
+                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight - BorderIndent;
                     this.Top = topPos < 0 ? 0 : topPos;
                     break;
 
                 case TaskBarLocation.RIGHT:
 
-                    this.Left = SystemParameters.WorkArea.Right - this.ActualWidth;
-                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight;
+                    this.Left = SystemParameters.WorkArea.Right - this.ActualWidth - BorderIndent;
+                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight - BorderIndent;
                     this.Top = topPos < 0 ? 0 : topPos;
                     break;
             }
@@ -311,7 +309,6 @@ namespace Volumey.View
 			if(this.Visibility == Visibility.Visible && !this.positionChanged)
 			{
 				this.LimitWindowHeightIfNecessary();
-				this.GetTaskBarLocation();
 				this.SetWindowPosition();	
 			}
 		}
