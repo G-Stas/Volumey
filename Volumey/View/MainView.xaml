@@ -34,20 +34,6 @@
         <viewModel:MainViewModel />
     </fw:AcrylicWindow.DataContext>
 
-    <!-- binding window.closing event to command-->
-    <behaviors:Interaction.Triggers>
-        <behaviors:EventTrigger EventName="Closing" SourceObject="{Binding ElementName=Window}">
-            <behaviors:InvokeCommandAction
-                Command="{Binding Path=ClosingCommand}"
-                PassEventArgsToCommand="True" />
-        </behaviors:EventTrigger>
-
-        <behaviors:EventTrigger EventName="Deactivated" SourceObject="{Binding ElementName=Window}">
-            <behaviors:InvokeCommandAction Command="{Binding Path=LostFocusCommand}" />
-        </behaviors:EventTrigger>
-
-    </behaviors:Interaction.Triggers>
-
     <fw:AcrylicWindow.Resources>
         <ResourceDictionary>
             <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
@@ -172,7 +158,19 @@
             <Style TargetType="{x:Type ContextMenu}">
                 <Setter Property="BorderThickness" Value="0" />
             </Style>
-
+            
+            <Storyboard x:Key="DisplayFadeIn">
+                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                 Storyboard.Target="{Binding ElementName=Window}" 
+                                 From="0" To="1" Duration="0:0:.12" />
+            </Storyboard>
+            
+            <Storyboard x:Key="HideFadeOut">
+                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                 Storyboard.Target="{Binding ElementName=Window}"
+                                 From="1" To="0" Duration="0:0:.12" />
+            </Storyboard>
+            
             <converters:WindowVisibilityConverter x:Key="WindowVisibilityConverter" />
             <converters:TrayTooltipDeviceNameConverter x:Key="TooltipDeviceNameConverter" />
             <converters:TrayTooltipDeviceVolumeConverter x:Key="TooltipDeviceVolumeConverter" />
@@ -236,6 +234,37 @@
         </ResourceDictionary>
     </fw:AcrylicWindow.Resources>
 
+    <behaviors:Interaction.Triggers>
+
+        <behaviors:EventTrigger
+            EventName="Closing"
+            SourceObject="{Binding ElementName=Window}">
+            <behaviors:InvokeCommandAction Command="{Binding Path=ClosingCommand}"
+                                           PassEventArgsToCommand="True"/>
+        </behaviors:EventTrigger>
+
+        <behaviors:DataTrigger
+            Binding="{Binding ElementName=Window, Path=IsVisible}"
+            Value="False"
+            Comparison="Equal">
+            <behaviors:ControlStoryboardAction Storyboard="{StaticResource HideFadeOut}"/>
+        </behaviors:DataTrigger>
+
+        <behaviors:DataTrigger
+            Binding="{Binding ElementName=Window, Path=IsVisible}"
+            Value="True"
+            Comparison="Equal">
+            <behaviors:ControlStoryboardAction Storyboard="{StaticResource DisplayFadeIn}"/>
+        </behaviors:DataTrigger>
+
+        <behaviors:EventTrigger
+            EventName="Deactivated"
+            SourceObject="{Binding ElementName=Window}">
+            <behaviors:InvokeCommandAction Command="{Binding Path=LostFocusCommand}"/>
+        </behaviors:EventTrigger>
+
+    </behaviors:Interaction.Triggers>
+    
     <fw:AcrylicWindow.ShowInTaskbar>
         <Binding Path="DisplayMinimalistic" Converter="{StaticResource InverseBoolConverter}"/>
     </fw:AcrylicWindow.ShowInTaskbar>
