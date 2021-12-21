@@ -150,6 +150,9 @@ namespace Volumey.ViewModel.Settings
 			
 			this.DefaultDevice = newDevice;
 			
+			if(newDevice == null)
+				return;
+			
 			if(this.RegisteredSessions.Keys.Count != 0)
 			{
 				this.DefaultDevice.SessionCreated += OnSessionCreated;
