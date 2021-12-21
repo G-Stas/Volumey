@@ -60,6 +60,9 @@ namespace Volumey.Localization
 		}
 		
 		public string this[string key] => this.resManager.GetString(key, this.currentCulture);
+		
+		public const string NoDeviceCaptionKey = "Error_NoDevice";
+		public const string MutedCaptionKey = "Status_Muted";
 
 		internal static void SetLanguage(string lang)
 		{

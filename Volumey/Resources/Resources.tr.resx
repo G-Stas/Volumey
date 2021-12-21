@@ -187,4 +187,7 @@
   <data name="Settings_AlwaysTop" xml:space="preserve">
     <value>Her zaman üstte</value>
   </data>
+  <data name="Status_Muted" xml:space="preserve">
+    <value>Susturuldu</value>
+  </data>
 </root>

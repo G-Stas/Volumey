@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
+using Volumey.Localization;
+using Volumey.Model;
 
 namespace Volumey.View.Converters
 {
@@ -14,9 +16,12 @@ namespace Volumey.View.Converters
 			if(values[0] is true) //bool DeviceProvider.NoOutputDevices
 				return string.Empty;
 
-			if(values[1] is int volume)
-				return $"{volume.ToString(CultureInfo.InvariantCulture)}%";
-
+			if(values[1] is MasterSessionModel master)
+			{
+				if(master.IsMuted)
+					return TranslationSource.Instance[TranslationSource.MutedCaptionKey];
+				return $"{master.Volume.ToString(CultureInfo.InvariantCulture)}%";
+			}
 			return Binding.DoNothing;
 		}
 

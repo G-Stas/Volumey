@@ -176,9 +176,63 @@
             <converters:WindowVisibilityConverter x:Key="WindowVisibilityConverter" />
             <converters:TrayTooltipDeviceNameConverter x:Key="TooltipDeviceNameConverter" />
             <converters:TrayTooltipDeviceVolumeConverter x:Key="TooltipDeviceVolumeConverter" />
+            <converters:TrayTooltipConverter x:Key="TrayTooltipConverter"/>
             <converters:TrayIconConverter x:Key="TrayIconConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
 
+            <MultiBinding x:Key="TrayTextTooltip"
+                          Converter="{StaticResource TrayTooltipConverter}">
+                <Binding Source="{StaticResource DeviceProviderViewModel}" 
+                         Path="DeviceProvider.NoOutputDevices"/>
+                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                         Path="DefaultDevice.Master"/>
+                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                         Path="DefaultDevice.Master.IsMuted"/>
+                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                         Path="DefaultDevice.Master.Volume"/>
+                <Binding Source="{x:Static lc:TranslationSource.Instance}"
+                         Path="CurrentCulture"/>
+            </MultiBinding>
+
+            <ToolTip
+                x:Key="TrayCustomTooltip"
+                BorderThickness="0"
+                Background="{Binding ElementName=GridContainer, Path=Background}"
+                Foreground="{Binding ElementName=Window, Path=Foreground}"
+                ui:ControlHelper.CornerRadius="4">
+            
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding
+                                Converter="{StaticResource TooltipDeviceNameConverter}">
+                                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                         Path="DeviceProvider.NoOutputDevices" />
+                                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                         Path="DefaultDevice.Master.DeviceFriendlyName" />
+                                <Binding Source="{x:Static lc:TranslationSource.Instance}"
+                                         Path="CurrentCulture" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <TextBlock
+                        Name="Volume">
+                        <TextBlock.Text>
+                            <MultiBinding
+                                Converter="{StaticResource TooltipDeviceVolumeConverter}">
+                                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                         Path="DeviceProvider.NoOutputDevices" />
+                                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                         Path="DefaultDevice.Master" />
+                                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                         Path="DefaultDevice.Master.IsMuted" />
+                                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                                         Path="DefaultDevice.Master.Volume" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </ToolTip>
         </ResourceDictionary>
     </fw:AcrylicWindow.Resources>
 
@@ -212,42 +266,6 @@
                     <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme" />
                 </MultiBinding>
             </tb:TaskbarIcon.IconSource>
-            <tb:TaskbarIcon.TrayToolTip>
-                <ToolTip
-                    x:Name="TrayTooltip"
-                    BorderThickness="0"
-                    Background="{Binding ElementName=GridContainer, Path=Background}"
-                    Foreground="{Binding ElementName=Window, Path=Foreground}"
-                    ui:ControlHelper.CornerRadius="8">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock>
-                            <TextBlock.Text>
-                                <MultiBinding
-                                    Converter="{StaticResource TooltipDeviceNameConverter}">
-                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                             Path="DeviceProvider.NoOutputDevices" />
-                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                             Path="DefaultDevice.Master.DeviceFriendlyName" />
-                                    <Binding Source="{x:Static lc:TranslationSource.Instance}"
-                                             Path="CurrentCulture" />
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                        <TextBlock
-                            Name="Volume">
-                            <TextBlock.Text>
-                                <MultiBinding
-                                    Converter="{StaticResource TooltipDeviceVolumeConverter}">
-                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                             Path="DeviceProvider.NoOutputDevices" />
-                                    <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                             Path="DefaultDevice.Master.Volume" />
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </StackPanel>
-                </ToolTip>
-            </tb:TaskbarIcon.TrayToolTip>
         </tb:TaskbarIcon>
 
         <ui:NavigationView

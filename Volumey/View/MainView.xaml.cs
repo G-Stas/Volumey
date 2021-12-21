@@ -6,9 +6,11 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Navigation;
+using Hardcodet.Wpf.TaskbarNotification;
 using Volumey.Helper;
 using Volumey.ViewModel;
 using log4net;
@@ -72,6 +74,7 @@ namespace Volumey.View
             if(this.DataContext is MainViewModel vm)
 	            vm.DisplayAppRequested += ActivateIfLoaded;
             
+            SetTrayIconTooltip();
             SetControlsNameScope();
 
             this.ContentFrame.SizeChanged += (sender, args) => OnCurrentPageSizeChanged();
@@ -99,8 +102,24 @@ namespace Volumey.View
 				NameScope.SetNameScope(this.Tray.ContextMenu, nameScope);
 			if(TryFindResource("TextControlContextMenu") is ContextMenu cm)
 				NameScope.SetNameScope(cm, nameScope);
-			if(this.TrayTooltip != null)
-				NameScope.SetNameScope(this.TrayTooltip, nameScope);
+			if(this.Tray.TrayToolTip is ToolTip tooltip)
+				NameScope.SetNameScope(tooltip, nameScope);
+		}
+
+		private void SetTrayIconTooltip()
+		{
+			if(UpdateHelper.IsWindows11())
+			{
+				//Since custom tooltip style for TrayIcon isn't working on Windows 11
+				//We are using default tooltip style and bind its text property to current device data
+				var tooltipTextBinding = (MultiBinding)TryFindResource("TrayTextTooltip");
+				BindingOperations.SetBinding(this.Tray, TaskbarIcon.ToolTipTextProperty, tooltipTextBinding);
+			}
+			else
+			{ 
+				var tooltip = (ToolTip)TryFindResource("TrayCustomTooltip");
+				this.Tray.TrayToolTip = tooltip;
+			}
 		}
 
 		private IntPtr ForceCreateHwnd() => this.Hwnd = new WindowInteropHelper(this).EnsureHandle();

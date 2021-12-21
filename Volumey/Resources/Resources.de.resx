@@ -187,4 +187,7 @@
   <data name="Settings_AlwaysTop" xml:space="preserve">
     <value>Immer oben</value>
   </data>
+  <data name="Status_Muted" xml:space="preserve">
+    <value>Stummgeschaltet</value>
+  </data>
 </root>
