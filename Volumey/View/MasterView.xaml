@@ -108,6 +108,7 @@
                 <controls:VolumeSlider
                     Grid.Column="1"
                     Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
+                    IsMuted="{Binding SelectedDevice.Master.IsMuted}"
                     Width="{StaticResource SliderWidth}"
                     Height="{StaticResource SliderHeight}"
                     Margin="5 0 0 0"

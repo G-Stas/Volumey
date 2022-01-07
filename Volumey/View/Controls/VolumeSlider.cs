@@ -27,6 +27,19 @@ namespace Volumey.Controls
 		public static bool GetEnableMouseWheel(UIElement element)
 			=> (bool) element.GetValue(EnableMouseWheelProperty);
 
+		public static readonly DependencyProperty IsMutedProperty
+			= DependencyProperty.Register("IsMuted",
+			                              typeof(bool),
+			                              typeof(VolumeSlider));
+		
+		[AttachedPropertyBrowsableForType(typeof(VolumeSlider))]
+		public static void SetIsMuted(UIElement element, bool value)
+			=> element.SetValue(IsMutedProperty, value);
+
+		[AttachedPropertyBrowsableForType(typeof(VolumeSlider))]
+		public static bool GetIsMuted(UIElement element)
+			=> (bool) element.GetValue(IsMutedProperty);
+
 		protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 		{
 			base.OnPreviewMouseLeftButtonDown(e);
