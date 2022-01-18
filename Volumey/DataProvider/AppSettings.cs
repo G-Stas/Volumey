@@ -284,6 +284,8 @@ namespace Volumey.DataProvider
 					return true;
 				if(OpenMixer is HotKey open && key.Equals(open))
 					return true;
+				if(DeviceMute is HotKey mute && key.Equals(mute))
+					return true;
 				foreach(var session in this.serializableRegisteredSessions)
 				{
 					if(session.Value.up.ToHotKey().Equals(key) || session.Value.down.ToHotKey().Equals(key))
@@ -305,6 +307,8 @@ namespace Volumey.DataProvider
 				if(DeviceVolumeDown is HotKey volDown && (key.Equals(volDown) || key2.Equals(volDown)))
 					return true;
 				if(OpenMixer is HotKey open && (key.Equals(open) || key2.Equals(open)))
+					return true;
+				if(DeviceMute is HotKey mute && (key.Equals(mute) || key2.Equals(mute)))
 					return true;
 				foreach(var (_, hotkeys) in this.serializableRegisteredSessions)
 				{
