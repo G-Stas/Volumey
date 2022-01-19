@@ -75,8 +75,9 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				ImageSource icon = device.GetIconSource();
 				string deviceName = device.GetFriendlyName();
 				string deviceDesc = device.GetDeviceDesc();
+				string id = device.GetId();
 		
-				return new MasterSessionModel(deviceName, deviceDesc, Convert.ToInt32(volume * 100), muteState, icon,
+				return new MasterSessionModel(deviceName, deviceDesc, Convert.ToInt32(volume * 100), muteState, id, icon,
 				                              masterVolume,
 				                              volumeHandler);
 			}
@@ -188,6 +189,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				var sessionVolume = new AudioSessionVolume(sessionControl);
 				var muteState = sessionVolume.GetMute();
 				var volume = sessionVolume.GetVolume();
+				sessionControl.GetSessionIdentifier(out var sessionId);
 
 				AudioSessionStateNotifications sessionStateNotifications =
 					new AudioSessionStateNotifications(sessionControl);
@@ -202,7 +204,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				}
 
 				AudioSessionModel session =
-					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, iconImageSource,
+					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, sessionId, iconImageSource,
 					                      sessionVolume,
 					                      sessionStateNotifications);
 				return session;

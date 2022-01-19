@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>En sourdine</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>Notifications OSD </value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Retrait horizontal</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Afficher un exemple de notification</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Retrait vertical</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>Temps d'affichage en secondes</value>
+  </data>
 </root>

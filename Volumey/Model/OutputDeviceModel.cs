@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model
 {
@@ -14,17 +15,6 @@ namespace Volumey.Model
 	/// </summary>
 	public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	{
-		private string name;
-		public string Name
-		{
-			get => name;
-			private set
-			{
-				name = value;
-				OnPropertyChanged();
-			}
-		}
-		
 		public MasterSessionModel Master { get; }
 		public ObservableCollection<AudioSessionModel> Sessions { get; }
 
@@ -41,7 +31,7 @@ namespace Volumey.Model
 		}
 		internal event Action<AudioSessionModel> SessionCreated;
 		internal event Action<OutputDeviceModel> FormatChanged;
-		public readonly string Id;
+		public string Id => this.Master.Id;
 		private readonly IDevice device;
 		private readonly ISessionProvider sessionProvider;
 		private readonly IDeviceStateNotificationHandler deviceStateEvents;
@@ -53,10 +43,8 @@ namespace Volumey.Model
 			MasterSessionModel master, ObservableCollection<AudioSessionModel> sessions)
 		{
 			this.device = device ?? throw new ArgumentNullException(nameof(device));
-			this.Id = device.GetId();
 			this.Master = master ?? throw new ArgumentNullException(nameof(master));
 			this.Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
-			this.Name = master.DeviceDesc;
 			this.currentStreamFormat = this.device.GetDeviceFormat();
 
 			this.deviceStateEvents = deviceStateNotifications;
@@ -71,10 +59,16 @@ namespace Volumey.Model
 				session.SessionEnded += OnSessionEnded;
 		}
 
-		internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) =>
-			this.Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
+		internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+			=> this.Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
 		internal void ResetVolumeHotkeys() => this.Master.ResetVolumeHotkeys();
+
+		internal void SetStateNotificationMediator(AudioSessionStateNotificationMediator mediator)
+			=> this.Master.SetStateNotificationMediator(mediator);
+
+		internal void ResetStateNotificationMediator()
+			=> this.Master.ResetStateNotificationMediator();
 
 		internal bool SetMuteHotkeys(HotKey key)
 			=> this.Master.SetMuteHotkeys(key);
@@ -88,7 +82,7 @@ namespace Volumey.Model
 			{
 				dispatcher.Invoke(() =>
 				{
-					try { this.Master.DeviceIcon = this.device.GetIconSource(); }
+					try { this.Master.Icon = this.device.GetIconSource(); }
 					catch { }
 				});
 			}
@@ -104,8 +98,8 @@ namespace Volumey.Model
 					{
 						string friendlyName = this.device.GetFriendlyName();
 						string deviceDesc = this.device.GetDeviceDesc();
-						this.Master.DeviceFriendlyName = friendlyName;
-						this.Name = this.Master.DeviceDesc = deviceDesc;
+						this.Master.DeviceDesc = deviceDesc;
+						this.Master.Name = friendlyName;
 					}
 					catch { }
 				});

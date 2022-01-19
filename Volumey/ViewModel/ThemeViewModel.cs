@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Windows.Media;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ModernWpf;
@@ -37,6 +38,19 @@ namespace Volumey.ViewModel
 			}
 		}
 
+		private Brush _darkBackground;
+		private Brush _lightBackground;
+		
+		private Brush _darkForeground;
+		private Brush _lightForeground;
+
+		private Brush _buttonHoverDarkBackground;
+		private Brush _lightButtonHoverBackground;
+
+		private const string BackgroundKey = "SystemChromeMediumLowColorBrush";
+		private const string ButtonHoverKey = "SystemControlHighlightListLowBrush";
+		private const double BackgroundOpacity = 0.94;
+
 		public ThemeViewModel()
 		{
 			this.WindowsTheme = SystemColorHelper.WindowsTheme;
@@ -55,12 +69,18 @@ namespace Volumey.ViewModel
 		{
 			if(newTheme == AppTheme.System)
 				newTheme = windowsTheme;
-			
-			if(newTheme == AppTheme.Dark && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Dark)
-				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
-			else if(newTheme == AppTheme.Light && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Light)
-				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
 
+			if(newTheme == AppTheme.Dark && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Dark)
+			{
+				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
+				UpdateNotificationColors(AppTheme.Dark);
+			}
+			else if(newTheme == AppTheme.Light && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Light)
+			{
+				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
+				UpdateNotificationColors(AppTheme.Light);
+			}
+			
 			Task.Run(() =>
 			{
 				if(SettingsProvider.Settings.CurrentAppTheme != this.selectedTheme)
@@ -69,6 +89,56 @@ namespace Volumey.ViewModel
 					_ = SettingsProvider.SaveSettings();
 				}
 			});
+		}
+
+		private void UpdateNotificationColors(AppTheme newTheme)
+		{
+			if(newTheme == AppTheme.Dark)
+			{
+				if(_darkBackground == null)
+				{
+					if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
+					{
+						this._darkBackground = brush.CloneCurrentValue();
+						this._darkBackground.Opacity = BackgroundOpacity;
+						this._darkBackground.Freeze();
+					}
+				}
+				if(this._buttonHoverDarkBackground == null)
+				{
+					if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
+					{
+						this._buttonHoverDarkBackground = brush.CloneCurrentValue();
+						this._buttonHoverDarkBackground.Freeze();
+					}
+				}
+				if(_darkForeground == null)
+					this._darkForeground = Brushes.White;
+				NotificationManagerHelper.UpdateColors(this._darkBackground, this._darkForeground, this._buttonHoverDarkBackground);
+			}
+			else if(newTheme == AppTheme.Light)
+			{
+				if(_lightBackground == null)
+				{
+					if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
+					{
+						this._lightBackground = brush.CloneCurrentValue();
+						this._lightBackground.Opacity = BackgroundOpacity;
+						this._lightBackground.Freeze();
+					}
+				}
+				if(this._lightButtonHoverBackground == null)
+				{
+					if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
+					{
+						this._lightButtonHoverBackground = brush.CloneCurrentValue();
+						this._lightButtonHoverBackground.Freeze();
+					}
+				}
+				if(_lightForeground == null)
+					this._lightForeground = Brushes.Black;
+				NotificationManagerHelper.UpdateColors(this._lightBackground, this._lightForeground, this._lightButtonHoverBackground);
+			}
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

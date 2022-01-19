@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>ミュート</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD通知</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>水平インデント</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>ポジション</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>通知例を表示</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>垂直インデント</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>秒単位の表示時間</value>
+  </data>
 </root>

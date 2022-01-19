@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>Susturuldu</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD bildirimleri</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Yatay girinti</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Konum</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Bildirim örneğini göster</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Dikey girinti</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>Zamanı saniye cinsinden göster</value>
+  </data>
 </root>

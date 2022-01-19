@@ -45,7 +45,7 @@
                     <Image
                         Grid.Column="0"
                         Grid.Row="1"
-                        Source="{Binding AppIcon}"
+                        Source="{Binding Icon}"
                         RenderOptions.BitmapScalingMode="HighQuality"
                         VerticalAlignment="Center"
                         Margin="{StaticResource ImageMargin}"
@@ -79,13 +79,7 @@
                         Grid.Column="3"
                         Grid.Row="1"
                         Command="{Binding MuteCommand}"
-                        Background="Transparent"
-                        Width="30"
-                        Height="40"
-                        Margin="-5 -8 0 0">
-                        <controls1:AppBarButton.RenderTransform>
-                            <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
-                        </controls1:AppBarButton.RenderTransform>
+                        Margin="-5 -3 0 0">
                         <controls1:AppBarButton.Icon>
                             <controls1:FontIcon
                                 FontFamily="Segoe MDL2 Assets"

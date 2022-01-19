@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>Silenciado</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>Notificaciones OSD</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Sangría horizontal</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Posición </value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Mostrar ejemplo de notificación</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Sangría vertical</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>Mostrar tiempo en segundos</value>
+  </data>
 </root>

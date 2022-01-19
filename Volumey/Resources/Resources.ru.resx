@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>Заглушен</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD уведомления</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Горизонтальный отступ</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Расположение</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Показать пример уведомления</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Вертикальный отступ</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>Время отображения в секундах</value>
+  </data>
 </root>

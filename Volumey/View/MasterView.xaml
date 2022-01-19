@@ -99,7 +99,7 @@
                 </Grid.ColumnDefinitions>
                 <Image
                     Grid.Column="0"
-                    Source="{Binding SelectedDevice.Master.DeviceIcon}"
+                    Source="{Binding SelectedDevice.Master.Icon}"
                     RenderOptions.BitmapScalingMode="HighQuality"
                     Height="{StaticResource ImageSize}"
                     Width="{StaticResource ImageSize}"
@@ -123,13 +123,7 @@
                 <ui:AppBarButton
                     Grid.Column="3"
                     Command="{Binding SelectedDevice.Master.MuteCommand}"
-                    Background="Transparent"
-                    Width="30"
-                    Height="40"
-                    Margin="-4 -8 0 0">
-                    <ui:AppBarButton.RenderTransform>
-                        <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
-                    </ui:AppBarButton.RenderTransform>
+                    Margin="-4 -4 0 0">
                     <ui:AppBarButton.Icon>
                         <ui:FontIcon
                             FontFamily="Segoe MDL2 Assets"

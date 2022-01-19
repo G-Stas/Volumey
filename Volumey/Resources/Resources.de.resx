@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>Stummgeschaltet</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD-Benachrichtigungen</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Horizontaler Einzug</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Beispiel für eine Benachrichtigung anzeigen</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Vertikaler Einzug</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>Anzeigezeit in Sekunden</value>
+  </data>
 </root>

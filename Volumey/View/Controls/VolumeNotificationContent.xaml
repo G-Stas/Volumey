@@ -1,0 +1,84 @@
+﻿<UserControl x:Class="Volumey.View.Controls.VolumeNotificationContent"
+			 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:controls="clr-namespace:Volumey.Controls"
+			 xmlns:controls1="http://schemas.modernwpf.com/2019"
+			 xmlns:converters="clr-namespace:Volumey.View.Converters"
+			 mc:Ignorable="d"
+			 DataContext="{Binding RelativeSource={RelativeSource Self}}">
+	<UserControl.Resources>
+		<converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
+	</UserControl.Resources>
+
+	<Grid Width="Auto"
+		  Margin="0 9 0 4">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="4*"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+
+		<TextBlock Grid.Row="0"
+				   Grid.Column="1"
+				   Grid.ColumnSpan="2"
+				   Text="{Binding AudioSession.Name}"
+				   Height="Auto"
+				   FontSize="16"
+				   HorizontalAlignment="Left"
+				   VerticalAlignment="Bottom"
+				   TextWrapping="WrapWithOverflow"
+				   TextTrimming="CharacterEllipsis"
+				   LineHeight="18"
+				   MaxHeight="45"
+				   Margin="0 0 0 5"
+				   Foreground="{Binding Source={x:Static Application.Current}, Path=MainWindow.Foreground}"/>
+		<Image Grid.Column="0"
+			   Grid.Row="1"
+			   Source="{Binding AudioSession.Icon}"
+			   RenderOptions.BitmapScalingMode="HighQuality"
+			   VerticalAlignment="Center"
+			   Height="{StaticResource ImageSize}"
+			   Width="{StaticResource ImageSize}"
+			   Margin="5, 0, 12, 0"/>
+		<controls:VolumeSlider Grid.Column="1"
+							   Grid.Row="1"
+							   Value="{Binding AudioSession.Volume, UpdateSourceTrigger=PropertyChanged}"
+							   Height="{StaticResource SliderHeight}"
+							   Width="Auto"
+							   HorizontalAlignment="Stretch">
+			<controls:VolumeSlider.IsMuted>
+				<MultiBinding Converter="{StaticResource AnyPropertyIsTrueConverter}">
+					<Binding Path="AudioSession.IsMuted"/>
+					<Binding Source="{StaticResource DeviceProviderViewModel}"
+							 Path="DefaultDevice.Master.IsMuted"/>
+				</MultiBinding>
+			</controls:VolumeSlider.IsMuted>
+		</controls:VolumeSlider>
+		<Label Grid.Column="2"
+			   Grid.Row="1"
+			   Content="{Binding AudioSession.Volume}"
+			   FontSize="19"
+			   HorizontalContentAlignment="Center"
+			   HorizontalAlignment="Center"
+			   VerticalAlignment="Top"
+			   Margin="10 1 7 0"/>
+		<controls1:AppBarButton Grid.Column="3"
+								Grid.Row="1"
+								Command="{Binding AudioSession.MuteCommand}"
+								Margin="0 -5 -3 0"
+								HorizontalAlignment="Left"
+								HorizontalContentAlignment="Left">
+			<controls1:AppBarButton.Icon>
+				<controls1:FontIcon FontFamily="Segoe MDL2 Assets"
+									Glyph="{Binding AudioSession.IsMuted, Converter={StaticResource MutedToGlyphConverter}}"/>
+			</controls1:AppBarButton.Icon>
+		</controls1:AppBarButton>
+	</Grid>
+</UserControl>

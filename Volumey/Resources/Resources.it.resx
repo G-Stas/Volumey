@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>Muto</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>Notifiche OSD</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Rientro orizzontale</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Posizione</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Mostra esempio di notifica</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Rientro verticale</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>Tempo di visualizzazione in secondi</value>
+  </data>
 </root>

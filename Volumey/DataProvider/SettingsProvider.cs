@@ -13,6 +13,7 @@ namespace Volumey.DataProvider
     {
         public static AppSettings Settings { get; private set; }
         public static AppSettings.HotkeysAppSettings HotkeysSettings => Settings.HotkeysSettings;
+        public static AppSettings.NotificationsAppSettings NotificationsSettings => Settings.NotificationsSettings;
 
         private const string ConfigFolderName = "Volumey";
         private const string ConfigFileName = "appconfig";

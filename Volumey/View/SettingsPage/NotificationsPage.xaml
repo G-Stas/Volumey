@@ -1,0 +1,64 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.NotificationsPage"
+	  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	  xmlns:controls="http://schemas.modernwpf.com/2019"
+	  xmlns:localControls="clr-namespace:Volumey.Controls"
+	  xmlns:lc="clr-namespace:Volumey.Localization"
+	  xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
+	  mc:Ignorable="d"
+	  DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=NotificationsViewModel}">
+	<Page.Resources>
+		<Style TargetType="{x:Type TextBlock}"
+			   BasedOn="{StaticResource SettingsTextBlockStyle}"/>
+		<Style TargetType="{x:Type ComboBox}"
+			   BasedOn="{StaticResource SettingsComboBoxStyle}"/>
+		
+		<Style TargetType="{x:Type localControls:VolumeSlider}" BasedOn="{StaticResource DefaultSliderStyle}">
+			<Setter Property="Width" Value="178"/>
+			<Setter Property="Height" Value="{StaticResource SliderHeight}"/>
+			<Setter Property="Minimum" Value="{Binding MinIndent}"/>
+			<Setter Property="Maximum" Value="{Binding MaxIndent}"/>
+			<Setter Property="HorizontalAlignment" Value="Left"/>
+			<Setter Property="SmallChange" Value="1"/>
+			<Setter Property="IsMoveToPointEnabled" Value="True"/>
+			<Setter Property="EnableMouseWheel" Value="True"/>
+		</Style>
+	</Page.Resources>
+	
+	<behaviors:Interaction.Triggers>
+		<behaviors:EventTrigger
+			EventName="Unloaded">
+			<behaviors:InvokeCommandAction Command="{Binding UnloadedCommand}"/>
+		</behaviors:EventTrigger>
+	</behaviors:Interaction.Triggers>
+	
+	<StackPanel>
+		<TextBlock Text="{lc:Localization Notifications_Header}"/>
+		<controls:ToggleSwitch IsOn="{Binding NotificationsEnabled}"/>
+
+		<TextBlock Text="{lc:Localization Notifications_Position}"/>
+		<ComboBox ItemsSource="{Binding Positions}"
+				  SelectedItem="{Binding SelectedPosition}"/>
+		
+		<TextBlock Text="{lc:Localization Notifications_Time}"/>
+		<controls:NumberBox Value="{Binding DisplayTime}"
+							Minimum="{Binding MinDisplayTime}"
+							Maximum="{Binding MaxDisplayTime}"
+							Width="{StaticResource InputBoxWidth}"
+							SpinButtonPlacementMode="Inline"
+							AcceptsExpression="False"
+							HorizontalAlignment="Left"/>
+		
+		<TextBlock Text="{lc:Localization Notifications_Vertical}"/>
+		<localControls:VolumeSlider Value="{Binding VerticalIndent}"
+									EnableMouseWheel="True"/>
+		
+		<TextBlock Text="{lc:Localization Notifications_Horizontal}"/>
+		<localControls:VolumeSlider Value="{Binding HorizontalIndent}"/>
+		
+		<TextBlock Text="{lc:Localization Notifications_Preview}"/>
+		<controls:ToggleSwitch IsOn="{Binding PreviewIsOn}"/>
+	</StackPanel>
+</Page>

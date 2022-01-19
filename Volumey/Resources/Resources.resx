@@ -147,4 +147,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

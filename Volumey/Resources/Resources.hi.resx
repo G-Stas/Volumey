@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>म्यूट किए गए</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD सूचनाएं</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>क्षैतिज इंडेंट</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>पोजीशन</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>अधिसूचना उदाहरण प्रदर्शित करें</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>लंबवत इंडेंट</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>सेकंड में प्रदर्शन समय</value>
+  </data>
 </root>

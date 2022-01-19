@@ -190,4 +190,22 @@
   <data name="Status_Muted" xml:space="preserve">
     <value>静音</value>
   </data>
+  <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD 通知</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>水平缩进</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>垂直缩进</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>显示通知示例</value>
+  </data>
+  <data name="Notifications_Time" xml:space="preserve">
+    <value>以秒为单位显示时间</value>
+  </data>
 </root>

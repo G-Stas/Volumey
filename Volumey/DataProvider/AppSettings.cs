@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Windows.Input;
 using log4net;
+using Notification.Wpf.Controls;
 using Volumey.Controls;
+using Volumey.Helper;
 
 namespace Volumey.DataProvider
 {
@@ -20,9 +24,12 @@ namespace Volumey.DataProvider
 	public class AppSettings
 	{
 		private readonly HotkeysAppSettings hotkeysSettings = new HotkeysAppSettings();
-
 		public HotkeysAppSettings HotkeysSettings => hotkeysSettings;
 		
+		[OptionalField]
+		private NotificationsAppSettings notificationSettings;
+		public NotificationsAppSettings NotificationsSettings => notificationSettings ??= new NotificationsAppSettings();
+
 		private AppTheme currentAppTheme = AppTheme.Light;
 		public AppTheme CurrentAppTheme
 		{
@@ -387,6 +394,71 @@ namespace Volumey.DataProvider
 					this.VolumeUpModifiers = VolumeDownModifiers = ModifierKeys.None;
 				}
 			}
+		}
+
+		[Serializable]
+		public class NotificationsAppSettings : INotifyPropertyChanged
+		{
+			private bool enabled = false;
+			public bool Enabled
+			{
+				get => enabled;
+				set
+				{
+					this.enabled = value;
+					OnPropertyChanged();
+				}
+			}
+
+			private int verticalIndent = NotificationManagerHelper.MinIndent;
+			public int VerticalIndent
+			{
+				get => this.verticalIndent;
+				set
+				{
+					this.verticalIndent = value;
+					OnPropertyChanged();
+				}
+			}
+
+			private int horizontalIndent = NotificationManagerHelper.MinIndent;
+			public int HorizontalIndent
+			{
+				get => this.horizontalIndent;
+				set
+				{
+					this.horizontalIndent = value;
+					OnPropertyChanged();
+				}
+			}
+
+			private NotificationPosition position = NotificationPosition.TopLeft;
+			public NotificationPosition Position
+			{
+				get => this.position;
+				set
+				{
+					this.position = value;
+					OnPropertyChanged();
+				}
+			}
+
+			private int displayTimeInSeconds = 3;
+			public int DisplayTimeInSeconds
+			{
+				get => this.displayTimeInSeconds;
+				set
+				{
+					this.displayTimeInSeconds = value;
+					OnPropertyChanged();
+				}
+			}
+
+			[field: NonSerialized]
+			public event PropertyChangedEventHandler PropertyChanged;
+
+			protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+				=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
 		[Serializable]

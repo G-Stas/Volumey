@@ -32,6 +32,8 @@
                 <!-- Other merged dictionaries here -->
                 <ResourceDictionary Source="View/Styles/TitleBarCustom.xaml" />
                 <ResourceDictionary Source="View/Controls/VolumeSlider.xaml"/>
+                <ResourceDictionary Source="View/Controls/AppBarButton.xaml"/>
+
                 <ui:ThemeResources />
                 <ui:XamlControlsResources />
             </ResourceDictionary.MergedDictionaries>
@@ -145,6 +147,7 @@
                     Property="LineHeight"
                     Value="16"/>
                 <Setter Property="Margin" Value="0 3 0 0"/>
+                <Setter Property="Width" Value="{StaticResource TextBlockWidth}"/>
                 <Style.Triggers>
                     <Trigger
                         Property="Text"
@@ -154,6 +157,18 @@
                             Value="Collapsed"/>
                     </Trigger>
                 </Style.Triggers>
+            </Style>
+            
+            <Style TargetType="{x:Type ui:AppBarButton}"
+                   BasedOn="{StaticResource DefaultAppBarButtonStyle}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Width" Value="35"/>
+                <Setter Property="Height" Value="35"/>
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1.1" ScaleY="1.1" />
+                    </Setter.Value>
+                </Setter>
             </Style>
             
             <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DefaultButtonStyle}">

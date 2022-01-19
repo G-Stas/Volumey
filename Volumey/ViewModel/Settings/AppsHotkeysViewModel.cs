@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using log4net;
@@ -97,6 +98,16 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
+		private AudioSessionStateNotificationMediator _sMediator;
+		private AudioSessionStateNotificationMediator SessionStateMediator
+		{
+			get
+			{
+				this._sMediator ??= new AudioSessionStateNotificationMediator();
+				return this._sMediator;
+			}
+		}
+
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppsHotkeysViewModel));
 		
@@ -120,6 +131,7 @@ namespace Volumey.ViewModel.Settings
 				else
 					HotkeysControl.Activated += this.RegisterLoadedHotkeys;
 			}
+			SettingsProvider.NotificationsSettings.PropertyChanged += OnSettingsPropertyChanged;
 		}
 
 		/// <summary>
@@ -143,7 +155,8 @@ namespace Volumey.ViewModel.Settings
 			for(int i = launchedSessionCount-1; i >= 0; i--)
 			{
 				var session = this.LaunchedSessions[i];
-				session.ResetHotkeys();
+				session.ResetVolumeHotkeys();
+				session.ResetStateNotificationMediator();
 				session.SessionEnded -= OnSessionEnded;
 				this.LaunchedSessions.Remove(session);
 			}
@@ -172,9 +185,11 @@ namespace Volumey.ViewModel.Settings
 				var session = this.DefaultDevice.Sessions[i];
 				if(this.RegisteredSessions.TryGetValue(session.Name, out var hotkeys))
 				{
-					session.SetHotkeys(hotkeys.Item1, hotkeys.Item2);
+					session.SetVolumeHotkeys(hotkeys.Item1, hotkeys.Item2);
 					session.SessionEnded += OnSessionEnded;
 					this.LaunchedSessions.Add(session);
+					if(SettingsProvider.NotificationsSettings.Enabled)
+						session.SetStateNotificationMediator(this.SessionStateMediator);
 				}
 			}
 		}
@@ -191,12 +206,14 @@ namespace Volumey.ViewModel.Settings
 				return;
 			}
 
-			if(!session.SetHotkeys(this.VolumeUp, this.VolumeDown))
+			if(!session.SetVolumeHotkeys(this.VolumeUp, this.VolumeDown))
 			{
 				this.SetErrorMessage(ErrorMessageType.VolumeReg);
 				return;
 			}
 			session.SessionEnded += OnSessionEnded;
+			if(SettingsProvider.NotificationsSettings.Enabled)
+				session.SetStateNotificationMediator(this.SessionStateMediator);
 			this.SetErrorMessage(ErrorMessageType.None);
 
 			try
@@ -207,9 +224,11 @@ namespace Volumey.ViewModel.Settings
 					var otherSession = this.DefaultDevice.Sessions[i];
 					if(otherSession.Name.Equals(session.Name) && otherSession != session)
 					{
-						otherSession.SetHotkeys(this.VolumeUp, this.VolumeDown);
+						otherSession.SetVolumeHotkeys(this.VolumeUp, this.VolumeDown);
 						otherSession.SessionEnded += OnSessionEnded;
 						this.LaunchedSessions.Add(otherSession);
+						if(SettingsProvider.NotificationsSettings.Enabled)
+							otherSession.SetStateNotificationMediator(this.SessionStateMediator);
 					}
 				}
 			}
@@ -250,7 +269,8 @@ namespace Volumey.ViewModel.Settings
 				var session = this.LaunchedSessions[i];
 				if(session.Name.Equals(sessionName))
 				{
-					session.ResetHotkeys();
+					session.ResetVolumeHotkeys();
+					session.ResetStateNotificationMediator();
 					session.SessionEnded -= OnSessionEnded;
 					this.LaunchedSessions.Remove(session);
 				}
@@ -268,10 +288,34 @@ namespace Volumey.ViewModel.Settings
 			}
 			catch { }
 		}
+		
+		private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if(e.PropertyName.Equals(nameof(SettingsProvider.NotificationsSettings.Enabled)))
+			{
+				if(SettingsProvider.NotificationsSettings.Enabled)
+					SetVolumeStateMediatorForActiveSessions();
+				else
+					ResetVolumeStateMediatorForActiveSessions();
+			}
+		}
+
+		private void SetVolumeStateMediatorForActiveSessions()
+		{
+			foreach(var session in this.LaunchedSessions)
+				session.SetStateNotificationMediator(this.SessionStateMediator);
+		}
+
+		private void ResetVolumeStateMediatorForActiveSessions()
+		{
+			foreach(var session in this.LaunchedSessions)
+				session.ResetStateNotificationMediator();
+		}
 
 		private void OnSessionEnded(AudioSessionModel session)
 		{
-			session.ResetHotkeys();
+			session.ResetVolumeHotkeys();
+			session.ResetStateNotificationMediator();
 			session.SessionEnded -= OnSessionEnded;
 			this.LaunchedSessions.Remove(session);
 		}
@@ -280,9 +324,11 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(this.RegisteredSessions.TryGetValue(newSession.Name, out var hotkeys))
 			{
-				newSession.SetHotkeys(volUp: hotkeys.Item1, volDown: hotkeys.Item2);
+				newSession.SetVolumeHotkeys(volUp: hotkeys.Item1, volDown: hotkeys.Item2);
 				newSession.SessionEnded += OnSessionEnded;
 				this.LaunchedSessions.Add(newSession);
+				if(SettingsProvider.NotificationsSettings.Enabled)
+					newSession.SetStateNotificationMediator(this.SessionStateMediator);
 			}
 		}
 	}
