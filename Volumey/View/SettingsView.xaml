@@ -108,10 +108,11 @@
 							Command="{Binding Source={StaticResource SettingsViewModel}, Path=GitHubCommand}"
 							HorizontalAlignment="Left"
 							Padding="3 2 3 2"
-                            Margin="5 0 0 0">
+                            Margin="5 0 0 0"
+							BorderThickness="0">
                             <StackPanel
 								Orientation="Horizontal">
-                                <Image>
+                                <Image Margin="3 3 0 3">
                                     <Image.Source>
                                         <MultiBinding
 											Converter="{StaticResource ButtonIconThemeConverter}"
@@ -131,50 +132,76 @@
 									Margin="5 0 0 0"/>
                             </StackPanel>
                         </Button>
-                        <Button
-							Command="{Binding Source={StaticResource SettingsViewModel}, Path=TipCommand}"
-							x:Name="TipButton"
-							HorizontalAlignment="Left"
-							Padding="3 1 3 1"
-                            Margin="5"
-							Grid.Row="2"
-                            MaxWidth="160">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition
-										Width="Auto"/>
-                                    <ColumnDefinition
-										Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Image
-									HorizontalAlignment="Center"
-									VerticalAlignment="Center">
-                                    <Image.Source>
-                                        <MultiBinding
-											Converter="{StaticResource ButtonIconThemeConverter}"
-											ConverterParameter="Mug">
-                                            <Binding
-												Source="{StaticResource ThemeViewModel}"
-												Path="SelectedTheme"/>
-                                            <Binding
-												Source="{StaticResource ThemeViewModel}"
-												Path="WindowsTheme"/>
-                                            <Binding
-												ElementName="TipButton"
-												Path="IsMouseOver"/>
-                                        </MultiBinding>
-                                    </Image.Source>
-                                </Image>
-                                <TextBlock
-									Grid.Column="1"
-									Text="{lc:Localization Settings_Tip}"
-									VerticalAlignment="Center"
-									Margin="5 0 0 0"
-									LineHeight="16"
-									FontSize="14"
-									TextWrapping="WrapWithOverflow"/>
-                            </Grid>
-                        </Button>
+						<ui:DropDownButton Name="TipButton" 
+										   Grid.Row="2"
+										   HorizontalAlignment="Left"
+										   Margin="5"
+										   BorderThickness="0"
+										   CornerRadius="6"
+										   MaxWidth="180"
+										   Height="Auto"
+										   MaxHeight="60"
+										   DataContext="{Binding Source={StaticResource SettingsViewModel}}">
+							<ui:DropDownButton.Content>
+								<Grid>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition
+											Width="*"/>
+										<ColumnDefinition
+											Width="4*"/>
+									</Grid.ColumnDefinitions>
+									<Image
+										HorizontalAlignment="Center"
+										VerticalAlignment="Center"
+										Width="25"
+										Height="25">
+										<Image.Source>
+											<MultiBinding
+												Converter="{StaticResource ButtonIconThemeConverter}"
+												ConverterParameter="Mug">
+												<Binding
+													Source="{StaticResource ThemeViewModel}"
+													Path="SelectedTheme"/>
+												<Binding
+													Source="{StaticResource ThemeViewModel}"
+													Path="WindowsTheme"/>
+												<Binding
+													ElementName="TipButton"
+													Path="IsMouseOver"/>
+											</MultiBinding>
+										</Image.Source>
+									</Image>
+									<TextBlock
+										Grid.Column="1"
+										Text="{lc:Localization Settings_Tip}"
+										VerticalAlignment="Center"
+										Margin="5 0 0 0"
+										LineHeight="16"
+										FontSize="14"
+										TextWrapping="WrapWithOverflow"/>
+								</Grid>
+							</ui:DropDownButton.Content>
+							
+							<ui:DropDownButton.Flyout>
+								<ui:CommandBarFlyout 
+									Placement="RightEdgeAlignedBottom">
+									<ui:CommandBarFlyout.SecondaryCommands>
+										<!-- for some reason AppBarButton won't bind its label to item when they are created inside of the ItemsControl binded to TipSources so I'll hardcode them -->
+										<ui:AppBarButton
+											Label="{Binding TipSources[0].Item1}"
+											ToolTip="{Binding TipSources[0].Item2}"
+											Command="{Binding TipCommand}"
+											CommandParameter="{Binding TipSources[0].Item2}"/>
+										<ui:AppBarButton
+											Label="{Binding TipSources[1].Item1}"
+											ToolTip="{Binding TipSources[1].Item2}"
+											Command="{Binding TipCommand}"
+											CommandParameter="{Binding TipSources[1].Item2}"/>
+									</ui:CommandBarFlyout.SecondaryCommands>
+								</ui:CommandBarFlyout>
+							</ui:DropDownButton.Flyout>
+							
+						</ui:DropDownButton>
                     </Grid>
                 </Border>
             </StackPanel>

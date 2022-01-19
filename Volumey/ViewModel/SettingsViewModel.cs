@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors.Core;
-using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
@@ -21,6 +21,12 @@ namespace Volumey.ViewModel
         public LangSettings LangSettings { get; }
         public ICommand GitHubCommand { get; }
         public ICommand TipCommand { get; }
+
+        public ObservableCollection<Tuple<string, string>> TipSources { get; } = new ObservableCollection<Tuple<string, string>>()
+        {
+            new Tuple<string, string>("Ko-fi", "https://ko-fi.com/stasg"),
+            new Tuple<string, string>("YooMoney", "https://yoomoney.ru/to/410013849895981")
+        };
 
         private IntPtr windowHandle;
         
@@ -70,8 +76,8 @@ namespace Volumey.ViewModel
             this.VolumeLimitViewModel = new VolumeLimitViewModel();
             this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel();
             this.NotificationsViewModel = new NotificationViewModel();
-            this.GitHubCommand = new ActionCommand(async () => { await OpenWebPage("https://github.com/G-Stas/Volumey"); });
-            this.TipCommand = new ActionCommand(async () => { await OpenWebPage("https://ko-fi.com/stasg"); });
+            this.GitHubCommand = new ActionCommand(async () => await OpenWebPage("https://github.com/G-Stas/Volumey"));
+            this.TipCommand = new ActionCommand(async (param) => await OpenWebPage(param as string));
 
             // this.blockHotkeysInSystem = SettingsProvider.Settings.BlockHotkeys;
             // this.allowDuplicateHotkeys = SettingsProvider.Settings.AllowDuplicates;
@@ -130,6 +136,8 @@ namespace Volumey.ViewModel
         
         private async Task OpenWebPage(string url)
         {
+            if(string.IsNullOrEmpty(url))
+                return;
             try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
             catch { }
         }
