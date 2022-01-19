@@ -15,14 +15,14 @@ namespace Volumey.Tests
         private Mock<IDeviceStateNotificationHandler> deviceStateMock;
         private Mock<ISessionProvider> sProviderMock;
         
-        private string deviceId = "111";
+        private static string deviceId = "111";
         private string deviceName = "headphones";
 
         public OutputDeviceModelTests()
         {
-            var master = MasterSessionModelTests.GetMasterMock(deviceName, 70, false, new BitmapImage());
+            var master = MasterSessionModelTests.GetMasterMock(deviceName, 70, false, deviceId, new BitmapImage());
             var sessions = new ObservableCollection<AudioSessionModel>();
-            sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false));
+            sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false, deviceId));
             
             this.deviceMock = new Mock<IDevice>();
 
@@ -50,7 +50,7 @@ namespace Volumey.Tests
         public void SessionCreatedEvent_SessionShouldBeAdded()
         {
             var sessionCount = model.Sessions.Count;
-            var newSession = AudioSessionModelTests.GetSessionMock("session", 50, true);
+            var newSession = AudioSessionModelTests.GetSessionMock("session", 50, true, deviceId);
             
             this.sProviderMock.Raise(m => m.SessionCreated += null, new object[] {newSession});
             
@@ -65,9 +65,9 @@ namespace Volumey.Tests
             this.deviceMock.Setup(m => m.GetFriendlyName()).Returns(newDeviceName);
             this.deviceMock.Setup(m => m.GetDeviceDesc()).Returns(newDeviceName);
             
-            this.deviceStateMock.Raise(m => m.NameChanged += null, new object[] { this.deviceId });
+            this.deviceStateMock.Raise(m => m.NameChanged += null, new object[] { deviceId });
             
-            Assert.Equal(newDeviceName, this.model.Name);
+            Assert.Equal(newDeviceName, this.model.Master.Name);
             Assert.Equal(newDeviceName, this.model.Master.DeviceDesc);
             Assert.Equal(newDeviceName, this.model.Master.DeviceFriendlyName);
         }
@@ -78,16 +78,16 @@ namespace Volumey.Tests
             var newImageSource = new BitmapImage();
             this.deviceMock.Setup(m => m.GetIconSource()).Returns(newImageSource);
 
-            this.deviceStateMock.Raise(m => m.IconPathChanged += null, new object[] { this.deviceId });
+            this.deviceStateMock.Raise(m => m.IconPathChanged += null, new object[] { deviceId });
             
-            Assert.Equal(newImageSource, this.model.Master.DeviceIcon);
+            Assert.Equal(newImageSource, this.model.Master.Icon);
         }
 
         internal static OutputDeviceModel GetDeviceMock(string id, string name, IDeviceStateNotificationHandler deviceStateHandler)
         {
-            var master = MasterSessionModelTests.GetMasterMock(name, 70, false, null);
+            var master = MasterSessionModelTests.GetMasterMock(name, 70, false, id, null);
             var sessions = new ObservableCollection<AudioSessionModel>();
-            sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false));
+            sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false, "id"));
 		
             var deviceMock = new Mock<IDevice>();
             deviceMock.Setup(m => m.GetId()).Returns(id);

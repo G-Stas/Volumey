@@ -28,7 +28,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			
 			this.model = new MasterSessionModel("speakers", "speakers", 70, 
-				false, new BitmapImage(), this.sessionVolumeMock.Object, mVolumeNotifMock.Object);
+				false, "id", new BitmapImage(), this.sessionVolumeMock.Object, mVolumeNotifMock.Object);
 
 			this.deviceStateMock = new Mock<IDeviceStateNotificationHandler>();
 			this.iDeviceMock = new Mock<IDevice>();
@@ -68,7 +68,7 @@ namespace Volumey.Tests
 			this.iDeviceMock.Setup(m => m.GetIconSource()).Returns(newIconSource);
 			this.deviceStateMock.Raise(m => m.IconPathChanged += null, this.deviceOwner.Id);
 			
-			Assert.Equal(this.model.DeviceIcon, newIconSource);
+			Assert.Equal(this.model.Icon, newIconSource);
 		}
 
 		[Fact]
@@ -127,13 +127,13 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
-		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, ImageSource imageSource)
+		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, ImageSource imageSource)
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			var masterVolumeHandler = new Mock<IMasterVolumeNotificationHandler>();
 
 			return new MasterSessionModel
-			(name, name, volume, muteState,
+			(name, name, volume, muteState, id,
 				imageSource, sessionVolumeMock.Object, masterVolumeHandler.Object);
 		}
 	}

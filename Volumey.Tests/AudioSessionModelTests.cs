@@ -21,7 +21,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			this.sessionStateNotif = new Mock<IAudioSessionStateNotifications>();
 
-			this.model = new AudioSessionModel(false, 50, "app", new BitmapImage(), sessionVolumeMock.Object,
+			this.model = new AudioSessionModel(false, 50, "app", "id", new BitmapImage(), sessionVolumeMock.Object,
 				sessionStateNotif.Object);
 		}
 
@@ -54,7 +54,7 @@ namespace Volumey.Tests
 			
 			this.sessionStateNotif.Raise(m => m.IconPathChanged += null, newImageSource);
 			
-			Assert.Equal(newImageSource, this.model.AppIcon);
+			Assert.Equal(newImageSource, this.model.Icon);
 		}
 
 		[Fact]
@@ -65,7 +65,7 @@ namespace Volumey.Tests
 			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
-			this.model.SetHotkeys(upHotkey, downHotkey);
+			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
 			var newVolume = this.model.Volume + HotkeysControl.VolumeStep;
 			
 			//act
@@ -87,7 +87,7 @@ namespace Volumey.Tests
 			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
-			this.model.SetHotkeys(upHotkey, downHotkey);
+			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
 			
 			//act
 			hManagerMock.Raise(m => m.HotkeyPressed += null, new HotKey(Key.C));
@@ -98,13 +98,13 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
-		internal static AudioSessionModel GetSessionMock(string name, int volume, bool muteState)
+		internal static AudioSessionModel GetSessionMock(string name, int volume, bool muteState, string id)
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			var sessionStateNotifications = new Mock<IAudioSessionStateNotifications>();
             
 			return new AudioSessionModel
-			(muteState, volume, name, null, 
+			(muteState, volume, name, id, null, 
 				sessionVolumeMock.Object, sessionStateNotifications.Object);
 		}
 	}

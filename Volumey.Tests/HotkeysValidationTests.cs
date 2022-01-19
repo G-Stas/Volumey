@@ -38,16 +38,17 @@ namespace Volumey.Tests
 		[Fact]
 		public void HotkeysValidationShouldReturn_ExistsError()
 		{
-			//arrange
-			var existingHotkey = Key.Up;
+			var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
 			var settings = SettingsProvider.Settings.HotkeysSettings;
-			var upHotkey = settings.GetType().GetField("VolumeUpKey", BindingFlags.NonPublic | BindingFlags.Instance);
-			upHotkey.SetValue(settings, existingHotkey);
-			var hotkey = new HotKey(existingHotkey);
-
+			var muteKey = settings.GetType().GetField("DeviceMuteKey", BindingFlags.NonPublic | BindingFlags.Instance);
+			var muteModeKeys = settings.GetType().GetField("DeviceMuteModifiers", BindingFlags.NonPublic | BindingFlags.Instance);
+			
+			muteKey.SetValue(settings, existingHotkey.Key);
+			muteModeKeys.SetValue(settings, existingHotkey.ModifierKeys);
+			
 			//act and assert
-			Assert.True(HotkeysControl.HotkeyIsValid(hotkey) == ErrorMessageType.HotkeyExists);
-			Assert.True(HotkeysControl.HotkeysAreValid(hotkey, new HotKey(Key.Down)) ==
+			Assert.True(HotkeysControl.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
+			Assert.True(HotkeysControl.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
 			            ErrorMessageType.HotkeyExists);
 		}
 
