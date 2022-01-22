@@ -38,8 +38,8 @@
 ## Built With
 - [ModernWPF](https://github.com/Kinnara/ModernWpf)
 - [FluentWPF](https://github.com/sourcechord/FluentWPF)
-- [NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)
-- [Notifications.Wpf](https://github.com/Platonenkov/Notification.Wpf)
+- [NotifyIcon](https://github.com/G-Stas/wpf-notifyicon)
+- [Notifications.Wpf](https://github.com/G-Stas/Notification.Wpf)
 
 ## Copyright
 Volumey is provided under the [GPL-3.0 License](https://github.com/G-Stas/Volumey/blob/main/LICENSE)
