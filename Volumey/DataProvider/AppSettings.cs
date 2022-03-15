@@ -121,6 +121,14 @@ namespace Volumey.DataProvider
 			set => alwaysOnTop = value;
 		}
 
+		[OptionalField]
+		private bool deviceViewAtTheBottom;
+		public bool DeviceViewAtTheBottom
+		{
+			get => deviceViewAtTheBottom;
+			set => deviceViewAtTheBottom = value;
+		}
+
 		// [OptionalField]
 		// private bool blockHotkeys = true;
 		// public bool BlockHotkeys

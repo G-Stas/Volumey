@@ -208,4 +208,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value>Temps d'affichage en secondes</value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>Afficher le contrôle du périphérique de sortie en bas</value>
+  </data>
 </root>

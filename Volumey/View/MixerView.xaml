@@ -5,25 +5,32 @@
          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
          xmlns:ui="http://schemas.modernwpf.com/2019"
          xmlns:view="clr-namespace:Volumey.View"
-         mc:Ignorable="d">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+         xmlns:converters="clr-namespace:Volumey.View.Converters"
+		 xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
+         mc:Ignorable="d"
+		 DataContext="{Binding RelativeSource={RelativeSource FindAncestor, 
+									AncestorType={x:Type fw:AcrylicWindow}},
+									Path=DataContext}">
+	<ui:Page.Resources>
+		<converters:DeviceViewPositionToDockConverter x:Key="DeviceViewPositionConverter"/>
+	</ui:Page.Resources>
+	
+	<DockPanel>
 
-        <view:MasterView />
+		<view:MasterView DockPanel.Dock="{Binding Source={StaticResource WindowBehaviorViewModel}, 
+		                                          Path=DeviceViewAtTheBottom, 
+		                                          Converter={StaticResource DeviceViewPositionConverter}}"/>
 
-        <Separator
-            Grid.Row="1"
-            VerticalAlignment="Top"
-            Margin="20 10 20 10" />
+		<Separator VerticalAlignment="Top"
+				   DockPanel.Dock="{Binding Source={StaticResource WindowBehaviorViewModel}, 
+		                                          Path=DeviceViewAtTheBottom, 
+		                                          Converter={StaticResource DeviceViewPositionConverter}}"
+				   Margin="20 10 20 10"/>
 
-        <ScrollViewer
-            Name="ScrollViewer"
-            Grid.Row="2">
-            <view:SessionsListView x:Name="SessionsList"/>
-        </ScrollViewer>
-    </Grid>
+		<ScrollViewer
+			Name="ScrollViewer">
+			<view:SessionsListView x:Name="SessionsList"/>
+		</ScrollViewer>
+	</DockPanel>
+	
 </ui:Page>

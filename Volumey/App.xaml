@@ -38,6 +38,7 @@
                 <ui:XamlControlsResources />
             </ResourceDictionary.MergedDictionaries>
 
+            <vm:AppBehaviorViewModel x:Key="WindowBehaviorViewModel"/>
             <vm:SettingsViewModel x:Key="SettingsViewModel" />
             <vm:DeviceProviderViewModel x:Key="DeviceProviderViewModel" />
             <vm:ThemeViewModel x:Key="ThemeViewModel" />

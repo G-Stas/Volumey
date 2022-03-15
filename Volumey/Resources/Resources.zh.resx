@@ -208,4 +208,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value>以秒为单位显示时间</value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>在底部显示设备控制</value>
+  </data>
 </root>

@@ -7,7 +7,6 @@
                   xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
                   xmlns:tb="http://www.hardcodet.net/taskbar"
                   xmlns:view="clr-namespace:Volumey.View"
-                  xmlns:viewModel="clr-namespace:Volumey.ViewModel"
                   xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
                   xmlns:converters="clr-namespace:Volumey.View.Converters"
                   xmlns:lc="clr-namespace:Volumey.Localization"
@@ -26,13 +25,10 @@
                   MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=Width}"
                   SizeToContent="Height"
                   BorderThickness="0"
+                  DataContext="{StaticResource WindowBehaviorViewModel}"
                   IsVisibleChanged="OnIsVisibleChanged"
                   PreviewKeyDown="OnKeyDown"
                   Loaded="OnLoaded">
-
-    <fw:AcrylicWindow.DataContext>
-        <viewModel:MainViewModel />
-    </fw:AcrylicWindow.DataContext>
 
     <fw:AcrylicWindow.Resources>
         <ResourceDictionary>

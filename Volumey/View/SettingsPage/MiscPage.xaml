@@ -61,6 +61,11 @@
 				Text="{lc:Localization Settings_AlwaysTop}"/>
 			<ui:ToggleSwitch
 				IsOn="{Binding AlwaysOnTop}"/>
+			
+			<TextBlock 
+				Text="{lc:Localization Settings_DeviceBottom}"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding DeviceViewAtTheBottom}"/>
 		</StackPanel>
 		
 		<StackPanel>

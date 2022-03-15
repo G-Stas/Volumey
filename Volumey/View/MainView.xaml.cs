@@ -71,7 +71,7 @@ namespace Volumey.View
             NativeMethods.RegisterApplicationRestart(Startup.MinimizedArg, RESTART_NO_REBOOT);
 
             this.ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: this.ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: false));
-            if(this.DataContext is MainViewModel vm)
+            if(this.DataContext is AppBehaviorViewModel vm)
 	            vm.DisplayAppRequested += ActivateIfLoaded;
             
             SetTrayIconTooltip();

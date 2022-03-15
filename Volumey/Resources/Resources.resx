@@ -165,4 +165,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

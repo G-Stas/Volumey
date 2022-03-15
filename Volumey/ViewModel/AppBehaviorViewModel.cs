@@ -15,7 +15,7 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel
 {
-	public sealed class MainViewModel : INotifyPropertyChanged
+	public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 	{
 		public ICommand ClosingCommand { get; }
 		public ICommand LostFocusCommand { get; }
@@ -94,6 +94,21 @@ namespace Volumey.ViewModel
 	        }
         }
 
+        private bool deviceViewAtTheBottom;
+        public bool DeviceViewAtTheBottom
+        {
+	        get => this.deviceViewAtTheBottom;
+	        set
+	        {
+		        this.deviceViewAtTheBottom = value;
+
+		        SettingsProvider.Settings.DeviceViewAtTheBottom = value;
+		        _ = SettingsProvider.SaveSettings();
+		        
+		        OnPropertyChanged();
+	        }
+        }
+
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
         /// </summary>
@@ -117,7 +132,7 @@ namespace Volumey.ViewModel
 
 		private bool restartInvoked = false;
 
-		public MainViewModel()
+		public AppBehaviorViewModel()
 		{
 			this.WindowIsVisible = !Startup.StartMinimized;
 			this.ClosingCommand = new ActionCommand(OnWindowClosing);
@@ -144,6 +159,7 @@ namespace Volumey.ViewModel
 
 			this.popupEnabled = SettingsProvider.Settings.PopupEnabled;
 			this.alwaysOnTop = SettingsProvider.Settings.AlwaysOnTop;
+			this.deviceViewAtTheBottom = SettingsProvider.Settings.DeviceViewAtTheBottom;
 		}
 
 		/// <summary>

@@ -208,4 +208,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value>秒単位の表示時間</value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>下部に出力デバイスコントロールを表示します</value>
+  </data>
 </root>

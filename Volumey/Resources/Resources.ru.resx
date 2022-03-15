@@ -208,4 +208,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value>Время отображения в секундах</value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>Отображать микшер устройства вывода внизу</value>
+  </data>
 </root>

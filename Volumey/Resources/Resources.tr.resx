@@ -208,4 +208,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value>Zamanı saniye cinsinden göster</value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>Altta çıkış cihazı kontrolünü göster</value>
+  </data>
 </root>

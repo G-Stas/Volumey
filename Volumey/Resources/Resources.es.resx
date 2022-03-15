@@ -208,4 +208,7 @@
   <data name="Notifications_Time" xml:space="preserve">
     <value>Mostrar tiempo en segundos</value>
   </data>
+  <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>Mostrar el control del dispositivo de salida en la parte inferior</value>
+  </data>
 </root>
