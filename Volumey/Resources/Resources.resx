@@ -168,4 +168,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

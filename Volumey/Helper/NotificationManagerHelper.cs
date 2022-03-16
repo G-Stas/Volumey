@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Windows.Media;
+using System.Drawing;
 using log4net;
 using Notification.Wpf;
 using Notification.Wpf.Controls;
@@ -8,6 +8,7 @@ using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.View.Controls;
 using Volumey.ViewModel.Settings;
+using Brush = System.Windows.Media.Brush;
 
 namespace Volumey.Helper
 {
@@ -117,7 +118,7 @@ namespace Volumey.Helper
 
 		private class DummyAudioSession : BaseAudioSession
 		{
-			public DummyAudioSession(int volume, bool isMuted, string id, ImageSource icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null) :
+			public DummyAudioSession(int volume, bool isMuted, string id, Icon icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null) :
 				base(volume, isMuted, id, icon, audioSessionStateNotificationMediator)
 			{
 				this.Name = id;

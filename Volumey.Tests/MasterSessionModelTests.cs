@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Moq;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -28,7 +27,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			
 			this.model = new MasterSessionModel("speakers", "speakers", 70, 
-				false, "id", new BitmapImage(), this.sessionVolumeMock.Object, mVolumeNotifMock.Object);
+				false, "id", null, this.sessionVolumeMock.Object, mVolumeNotifMock.Object);
 
 			this.deviceStateMock = new Mock<IDeviceStateNotificationHandler>();
 			this.iDeviceMock = new Mock<IDevice>();
@@ -63,12 +62,12 @@ namespace Volumey.Tests
 		[Fact]
 		public void IconPathChangedEvent_IconSourceShouldBeChanged()
 		{
-			var newIconSource = new BitmapImage();
+			var newIcon = SystemIcons.WinLogo;
 
-			this.iDeviceMock.Setup(m => m.GetIconSource()).Returns(newIconSource);
+			this.iDeviceMock.Setup(m => m.GetIcon()).Returns(newIcon);
 			this.deviceStateMock.Raise(m => m.IconPathChanged += null, this.deviceOwner.Id);
 			
-			Assert.Equal(this.model.Icon, newIconSource);
+			Assert.Equal(this.model.Icon, newIcon);
 		}
 
 		[Fact]
@@ -127,14 +126,14 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
-		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, ImageSource imageSource)
+		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, Icon icon)
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			var masterVolumeHandler = new Mock<IMasterVolumeNotificationHandler>();
 
 			return new MasterSessionModel
 			(name, name, volume, muteState, id,
-				imageSource, sessionVolumeMock.Object, masterVolumeHandler.Object);
+				icon, sessionVolumeMock.Object, masterVolumeHandler.Object);
 		}
 	}
 }

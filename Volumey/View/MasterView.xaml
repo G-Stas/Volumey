@@ -99,7 +99,7 @@
                 </Grid.ColumnDefinitions>
                 <Image
                     Grid.Column="0"
-                    Source="{Binding SelectedDevice.Master.Icon}"
+                    Source="{Binding SelectedDevice.Master.IconSource}"
                     RenderOptions.BitmapScalingMode="HighQuality"
                     Height="{StaticResource ImageSize}"
                     Width="{StaticResource ImageSize}"

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
+using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model
@@ -42,9 +44,19 @@ namespace Volumey.Model
 		private readonly string _id;
 		public string Id => this._id;
 
-		private ImageSource _icon;
+		private ImageSource iconSource;
+		public virtual ImageSource IconSource
+		{
+			get => iconSource;
+			set
+			{
+				iconSource = value;
+				OnPropertyChanged();
+			}
+		}
 
-		public virtual ImageSource Icon
+		private Icon _icon;
+		public virtual Icon Icon
 		{
 			get => _icon;
 			set
@@ -56,12 +68,13 @@ namespace Volumey.Model
 
 		public virtual ICommand MuteCommand { get; set; }
 
-		public BaseAudioSession(int volume, bool isMuted, string id, ImageSource icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null)
+		public BaseAudioSession(int volume, bool isMuted, string id, Icon icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null)
 		{
 			this._volume = volume;
 			this._isMuted = isMuted;
 			this._id = id;
 			this._icon = icon;
+			this.iconSource = icon?.GetAsImageSource();
 			this.AudioSessionStateNotificationMediator = audioSessionStateNotificationMediator;
 			this.MuteCommand = new ActionCommand(() => this.IsMuted = !this.IsMuted);
 		}
@@ -85,6 +98,11 @@ namespace Volumey.Model
 
 		public virtual void Dispose()
 		{
+			if(this._icon != null)
+			{
+				NativeMethods.DestroyIcon(this._icon.Handle);
+				this._icon.Dispose();	
+			}
 			this.AudioSessionStateNotificationMediator?.NotifyOfDisposing(this);
 		}
 	}

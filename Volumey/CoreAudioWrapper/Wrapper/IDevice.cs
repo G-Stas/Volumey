@@ -30,6 +30,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 		ImageSource GetIconSource();
 
+		Icon GetIcon();
+
 		WAVEFORMATEX? GetDeviceFormat();
 	}
 
@@ -72,7 +74,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				var masterVolume = new MasterAudioSessionVolume(endpointVolume);
 				float volume = masterVolume.GetVolume();
 				bool muteState = masterVolume.GetMute();
-				ImageSource icon = device.GetIconSource();
+				Icon icon = device.GetIcon();
 				string deviceName = device.GetFriendlyName();
 				string deviceDesc = device.GetDeviceDesc();
 				string id = device.GetId();
@@ -140,7 +142,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 			try
 			{
-				ImageSource iconImageSource = null;
+				Icon icon = null;
 				string sessionName = string.Empty;
 
 				try
@@ -151,7 +153,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 				if(sessionControl.IsNotSystemSounds())
 				{
-					App.Current.Dispatcher.Invoke(() => iconImageSource = ExtractSessionIcon(process, sControl));
+					App.Current.Dispatcher.Invoke(() => icon = ExtractSessionIcon(process, sControl));
 					isSystemSession = false;
 				}
 				else
@@ -175,9 +177,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 					{
 						App.Current.Dispatcher.Invoke(() =>
 						{
-							Icon icon = 
+							icon = 
 								Icon.ExtractAssociatedIcon(Environment.ExpandEnvironmentVariables("%SystemRoot%\\System32\\AudioSrv.dll"));
-							iconImageSource = IconHelper.GetImageSourceFromIcon(icon);
 						});
 					}
 					catch(Exception e)
@@ -204,7 +205,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				}
 
 				AudioSessionModel session =
-					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, sessionId, iconImageSource,
+					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, sessionId, icon,
 					                      sessionVolume,
 					                      sessionStateNotifications);
 				return session;
@@ -217,9 +218,9 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			return null;
 		}
 
-		private static ImageSource ExtractSessionIcon(Process proc, IAudioSessionControl sc)
+		private static Icon ExtractSessionIcon(Process proc, IAudioSessionControl sc)
 		{
-			ImageSource icon = null;
+			Icon icon = null;
 			try
 			{
 				icon = IconHelper.GetFromProcess(proc);

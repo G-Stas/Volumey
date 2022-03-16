@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Reflection;
-using System.Windows.Media.Imaging;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Model;
@@ -20,7 +20,7 @@ namespace Volumey.Tests
 
         public OutputDeviceModelTests()
         {
-            var master = MasterSessionModelTests.GetMasterMock(deviceName, 70, false, deviceId, new BitmapImage());
+            var master = MasterSessionModelTests.GetMasterMock(deviceName, 70, false, deviceId, null);
             var sessions = new ObservableCollection<AudioSessionModel>();
             sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false, deviceId));
             
@@ -75,12 +75,12 @@ namespace Volumey.Tests
         [Fact]
         public void IconPathChangedEvent_DeviceIconShouldChanged()
         {
-            var newImageSource = new BitmapImage();
-            this.deviceMock.Setup(m => m.GetIconSource()).Returns(newImageSource);
+            var newIcon = SystemIcons.WinLogo;
+            this.deviceMock.Setup(m => m.GetIcon()).Returns(newIcon);
 
             this.deviceStateMock.Raise(m => m.IconPathChanged += null, new object[] { deviceId });
             
-            Assert.Equal(newImageSource, this.model.Master.Icon);
+            Assert.Equal(newIcon, this.model.Master.Icon);
         }
 
         internal static OutputDeviceModel GetDeviceMock(string id, string name, IDeviceStateNotificationHandler deviceStateHandler)

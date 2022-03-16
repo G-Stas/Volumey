@@ -53,7 +53,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
                         throw new Exception();
                     string path = iconPathId[0];
                     int id = int.Parse(iconPathId[1]);
-                    icon = IconHelper.GetFromDll(filePath: path, id);
+                    icon = IconHelper.GetFromDll(filePath: path, id).GetAsImageSource();
                 }
                 catch { }
 
@@ -61,7 +61,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
                 {
                     try
                     {
-                        icon = IconHelper.GetFromFilePath(newIconPath);
+                        icon = IconHelper.GetFromFilePath(newIconPath).GetAsImageSource();
                     }
                     catch { }
                 }

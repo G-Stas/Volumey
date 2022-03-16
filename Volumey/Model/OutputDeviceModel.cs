@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model
@@ -82,7 +83,16 @@ namespace Volumey.Model
 			{
 				dispatcher.Invoke(() =>
 				{
-					try { this.Master.Icon = this.device.GetIconSource(); }
+					try
+					{
+						if(this.Master.Icon != null)
+						{
+							NativeMethods.DestroyIcon(this.Master.Icon.Handle);
+							this.Master.Icon.Dispose();
+						}
+						this.Master.Icon = this.device.GetIcon();
+						this.Master.IconSource = this.Master.Icon.GetAsImageSource();
+					}
 					catch { }
 				});
 			}

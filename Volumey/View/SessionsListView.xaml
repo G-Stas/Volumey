@@ -45,7 +45,7 @@
                     <Image
                         Grid.Column="0"
                         Grid.Row="1"
-                        Source="{Binding Icon}"
+                        Source="{Binding IconSource}"
                         RenderOptions.BitmapScalingMode="HighQuality"
                         VerticalAlignment="Center"
                         Margin="{StaticResource ImageMargin}"

@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>Altta çıkış cihazı kontrolünü göster</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Çıkış aygıtı simgesini sistem tepsisinde görüntüle</value>
+  </data>
 </root>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
 using Volumey.DataProvider;
@@ -7,13 +8,33 @@ namespace Volumey.View.Converters
 {
 	public partial class TrayIconConverter : IMultiValueConverter
 	{
-		internal enum IconType { High, Mid, Low, Mute, NoDevice, None }
+		internal enum IconType
+		{
+			High,
+			Mid,
+			Low,
+			Mute,
+			NoDevice,
+			DeviceIcon,
+			None
+		}
+
 		private IconType currentIconType = IconType.None;
 		private TrayIconProvider currentIconProvider;
-		
+		private Icon curDeviceIcon;
+
 		public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 		{
-			if(values != null && values[3] is AppTheme theme)
+			if(values[4] is bool displayDeviceIconAtTray && displayDeviceIconAtTray && values[5] is Icon defaultDeviceIcon)
+			{
+				if(currentIconType == IconType.DeviceIcon && curDeviceIcon == defaultDeviceIcon)
+					return Binding.DoNothing;
+				currentIconType = IconType.DeviceIcon;
+				curDeviceIcon = defaultDeviceIcon;
+				return defaultDeviceIcon;
+			}
+			
+			if(values[3] is AppTheme theme)
 			{
 				bool newIconProvider = false;
 				if(theme is AppTheme.Dark)
@@ -55,7 +76,7 @@ namespace Volumey.View.Converters
 			}
 			if((this.currentIconType == type || type == IconType.None) && !newIconProvider) 
 				return Binding.DoNothing;
-			this.currentIconType =  type;
+			this.currentIconType = type;
 			return this.currentIconProvider.GetIcon(type);
 		}
 

@@ -109,6 +109,21 @@ namespace Volumey.ViewModel
 	        }
         }
 
+        private bool displayDeviceIconAtTray;
+        public bool DisplayDeviceIconAtTray
+        {
+	        get => this.displayDeviceIconAtTray;
+	        set
+	        {
+		        this.displayDeviceIconAtTray = value;
+
+		        SettingsProvider.Settings.DisplayDeviceIconAtTray = value;
+		        _ = SettingsProvider.SaveSettings();
+		        
+		        OnPropertyChanged();
+	        }
+        }
+
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
         /// </summary>
@@ -160,6 +175,7 @@ namespace Volumey.ViewModel
 			this.popupEnabled = SettingsProvider.Settings.PopupEnabled;
 			this.alwaysOnTop = SettingsProvider.Settings.AlwaysOnTop;
 			this.deviceViewAtTheBottom = SettingsProvider.Settings.DeviceViewAtTheBottom;
+			this.displayDeviceIconAtTray = SettingsProvider.Settings.DisplayDeviceIconAtTray;
 		}
 
 		/// <summary>

@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Windows.Media;
 using log4net;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -91,7 +91,7 @@ namespace Volumey.Model
         private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
         
         public MasterSessionModel(string friendlyName, string desc, 
-            int volume, bool muteState, string id, ImageSource icon,
+            int volume, bool muteState, string id, Icon icon,
             IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler) : base(volume, muteState, id, icon)
         {
             this.Name = friendlyName;

@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>Отображать микшер устройства вывода внизу</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Отображать иконку устройства вывода в системном трее</value>
+  </data>
 </root>

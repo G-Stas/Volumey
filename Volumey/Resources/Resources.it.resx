@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>Mostra il controllo del dispositivo di output in basso</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Visualizza l'icona del dispositivo di output nella barra delle applicazioni</value>
+  </data>
 </root>

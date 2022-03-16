@@ -1,12 +1,11 @@
-﻿using System;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using System.Windows.Media;
 
 namespace Volumey.Model
 {
 	public interface IManagedAudioSession
 	{
-		public ImageSource Icon { get; set; }
+		public ImageSource IconSource { get; set; }
 		public string Name { get; }
 		public bool IsMuted { get; set; }
 		public int Volume { get; set; }

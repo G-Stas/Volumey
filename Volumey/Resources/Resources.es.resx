@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>Mostrar el control del dispositivo de salida en la parte inferior</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Mostrar el icono del dispositivo de salida en la bandeja del sistema</value>
+  </data>
 </root>

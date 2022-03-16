@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>नीचे आउटपुट डिवाइस नियंत्रण प्रदर्शित करें</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>सिस्टम ट्रे पर आउटपुट डिवाइस आइकन प्रदर्शित करें</value>
+  </data>
 </root>

@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>Steuerung des Ausgabegeräts unten anzeigen</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Zeigt das Symbol des Ausgabegeräts in der Taskleiste an</value>
+  </data>
 </root>

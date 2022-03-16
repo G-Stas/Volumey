@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>在底部显示设备控制</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>在系统托盘中显示输出设备图标</value>
+  </data>
 </root>

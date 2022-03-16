@@ -41,7 +41,7 @@
 				   Foreground="{Binding Source={x:Static Application.Current}, Path=MainWindow.Foreground}"/>
 		<Image Grid.Column="0"
 			   Grid.Row="1"
-			   Source="{Binding AudioSession.Icon}"
+			   Source="{Binding AudioSession.IconSource}"
 			   RenderOptions.BitmapScalingMode="HighQuality"
 			   VerticalAlignment="Center"
 			   Height="{StaticResource ImageSize}"

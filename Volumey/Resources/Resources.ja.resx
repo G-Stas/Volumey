@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>下部に出力デバイスコントロールを表示します</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>システムトレイに出力デバイスアイコンを表示する</value>
+  </data>
 </root>

@@ -11,29 +11,23 @@ namespace Volumey.Helper
 {
 	static class IconHelper
 	{
-		public static ImageSource GetFromProcess(Process process)
+		public static Icon GetFromProcess(Process process)
 		{
 			if(process == null)
 				return null;
-			ImageSource iSource = null;
+			Icon icon = null;
 			App.Current.Dispatcher.Invoke(() =>
 			{
 				//get application icon by full path to its exe file
 				var fileName = process.GetMainModuleFileName();
-				Icon icon = Icon.ExtractAssociatedIcon(fileName);
-				if(icon != null)
-				{
-					iSource = GetImageSourceFromIcon(icon);
-					NativeMethods.DestroyIcon(icon.Handle);
-					icon.Dispose();
-				}
+				icon = Icon.ExtractAssociatedIcon(fileName);
 			});
-			return iSource;
+			return icon;
 		}
 
-		public static ImageSource GetFromDll(string filePath, int resourceId, bool largeIcon = true)
+		public static Icon GetFromDll(string filePath, int resourceId, bool largeIcon = true)
 		{
-			ImageSource iSource = null;
+			Icon icon = null;
 			
 			if(filePath == null)
 				return null;
@@ -48,17 +42,13 @@ namespace Volumey.Helper
 
 				if(hIcon != IntPtr.Zero)
 				{
-					Icon icon = Icon.FromHandle(hIcon);
-					iSource = GetImageSourceFromIcon(icon);
-
-					NativeMethods.DestroyIcon(icon.Handle);
-					icon.Dispose();
+					icon = Icon.FromHandle(hIcon);
 				}
 			});
-			return iSource;
+			return icon;
 		}
 
-		public static ImageSource GetImageSourceFromIcon(Icon icon)
+		public static ImageSource GetAsImageSource(this Icon icon)
 		{
 			try
 			{
@@ -70,17 +60,17 @@ namespace Volumey.Helper
 			catch { return null; }
 		}
 		
-		public static ImageSource GetFromFilePath(string filePath)
+		public static Icon GetFromFilePath(string filePath)
 		{
 			if(File.Exists(filePath))
-				return GetImageSourceFromIcon(Icon.ExtractAssociatedIcon(filePath));
+				return Icon.ExtractAssociatedIcon(filePath);
 			return null;
 		}
 
-		private static ImageSource genericExeIcon;
-		internal static ImageSource GenericExeIcon => genericExeIcon ??= GetGenericExeIcon();
+		private static Icon genericExeIcon;
+		internal static Icon GenericExeIcon => genericExeIcon ??= GetGenericExeIcon();
 
-		private static ImageSource GetGenericExeIcon()
+		private static Icon GetGenericExeIcon()
 		{
 			//the icon is located in this file since win 10 1903 @"C:\Windows\SystemResources\imageres.dll.mun" by index 11
 			return GetFromDll(@"C:\Windows\SystemResources\imageres.dll.mun", 11);

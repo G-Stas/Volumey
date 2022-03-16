@@ -21,7 +21,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			this.sessionStateNotif = new Mock<IAudioSessionStateNotifications>();
 
-			this.model = new AudioSessionModel(false, 50, "app", "id", new BitmapImage(), sessionVolumeMock.Object,
+			this.model = new AudioSessionModel(false, 50, "app", "id", null, sessionVolumeMock.Object,
 				sessionStateNotif.Object);
 		}
 
@@ -54,7 +54,7 @@ namespace Volumey.Tests
 			
 			this.sessionStateNotif.Raise(m => m.IconPathChanged += null, newImageSource);
 			
-			Assert.Equal(newImageSource, this.model.Icon);
+			Assert.Equal(newImageSource, this.model.IconSource);
 		}
 
 		[Fact]

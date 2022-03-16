@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
@@ -48,7 +49,12 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 		public ImageSource GetIconSource()
 		{
-			ImageSource icon = null;
+			return GetIcon().GetAsImageSource();
+		}
+
+		public Icon GetIcon()
+		{
+			Icon icon = null;
 			PROPERTYKEY iconPathKey = PROPERTYKEY.DeviceProperties.IconPath;
 			string iconPath = this.GetProperty(ref iconPathKey);
 

@@ -1,5 +1,8 @@
-﻿using System.Windows.Media.Imaging;
-using System;
+﻿using System;
+using System.Drawing;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Resources;
 using log4net;
 
 namespace Volumey.View.Converters
@@ -8,14 +11,14 @@ namespace Volumey.View.Converters
 	{
 		internal abstract class TrayIconProvider
 		{
-			protected virtual BitmapImage High => null;
-			protected virtual BitmapImage Mid => null;
-			protected virtual BitmapImage Low => null;
-			protected virtual BitmapImage Mute => null;
-			protected virtual BitmapImage NoDevice => null;
+			protected virtual Icon High => null;
+			protected virtual Icon Mid => null;
+			protected virtual Icon Low => null;
+			protected virtual Icon Mute => null;
+			protected virtual Icon NoDevice => null;
 			protected virtual ILog Logger => null;
 			
-			public BitmapImage GetIcon(IconType type)
+			public Icon GetIcon(IconType type)
 			{
 				try
 				{
@@ -38,4 +41,26 @@ namespace Volumey.View.Converters
 		}
 	}
 	
+	public static class IconExtensions
+	{
+		internal static Icon GetAsIcon(this ImageSource src)
+		{
+			if (src == null) return null;
+			Uri uri = new Uri(src.ToString());
+			StreamResourceInfo streamInfo = Application.GetResourceStream(uri);
+
+			if (streamInfo == null)
+				return null;
+
+			try
+			{
+				return new Icon(streamInfo.Stream);
+			}
+			finally
+			{
+				streamInfo.Stream.Close();
+				streamInfo.Stream.Dispose();
+			}
+		}
+	}
 }

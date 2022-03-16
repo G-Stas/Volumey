@@ -1,4 +1,5 @@
-﻿using System.Windows.Media.Imaging;
+﻿using System.Drawing;
+using System.Windows.Media.Imaging;
 using log4net;
 
 namespace Volumey.View.Converters
@@ -7,20 +8,20 @@ namespace Volumey.View.Converters
 	{
 		internal class LightIconProvider : TrayIconProvider
 		{
-			private BitmapImage trayHigh;
-			protected override BitmapImage High => trayHigh ??= App.Current.FindResource("TrayHigh") as BitmapImage;
+			private Icon trayHigh;
+			protected override Icon High => trayHigh ??= (App.Current.FindResource("TrayHigh") as BitmapImage).GetAsIcon();
 
-			private BitmapImage trayMid;
-			protected override BitmapImage Mid => trayMid ??= App.Current.FindResource("TrayMid") as BitmapImage;
+			private Icon trayMid;
+			protected override Icon Mid => trayMid ??= (App.Current.FindResource("TrayMid") as BitmapImage).GetAsIcon();
 
-			private BitmapImage trayLow;
-			protected override BitmapImage Low => trayLow ??= App.Current.FindResource("TrayLow") as BitmapImage;
+			private Icon trayLow;
+			protected override Icon Low => trayLow ??= (App.Current.FindResource("TrayLow") as BitmapImage).GetAsIcon();
 
-			private BitmapImage trayMute;
-			protected override BitmapImage Mute => trayMute ??= App.Current.FindResource("TrayMute") as BitmapImage;
+			private Icon trayMute;
+			protected override Icon Mute => trayMute ??= (App.Current.FindResource("TrayMute") as BitmapImage).GetAsIcon();
 
-			private BitmapImage trayNoDevice;
-			protected override BitmapImage NoDevice => trayNoDevice ??= App.Current.FindResource("TrayNoDevice") as BitmapImage;
+			private Icon trayNoDevice;
+			protected override Icon NoDevice => trayNoDevice ??= (App.Current.FindResource("TrayNoDevice") as BitmapImage).GetAsIcon();
 			
 			private ILog _logger;
 			protected override ILog Logger => _logger ??= LogManager.GetLogger(typeof(LightIconProvider));

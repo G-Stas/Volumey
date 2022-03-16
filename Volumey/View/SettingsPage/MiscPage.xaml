@@ -66,6 +66,11 @@
 				Text="{lc:Localization Settings_DeviceBottom}"/>
 			<ui:ToggleSwitch
 				IsOn="{Binding DeviceViewAtTheBottom}"/>
+			
+			<TextBlock 
+				Text="{lc:Localization Settings_DeviceIcon}"/>
+			<ui:ToggleSwitch
+				IsOn="{Binding DisplayDeviceIconAtTray}"/>
 		</StackPanel>
 		
 		<StackPanel>

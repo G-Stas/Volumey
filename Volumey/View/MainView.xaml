@@ -25,7 +25,7 @@
                   MinWidth="{Binding RelativeSource={RelativeSource Self}, Path=Width}"
                   SizeToContent="Height"
                   BorderThickness="0"
-                  DataContext="{StaticResource WindowBehaviorViewModel}"
+                  DataContext="{StaticResource AppBehaviorViewModel}"
                   IsVisibleChanged="OnIsVisibleChanged"
                   PreviewKeyDown="OnKeyDown"
                   Loaded="OnLoaded">
@@ -283,14 +283,17 @@
             LeftClickCommand="{Binding TrayClickCommand}"
             ContextMenu="{StaticResource TrayMenu}">
 
-            <tb:TaskbarIcon.IconSource>
+            <tb:TaskbarIcon.Icon>
                 <MultiBinding Converter="{StaticResource TrayIconConverter}">
                     <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DeviceProvider.NoOutputDevices" />
                     <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Volume" />
                     <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.IsMuted" />
                     <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme" />
+                    <Binding Source="{StaticResource AppBehaviorViewModel}" Path="DisplayDeviceIconAtTray"/>
+                    <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Icon" />
                 </MultiBinding>
-            </tb:TaskbarIcon.IconSource>
+            </tb:TaskbarIcon.Icon>
+            
         </tb:TaskbarIcon>
 
         <ui:NavigationView

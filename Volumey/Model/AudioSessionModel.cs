@@ -1,13 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using log4net;
-using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -76,7 +73,7 @@ namespace Volumey.Model
 
         private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-        public AudioSessionModel(bool isMuted, int volume, string name, string id, ImageSource icon, IAudioSessionVolume aVolume,
+        public AudioSessionModel(bool isMuted, int volume, string name, string id, Icon icon, IAudioSessionVolume aVolume,
             IAudioSessionStateNotifications sStateNotifications) : base(volume, isMuted, id, icon)
         {
             this._name = name;
@@ -148,7 +145,7 @@ namespace Volumey.Model
         }
 
         private void OnIconChanged(ImageSource newIcon) 
-            => dispatcher.Invoke(() => { this.Icon = newIcon; });
+            => dispatcher.Invoke(() => { this.IconSource = newIcon; });
 
         private void OnNameChanged(string newName)
             => dispatcher.Invoke(() => { this.Name = newName; });

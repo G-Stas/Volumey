@@ -17,12 +17,12 @@
 	
 	<DockPanel>
 
-		<view:MasterView DockPanel.Dock="{Binding Source={StaticResource WindowBehaviorViewModel}, 
+		<view:MasterView DockPanel.Dock="{Binding Source={StaticResource AppBehaviorViewModel}, 
 		                                          Path=DeviceViewAtTheBottom, 
 		                                          Converter={StaticResource DeviceViewPositionConverter}}"/>
 
 		<Separator VerticalAlignment="Top"
-				   DockPanel.Dock="{Binding Source={StaticResource WindowBehaviorViewModel}, 
+				   DockPanel.Dock="{Binding Source={StaticResource AppBehaviorViewModel}, 
 		                                          Path=DeviceViewAtTheBottom, 
 		                                          Converter={StaticResource DeviceViewPositionConverter}}"
 				   Margin="20 10 20 10"/>

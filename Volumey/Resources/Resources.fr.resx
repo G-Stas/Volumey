@@ -211,4 +211,7 @@
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>Afficher le contrôle du périphérique de sortie en bas</value>
   </data>
+  <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Afficher l'icône du périphérique de sortie dans la barre d'état système</value>
+  </data>
 </root>
