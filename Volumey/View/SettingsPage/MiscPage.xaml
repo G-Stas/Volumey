@@ -6,7 +6,6 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:lc="clr-namespace:Volumey.Localization"
 	xmlns:ui="http://schemas.modernwpf.com/2019"
-	xmlns:fw="clr-namespace:SourceChord.FluentWPF;assembly=FluentWPF"
 	xmlns:converters="clr-namespace:Volumey.View.Converters"
 	mc:Ignorable="d"
 	DataContext="{Binding Source={StaticResource SettingsViewModel}}">
@@ -50,7 +49,7 @@
 
 		<!-- set data context to the window's MainViewModel to access properties related to the window's behavior -->
 		<StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor, 
-									AncestorType={x:Type fw:AcrylicWindow}},
+									AncestorType={x:Type Window}},
 									Path=DataContext}">
 			<TextBlock
 				Text="{lc:Localization Settings_Popup}"/>
