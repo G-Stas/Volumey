@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using log4net;
                              
 namespace Volumey
@@ -22,18 +20,8 @@ namespace Volumey
             execTimer = new Stopwatch();
             execTimer.Start();
         }
-
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            base.OnStartup(e);
-            #if (!DEBUG)
-            AppDomain.CurrentDomain.UnhandledException += (s, exc) => LogFatalException("AppDomain.CurrentDomain.UnhandledException", exc?.ExceptionObject as Exception);
-            App.Current.DispatcherUnhandledException += (s, exc) => LogFatalException("App.Current.DispatcherUnhandledException", exc?.Exception);
-            TaskScheduler.UnobservedTaskException += (s, exc) => LogFatalException("TaskScheduler.UnobservedTaskException", exc?.Exception);
-            #endif
-        }
-
-        private void LogFatalException(string exceptionType, Exception ex)
+        
+        internal void LogFatalException(string exceptionType, Exception ex)
         {
             execTimer.Stop();
             var ts = execTimer.Elapsed;

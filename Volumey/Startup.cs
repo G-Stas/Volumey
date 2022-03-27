@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Windows;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using log4net;
@@ -72,8 +73,28 @@ namespace Volumey
 				}
 				#endif
 
+				#if(!DEBUG)
+				try
+				{
+					App.Main();
+				}
+				catch(OutOfMemoryException e)
+				{
+					MessageBox.Show(e.Message, "Fatal exception", MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+				catch(Exception e)
+				{
+					(App.Current as App)?.LogFatalException("App.Main unhandled exception", e);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
+				#endif
+				#if(DEBUG)
 				App.Main();
-				mutex.ReleaseMutex();
+				#endif
+				
 			}
 			else
 			{
