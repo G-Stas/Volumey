@@ -39,6 +39,8 @@ namespace Volumey.Helper
 		{
 			try
 			{
+				if(_notificationManager.IsDisplayed(session.Id, resetDisplayTimer: true))
+					return;
 				var content = new VolumeNotificationContent(session);
 				_notificationManager.ShowNotification(content, session.Id, true, NotificationDisplayTime);
 			}

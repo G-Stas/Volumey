@@ -127,7 +127,7 @@
     <Reference Include="Hardcodet.NotifyIcon.Wpf, Version=1.1.0.0, Culture=neutral, PublicKeyToken=682384a853a08aad">
       <HintPath>Resources\Hardcodet.NotifyIcon.Wpf.dll</HintPath>
     </Reference>
-    <Reference Include="Notification.Wpf, Version=6.1.0.0, Culture=neutral, PublicKeyToken=1acac493089262b5">
+    <Reference Include="Notification.Wpf, Version=6.1.0.1, Culture=neutral, PublicKeyToken=1acac493089262b5">
       <HintPath>Resources\Notification.Wpf.dll</HintPath>
     </Reference>
   </ItemGroup>
