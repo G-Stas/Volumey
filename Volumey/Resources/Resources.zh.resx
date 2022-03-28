@@ -116,10 +116,10 @@
     <value>否</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
-    <value>之后</value>
+    <value>以后</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>有可用的更新。 您要更新应用程序吗？</value>
+    <value>有可用的更新，您要更新吗？</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
     <value>未检测到输出设备</value>
