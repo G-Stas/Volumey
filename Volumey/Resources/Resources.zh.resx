@@ -62,22 +62,22 @@
     <value>音量调整步骤</value>
   </data>
   <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>打开音量混合器（热键）</value>
+    <value>打开音量混合器（快捷键）</value>
   </data>
   <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>增大音量（热键）</value>
+    <value>增大音量（快捷键）</value>
   </data>
   <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>降低音量（热键）</value>
+    <value>降低音量（快捷键）</value>
   </data>
   <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>热键（需要启动应用程序）</value>
+    <value>快捷键（需要启动应用程序）</value>
   </data>
   <data name="Settings_Theme" xml:space="preserve">
     <value>颜色主题</value>
   </data>
   <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>杂</value>
+    <value>杂项</value>
   </data>
   <data name="Settings_Lang" xml:space="preserve">
     <value>语言</value>
@@ -86,40 +86,40 @@
     <value>声音控制面板</value>
   </data>
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
-    <value>声音设定</value>
+    <value>声音设置</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
-    <value>出口</value>
+    <value>退出</value>
   </data>
   <data name="TabHeader_Mixer" xml:space="preserve">
     <value>音量混合器</value>
   </data>
   <data name="TabHeader_Settings" xml:space="preserve">
-    <value>配置</value>
+    <value>设置</value>
   </data>
   <data name="Settings_MusicApp" xml:space="preserve">
     <value>应用</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
-    <value>设置不同的热键</value>
+    <value>设置不同的快捷键</value>
   </data>
   <data name="Error_VolumeReg" xml:space="preserve">
-    <value>无法注册热键</value>
+    <value>无法注册快捷键</value>
   </data>
   <data name="Error_OpenReg" xml:space="preserve">
-    <value>无法注册热键</value>
+    <value>无法注册快捷键</value>
   </data>
   <data name="Notification_Yes" xml:space="preserve">
-    <value>好</value>
+    <value>是</value>
   </data>
   <data name="Notification_No" xml:space="preserve">
-    <value>没有</value>
+    <value>否</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
-    <value>后来</value>
+    <value>以后</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>有可用的更新。 您要更新应用程序吗？</value>
+    <value>有可用的更新，您要更新吗？</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
     <value>未检测到输出设备</value>
@@ -128,13 +128,13 @@
     <value>F12由操作系统保留</value>
   </data>
   <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>热键已被添加</value>
+    <value>快捷键已被添加</value>
   </data>
   <data name="Settings_AddApp" xml:space="preserve">
     <value>添加应用</value>
   </data>
   <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>应用程序热键</value>
+    <value>应用程序快捷键</value>
   </data>
   <data name="Settings_DecreaseDevice" xml:space="preserve">
     <value>减小输出设备的音量</value>
@@ -146,7 +146,7 @@
     <value>移除应用</value>
   </data>
   <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>限制启动的应用程序量（如果为100％）</value>
+    <value>限制启动的应用程序音量（如果为100％）</value>
   </data>
   <data name="Settings_Tip" xml:space="preserve">
     <value>给我买杯咖啡:)</value>
@@ -155,7 +155,7 @@
     <value>添加设备</value>
   </data>
   <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>通过热键设置默认设备</value>
+    <value>通过快捷键设置默认设备</value>
   </data>
   <data name="Settings_Device" xml:space="preserve">
     <value>输出设备</value>
@@ -167,25 +167,25 @@
     <value>更改默认设备</value>
   </data>
   <data name="Settings_Hotkey" xml:space="preserve">
-    <value>热键</value>
+    <value>快捷键</value>
   </data>
   <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>阻止系统中的热键</value>
+    <value>阻止系统中的快捷键</value>
   </data>
   <data name="Settings_Duplicates" xml:space="preserve">
-    <value>允许重复热键</value>
+    <value>允许重复快捷键</value>
   </data>
   <data name="Settings_MuteDevice" xml:space="preserve">
     <value>静音输出设备</value>
   </data>
   <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>控制输出设备的热键</value>
+    <value>控制输出设备的快捷键</value>
   </data>
   <data name="Settings_Popup" xml:space="preserve">
     <value>弹出窗口模式</value>
   </data>
   <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>总在最前面</value>
+    <value>总是置顶</value>
   </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>静音</value>
