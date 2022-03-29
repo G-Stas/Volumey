@@ -15,6 +15,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		{
 			this.instance.SetDefaultEndpoint(deviceId, ERole.Console);
 			this.instance.SetDefaultEndpoint(deviceId, ERole.Multimedia);
+			this.instance.SetDefaultEndpoint(deviceId, ERole.Communications);
 		}
 	}
 }
