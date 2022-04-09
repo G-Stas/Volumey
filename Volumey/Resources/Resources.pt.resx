@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>Exibir o ícone do dispositivo de saída na bandeja do sistema</value>
   </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Comportamento da janela</value>
+  </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Configurações do mixer de volume</value>
+  </data>
 </root>

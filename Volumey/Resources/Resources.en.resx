@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>Display output device icon at the system tray</value>
   </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Volume mixer settings</value>
+  </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Window behavior</value>
+  </data>
 </root>

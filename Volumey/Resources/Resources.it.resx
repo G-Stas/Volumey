@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>Visualizza l'icona del dispositivo di output nella barra delle applicazioni</value>
   </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Comportamento della finestra</value>
+  </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Impostazioni del mixer del volume</value>
+  </data>
 </root>

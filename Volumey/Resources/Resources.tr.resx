@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>Çıkış aygıtı simgesini sistem tepsisinde görüntüle</value>
   </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Pencere davranışı</value>
+  </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Hacim karıştırıcı ayarları</value>
+  </data>
 </root>

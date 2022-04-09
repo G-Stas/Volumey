@@ -171,4 +171,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value />
+  </data>
 </root>

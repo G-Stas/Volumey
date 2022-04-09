@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>Отображать иконку устройства вывода в системном трее</value>
   </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Настройки микшера</value>
+  </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Поведение окна</value>
+  </data>
 </root>

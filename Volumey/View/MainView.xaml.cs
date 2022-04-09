@@ -225,12 +225,6 @@ namespace Volumey.View
 				actualHeight = mixer.SessionsList.ItemsControl.Items.Count * SessionControlDefaultHeight;
 				
 			}
-			else if(this.ContentFrame.Content is SettingsView settings)
-			{
-				//update layout to make sure ActualHeight is not zero
-				this.UpdateLayout();
-				actualHeight = (int)settings.ActualHeight;
-			}
 
 			if(actualHeight > maxHeight)
 			{

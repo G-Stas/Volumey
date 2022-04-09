@@ -1,5 +1,5 @@
 ﻿<ui:Page
-	x:Class="Volumey.View.SettingsPage.OpenMixerHotkeyPage"
+	x:Class="Volumey.View.SettingsPage.MixerSettingsPage"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -34,6 +34,13 @@
 				Text="{Binding ErrorMessage}"
 				Width="{StaticResource TextBlockHeaderWidth}"
 				Foreground="Red"/>
+		</StackPanel>
+		
+		<StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor, 
+									AncestorType={x:Type Window}},
+									Path=DataContext}">
+			<TextBlock Text="{lc:Localization Settings_DeviceBottom}"/>
+			<ui:ToggleSwitch IsOn="{Binding DeviceViewAtTheBottom}"/>
 		</StackPanel>
 	</StackPanel>
 </ui:Page>

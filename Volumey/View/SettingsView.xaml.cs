@@ -29,8 +29,9 @@ namespace Volumey.View
             NavLinks.Add(new NavLink("Settings_AppsHotkeys", typeof(AppsHotkeysPage)));
             NavLinks.Add(new NavLink("Settings_DeviceHotkeys", typeof(DeviceVolumeHotkeysPage)));
             NavLinks.Add(new NavLink("Settings_DefaultDeviceHotkey", typeof(DefaultDeviceHotkeysPage)));
-            NavLinks.Add(new NavLink("Settings_OpenMixer", typeof(OpenMixerHotkeyPage)));
+            NavLinks.Add(new NavLink("Settings_MixerSettings", typeof(MixerSettingsPage)));
             NavLinks.Add(new NavLink("Notifications_Header", typeof(NotificationsPage)));
+            NavLinks.Add(new NavLink("Settings_WindowBehavior", typeof(WindowBehaviorPage)));
             NavLinks.Add(new NavLink("Settings_HeaderMisc", typeof(MiscPage)));
         }
         

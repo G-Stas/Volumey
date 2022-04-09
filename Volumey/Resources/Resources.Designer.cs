@@ -144,18 +144,63 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
-        internal static string NotificationMessage_Review {
+        internal static string NotificationMessage_Update {
             get {
-                return ResourceManager.GetString("NotificationMessage_Review", resourceCulture);
+                return ResourceManager.GetString("NotificationMessage_Update", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
-        internal static string NotificationMessage_Update {
+        internal static string Notifications_Header {
             get {
-                return ResourceManager.GetString("NotificationMessage_Update", resourceCulture);
+                return ResourceManager.GetString("Notifications_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Notifications_Horizontal {
+            get {
+                return ResourceManager.GetString("Notifications_Horizontal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Notifications_Position {
+            get {
+                return ResourceManager.GetString("Notifications_Position", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Notifications_Preview {
+            get {
+                return ResourceManager.GetString("Notifications_Preview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Notifications_Time {
+            get {
+                return ResourceManager.GetString("Notifications_Time", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Notifications_Vertical {
+            get {
+                return ResourceManager.GetString("Notifications_Vertical", resourceCulture);
             }
         }
         
@@ -171,9 +216,36 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_AddDevice {
+            get {
+                return ResourceManager.GetString("Settings_AddDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_AlwaysTop {
+            get {
+                return ResourceManager.GetString("Settings_AlwaysTop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_AppsHotkeys {
             get {
                 return ResourceManager.GetString("Settings_AppsHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_BlockHotkeys {
+            get {
+                return ResourceManager.GetString("Settings_BlockHotkeys", resourceCulture);
             }
         }
         
@@ -198,9 +270,54 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_DefaultDeviceHotkey {
+            get {
+                return ResourceManager.GetString("Settings_DefaultDeviceHotkey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_Device {
+            get {
+                return ResourceManager.GetString("Settings_Device", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_DeviceBottom {
+            get {
+                return ResourceManager.GetString("Settings_DeviceBottom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_DeviceHotkeys {
             get {
                 return ResourceManager.GetString("Settings_DeviceHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_DeviceIcon {
+            get {
+                return ResourceManager.GetString("Settings_DeviceIcon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_Duplicates {
+            get {
+                return ResourceManager.GetString("Settings_Duplicates", resourceCulture);
             }
         }
         
@@ -219,6 +336,15 @@ namespace Volumey.Resources {
         internal static string Settings_HeaderMisc {
             get {
                 return ResourceManager.GetString("Settings_HeaderMisc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_Hotkey {
+            get {
+                return ResourceManager.GetString("Settings_Hotkey", resourceCulture);
             }
         }
         
@@ -252,9 +378,27 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_MixerSettings {
+            get {
+                return ResourceManager.GetString("Settings_MixerSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_MusicApp {
             get {
                 return ResourceManager.GetString("Settings_MusicApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_MuteDevice {
+            get {
+                return ResourceManager.GetString("Settings_MuteDevice", resourceCulture);
             }
         }
         
@@ -270,6 +414,15 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_Popup {
+            get {
+                return ResourceManager.GetString("Settings_Popup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_RemoveApp {
             get {
                 return ResourceManager.GetString("Settings_RemoveApp", resourceCulture);
@@ -279,9 +432,27 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_RemoveDevice {
+            get {
+                return ResourceManager.GetString("Settings_RemoveDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_Theme {
             get {
                 return ResourceManager.GetString("Settings_Theme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_Tip {
+            get {
+                return ResourceManager.GetString("Settings_Tip", resourceCulture);
             }
         }
         
@@ -306,6 +477,24 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_WindowBehavior {
+            get {
+                return ResourceManager.GetString("Settings_WindowBehavior", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Status_Muted {
+            get {
+                return ResourceManager.GetString("Status_Muted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string TabHeader_Mixer {
             get {
                 return ResourceManager.GetString("TabHeader_Mixer", resourceCulture);
@@ -318,6 +507,15 @@ namespace Volumey.Resources {
         internal static string TabHeader_Settings {
             get {
                 return ResourceManager.GetString("TabHeader_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string TrayMenu_ChangeDevice {
+            get {
+                return ResourceManager.GetString("TrayMenu_ChangeDevice", resourceCulture);
             }
         }
         

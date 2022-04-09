@@ -1,8 +1,8 @@
 ﻿namespace Volumey.View.SettingsPage
 {
-	public partial class OpenMixerHotkeyPage
+	public partial class WindowBehaviorPage
 	{
-		public OpenMixerHotkeyPage()
+		public WindowBehaviorPage()
 		{
 			InitializeComponent();
 		}

@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>Afficher l'icône du périphérique de sortie dans la barre d'état système</value>
   </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Comportement de la fenêtre</value>
+  </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Paramètres du mélangeur de volume</value>
+  </data>
 </root>

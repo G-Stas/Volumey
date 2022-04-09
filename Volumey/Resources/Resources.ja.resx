@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>システムトレイに出力デバイスアイコンを表示する</value>
   </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>ウィンドウの動作</value>
+  </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>ボリュームミキサーの設定</value>
+  </data>
 </root>

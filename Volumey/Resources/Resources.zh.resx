@@ -214,4 +214,10 @@
   <data name="Settings_DeviceIcon" xml:space="preserve">
     <value>在系统托盘中显示输出设备图标</value>
   </data>
+  <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>窗口行为</value>
+  </data>
+  <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>音量混合器设置</value>
+  </data>
 </root>
