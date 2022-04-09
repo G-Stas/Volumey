@@ -177,4 +177,10 @@
   <data name="Settings_WindowBehavior" xml:space="preserve">
     <value />
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>ボリュームミキサーの設定</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>オペレーティングシステムの起動時にアプリを起動する</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>スタートメニューにアプリを追加する</value>
+  </data>
 </root>

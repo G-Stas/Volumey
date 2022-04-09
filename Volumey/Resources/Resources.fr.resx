@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>Paramètres du mélangeur de volume</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>Lancer l'application au démarrage du système d'exploitation</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>Ajouter une application au menu Démarrer</value>
+  </data>
 </root>

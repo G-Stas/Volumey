@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>音量混合器设置</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>在操作系统启动时启动应用程序</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>将应用程序添加到开始菜单</value>
+  </data>
 </root>

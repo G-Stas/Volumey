@@ -8,6 +8,8 @@
     <Platforms>x86;x64</Platforms>
 
     <RootNamespace>BackgroundVolumeMixer.Tests</RootNamespace>
+
+    <Configurations>Debug;Release;Store</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

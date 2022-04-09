@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>Impostazioni del mixer del volume</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>Avvia l'app all'avvio del sistema operativo</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>Aggiungi l'app al menu Start</value>
+  </data>
 </root>

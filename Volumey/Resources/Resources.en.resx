@@ -220,4 +220,10 @@
   <data name="Settings_WindowBehavior" xml:space="preserve">
     <value>Window behavior</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>Launch app at OS startup</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>Add app to the Start menu</value>
+  </data>
 </root>

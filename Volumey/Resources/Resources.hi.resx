@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>वॉल्यूम मिक्सर सेटिंग्स</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>ऑपरेटिंग सिस्टम स्टार्टअप पर ऐप लॉन्च करें</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>ऐप को स्टार्ट मेन्यू में जोड़ें</value>
+  </data>
 </root>

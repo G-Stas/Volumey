@@ -124,6 +124,62 @@ namespace Volumey.ViewModel
 	        }
         }
 
+        private bool launchAtStartup;
+        public bool LaunchAtStartup
+        {
+	        get => this.launchAtStartup;
+	        set
+	        {
+		        if(value == launchAtStartup)
+			        return;
+
+		        if(value)
+			        this.launchAtStartup = SystemIntegrationHelper.EnableLaunchAtStartup();
+		        else
+		        {
+			        this.launchAtStartup = false;
+			        SystemIntegrationHelper.DisableLaunchAtStartup();
+		        }
+		        OnPropertyChanged();
+	        }
+        }
+
+        private bool addToStartMenu;
+        public bool AddToStartMenu
+        {
+	        get => this.addToStartMenu;
+	        set
+	        {
+		        if(value == addToStartMenu)
+			        return;
+
+		        if(value)
+			        addToStartMenu = SystemIntegrationHelper.AddToStartMenu();
+		        else
+		        {
+			        this.addToStartMenu = false;
+			        SystemIntegrationHelper.RemoveFromStartMenu();
+		        }
+		        OnPropertyChanged();
+	        }
+        }
+
+        public bool IsStoreVersion
+        {
+	        get
+	        {
+		        #if(STORE)
+		        {
+					return true;
+				}
+		        #else
+		        {
+			        return false; 
+		        }
+		        #endif
+	        }
+        }
+        
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
         /// </summary>
@@ -176,6 +232,12 @@ namespace Volumey.ViewModel
 			this.alwaysOnTop = SettingsProvider.Settings.AlwaysOnTop;
 			this.deviceViewAtTheBottom = SettingsProvider.Settings.DeviceViewAtTheBottom;
 			this.displayDeviceIconAtTray = SettingsProvider.Settings.DisplayDeviceIconAtTray;
+
+			if(!IsStoreVersion)
+			{
+				this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();
+				this.addToStartMenu = SystemIntegrationHelper.CheckIfStartMenuLinkExists();
+			}
 		}
 
 		/// <summary>

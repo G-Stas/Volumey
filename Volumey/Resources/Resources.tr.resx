@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>Hacim karıştırıcı ayarları</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>Uygulamayı işletim sistemi başlangıcında başlat</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>Başlat menüsüne uygulama ekle</value>
+  </data>
 </root>

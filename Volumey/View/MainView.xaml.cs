@@ -124,23 +124,6 @@ namespace Volumey.View
 
 		private IntPtr ForceCreateHwnd() => this.Hwnd = new WindowInteropHelper(this).EnsureHandle();
 
-		private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
-		{
-			SetWindowPosition();
-			#if(!DEBUG)
-			try
-			{
-				var updateIsAvailable = await UpdateHelper.CheckIfUpdateIsAvailable().ConfigureAwait(false);
-				if(updateIsAvailable)
-					await App.Current.Dispatcher.InvokeAsync(async () => await DisplayContentDialog(new UpdateDialog()));
-			}
-			catch(Exception e)
-			{
-				Logger.Error($"Failed to check for update", e);
-			}
-			#endif
-		}
-
 		private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
 			bool isVisible = (bool) e.NewValue;

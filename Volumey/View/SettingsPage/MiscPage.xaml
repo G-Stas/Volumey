@@ -16,6 +16,7 @@
 						Value="{StaticResource TextBlockWidth}"/>
 			</Style>
 			<converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+			<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 		</ResourceDictionary>
 	</ui:Page.Resources>
 	<StackPanel>
@@ -60,6 +61,16 @@
 									Path=DataContext}">
 			<TextBlock Text="{lc:Localization Settings_DeviceIcon}"/>
 			<ui:ToggleSwitch IsOn="{Binding DisplayDeviceIconAtTray}"/>
+			
+			<StackPanel Visibility="{Binding IsStoreVersion, Converter={StaticResource BoolToVisibilityConverter}}">
+				
+				<TextBlock Text="{lc:Localization Settings_LaunchStartup}"/>
+				<ui:ToggleSwitch IsOn="{Binding LaunchAtStartup}"/>
+			
+				<TextBlock Text="{lc:Localization Settings_StartMenu}"/>
+				<ui:ToggleSwitch IsOn="{Binding AddToStartMenu}"/>
+			</StackPanel>
+			
 		</StackPanel>
 		
 		<TextBlock Text="{lc:Localization Settings_Lang}"/>

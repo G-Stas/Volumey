@@ -220,4 +220,10 @@
   <data name="Settings_WindowBehavior" xml:space="preserve">
     <value>Поведение окна</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>Запускать приложение на старте системы</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>Добавить приложение в меню Пуск</value>
+  </data>
 </root>

@@ -220,4 +220,10 @@
   <data name="Settings_MixerSettings" xml:space="preserve">
     <value>Lautstärkemixer-Einstellungen</value>
   </data>
+  <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>App beim Start des Betriebssystems starten</value>
+  </data>
+  <data name="Settings_StartMenu" xml:space="preserve">
+    <value>App zum Startmenü hinzufügen</value>
+  </data>
 </root>

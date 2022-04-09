@@ -5,12 +5,12 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters
 {
-	public class PopupModeToVisibilityConverter : IValueConverter
+	public class BoolToVisibilityConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if(value is bool displayMinimalistic)
-				return displayMinimalistic ? Visibility.Hidden : Visibility.Visible;
+			if(value is bool val)
+				return val ? Visibility.Collapsed : Visibility.Visible;
 			return Binding.DoNothing;
 		}
 
