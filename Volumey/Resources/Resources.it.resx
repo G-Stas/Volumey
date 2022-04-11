@@ -226,4 +226,10 @@
   <data name="Settings_StartMenu" xml:space="preserve">
     <value>Aggiungi l'app al menu Start</value>
   </data>
+  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
+    <value>Aumenta il volume dell'applicazione in primo piano</value>
+  </data>
+  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
+    <value>Ridurre il volume dell'applicazione in primo piano</value>
+  </data>
 </root>

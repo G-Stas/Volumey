@@ -177,6 +177,16 @@ namespace Volumey.DataProvider
 			private Key DeviceMuteKey;
 			[OptionalField]
 			private ModifierKeys DeviceMuteModifiers;
+
+			[OptionalField]
+			private Key ForegroundVolumeUpKey;
+			[OptionalField]
+			private ModifierKeys ForegroundVolumeUpModifiers;
+			
+			[OptionalField]
+			private Key ForegroundVolumeDownKey;
+			[OptionalField]
+			private ModifierKeys ForegroundVolumeDownModifiers;
 			
 			/// <summary>
 			/// Default output device increase volume hotkey. Returns null if hotkey is not set. 
@@ -275,6 +285,52 @@ namespace Volumey.DataProvider
 					{
 						this.OpenMixerKey = value.Key;
 						this.OpenMixerModifiers = value.ModifierKeys;
+					}
+				}
+			}
+
+			internal HotKey ForegroundVolumeUp
+			{
+				get
+				{
+					if(ForegroundVolumeUpKey != Key.None || ForegroundVolumeUpModifiers != ModifierKeys.None)
+						return new HotKey(ForegroundVolumeUpKey, ForegroundVolumeUpModifiers);
+					return null;
+				}
+				set
+				{
+					if(value == null)
+					{
+						this.ForegroundVolumeUpKey = Key.None;
+						this.ForegroundVolumeUpModifiers = ModifierKeys.None;
+					}
+					else
+					{
+						this.ForegroundVolumeUpKey = value.Key;
+						this.ForegroundVolumeUpModifiers = value.ModifierKeys;
+					}
+				}
+			}
+			
+			internal HotKey ForegroundVolumeDown
+			{
+				get
+				{
+					if(ForegroundVolumeDownKey != Key.None || ForegroundVolumeDownModifiers != ModifierKeys.None)
+						return new HotKey(ForegroundVolumeDownKey, ForegroundVolumeDownModifiers);
+					return null;
+				}
+				set
+				{
+					if(value == null)
+					{
+						this.ForegroundVolumeDownKey = Key.None;
+						this.ForegroundVolumeDownModifiers = ModifierKeys.None;
+					}
+					else
+					{
+						this.ForegroundVolumeDownKey = value.Key;
+						this.ForegroundVolumeDownModifiers = value.ModifierKeys;
 					}
 				}
 			}

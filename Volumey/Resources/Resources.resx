@@ -183,4 +183,10 @@
   <data name="Settings_StartMenu" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

@@ -226,4 +226,10 @@
   <data name="Settings_StartMenu" xml:space="preserve">
     <value>Başlat menüsüne uygulama ekle</value>
   </data>
+  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
+    <value>Ön plan uygulamasının sesini artırın</value>
+  </data>
+  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
+    <value>Ön plan uygulamasının sesini azalt</value>
+  </data>
 </root>

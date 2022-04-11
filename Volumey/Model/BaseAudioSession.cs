@@ -13,7 +13,7 @@ namespace Volumey.Model
 {
 	public abstract class BaseAudioSession : IManagedAudioSession, INotifyPropertyChanged, IDisposable
 	{
-		protected AudioSessionStateNotificationMediator AudioSessionStateNotificationMediator { get; private set; }
+		internal AudioSessionStateNotificationMediator AudioSessionStateNotificationMediator { get; private set; }
 
 		protected int _volume;
 
@@ -44,6 +44,9 @@ namespace Volumey.Model
 		private readonly string _id;
 		public string Id => this._id;
 
+		private readonly uint _processId;
+		public uint ProcessId => this._processId;
+		
 		private ImageSource iconSource;
 		public virtual ImageSource IconSource
 		{
@@ -68,12 +71,13 @@ namespace Volumey.Model
 
 		public virtual ICommand MuteCommand { get; set; }
 
-		public BaseAudioSession(int volume, bool isMuted, string id, Icon icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null)
+		public BaseAudioSession(int volume, bool isMuted, string id, uint processId, Icon icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null)
 		{
 			this._volume = volume;
 			this._isMuted = isMuted;
 			this._id = id;
 			this._icon = icon;
+			this._processId = processId;
 			this.iconSource = icon?.GetAsImageSource();
 			this.AudioSessionStateNotificationMediator = audioSessionStateNotificationMediator;
 			this.MuteCommand = new ActionCommand(() => this.IsMuted = !this.IsMuted);

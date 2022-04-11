@@ -56,7 +56,7 @@ namespace Volumey.Model
                     else
                         this._volume = value;
 
-                    this.SetVolume(this._volume, ref GuidValue.Internal.VolumeGUID);
+                    this.SetVolume(this._volume, notify: false, ref GuidValue.Internal.VolumeGUID);
                 }
                 OnPropertyChanged();
             }
@@ -73,8 +73,8 @@ namespace Volumey.Model
 
         private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-        public AudioSessionModel(bool isMuted, int volume, string name, string id, Icon icon, IAudioSessionVolume aVolume,
-            IAudioSessionStateNotifications sStateNotifications) : base(volume, isMuted, id, icon)
+        public AudioSessionModel(bool isMuted, int volume, string name, string id, uint processId, Icon icon, IAudioSessionVolume aVolume,
+            IAudioSessionStateNotifications sStateNotifications) : base(volume, isMuted, id, processId, icon)
         {
             this._name = name;
             this.sessionVolume = aVolume;
@@ -125,13 +125,11 @@ namespace Volumey.Model
         {
             if(hotkey.Equals(this.volumeUp))
             {
-                this.SetVolume(this.Volume + HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
-                this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
+                this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
             }
             else if(hotkey.Equals(this.volumeDown))
             {
-                this.SetVolume(this.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
-                this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
+                this.SetVolume(this.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
             }
         }
 
@@ -153,9 +151,14 @@ namespace Volumey.Model
         private void OnDisconnected(AudioSessionDisconnectReason reason)
             => OnSessionEnded();
 
-        private void SetVolume(int newVol, ref Guid guid)
+        internal void SetVolume(int newVol, bool notify, ref Guid guid)
         {
-            try { this.sessionVolume?.SetVolume(newVol, ref guid); }
+            try
+            {
+                this.sessionVolume?.SetVolume(newVol, ref guid);
+                if(notify)
+                    this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
+            }
             catch(COMException com)
             {
                 LogStateException(com);
@@ -166,7 +169,7 @@ namespace Volumey.Model
             }
         }
 
-        private void SetMute(bool mute)
+        internal void SetMute(bool mute)
         {
             try { this.sessionVolume?.SetMute(mute); }
             catch(COMException com)

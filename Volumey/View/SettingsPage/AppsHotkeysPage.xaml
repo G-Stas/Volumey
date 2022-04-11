@@ -7,8 +7,7 @@
 	xmlns:lc="clr-namespace:Volumey.Localization"
 	xmlns:controls="clr-namespace:Volumey.Controls"
 	xmlns:ui="http://schemas.modernwpf.com/2019"
-	mc:Ignorable="d"
-	DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=HotkeysViewModel}">
+	mc:Ignorable="d">
 
 	<ui:Page.Resources>
 		<ResourceDictionary>
@@ -19,7 +18,8 @@
             <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{DynamicResource SystemChromeMediumColor}"/>
 		</ResourceDictionary>
 	</ui:Page.Resources>
-    <StackPanel>
+	<StackPanel>
+		<StackPanel DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=HotkeysViewModel}">
         <TextBlock
 			Text="{lc:Localization Settings_MusicApp}"
 			Width="{StaticResource TextBlockWidth}"/>
@@ -101,5 +101,30 @@
 			Text="{Binding ErrorMessage}"
 			Width="{StaticResource TextBlockHeaderWidth}"
 			Foreground="Red"/>
+	</StackPanel>
+		<StackPanel DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=ForegroundWindowVolumeViewModel}"
+					Margin="0 10 0 2">
+			<TextBlock
+				Text="{lc:Localization Settings_ForegroundVolumeUp}"
+				Width="{StaticResource TextBlockWidth}"/>
+			<controls:HotKeyBox
+				HotKey="{Binding VolumeUpHotkey}"
+				Width="{StaticResource InputBoxWidth}"
+				IsEnabled="{Binding HotkeysRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				HorizontalAlignment="Left"/>
+			<TextBlock
+				Text="{lc:Localization Settings_ForegroundVolumeDown}"
+				Width="{StaticResource TextBlockWidth}"/>
+			<controls:HotKeyBox
+				HotKey="{Binding VolumeDownHotkey}"
+				Width="{StaticResource InputBoxWidth}"
+				IsEnabled="{Binding HotkeysRegistered, Converter={StaticResource HotkeysRegisteredToEnabledConverter}}"
+				HorizontalAlignment="Left"/>
+			<ui:ToggleSwitch IsOn="{Binding HotkeysRegistered}"/>
+			<TextBlock
+				Text="{Binding ErrorMessage}"
+				Width="{StaticResource TextBlockHeaderWidth}"
+				Foreground="Red"/>
+		</StackPanel>
 	</StackPanel>
 </ui:Page>

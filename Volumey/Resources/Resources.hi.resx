@@ -226,4 +226,10 @@
   <data name="Settings_StartMenu" xml:space="preserve">
     <value>ऐप को स्टार्ट मेन्यू में जोड़ें</value>
   </data>
+  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
+    <value>अग्रभूमि अनुप्रयोग की मात्रा बढ़ाएँ</value>
+  </data>
+  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
+    <value>अग्रभूमि आवेदन की मात्रा घटाएं</value>
+  </data>
 </root>

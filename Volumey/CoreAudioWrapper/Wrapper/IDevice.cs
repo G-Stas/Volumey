@@ -127,10 +127,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			}
 			var sessionControl = (IAudioSessionControl2) sControl;
 			Process process;
+			uint processId;
 
 			try
 			{
-				Marshal.ThrowExceptionForHR(sessionControl.GetProcessId(out var processId));
+				Marshal.ThrowExceptionForHR(sessionControl.GetProcessId(out processId));
 				process = Process.GetProcessById((int) processId);
 			}
 			catch(Exception e)
@@ -205,7 +206,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				}
 
 				AudioSessionModel session =
-					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, sessionId, icon,
+					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, sessionId, processId, icon,
 					                      sessionVolume,
 					                      sessionStateNotifications);
 				return session;

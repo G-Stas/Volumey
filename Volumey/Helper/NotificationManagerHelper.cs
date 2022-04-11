@@ -121,7 +121,7 @@ namespace Volumey.Helper
 		private class DummyAudioSession : BaseAudioSession
 		{
 			public DummyAudioSession(int volume, bool isMuted, string id, Icon icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null) :
-				base(volume, isMuted, id, icon, audioSessionStateNotificationMediator)
+				base(volume, isMuted, id, uint.MinValue, icon, audioSessionStateNotificationMediator)
 			{
 				this.Name = id;
 			}

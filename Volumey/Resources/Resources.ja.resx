@@ -226,4 +226,10 @@
   <data name="Settings_StartMenu" xml:space="preserve">
     <value>スタートメニューにアプリを追加する</value>
   </data>
+  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
+    <value>フォアグラウンドアプリケーションのボリュームを増やします</value>
+  </data>
+  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
+    <value>フォアグラウンドアプリケーションのボリュームを減らします</value>
+  </data>
 </root>

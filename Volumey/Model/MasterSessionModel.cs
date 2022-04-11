@@ -92,7 +92,7 @@ namespace Volumey.Model
         
         public MasterSessionModel(string friendlyName, string desc, 
             int volume, bool muteState, string id, Icon icon,
-            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler) : base(volume, muteState, id, icon)
+            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler) : base(volume, muteState, id, uint.MinValue, icon)
         {
             this.Name = friendlyName;
             this.DeviceDesc = desc;
