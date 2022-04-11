@@ -1,4 +1,5 @@
-﻿using ModernWpf.Controls;
+﻿using System.Windows;
+using ModernWpf.Controls;
 
 namespace Volumey.View.SettingsPage
 {
@@ -7,6 +8,10 @@ namespace Volumey.View.SettingsPage
 		public MiscPage()
 		{
 			InitializeComponent();
+			
+			#if(STORE)
+			this.NonStoreControls.Visibility = Visibility.Collapsed;
+			#endif
 		}
 		
 		private void NumberBox_OnValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)

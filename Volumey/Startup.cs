@@ -55,7 +55,7 @@ namespace Volumey
 				App.InitializeExecutionTimer();
 				InitializeLoggerConfig();
 
-				#if(!DEBUG)
+				#if(STORE)
 				if(!StartMinimized)
 				{
 					try
@@ -112,25 +112,30 @@ namespace Volumey
 			#if(!DEBUG)
 			try
 			{
-				var assembly = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-				var repo = LogManager.GetRepository(Assembly.GetExecutingAssembly());
-				if(assembly != null)
+				var assembly = Assembly.GetExecutingAssembly();
+				var assemblyPath = Path.GetDirectoryName(assembly.Location);
+				var repo = LogManager.GetRepository(assembly);
+				if(assemblyPath != null)
 				{
-					var file = new FileInfo(Path.Combine(assembly, "log4net.config"));
+					var file = new FileInfo(Path.Combine(assemblyPath, "log4net.config"));
 					XmlConfigurator.Configure(repo, file);
 					try
 					{
+						#if(STORE)
 						PackageVersion ver = Package.Current?.Id?.Version ?? new PackageVersion();
 						GlobalContext.Properties["AppVer"] =
 							$"[ver.: {ver.Major.ToString()}.{ver.Minor.ToString()}.{ver.Build.ToString()}.{ver.Revision.ToString()}]";
+						#elif(!DEBUG)
+						GlobalContext.Properties["AppVer"] =
+							$"[ver.: {assembly?.GetName()?.Version?.ToString()}]";
+						#endif
+						
 					}
 					catch { }
 				}
 			}
 			catch { }
-			#endif
-			
-			#if(DEBUG)
+			#else
 			if(!string.IsNullOrEmpty(PathToDebugLogConfig))
 			{
 				var file = new FileInfo(PathToDebugLogConfig);

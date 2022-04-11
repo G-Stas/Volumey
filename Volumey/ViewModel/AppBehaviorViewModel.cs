@@ -130,6 +130,7 @@ namespace Volumey.ViewModel
 	        get => this.launchAtStartup;
 	        set
 	        {
+		        #if(!STORE)
 		        if(value == launchAtStartup)
 			        return;
 
@@ -141,6 +142,7 @@ namespace Volumey.ViewModel
 			        SystemIntegrationHelper.DisableLaunchAtStartup();
 		        }
 		        OnPropertyChanged();
+				#endif
 	        }
         }
 
@@ -150,6 +152,7 @@ namespace Volumey.ViewModel
 	        get => this.addToStartMenu;
 	        set
 	        {
+				#if(!STORE)
 		        if(value == addToStartMenu)
 			        return;
 
@@ -161,22 +164,7 @@ namespace Volumey.ViewModel
 			        SystemIntegrationHelper.RemoveFromStartMenu();
 		        }
 		        OnPropertyChanged();
-	        }
-        }
-
-        public bool IsStoreVersion
-        {
-	        get
-	        {
-		        #if(STORE)
-		        {
-					return true;
-				}
-		        #else
-		        {
-			        return false; 
-		        }
-		        #endif
+				#endif
 	        }
         }
         
@@ -233,11 +221,10 @@ namespace Volumey.ViewModel
 			this.deviceViewAtTheBottom = SettingsProvider.Settings.DeviceViewAtTheBottom;
 			this.displayDeviceIconAtTray = SettingsProvider.Settings.DisplayDeviceIconAtTray;
 
-			if(!IsStoreVersion)
-			{
-				this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();
-				this.addToStartMenu = SystemIntegrationHelper.CheckIfStartMenuLinkExists();
-			}
+			#if(!STORE)
+			this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();
+			this.addToStartMenu = SystemIntegrationHelper.CheckIfStartMenuLinkExists();
+			#endif
 		}
 
 		/// <summary>

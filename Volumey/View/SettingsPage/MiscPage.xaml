@@ -62,7 +62,7 @@
 			<TextBlock Text="{lc:Localization Settings_DeviceIcon}"/>
 			<ui:ToggleSwitch IsOn="{Binding DisplayDeviceIconAtTray}"/>
 			
-			<StackPanel Visibility="{Binding IsStoreVersion, Converter={StaticResource BoolToVisibilityConverter}}">
+			<StackPanel x:Name="NonStoreControls">
 				
 				<TextBlock Text="{lc:Localization Settings_LaunchStartup}"/>
 				<ui:ToggleSwitch IsOn="{Binding LaunchAtStartup}"/>

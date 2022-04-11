@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if(!STORE)
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
@@ -127,3 +128,4 @@ namespace Volumey.Helper
 		}
 	}
 }
+#endif
