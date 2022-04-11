@@ -232,6 +232,31 @@ namespace Volumey.Helper
         [DllImport("User32.dll")][PreserveSig]
         public static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wParam, ref IntPtr lParam);
         
+        /// <summary>
+        /// Retrieves a handle to the foreground window (the window with which the user is currently working).
+        /// </summary>
+        /// <returns>The return value is a handle to the foreground window. The foreground window can be NULL in certain circumstances, such as when a window is losing activation.</returns>
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        /// <summary>
+        /// Retrieves the identifier of the thread that created the specified window and, optionally, the identifier of the process that created the window.
+        /// </summary>
+        /// <param name="hWnd">A handle to the window.</param>
+        /// <param name="lpdwProcessId">A pointer to a variable that receives the process identifier.</param>
+        /// <returns>The return value is the identifier of the thread that created the window.</returns>
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        internal static uint GetForegroundWindowProcessId()
+        {
+            uint procId;
+            IntPtr handle = GetForegroundWindow();
+            if(GetWindowThreadProcessId(handle, out procId) > 0)
+                return procId;
+            return uint.MinValue;
+        }
+        
         [ComImport]
         [Guid("00021401-0000-0000-C000-000000000046")]
         internal class ShellLink
@@ -243,7 +268,7 @@ namespace Volumey.Helper
         [Guid("000214F9-0000-0000-C000-000000000046")]
         internal interface IShellLink
         {
-            void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszFile, int cchMaxPath, out IntPtr pfd, int fFlags);
+            void GetPath([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszFile, int cchMaxPath, out WIN32_FIND_DATA pfd, int fFlags);
             void GetIDList(out IntPtr ppidl);
             void SetIDList(IntPtr pidl);
             void GetDescription([Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszName, int cchMaxName);
@@ -261,6 +286,26 @@ namespace Volumey.Helper
             void SetRelativePath([MarshalAs(UnmanagedType.LPWStr)] string pszPathRel, int dwReserved);
             void Resolve(IntPtr hwnd, int fFlags);
             void SetPath([MarshalAs(UnmanagedType.LPWStr)] string pszFile);
+        }
+        
+        [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Auto)]
+        internal struct WIN32_FIND_DATA
+        {
+            public uint dwFileAttributes;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftCreationTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastAccessTime;
+            public System.Runtime.InteropServices.ComTypes.FILETIME ftLastWriteTime;
+            public uint nFileSizeHigh;
+            public uint nFileSizeLow;
+            public uint dwReserved0;
+            public uint dwReserved1;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst=260)]
+            public string cFileName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst=14)]
+            public string cAlternateFileName;
+            public uint dwFileType;
+            public uint dwCreatorType;
+            public uint wFinderFlags;
         }
     }
 }

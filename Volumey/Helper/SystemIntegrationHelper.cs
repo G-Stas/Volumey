@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
+using System.Text;
 using System.Windows;
 using log4net;
 using Microsoft.Win32;
@@ -15,7 +16,22 @@ namespace Volumey.Helper
 		private static ILog _logger = LogManager.GetLogger(typeof(SystemIntegrationHelper));
 		private static readonly string StartupRegistryPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
 		private static readonly string StartupRegistryKeyName = "Volumey";
-
+		private static readonly string StartupRegistryValue;
+		
+		static SystemIntegrationHelper()
+		{
+			string exePath = null;
+			try
+			{
+				exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
+				StartupRegistryValue = $"{exePath} {Startup.MinimizedArg}";
+				return;
+			}
+			catch { }
+			if(string.IsNullOrEmpty(exePath))
+				_logger.Error("Failed to retrieve .exe path.");
+		}
+		
 		private static readonly string StartMenuProgramsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
 
 		internal static bool EnableLaunchAtStartup()
@@ -28,13 +44,10 @@ namespace Volumey.Helper
 					if(CheckIfStartupRegistryKeyExists())
 						DisableLaunchAtStartup();
 
-					var exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
-					if(string.IsNullOrEmpty(exePath))
-					{
-						_logger.Error("Failed to retrieve .exe path.");
+					if(string.IsNullOrEmpty(StartupRegistryValue))
 						return false;
-					}
-					key?.SetValue(StartupRegistryKeyName, $"{exePath} {Startup.MinimizedArg}");
+
+					key?.SetValue(StartupRegistryKeyName, StartupRegistryValue);
 					return true;
 				}
 			}
@@ -74,7 +87,15 @@ namespace Volumey.Helper
 				using(var key = baseKey.OpenSubKey(StartupRegistryPath, true))
 				{
 					var value = key?.GetValue(StartupRegistryKeyName);
-					return!string.IsNullOrEmpty(value?.ToString());
+					if(!string.IsNullOrEmpty(value?.ToString()))
+					{
+						if(StartupRegistryValue.Equals(value))
+							return true;
+						//Update registry startup path to the currently launched .exe if values are not equals
+						key.SetValue(StartupRegistryKeyName, StartupRegistryValue);
+						return true;
+					}
+					return false;
 				}
 			}
 			catch(Exception e)
@@ -89,7 +110,7 @@ namespace Volumey.Helper
 			try
 			{
 				var link = (NativeMethods.IShellLink)new NativeMethods.ShellLink();
-
+				
 				var exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
 				if(string.IsNullOrEmpty(exePath))
 					return false;
@@ -119,12 +140,41 @@ namespace Volumey.Helper
 		{
 			try
 			{
-				return File.Exists(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"));
+				if(File.Exists(Path.Combine(StartMenuProgramsPath, "Volumey.lnk")))
+				{
+					UpdateStartMenuShortcutIfExePathHasChanged();
+					return true;
+				}
+				return false;
 			}
 			catch
 			{
 				return false;
 			}
+		}
+
+		private static void UpdateStartMenuShortcutIfExePathHasChanged()
+		{
+			try
+			{
+				var link = (NativeMethods.IShellLink)new NativeMethods.ShellLink();
+				IPersistFile file = (IPersistFile)link;
+				
+				file.Load(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"), (int)0x00000002L);
+				StringBuilder sb = new StringBuilder(260);
+				var data = new NativeMethods.WIN32_FIND_DATA();
+				link.GetPath(sb, sb.Capacity, out data, 0x1);
+
+				string existingShortcutExePath = sb.ToString();
+				string exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
+
+				if(!existingShortcutExePath.Equals(exePath))
+				{
+					link.SetPath(exePath);
+					file.Save(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"), false);
+				}
+			}
+			catch { }
 		}
 	}
 }
