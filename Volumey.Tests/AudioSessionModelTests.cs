@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Moq;
 using Volumey.Controls;
@@ -21,7 +22,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			this.sessionStateNotif = new Mock<IAudioSessionStateNotifications>();
 
-			this.model = new AudioSessionModel(false, 50, "app", "id", null, sessionVolumeMock.Object,
+			this.model = new AudioSessionModel(false, 50, "app", "id", UInt32.MinValue, null, sessionVolumeMock.Object,
 				sessionStateNotif.Object);
 		}
 
@@ -104,7 +105,7 @@ namespace Volumey.Tests
 			var sessionStateNotifications = new Mock<IAudioSessionStateNotifications>();
             
 			return new AudioSessionModel
-			(muteState, volume, name, id, null, 
+			(muteState, volume, name, id, UInt32.MinValue, null, 
 				sessionVolumeMock.Object, sessionStateNotifications.Object);
 		}
 	}
