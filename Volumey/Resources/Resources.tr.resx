@@ -232,4 +232,7 @@
   <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
     <value>Ön plan uygulamasının sesini azalt</value>
   </data>
+  <data name="Settings_LastPosition" xml:space="preserve">
+    <value>Son pozisyonu hatırla</value>
+  </data>
 </root>

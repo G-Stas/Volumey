@@ -167,6 +167,43 @@ namespace Volumey.ViewModel
 				#endif
 	        }
         }
+
+        private double windowLeft;
+        public double WindowLeft
+        {
+	        get => windowLeft;
+	        set
+	        {
+		        windowLeft = value;
+		        SettingsProvider.Settings.WindowLeft = value;
+		        OnPropertyChanged();
+	        }
+        }
+        
+        private double windowTop;
+        public double WindowTop
+        {
+	        get => windowTop;
+	        set
+	        {
+		        windowTop = value;
+		        SettingsProvider.Settings.WindowTop = value;
+		        OnPropertyChanged();
+	        }
+        }
+
+        private bool rememberLastPosition;
+        public bool RememberLastPosition
+        {
+	        get => rememberLastPosition;
+	        set
+	        {
+		        rememberLastPosition = value;
+		        SettingsProvider.Settings.RememberLastPosition = value;
+		        _ = SettingsProvider.SaveSettings();
+		        OnPropertyChanged();
+	        }
+        }
         
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
@@ -220,6 +257,10 @@ namespace Volumey.ViewModel
 			this.alwaysOnTop = SettingsProvider.Settings.AlwaysOnTop;
 			this.deviceViewAtTheBottom = SettingsProvider.Settings.DeviceViewAtTheBottom;
 			this.displayDeviceIconAtTray = SettingsProvider.Settings.DisplayDeviceIconAtTray;
+
+			this.windowLeft = SettingsProvider.Settings.WindowLeft;
+			this.windowTop = SettingsProvider.Settings.WindowTop;
+			this.rememberLastPosition = SettingsProvider.Settings.RememberLastPosition;
 
 			#if(!STORE)
 			this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();

@@ -232,4 +232,7 @@
   <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
     <value>Ridurre il volume dell'applicazione in primo piano</value>
   </data>
+  <data name="Settings_LastPosition" xml:space="preserve">
+    <value>Ricorda l'ultima posizione</value>
+  </data>
 </root>

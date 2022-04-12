@@ -42,6 +42,13 @@ namespace Volumey.View
         private const double NavPaneHeight = 32;
         private const int BorderIndent = 11;
 
+        public static readonly DependencyProperty RememberLastPositionProperty = DependencyProperty.Register("RememberLastPosition", typeof(bool), typeof(MainView));
+        private bool RememberLastPosition
+        {
+	        get => (bool)GetValue(RememberLastPositionProperty);
+	        set => SetValue(RememberLastPositionProperty, value);
+        }
+
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
         private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
@@ -90,6 +97,16 @@ namespace Volumey.View
 			var settingsVm = (SettingsViewModel)TryFindResource("SettingsViewModel");
 			this.HotkeyMessageHandler = settingsVm.GetHotkeyMessageHandler();
 			settingsVm.SetWindowHandle(this.Hwnd);
+
+			var appBehaviorVm = (AppBehaviorViewModel)this.DataContext;
+			var binding = new Binding
+			{
+				Source = appBehaviorVm,
+				Path = new PropertyPath("RememberLastPosition"),
+				Mode = BindingMode.OneWay,
+				UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+			};
+			BindingOperations.SetBinding(this, RememberLastPositionProperty, binding);
 		}
 
 		/// <summary>
@@ -161,6 +178,12 @@ namespace Volumey.View
 		/// </summary>
 		private void SetWindowPosition()
 		{
+			if(RememberLastPosition)
+			{
+				if(this.Top < SystemParameters.VirtualScreenHeight && this.Left < SystemParameters.VirtualScreenWidth && (this.Left + this.Width) > 0)
+					return;
+				//If work area was changed and window became out of bounds then we will reset its position ignoring the "rememember last position" flag
+			}
 			TaskBarLocation taskBarLocation = GetTaskBarLocation();
 			double topPos;
 

@@ -25,6 +25,8 @@
                   SizeToContent="Height"
                   BorderThickness="0"
                   DataContext="{StaticResource AppBehaviorViewModel}"
+                  Top="{Binding WindowTop, Mode=TwoWay}"
+                  Left="{Binding WindowLeft, Mode=TwoWay}"
                   IsVisibleChanged="OnIsVisibleChanged"
                   PreviewKeyDown="OnKeyDown"
                   Loaded="OnLoaded">

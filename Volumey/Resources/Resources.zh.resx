@@ -232,4 +232,7 @@
   <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
     <value>减少前台应用程序的音量</value>
   </data>
+  <data name="Settings_LastPosition" xml:space="preserve">
+    <value>记住最后一个位置</value>
+  </data>
 </root>

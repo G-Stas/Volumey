@@ -137,6 +137,31 @@ namespace Volumey.DataProvider
 			set => displayDeviceIconAtTray = value;
 		}
 
+		[OptionalField]
+		private double windowTop;
+		public double WindowTop
+		{
+			get => windowTop;
+			set => windowTop = value;
+		}
+		
+		[OptionalField]
+		private double windowLeft;
+		public double WindowLeft
+		{
+			get => windowLeft;
+			set => windowLeft = value;
+		}
+		
+		[OptionalField]
+		private bool rememberLastPosition;
+		public bool RememberLastPosition
+		{
+			get => rememberLastPosition;
+			set => rememberLastPosition = value;
+		}
+
+
 		// [OptionalField]
 		// private bool blockHotkeys = true;
 		// public bool BlockHotkeys

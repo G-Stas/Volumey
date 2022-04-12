@@ -26,6 +26,9 @@
 
 			<TextBlock Text="{lc:Localization Settings_AlwaysTop}"/>
 			<ui:ToggleSwitch IsOn="{Binding AlwaysOnTop}"/>
+			
+			<TextBlock Text="{lc:Localization Settings_LastPosition}"/>
+			<ui:ToggleSwitch IsOn="{Binding RememberLastPosition}"/>
 		</StackPanel>
 	</StackPanel>
 </ui:Page>
