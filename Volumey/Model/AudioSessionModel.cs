@@ -62,6 +62,17 @@ namespace Volumey.Model
             }
         }
 
+        private bool _isInactive;
+        public bool IsInactive
+        {
+            get => _isInactive;
+            set
+            {
+                _isInactive = value;
+                OnPropertyChanged();
+            }
+        }
+
         private readonly IAudioSessionStateNotifications sessionStateNotifications;
         private readonly IAudioSessionVolume sessionVolume;
         private HotKey volumeUp;
@@ -84,6 +95,7 @@ namespace Volumey.Model
             this.sessionStateNotifications.IconPathChanged += OnIconChanged;
             this.sessionStateNotifications.NameChanged += OnNameChanged;
             this.sessionStateNotifications.Disconnected += OnDisconnected;
+            this.sessionStateNotifications.StateChanged += OnStateChanged;
         }
 
         public override bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
@@ -150,6 +162,9 @@ namespace Volumey.Model
 
         private void OnDisconnected(AudioSessionDisconnectReason reason)
             => OnSessionEnded();
+        
+        private void OnStateChanged(AudioSessionState newState)
+            => this.IsInactive = newState == AudioSessionState.Inactive;
 
         internal void SetVolume(int newVol, bool notify, ref Guid guid)
         {

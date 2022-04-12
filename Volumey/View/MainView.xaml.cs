@@ -224,21 +224,16 @@ namespace Volumey.View
 			var desktopHeight = SystemParameters.WorkArea.Height;
 			var maxHeight = desktopHeight * 0.6;
 			
-			int actualHeight = 0;
-			if(this.ContentFrame.Content is MixerView mixer)
+			if(this.ContentFrame.Content is MixerView)
 			{
-				//calculate actual view height by the amount of displayed audio sessions
-				actualHeight = mixer.SessionsList.ItemsControl.Items.Count * SessionControlDefaultHeight;
-				
+				if(this.ActualHeight > maxHeight)
+				{
+					this.SizeToContent = SizeToContent.Manual;
+					this.Height = desktopHeight * 0.64;
+					return;
+				}
 			}
-
-			if(actualHeight > maxHeight)
-			{
-				this.SizeToContent = SizeToContent.Manual;
-				this.Height = desktopHeight * 0.64;
-			}
-			else
-				this.SizeToContent = SizeToContent.Height;
+			this.SizeToContent = SizeToContent.Height;
 		}
 		
 		private void ActivateIfLoaded(bool isSettingsPage, bool windowIsVisible, bool isPopupMode)

@@ -10,6 +10,7 @@
              DataContext="{StaticResource DeviceProviderViewModel}">
     <UserControl.Resources>
         <converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </UserControl.Resources>
 
     <ItemsControl
@@ -20,7 +21,8 @@
             <DataTemplate>
                 <Grid
                     Width="Auto"
-                    Margin="0 -4 0 0">
+                    Margin="0 -4 0 0"
+                    Visibility="{Binding IsInactive, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
