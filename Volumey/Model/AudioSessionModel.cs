@@ -62,16 +62,7 @@ namespace Volumey.Model
             }
         }
 
-        private bool _isInactive;
-        public bool IsInactive
-        {
-            get => _isInactive;
-            set
-            {
-                _isInactive = value;
-                OnPropertyChanged();
-            }
-        }
+        private AudioSessionState _state;
 
         private readonly IAudioSessionStateNotifications sessionStateNotifications;
         private readonly IAudioSessionVolume sessionVolume;
@@ -164,7 +155,7 @@ namespace Volumey.Model
             => OnSessionEnded();
         
         private void OnStateChanged(AudioSessionState newState)
-            => this.IsInactive = newState == AudioSessionState.Inactive;
+            => this._state = newState;
 
         internal void SetVolume(int newVol, bool notify, ref Guid guid)
         {
