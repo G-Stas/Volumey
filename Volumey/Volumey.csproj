@@ -13,8 +13,8 @@
     <Configurations>Debug;Release;Store</Configurations>
     <SelfContained>False</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyVersion>1.4.3.0</AssemblyVersion>
-    <Version>1.4.3.0</Version>
+    <AssemblyVersion>1.4.4.0</AssemblyVersion>
+    <Version>1.4.4.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
