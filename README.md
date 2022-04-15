@@ -17,6 +17,7 @@
 ## Features
 - Global hotkeys to control the volume of any application
 - Global hotkeys to control the volume of current output device
+- Global hotkeys to control the volume of foreground application
 - Global hotkeys to mute current output device
 - Global hotkeys to change your default output device to another active device
 - Set active output device as the default one by selecting it in the tray icon context menu
@@ -37,9 +38,9 @@
 
 ## Built With
 - [ModernWPF](https://github.com/Kinnara/ModernWpf)
-- [FluentWPF](https://github.com/sourcechord/FluentWPF)
 - [NotifyIcon](https://github.com/G-Stas/wpf-notifyicon)
 - [Notifications.Wpf](https://github.com/G-Stas/Notification.Wpf)
+- [AutoUpdater.NET](https://github.com/ravibpatel/AutoUpdater.NET)
 
 ## Copyright
 Volumey is provided under the [GPL-3.0 License](https://github.com/G-Stas/Volumey/blob/main/LICENSE)
