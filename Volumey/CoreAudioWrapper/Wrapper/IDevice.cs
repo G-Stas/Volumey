@@ -148,9 +148,12 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 				try
 				{
+					sessionName = FileVersionInfo.GetVersionInfo(process.MainModule.FileName).FileDescription;
+				}
+				catch
+				{
 					sessionName = process.ProcessName;
 				}
-				catch { }
 
 				if(sessionControl.IsNotSystemSounds())
 				{
