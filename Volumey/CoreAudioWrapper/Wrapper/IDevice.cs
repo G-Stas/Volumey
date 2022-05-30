@@ -148,7 +148,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 				try
 				{
-					sessionName = FileVersionInfo.GetVersionInfo(process.MainModule.FileName).FileDescription;
+					FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(process.MainModule.FileName);
+					if(!string.IsNullOrEmpty(fileInfo.FileDescription))
+						sessionName = fileInfo.FileDescription;
+					else 
+						sessionName = process.ProcessName;
 				}
 				catch
 				{
