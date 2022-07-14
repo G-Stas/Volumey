@@ -17,6 +17,7 @@ using log4net;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
+using Volumey.DataProvider;
 using Volumey.View.DialogContent;
 
 namespace Volumey.View
@@ -77,7 +78,7 @@ namespace Volumey.View
             //register the app to restart it automatically in case it's going to be updated while running
             NativeMethods.RegisterApplicationRestart(Startup.MinimizedArg, RESTART_NO_REBOOT);
 
-            this.ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: this.ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: false));
+            this.ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: this.ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: Startup.StartMinimized && SettingsProvider.Settings.PopupEnabled));
             if(this.DataContext is AppBehaviorViewModel vm)
 	            vm.DisplayAppRequested += ActivateIfLoaded;
             
