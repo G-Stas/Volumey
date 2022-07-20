@@ -1,93 +1,186 @@
 ﻿<UserControl x:Class="Volumey.View.SessionsListView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d"
-             xmlns:controls1="http://schemas.modernwpf.com/2019"
-             xmlns:controls="clr-namespace:Volumey.Controls"
-             xmlns:converters="clr-namespace:Volumey.View.Converters"
-             DataContext="{StaticResource DeviceProviderViewModel}">
-    <UserControl.Resources>
-        <converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
-    </UserControl.Resources>
+			 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 mc:Ignorable="d"
+			 xmlns:controls1="http://schemas.modernwpf.com/2019"
+			 xmlns:controls="clr-namespace:Volumey.Controls"
+			 xmlns:converters="clr-namespace:Volumey.View.Converters"
+			 DataContext="{StaticResource DeviceProviderViewModel}">
+	<UserControl.Resources>
+		<converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
+		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+		<converters:CollectionCountToVisibilityConverter x:Key="SessionsCountToVisibilityConverter" CountLimit="1"/>
+		
+		<!-- Override default toggle button style resources-->
+		<SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="Transparent"/>
+		<SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="{DynamicResource SystemBaseMediumLowColor}"/>
+		<SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver" Color="{DynamicResource SystemBaseMediumLowColor}"/>
+		<SolidColorBrush x:Key="ToggleButtonBackgroundPressed" Color="{DynamicResource SystemBaseMediumColor}"/>
+		<SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="{DynamicResource SystemBaseMediumColor}"/>
+	</UserControl.Resources>
 
-    <ItemsControl
-        x:Name="ItemsControl"
-        ItemsSource="{Binding SelectedDevice.Sessions}"
-        Width="Auto">
-        <ItemsControl.ItemTemplate>
-            <DataTemplate>
-                <Grid
-                    Width="Auto"
-                    Margin="0 -4 0 0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
+	<ItemsControl x:Name="ItemsControl"
+				  ItemsSource="{Binding SelectedDevice.Processes}"
+				  Width="Auto">
+		<ItemsControl.ItemTemplate>
+			<DataTemplate>
+				<Grid Width="Auto">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition/>
+						<RowDefinition/>
+						<RowDefinition/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
 
-                    <Label
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Content="{Binding Name}"
-                        Width="{StaticResource SliderWidth}"
-                        Height="Auto"
-                        HorizontalAlignment="Left"
-                        VerticalContentAlignment="Bottom"
-                        VerticalAlignment="Bottom"
-                        Margin="7 0 0 -2" />
-                    <Image
-                        Grid.Column="0"
-                        Grid.Row="1"
-                        Source="{Binding IconSource}"
-                        RenderOptions.BitmapScalingMode="HighQuality"
-                        VerticalAlignment="Center"
-                        Margin="{StaticResource ImageMargin}"
-                        Height="{StaticResource ImageSize}"
-                        Width="{StaticResource ImageSize}" />
-                    <controls:VolumeSlider
-                        Grid.Column="1"
-                        Grid.Row="1"
-                        x:Name="SessionSlider"
-                        Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                        Width="{StaticResource SliderWidth}"
-                        Height="{StaticResource SliderHeight}"
-                        Margin="2 0 0 0"
-                        VerticalAlignment="Center">
-                        <controls:VolumeSlider.IsMuted>
-                            <MultiBinding Converter="{StaticResource AnyPropertyIsTrueConverter}">
-                                <Binding Path="IsMuted"/>
-                                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.IsMuted"/>
-                            </MultiBinding> 
-                        </controls:VolumeSlider.IsMuted>
-                    </controls:VolumeSlider>
-                    <Label
-                        Grid.Column="2"
-                        Grid.Row="1"
-                        Content="{Binding Volume}"
-                        Width="45"
-                        HorizontalContentAlignment="Center"
-                        VerticalAlignment="Center"
-                        Margin="0 -1 0 0"/>
-                    <controls1:AppBarButton
-                        Grid.Column="3"
-                        Grid.Row="1"
-                        Command="{Binding MuteCommand}"
-                        Margin="-5 -3 0 0">
-                        <controls1:AppBarButton.Icon>
-                            <controls1:FontIcon
-                                FontFamily="Segoe MDL2 Assets"
-                                Glyph="{Binding IsMuted, Converter={StaticResource MutedToGlyphConverter}}" />
-                        </controls1:AppBarButton.Icon>
-                    </controls1:AppBarButton>
-                </Grid>
-            </DataTemplate>
-        </ItemsControl.ItemTemplate>
-    </ItemsControl>
+					<ToggleButton Grid.Row="0"
+								  Grid.Column="0"
+								  Grid.ColumnSpan="4"
+								  Height="20"
+								  Width="30"
+								  Background="Transparent"
+								  BorderThickness="0"
+								  HorizontalAlignment="Center"
+								  VerticalContentAlignment="Center"
+								  FontSize="8"
+								  IsChecked="True"
+								  Visibility="{Binding Sessions.Count, Converter={StaticResource SessionsCountToVisibilityConverter}}"
+								  x:Name="_toggle">
+						<ToggleButton.Style>
+							<Style TargetType="ToggleButton"
+								   BasedOn="{StaticResource DefaultToggleButtonStyle}">
+								<Setter Property="Content" Value="▼"/>
+								<Style.Triggers>
+									<Trigger Property="IsChecked" Value="True">
+										<Setter Property="Content" Value="▲"/>
+									</Trigger>
+								</Style.Triggers>
+							</Style>
+						</ToggleButton.Style>
+					</ToggleButton>
+					
+					<Label Grid.Row="1"
+						   Grid.Column="1"
+						   Content="{Binding Name}"
+						   Width="{StaticResource SliderWidth}"
+						   Height="Auto"
+						   HorizontalAlignment="Left"
+						   VerticalContentAlignment="Bottom"
+						   VerticalAlignment="Bottom"
+						   Margin="7 0 0 -2"/>
+
+					<Image Grid.Column="0"
+						   Grid.Row="2"
+						   Source="{Binding IconSource}"
+						   RenderOptions.BitmapScalingMode="HighQuality"
+						   VerticalAlignment="Center"
+						   Margin="{StaticResource ImageMargin}"
+						   Height="{StaticResource ImageSize}"
+						   Width="{StaticResource ImageSize}"/>
+					<controls:VolumeSlider Grid.Column="1"
+										   Grid.Row="2"
+										   x:Name="SessionSlider"
+										   Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+										   Width="{StaticResource SliderWidth}"
+										   Height="{StaticResource SliderHeight}"
+										   Margin="2 0 0 0"
+										   VerticalAlignment="Center">
+						<controls:VolumeSlider.IsMuted>
+							<MultiBinding Converter="{StaticResource AnyPropertyIsTrueConverter}">
+								<Binding Path="IsMuted"/>
+								<Binding Source="{StaticResource DeviceProviderViewModel}"
+										 Path="DefaultDevice.Master.IsMuted"/>
+							</MultiBinding>
+						</controls:VolumeSlider.IsMuted>
+					</controls:VolumeSlider>
+					<Label Grid.Column="2"
+						   Grid.Row="2"
+						   Content="{Binding Volume}"
+						   Width="45"
+						   HorizontalContentAlignment="Center"
+						   VerticalAlignment="Center"
+						   Margin="0 -1 0 0"/>
+					<controls1:AppBarButton Grid.Column="3"
+											Grid.Row="2"
+											Command="{Binding MuteCommand}"
+											Margin="-5 -3 0 0">
+						<controls1:AppBarButton.Icon>
+							<controls1:FontIcon FontFamily="Segoe MDL2 Assets"
+												Glyph="{Binding IsMuted, Converter={StaticResource MutedToGlyphConverter}}"/>
+						</controls1:AppBarButton.Icon>
+					</controls1:AppBarButton>
+
+					<ItemsControl x:Name="ItemsControl"
+								  Grid.Row="3"
+								  Grid.Column="0"
+								  Grid.ColumnSpan="4"
+								  ItemsSource="{Binding Sessions}"
+								  Width="Auto"
+								  Visibility="{Binding ElementName=_toggle, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate>
+								<Grid Width="Auto"
+									  Margin="15 5 0 0">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto"/>
+										<ColumnDefinition Width="Auto"/>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+									</Grid.ColumnDefinitions>
+									
+									<Image Grid.Column="0"
+										   Source="{Binding IconSource}"
+										   RenderOptions.BitmapScalingMode="HighQuality"
+										   VerticalAlignment="Center"
+										   Margin="{StaticResource ImageMargin}"
+										   Height="{StaticResource ImageSize}"
+										   Width="{StaticResource ImageSize}"/>
+									
+									<controls:VolumeSlider Grid.Column="1"
+														   x:Name="SessionSlider"
+														   Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+														   Width="230"
+														   Height="{StaticResource SliderHeight}"
+														   Margin="2 0 0 0"
+														   VerticalAlignment="Center">
+										<controls:VolumeSlider.IsMuted>
+											<MultiBinding Converter="{StaticResource AnyPropertyIsTrueConverter}">
+												<Binding Path="IsMuted"/>
+												<Binding Source="{StaticResource DeviceProviderViewModel}"
+														 Path="DefaultDevice.Master.IsMuted"/>
+											</MultiBinding>
+										</controls:VolumeSlider.IsMuted>
+									</controls:VolumeSlider>
+									
+									<Label Grid.Column="2"
+										   Content="{Binding Volume}"
+										   Width="45"
+										   HorizontalContentAlignment="Center"
+										   VerticalAlignment="Center"
+										   Margin="0 -1 0 0"/>
+									
+									<controls1:AppBarButton Grid.Column="3"
+															Command="{Binding MuteCommand}"
+															Margin="-10 -3 0 0">
+										<controls1:AppBarButton.Icon>
+											<controls1:FontIcon FontFamily="Segoe MDL2 Assets"
+																Glyph="{Binding IsMuted, Converter={StaticResource MutedToGlyphConverter}}"/>
+										</controls1:AppBarButton.Icon>
+									</controls1:AppBarButton>
+									
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Grid>
+			</DataTemplate>
+		</ItemsControl.ItemTemplate>
+	</ItemsControl>
 </UserControl>

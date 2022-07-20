@@ -55,7 +55,7 @@
 				<Button
 					Content="{lc:Localization Settings_RemoveDevice}"
 					Command="{Binding RemoveDeviceCommand}"
-					Visibility="{Binding RegisteredDevices.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+					Visibility="{Binding RegisteredDevices.Keys.Count, Converter={StaticResource RegisteredSessionsCountToVisibilityConverter}}"
 					IsEnabled="{Binding SelectedRegDev, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
 					Margin="0 3 3 0"/>
 			</WrapPanel>
@@ -64,7 +64,7 @@
 				DockPanel.Dock="Top"
 				ItemsSource="{Binding RegisteredDevices}"
 				SelectedItem="{Binding SelectedRegDev}"
-				Visibility="{Binding RegisteredDevices.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+				Visibility="{Binding RegisteredDevices.Keys.Count, Converter={StaticResource RegisteredSessionsCountToVisibilityConverter}}"
 				Margin="0 3 0 0"
 				Style="{StaticResource SettingsComboBoxStyle}">
 				<ComboBox.ItemTemplate>

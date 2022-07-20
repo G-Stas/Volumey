@@ -363,7 +363,7 @@ namespace Volumey.DataProvider
 			[OptionalField]
 			private Dictionary<string, (SerializableHotkey up, SerializableHotkey down)> serializableRegisteredSessions;
 
-			internal ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> GetRegisteredSessions()
+			internal ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> GetRegisteredProcesses()
 			{
 				var dictionary = new ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>>();
 				if(this.serializableRegisteredSessions == null)
@@ -431,11 +431,11 @@ namespace Volumey.DataProvider
 				return false;
 			}
 
-			internal void AddRegisteredSession(string sessionName, Tuple<HotKey, HotKey> hotkeys)
+			internal void AddRegisteredProcess(string processName, Tuple<HotKey, HotKey> hotkeys)
 			{
-				if(sessionName == null || hotkeys.Item1 == null || hotkeys.Item2 == null)
+				if(processName == null || hotkeys.Item1 == null || hotkeys.Item2 == null)
 					return;
-				this.serializableRegisteredSessions.Add(sessionName, hotkeys.ToTuple());
+				this.serializableRegisteredSessions.Add(processName, hotkeys.ToTuple());
 			}
 
 			internal void RemoveRegisteredSession(string sessionName)

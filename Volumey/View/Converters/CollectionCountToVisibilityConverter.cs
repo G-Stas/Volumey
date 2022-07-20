@@ -7,10 +7,14 @@ namespace Volumey.View.Converters
 {
 	public class CollectionCountToVisibilityConverter : IValueConverter
 	{
+		public int CountLimit { get; set; }
+		
 		public object Convert(object listCount, Type targetType, object parameter, CultureInfo culture)
 		{
 			if(listCount is int count)
-				return count == 0 ? Visibility.Collapsed : Visibility.Visible;
+			{
+				return count == CountLimit ? Visibility.Collapsed : Visibility.Visible;
+			}
 			return Visibility.Visible;
 		}
 

@@ -1,10 +1,14 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using log4net;
+using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -15,10 +19,10 @@ namespace Volumey.Model
     /// <summary>
     /// Represents an audio session and the volume control of an application 
     /// </summary>
-    public sealed class AudioSessionModel : BaseAudioSession
+    public sealed class AudioSessionModel : IManagedAudioSession
     {
         private string _name;
-        public override string Name
+        public string Name
         {
             get => _name;
             set
@@ -27,8 +31,15 @@ namespace Volumey.Model
                 OnPropertyChanged();
             }
         }
+        
+        private readonly string _id;
+        public string Id => this._id;
 
-        public override bool IsMuted
+        private readonly uint _processId;
+        public uint ProcessId => this._processId;
+
+        private bool _isMuted;
+        public bool IsMuted
         {
             get => this._isMuted;
             set
@@ -37,17 +48,19 @@ namespace Volumey.Model
                 {
                     this._isMuted = value;
                     this.SetMute(value);
+                    this.MuteStateChanged?.Invoke(value);
                     OnPropertyChanged();
                 }
             }
         }
 
-        public override int Volume
+        private int _volume;
+        public int Volume
         {
             get => _volume;
             set
             {
-                if (this._volume != value)
+                if(this._volume != value)
                 {
                     if (value < 0)
                         this._volume = 0;
@@ -56,84 +69,46 @@ namespace Volumey.Model
                     else
                         this._volume = value;
 
-                    this.SetVolume(this._volume, notify: false, ref GuidValue.Internal.VolumeGUID);
+                    this.VolumeChanged?.Invoke(value);
+                    this.SetVolume(this._volume, ref GuidValue.Internal.VolumeGUID);
                 }
                 OnPropertyChanged();
             }
         }
+        
+        public ImageSource IconSource { get; set; }
+        
+        public ICommand MuteCommand { get; set; }
 
         private AudioSessionState _state;
 
         private readonly IAudioSessionStateNotifications sessionStateNotifications;
         private readonly IAudioSessionVolume sessionVolume;
-        private HotKey volumeUp;
-        private HotKey volumeDown;
         public event Action<AudioSessionModel> SessionEnded;
+        public event Action<int> VolumeChanged;
+        public event Action<bool> MuteStateChanged;
 
         private static ILog logger;
         private static ILog Logger => logger ??= LogManager.GetLogger(typeof(AudioSessionModel));
 
         private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-        public AudioSessionModel(bool isMuted, int volume, string name, string id, uint processId, Icon icon, IAudioSessionVolume aVolume,
-            IAudioSessionStateNotifications sStateNotifications) : base(volume, isMuted, id, processId, icon)
+        public AudioSessionModel(bool isMuted, int volume, string id, uint processId, IAudioSessionVolume aVolume,
+            IAudioSessionStateNotifications sStateNotifications)
         {
-            this._name = name;
-            this.sessionVolume = aVolume;
-            this.sessionStateNotifications = sStateNotifications;
-            this.sessionStateNotifications.VolumeChanged += OnVolumeChanged;
-            this.sessionStateNotifications.SessionEnded += OnSessionEnded;
-            this.sessionStateNotifications.IconPathChanged += OnIconChanged;
-            this.sessionStateNotifications.NameChanged += OnNameChanged;
-            this.sessionStateNotifications.Disconnected += OnDisconnected;
-            this.sessionStateNotifications.StateChanged += OnStateChanged;
-        }
-
-        public override bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
-        {
-            try
-            {
-                if(volUp != null && volDown != null && HotkeysControl.RegisterHotkeysPair(volUp, volDown))
-                {
-                    this.volumeUp = volUp;
-                    this.volumeDown = volDown;
-                    HotkeysControl.HotkeyPressed += OnHotkeyPressed;
-                    return true;
-                }
-            }
-            catch { }
-            return false; 
-        }
-
-        public override void ResetVolumeHotkeys()
-        {
-            this.UnregisterHotkeys();
-        }
-        
-        private void UnregisterHotkeys()
-        {
-            if(this.volumeUp != null && this.volumeDown != null)
-            {
-                try
-                {
-                    HotkeysControl.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
-                }
-                catch { }
-            }
-            HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
-            this.volumeUp = this.volumeDown = null;
-        }
-
-        private void OnHotkeyPressed(HotKey hotkey)
-        {
-            if(hotkey.Equals(this.volumeUp))
-            {
-                this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
-            }
-            else if(hotkey.Equals(this.volumeDown))
-            {
-                this.SetVolume(this.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
-            }
+            _isMuted = isMuted;
+            _volume = volume;
+            _id = id;
+            _processId = processId;
+            sessionVolume = aVolume;
+            sessionStateNotifications = sStateNotifications;
+            sessionStateNotifications.VolumeChanged += OnVolumeChanged;
+            sessionStateNotifications.SessionEnded += OnSessionEnded;
+            sessionStateNotifications.NameChanged += OnNameChanged;
+            sessionStateNotifications.Disconnected += OnDisconnected;
+            sessionStateNotifications.StateChanged += OnStateChanged;
+            
+            MuteCommand = new ActionCommand(() => this.IsMuted = !this.IsMuted);
         }
 
         private void OnSessionEnded()
@@ -145,9 +120,6 @@ namespace Volumey.Model
             this.IsMuted = e.IsMuted;
         }
 
-        private void OnIconChanged(ImageSource newIcon) 
-            => dispatcher.Invoke(() => { this.IconSource = newIcon; });
-
         private void OnNameChanged(string newName)
             => dispatcher.Invoke(() => { this.Name = newName; });
 
@@ -157,13 +129,11 @@ namespace Volumey.Model
         private void OnStateChanged(AudioSessionState newState)
             => this._state = newState;
 
-        internal void SetVolume(int newVol, bool notify, ref Guid guid)
+        internal void SetVolume(int newVol, ref Guid guid)
         {
             try
             {
                 this.sessionVolume?.SetVolume(newVol, ref guid);
-                if(notify)
-                    this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
             }
             catch(COMException com)
             {
@@ -197,13 +167,15 @@ namespace Volumey.Model
         {
             Logger.Info("Failed to change state of the audio session", e);
         }
+        
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        public override void Dispose()
+        public void Dispose()
         {
-            base.Dispose();
             this.sessionStateNotifications.VolumeChanged -= OnVolumeChanged;
             this.sessionStateNotifications.SessionEnded -= OnSessionEnded;
-            this.sessionStateNotifications.IconPathChanged -= OnIconChanged;
             this.sessionStateNotifications.NameChanged -= OnNameChanged;
             this.sessionStateNotifications.Disconnected -= OnDisconnected;
             this.sessionStateNotifications.Dispose();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -48,11 +49,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 					(IAudioSessionManager2) device.Activate(new Guid(GuidValue.External.IAudioSessionManager2));
 				sessionManager.GetSessionEnumerator(out IAudioSessionEnumerator sessionEnum);
 		
-				var sessions = device.GetCurrentSessionList(sessionEnum);
+				var processes = device.GetCurrentProcessList(sessionEnum);
 				var sessionProvider = new AudioSessionProvider(sessionManager);
 				var master = device.GetMaster();
 		
-				return new OutputDeviceModel(device, deviceStateNotificationHandler, sessionProvider, master, sessions);
+				return new OutputDeviceModel(device, deviceStateNotificationHandler, sessionProvider, master, processes);
 			}
 			catch(Exception e)
 			{
@@ -90,9 +91,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			}
 		}
 		
-		private static ObservableCollection<AudioSessionModel> GetCurrentSessionList(this IDevice device, IAudioSessionEnumerator sessionEnum)
+		private static List<AudioProcessModel> GetCurrentProcessList(this IDevice device, IAudioSessionEnumerator sessionEnum)
 		{
-			var list = new ObservableCollection<AudioSessionModel>();
+			Dictionary<uint, AudioProcessModel> processes = new Dictionary<uint, AudioProcessModel>();
+			var list = new List<AudioProcessModel>();
 		
 			if(sessionEnum == null)
 				return list;
@@ -103,14 +105,32 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				try
 				{
 					sessionEnum.GetSession(i, out IAudioSessionControl sessionControl);
-					var session = sessionControl.GetAudioSessionModel(out bool isSystemSession);
-					if(session != null)
+					var session = sessionControl.GetAudioSessionModel();
+
+					if(session == null)
+						continue;
+					
+					if(processes.TryGetValue(session.ProcessId, out AudioProcessModel process))
 					{
-						//put system session on top of the session list
-						if(isSystemSession)
-							list.Insert(0, session);
+						session.Name = process.Name;
+						process.AddSession(session);
+					}
+					else
+					{
+						AudioProcessModel model = session.GetProcessModelFromSessionModel((IAudioSessionControl2)sessionControl, out bool isSystemSounds);
+						
+						if(model == null)
+							continue;
+						
+						model.AddSession(session);
+						session.Name = model.Name;
+						processes.Add(session.ProcessId, model);
+
+						//put system sounds model on top of the session list
+						if(isSystemSounds)
+							list.Insert(0, model);
 						else
-							list.Add(session);
+							list.Add(model);
 					}
 				}
 				catch { }
@@ -118,74 +138,61 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			return list;
 		}
 
-		internal static AudioSessionModel GetAudioSessionModel(this IAudioSessionControl sControl, out bool isSystemSession)
+		private static AudioProcessModel GetProcessModelFromSessionModel(this AudioSessionModel session, IAudioSessionControl sControl, out bool isSystemSounds)
 		{
-			if(sControl == null)
-			{
-				isSystemSession = false;
-				return null;
-			}
-			var sessionControl = (IAudioSessionControl2) sControl;
-			Process process;
-			uint processId;
+			Process proc;
+			isSystemSounds = false;
 
 			try
 			{
-				Marshal.ThrowExceptionForHR(sessionControl.GetProcessId(out processId));
-				process = Process.GetProcessById((int) processId);
+				proc = Process.GetProcessById((int)session.ProcessId);
 			}
 			catch(Exception e)
 			{
 				Logger.Error($"Failed to get session process", e);
-				isSystemSession = false;
 				return null;
+			}
+
+			Icon icon = null;
+			string processName;
+
+			try
+			{
+				FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(proc.MainModule.FileName);
+				if(!string.IsNullOrEmpty(fileInfo.FileDescription))
+					processName = fileInfo.FileDescription;
+				else
+					processName = proc.ProcessName;
+			}
+			catch
+			{
+				processName = proc.ProcessName;
 			}
 
 			try
 			{
-				Icon icon = null;
-				string sessionName = string.Empty;
-
-				try
+				if(((IAudioSessionControl2)sControl).IsSystemSounds())
 				{
-					FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(process.MainModule.FileName);
-					if(!string.IsNullOrEmpty(fileInfo.FileDescription))
-						sessionName = fileInfo.FileDescription;
-					else 
-						sessionName = process.ProcessName;
-				}
-				catch
-				{
-					sessionName = process.ProcessName;
-				}
-
-				if(sessionControl.IsNotSystemSounds())
-				{
-					App.Current.Dispatcher.Invoke(() => icon = ExtractSessionIcon(process, sControl));
-					isSystemSession = false;
-				}
-				else
-				{
-					isSystemSession = true;
+					isSystemSounds = true;
 					//check if the system language was changed to get a new localized name for the system sounds session
 					var systemLanguage = TranslationSource.GetSystemLanguage();
 					if(SettingsProvider.Settings.SystemSoundsName == null ||
 					   SettingsProvider.Settings.SystemLanguage != systemLanguage)
 					{
 						//returns resources "DllPath,index"
-						sessionName = sControl.GetSystemSoundsName();
+						processName = sControl.GetSystemSoundsName();
 						SettingsProvider.Settings.SystemLanguage = systemLanguage;
-						SettingsProvider.Settings.SystemSoundsName = sessionName;
+						SettingsProvider.Settings.SystemSoundsName = processName;
 						SettingsProvider.SaveSettings().GetAwaiter().GetResult();
 					}
 					else
-						sessionName = SettingsProvider.Settings.SystemSoundsName;
+						processName = SettingsProvider.Settings.SystemSoundsName;
 
 					try
 					{
 						App.Current.Dispatcher.Invoke(() =>
 						{
-							icon = 
+							icon =
 								Icon.ExtractAssociatedIcon(Environment.ExpandEnvironmentVariables("%SystemRoot%\\System32\\AudioSrv.dll"));
 						});
 					}
@@ -194,35 +201,51 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 						Logger.Error($"Failed to extract system sounds icon from AudioSrv.dll.", e);
 					}
 				}
+				else
+				{
+					App.Current.Dispatcher.Invoke(() => icon = ExtractSessionIcon(proc, sControl));
+				}
+			}
+			catch(Exception e)
+			{
+				Logger.Error($"Failed to create process model from session model, process: [{processName}]", e);
+				return null;
+			}
+			AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, icon, proc);
+			return model;
+		}
 
+		internal static AudioProcessModel GetProcessModelFromSessionModel(this AudioSessionModel session, IAudioSessionControl sControl)
+		{
+			return session.GetProcessModelFromSessionModel(sControl, out bool systemSounds);
+		}
+
+		internal static AudioSessionModel GetAudioSessionModel(this IAudioSessionControl sControl)
+		{
+			var sessionControl = (IAudioSessionControl2) sControl;
+			sessionControl.GetProcessId(out uint processId);
+
+			try
+			{
 				var sessionVolume = new AudioSessionVolume(sessionControl);
 				var muteState = sessionVolume.GetMute();
 				var volume = sessionVolume.GetVolume();
 				sessionControl.GetSessionIdentifier(out var sessionId);
 
-				AudioSessionStateNotifications sessionStateNotifications =
-					new AudioSessionStateNotifications(sessionControl);
+				AudioSessionStateNotifications sessionStateNotifications = new AudioSessionStateNotifications(sessionControl);
 
-				try
-				{
-					sessionStateNotifications.RegisterNotifications();
-				}
-				catch(Exception e)
-				{
-					Logger.Error($"Failed to register audio session notifications, process: [{sessionName}]", e);
-				}
+				try { sessionStateNotifications.RegisterNotifications(); }
+				catch { }
 
-				AudioSessionModel session =
-					new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionName, sessionId, processId, icon,
+				AudioSessionModel session = new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionId, processId, 
 					                      sessionVolume,
 					                      sessionStateNotifications);
 				return session;
 			}
 			catch(Exception e)
 			{
-				Logger.Error($"Failed to create audio session model, process: [{process.ProcessName}]", e);
+				Logger.Error($"Failed to create audio session model", e);
 			}
-			isSystemSession = false;
 			return null;
 		}
 
@@ -281,7 +304,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			return icon ?? IconHelper.GenericExeIcon;
 		}
 
-		private static bool IsNotSystemSounds(this IAudioSessionControl2 sc) => sc.IsSystemSoundsSession().Equals(0x1);
+		private static bool IsSystemSounds(this IAudioSessionControl2 sc) => sc.IsSystemSoundsSession().Equals(0x0);
 
 		private static string GetSystemSoundsName(this IAudioSessionControl sc)
 		{

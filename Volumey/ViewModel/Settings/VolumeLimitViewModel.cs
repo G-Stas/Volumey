@@ -34,7 +34,7 @@ namespace Volumey.ViewModel.Settings
 					this.defaultDevice = deviceProvider.DefaultDevice;
 					if(this.defaultDevice != null)
 					{
-						this.defaultDevice.SessionCreated += OnSessionCreated;
+						this.defaultDevice.ProcessCreated += OnProcessCreated;
 					}
 				}
 				else
@@ -42,20 +42,20 @@ namespace Volumey.ViewModel.Settings
 					this.deviceProvider.DefaultDeviceChanged -= OnDefaultDeviceChanged;
 					if(this.defaultDevice != null)
 					{
-						this.defaultDevice.SessionCreated -= OnSessionCreated;
+						this.defaultDevice.ProcessCreated -= OnProcessCreated;
 					}
 					this.defaultDevice = null;
 				}
-				Task.Run(() =>
+				if(SettingsProvider.Settings.VolumeLimitIsOn != value)
 				{
-					if(SettingsProvider.Settings.VolumeLimitIsOn != value)
+					Task.Run(() =>
 					{
 						if(isOn)
 							Logger.Info($"Volume limit enabled, vol: [{this.VolumeLimit}]");
 						SettingsProvider.Settings.VolumeLimitIsOn = value;
-						_ = SettingsProvider.SaveSettings();	
-					}
-				});
+						_ = SettingsProvider.SaveSettings();
+					});
+				}
 				OnPropertyChanged();
 			}
 		}
@@ -73,21 +73,21 @@ namespace Volumey.ViewModel.Settings
 			this.IsOn = SettingsProvider.Settings.VolumeLimitIsOn;
 		}
 
-		private void OnSessionCreated(AudioSessionModel newSession)
-		{
-			if(newSession.Volume == 100)
-				newSession.Volume = this.VolumeLimit;
-		}
-
 		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
 			if(this.defaultDevice != null)
-				this.defaultDevice.SessionCreated -= OnSessionCreated;
+				this.defaultDevice.ProcessCreated -= OnProcessCreated;
 			this.defaultDevice = newDevice;
 			if(this.IsOn && newDevice != null)
 			{
-				newDevice.SessionCreated += OnSessionCreated;
+				newDevice.ProcessCreated += OnProcessCreated;
 			}
+		}
+
+		private void OnProcessCreated(AudioProcessModel newProcess)
+		{
+			if(newProcess.Volume == 100)
+				newProcess.Volume = this.VolumeLimit;
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

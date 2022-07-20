@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using Moq;
@@ -21,8 +21,9 @@ namespace Volumey.Tests
         public OutputDeviceModelTests()
         {
             var master = MasterSessionModelTests.GetMasterMock(deviceName, 70, false, deviceId, null);
-            var sessions = new ObservableCollection<AudioSessionModel>();
-            sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false, deviceId));
+
+            var processes = new List<AudioProcessModel>();
+            processes.Add(AudioProcessModelTests.GetProcessMock("app", 50, false));
             
             this.deviceMock = new Mock<IDevice>();
 
@@ -31,32 +32,21 @@ namespace Volumey.Tests
             this.deviceStateMock = new Mock<IDeviceStateNotificationHandler>();
             this.sProviderMock = new Mock<ISessionProvider>();
             
-            this.model = new OutputDeviceModel(deviceMock.Object, deviceStateMock.Object, sProviderMock.Object, master, sessions);
+            this.model = new OutputDeviceModel(deviceMock.Object, deviceStateMock.Object, sProviderMock.Object, master, processes);
         }
 
         [Fact]
         public void SessionEndedEvent_SessionShouldBeRemoved()
         {
-            var session = this.model.Sessions[0];
-            MethodInfo OnSessionEndedHandler = typeof(AudioSessionModel).GetMethod("OnSessionEnded",
+            var process = this.model.Processes[0];
+            MethodInfo OnSessionEndedHandler = typeof(AudioProcessModel).GetMethod("OnProcessExited",
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
-            OnSessionEndedHandler?.Invoke(session, null);
+            OnSessionEndedHandler?.Invoke(process, new object[]{null, null});
 
-            Assert.DoesNotContain(session, this.model.Sessions);
+            Assert.DoesNotContain(process, this.model.Processes);
         }
-
-        [Fact]
-        public void SessionCreatedEvent_SessionShouldBeAdded()
-        {
-            var sessionCount = model.Sessions.Count;
-            var newSession = AudioSessionModelTests.GetSessionMock("session", 50, true, deviceId);
-            
-            this.sProviderMock.Raise(m => m.SessionCreated += null, new object[] {newSession});
-            
-            Assert.Equal(sessionCount + 1, this.model.Sessions.Count);
-            Assert.Contains(newSession, this.model.Sessions);
-        }
+        
 
         [Fact]
         public void DeviceNameChangedEvent_NamePropertiesShouldChange()
@@ -86,8 +76,9 @@ namespace Volumey.Tests
         internal static OutputDeviceModel GetDeviceMock(string id, string name, IDeviceStateNotificationHandler deviceStateHandler)
         {
             var master = MasterSessionModelTests.GetMasterMock(name, 70, false, id, null);
-            var sessions = new ObservableCollection<AudioSessionModel>();
-            sessions.Add(AudioSessionModelTests.GetSessionMock("app", 50, false, "id"));
+            
+            var processes = new List<AudioProcessModel>();
+            processes.Add(AudioProcessModelTests.GetProcessMock("app", 50, false));
 		
             var deviceMock = new Mock<IDevice>();
             deviceMock.Setup(m => m.GetId()).Returns(id);
@@ -95,7 +86,7 @@ namespace Volumey.Tests
             var sProviderMock = new Mock<ISessionProvider>();
 		
             return new OutputDeviceModel(deviceMock.Object, deviceStateHandler, sProviderMock.Object, master,
-                sessions);
+                                         processes);
         }
     }
 }

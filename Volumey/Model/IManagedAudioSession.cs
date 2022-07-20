@@ -1,15 +1,16 @@
-﻿using System.Windows.Input;
-using System.Windows.Media;
+﻿using System;
+using System.ComponentModel;
+using System.Windows.Input;
 
 namespace Volumey.Model
 {
-	public interface IManagedAudioSession
+	public interface IManagedAudioSession : INotifyPropertyChanged, IDisposable
 	{
-		public ImageSource IconSource { get; set; }
-		public string Name { get; }
+		public string Name { get; set; }
 		public bool IsMuted { get; set; }
 		public int Volume { get; set; }
 		public string Id { get; }
+		public uint ProcessId { get; }
 		public ICommand MuteCommand { get; set; }
 	}
 }

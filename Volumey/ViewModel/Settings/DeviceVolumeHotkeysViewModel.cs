@@ -81,12 +81,12 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private AudioSessionStateNotificationMediator _dMediator;
-		private AudioSessionStateNotificationMediator DeviceMediator
+		private AudioProcessStateNotificationMediator _dMediator;
+		private AudioProcessStateNotificationMediator DeviceMediator
 		{
 			get
 			{
-				this._dMediator ??= new AudioSessionStateNotificationMediator();
+				this._dMediator ??= new AudioProcessStateNotificationMediator();
 				return this._dMediator;
 			}
 		}

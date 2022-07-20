@@ -24,7 +24,7 @@
 				   DockPanel.Dock="{Binding Source={StaticResource AppBehaviorViewModel}, 
 		                                          Path=DeviceViewAtTheBottom, 
 		                                          Converter={StaticResource DeviceViewPositionConverter}}"
-				   Margin="20 10 20 10"/>
+				   Margin="20 5 20 5"/>
 
 		<ScrollViewer
 			Name="ScrollViewer">

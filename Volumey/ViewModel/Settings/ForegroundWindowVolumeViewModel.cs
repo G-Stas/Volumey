@@ -60,8 +60,8 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private AudioSessionStateNotificationMediator _mediator;
-		private AudioSessionStateNotificationMediator StateMediator => _mediator ??= new AudioSessionStateNotificationMediator();
+		private AudioProcessStateNotificationMediator _mediator;
+		private AudioProcessStateNotificationMediator StateMediator => _mediator ??= new AudioProcessStateNotificationMediator();
 
 		private OutputDeviceModel _defaultDevice;
 
@@ -146,33 +146,34 @@ namespace Volumey.ViewModel.Settings
 			_ = SettingsProvider.SaveSettings();
 		}
 
-		private bool TryGetForegroundAudioSession(out List<AudioSessionModel> foregroundAppSessions)
+		private bool TryGetForegroundAudioProcess(out AudioProcessModel audioProcess)
 		{
+			audioProcess = null;
+			
 			if(_defaultDevice == null)
 			{
-				foregroundAppSessions = null;
 				return false;
 			}
 
 			uint foregroundWindowProcId = GetForegroundWindowProcessId();
 			if(foregroundWindowProcId == uint.MinValue)
 			{
-				foregroundAppSessions = null;
 				return false;
 			}
 
 			Process process = null;
-			try { process = Process.GetProcessById((int)foregroundWindowProcId); }
+			try
+			{
+				process = Process.GetProcessById((int)foregroundWindowProcId);
+			}
 			catch { }
 
 			try
 			{
-				//Sometimes process id of the retrieved foreground window doesn't match the id of its audio session so additionally we will search for audio sessions of this process by its names
-				foregroundAppSessions = _defaultDevice?.Sessions.Where(s => s.ProcessId == foregroundWindowProcId || s.Name.Equals(process?.ProcessName)).ToList();
+				audioProcess = _defaultDevice?.Processes.First(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName)); 
 			}
 			catch
 			{
-				foregroundAppSessions = null;
 				return false;
 			}
 			return true;
@@ -200,26 +201,20 @@ namespace Volumey.ViewModel.Settings
 
 			if(hotkey.Equals(this._volumeUpHotkey))
 			{
-				if(TryGetForegroundAudioSession(out List<AudioSessionModel> sessions))
+				if(TryGetForegroundAudioProcess(out AudioProcessModel process))
 				{
-					foreach(var session in sessions)
-					{
-						if(session.AudioSessionStateNotificationMediator == null)
-							session.SetStateNotificationMediator(this.StateMediator);
-						session.SetVolume(session.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
-					}
+					if(process.StateNotificationMediator == null)
+						process.SetStateMediator(this.StateMediator);
+					process.SetVolume(process.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 				}
 			}
 			else if(hotkey.Equals(this._volumeDownHotkey))
 			{
-				if(TryGetForegroundAudioSession(out List<AudioSessionModel> sessions))
+				if(TryGetForegroundAudioProcess(out AudioProcessModel process))
 				{
-					foreach(var session in sessions)
-					{
-						if(session.AudioSessionStateNotificationMediator == null)
-							session.SetStateNotificationMediator(this.StateMediator);
-						session.SetVolume(session.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
-					}
+					if(process.StateNotificationMediator == null)
+						process.SetStateMediator(this.StateMediator);
+					process.SetVolume(process.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 				}
 			}
 		}

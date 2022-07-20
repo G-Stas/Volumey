@@ -10,7 +10,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     /// </summary>
     class AudioSessionProvider : ISessionProvider
     {
-        public event Action<AudioSessionModel> SessionCreated;
+        public event Action<(AudioSessionModel, IAudioSessionControl)> SessionCreated;
         private IAudioSessionManager2 sessionManager;
 
         internal AudioSessionProvider(IAudioSessionManager2 sessionManager)
@@ -19,11 +19,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             this.RegisterSessionNotifications();
         }
 
-        public int OnSessionCreated(IAudioSessionControl newSession)
+        public int OnSessionCreated(IAudioSessionControl sessionControl)
         {
-            var session = newSession.GetAudioSessionModel(out bool isSystemSession);
+            var session = sessionControl.GetAudioSessionModel();
             if(session != null)
-                this.SessionCreated?.Invoke(session);
+                this.SessionCreated?.Invoke((session, sessionControl));
             return 0;
         }
 
