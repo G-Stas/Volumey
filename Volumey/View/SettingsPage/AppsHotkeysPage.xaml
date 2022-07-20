@@ -24,8 +24,8 @@
 			Text="{lc:Localization Settings_MusicApp}"
 			Width="{StaticResource TextBlockWidth}"/>
 		<ComboBox
-			SelectedItem="{Binding SelectedSession}"
-			ItemsSource="{Binding DefaultDevice.Sessions}"
+			SelectedItem="{Binding SelectedProcess}"
+			ItemsSource="{Binding DefaultDevice.Processes}"
 			DisplayMemberPath="Name"
 			IsSynchronizedWithCurrentItem="False"
 			Style="{StaticResource SettingsComboBoxStyle}"/>
@@ -56,7 +56,7 @@
 					<MultiBinding
 						Converter="{StaticResource AnyPropertyIsNullToEnabledConverter}">
 						<Binding
-							Path="SelectedSession"/>
+							Path="SelectedProcess"/>
 						<Binding
 							Path="VolumeUp"/>
 						<Binding
@@ -67,16 +67,16 @@
 			<Button
 				Margin="0 3 3 0"
 				Command="{Binding RemoveAppCommand}"
-				Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+				Visibility="{Binding RegisteredProcesses.Keys.Count, Converter={StaticResource RegisteredSessionsCountToVisibilityConverter}}"
 				IsEnabled="{Binding SelectedRegApp, Converter={StaticResource PropertyIsNullToEnabledConverter}}"
 				Content="{lc:Localization Settings_RemoveApp}"/>
 		</WrapPanel>
 
 		<!-- registered apps list -->
 		<ComboBox
-			ItemsSource="{Binding RegisteredSessions}"
+			ItemsSource="{Binding RegisteredProcesses}"
 			SelectedItem="{Binding SelectedRegApp}"
-			Visibility="{Binding RegisteredSessions.Keys.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}"
+			Visibility="{Binding RegisteredProcesses.Keys.Count, Converter={StaticResource RegisteredSessionsCountToVisibilityConverter}}"
 			Margin="0 3 0 0"
 			Style="{StaticResource SettingsComboBoxStyle}">
 			<ComboBox.ItemTemplate>

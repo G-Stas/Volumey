@@ -7,6 +7,6 @@ namespace Volumey.CoreAudioWrapper.CoreAudio.Interfaces
     public interface IAudioSessionNotification
     {
         [PreserveSig]
-        int OnSessionCreated(IAudioSessionControl newSession);
+        int OnSessionCreated(IAudioSessionControl sessionControl);
     }
 }

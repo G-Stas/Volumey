@@ -86,7 +86,7 @@
 
             <converters:AnyPropertyIsNullToEnabledConverter x:Key="AnyPropertyIsNullToEnabledConverter" />
             <converters:PropertyIsNullToEnabledConverter x:Key="PropertyIsNullToEnabledConverter" />
-            <converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" />
+            <converters:CollectionCountToVisibilityConverter x:Key="RegisteredSessionsCountToVisibilityConverter" CountLimit="0"/>
             <converters:HotkeysRegisteredToEnabledConverter x:Key="HotkeysRegisteredToEnabledConverter" />
             <converters:MutedToGlyphConverter x:Key="MutedToGlyphConverter" />
 

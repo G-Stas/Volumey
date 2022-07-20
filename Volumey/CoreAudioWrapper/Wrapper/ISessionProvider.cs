@@ -6,6 +6,6 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 {
 	public interface ISessionProvider : IAudioSessionNotification, IDisposable
 	{
-		event Action<AudioSessionModel> SessionCreated;
+		event Action<(AudioSessionModel model, IAudioSessionControl sessionControl)> SessionCreated;
 	}
 }

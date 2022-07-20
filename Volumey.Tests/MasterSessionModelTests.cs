@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Input;
 using Moq;
@@ -35,7 +35,7 @@ namespace Volumey.Tests
 			this.iDeviceMock.Setup(m => m.GetId()).Returns("111");
 			
 			this.deviceOwner = new OutputDeviceModel(this.iDeviceMock.Object, this.deviceStateMock.Object,
-				new Mock<ISessionProvider>().Object, this.model, new ObservableCollection<AudioSessionModel>());
+				new Mock<ISessionProvider>().Object, this.model, new List<AudioProcessModel>());
 		}
 
 		[Fact]

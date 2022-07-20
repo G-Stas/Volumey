@@ -7,9 +7,9 @@ namespace Volumey.View.Controls
 {
 	public partial class VolumeNotificationContent : UserControl, INotifyPropertyChanged
 	{
-		private IManagedAudioSession _session;
+		private IManagedMasterAudioSession _session;
 
-		public IManagedAudioSession AudioSession
+		public IManagedMasterAudioSession AudioSession
 		{
 			get => this._session;
 			set
@@ -19,7 +19,7 @@ namespace Volumey.View.Controls
 			}
 		}
 		
-		public VolumeNotificationContent(IManagedAudioSession session)
+		public VolumeNotificationContent(IManagedMasterAudioSession session)
 		{
 			InitializeComponent();
 			this.AudioSession = session;

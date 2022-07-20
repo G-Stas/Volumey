@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio;
+using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
@@ -17,7 +20,7 @@ namespace Volumey.Model
 	public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	{
 		public MasterSessionModel Master { get; }
-		public ObservableCollection<AudioSessionModel> Sessions { get; }
+		public ObservableCollection<AudioProcessModel> Processes { get; }
 
 		private Action<OutputDeviceModel> _disabled;
 		internal event Action<OutputDeviceModel> Disabled
@@ -30,7 +33,7 @@ namespace Volumey.Model
 			}
 			remove => this._disabled -= value;
 		}
-		internal event Action<AudioSessionModel> SessionCreated;
+		internal event Action<AudioProcessModel> ProcessCreated;
 		internal event Action<OutputDeviceModel> FormatChanged;
 		public string Id => this.Master.Id;
 		private readonly IDevice device;
@@ -38,14 +41,25 @@ namespace Volumey.Model
 		private readonly IDeviceStateNotificationHandler deviceStateEvents;
 		private WAVEFORMATEX? currentStreamFormat;
 
+		private object _processesLock = new object();
+
 		private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
 		public OutputDeviceModel(IDevice device, IDeviceStateNotificationHandler deviceStateNotifications, ISessionProvider sessionProvider,
-			MasterSessionModel master, ObservableCollection<AudioSessionModel> sessions)
+			MasterSessionModel master, List<AudioProcessModel> processes)
 		{
 			this.device = device ?? throw new ArgumentNullException(nameof(device));
 			this.Master = master ?? throw new ArgumentNullException(nameof(master));
-			this.Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
+			if(processes == null)
+				throw new ArgumentNullException(nameof(processes));
+
+			this.Processes = new ObservableCollection<AudioProcessModel>(processes);
+
+			foreach(AudioProcessModel process in processes)
+			{
+				process.Exited += OnProcessExited;
+			}
+
 			this.currentStreamFormat = this.device.GetDeviceFormat();
 
 			this.deviceStateEvents = deviceStateNotifications;
@@ -55,9 +69,6 @@ namespace Volumey.Model
 			this.deviceStateEvents.FormatChanged += OnFormatChanged;
 			this.sessionProvider = sessionProvider;
 			this.sessionProvider.SessionCreated += OnSessionCreated;
-			
-			foreach(var session in sessions)
-				session.SessionEnded += OnSessionEnded;
 		}
 
 		internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
@@ -65,14 +76,14 @@ namespace Volumey.Model
 
 		internal void ResetVolumeHotkeys() => this.Master.ResetVolumeHotkeys();
 
-		internal void SetStateNotificationMediator(AudioSessionStateNotificationMediator mediator)
-			=> this.Master.SetStateNotificationMediator(mediator);
+		internal void SetStateNotificationMediator(AudioProcessStateNotificationMediator mediator)
+			=> this.Master.SetStateMediator(mediator);
 
 		internal void ResetStateNotificationMediator()
-			=> this.Master.ResetStateNotificationMediator();
+			=> this.Master.ResetStateMediator();
 
 		internal bool SetMuteHotkeys(HotKey key)
-			=> this.Master.SetMuteHotkeys(key);
+			=> this.Master.SetMuteHotkey(key);
 
 		internal void ResetMuteHotkeys()
 			=> this.Master.ResetMuteHotkey();
@@ -142,30 +153,49 @@ namespace Volumey.Model
 				this._disabled?.Invoke(this);
 		}
 
-		private void OnSessionCreated(AudioSessionModel newSession)
+		private void OnProcessExited(AudioProcessModel exitedProcess)
 		{
-			if(newSession != null)
+			lock(_processesLock)
 			{
 				dispatcher.Invoke(() =>
 				{
-					newSession.SessionEnded += OnSessionEnded;
-					this.Sessions.Add(newSession);
-					this.SessionCreated?.Invoke(newSession);
+					this.Processes.Remove(exitedProcess);
 				});
 			}
+			exitedProcess.Exited -= OnProcessExited;
+			exitedProcess.Dispose();
 		}
 
-		private void OnSessionEnded(AudioSessionModel session)
+		private void OnSessionCreated((AudioSessionModel model, IAudioSessionControl sessionControl) newSession)
 		{
-			if(session != null)
+			try
 			{
-				dispatcher.Invoke(() =>
+				AudioProcessModel process = Processes.FirstOrDefault(p => p.ProcessId.Equals(newSession.model.ProcessId));
+				if(process != null)
 				{
-					session.SessionEnded -= OnSessionEnded;
-					this.Sessions.Remove(session);
-					session.Dispose();
-				});
+					dispatcher.Invoke(() =>
+					{
+						newSession.model.Name = process.Name;
+						process.AddSession(newSession.model);
+					});
+				}
+				else
+				{
+					dispatcher.Invoke(() =>
+					{
+						AudioProcessModel newProcess = newSession.model.GetProcessModelFromSessionModel(newSession.sessionControl);
+						newProcess.AddSession(newSession.model);
+						lock(_processesLock)
+						{
+							this.Processes.Add(newProcess);
+						}
+						newProcess.Exited += OnProcessExited;
+						this.ProcessCreated?.Invoke(newProcess);
+					});
+
+				}
 			}
+			catch { }
 		}
 
 		internal bool CompareId(string deviceId) =>
@@ -187,16 +217,10 @@ namespace Volumey.Model
 			this.deviceStateEvents.IconPathChanged -= OnIconPathChanged;
 			this.deviceStateEvents.FormatChanged -= OnFormatChanged;
 			this.Master.Dispose();
-			if(this.Sessions != null)
-			{
-				foreach(var session in this.Sessions)
-				{
-					session.SessionEnded -= OnSessionEnded;
-					session.Dispose();
-				}	
-			}
+			foreach(var process in this.Processes)
+				process.Dispose();
 			this._disabled = null;
-			this.SessionCreated = null;
+			this.ProcessCreated = null;
 		}
 	}
 }

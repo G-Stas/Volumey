@@ -1,9 +1,15 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Windows.Input;
+using System.Windows.Media;
 using log4net;
+using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model
@@ -11,7 +17,7 @@ namespace Volumey.Model
     /// <summary>
     /// Represents data and the volume control of an output audio device
     /// </summary>
-    public sealed class MasterSessionModel : BaseAudioSession
+    public sealed class MasterSessionModel : IManagedMasterAudioSession
     {
         private string deviceFriendlyName;
         public string DeviceFriendlyName
@@ -35,7 +41,7 @@ namespace Volumey.Model
             }
         }
 
-        public override string Name
+        public string Name
         {
             get => this.deviceFriendlyName;
             set
@@ -44,8 +50,15 @@ namespace Volumey.Model
                 OnPropertyChanged();
             }
         }
+        
+        private readonly string _id;
+        public string Id => this._id;
 
-        public override int Volume
+        private readonly uint _processId;
+        public uint ProcessId => this._processId;
+
+        private int _volume;
+        public int Volume
         {
             get => _volume;
             set
@@ -64,7 +77,8 @@ namespace Volumey.Model
             }
         }
 
-        public override bool IsMuted
+        private bool _isMuted;
+        public bool IsMuted
         {
             get => _isMuted;
             set
@@ -77,6 +91,30 @@ namespace Volumey.Model
                 }
             }
         }
+        
+        private ImageSource _iconSource;
+        public ImageSource IconSource
+        {
+            get => _iconSource;
+            set
+            {
+                _iconSource = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private Icon _icon;
+        public Icon Icon
+        {
+        	get => _icon;
+        	set
+        	{
+        		_icon = value;
+        		OnPropertyChanged();
+        	}
+        }
+
+        public ICommand MuteCommand { get; set; }
 
         private HotKey volumeUp;
         private HotKey volumeDown;
@@ -84,6 +122,8 @@ namespace Volumey.Model
 
         private bool volumeHotkeysRegistered;
         private bool muteHotkeyRegistered;
+        
+        public AudioProcessStateNotificationMediator StateNotificationMediator { get; private set; }
 
         private IAudioSessionVolume masterVolume { get; }
         private IMasterVolumeNotificationHandler notificationHandler { get; }
@@ -92,16 +132,23 @@ namespace Volumey.Model
         
         public MasterSessionModel(string friendlyName, string desc, 
             int volume, bool muteState, string id, Icon icon,
-            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler) : base(volume, muteState, id, uint.MinValue, icon)
+            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler)
         {
+            this._volume = volume;
+            this._isMuted = muteState;
+            this._id = id;
+            this._icon = icon;
+            this._iconSource = icon.GetAsImageSource();
             this.Name = friendlyName;
             this.DeviceDesc = desc;
             this.masterVolume = mVolume;
             this.notificationHandler = nHandler;
             this.notificationHandler.VolumeChanged += OnVolumeChanged;
+            
+            MuteCommand = new ActionCommand(() => this.IsMuted = !this.IsMuted);
         }
 
-        public override bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+        public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
         {
             try
             {
@@ -118,7 +165,17 @@ namespace Volumey.Model
             return false;
         }
 
-        public override void ResetVolumeHotkeys()
+        public void SetStateMediator(AudioProcessStateNotificationMediator mediator)
+        {
+            StateNotificationMediator = mediator;
+        }
+
+        public void ResetStateMediator()
+        {
+            StateNotificationMediator = null;
+        }
+
+        public void ResetVolumeHotkeys()
         {
             if(this.volumeUp != null && this.volumeDown != null)
                 HotkeysControl.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
@@ -128,7 +185,7 @@ namespace Volumey.Model
             this.volumeUp = this.volumeDown = null;
         }
         
-        internal bool SetMuteHotkeys(HotKey key)
+        public bool SetMuteHotkey(HotKey key)
         {
             try
             {
@@ -144,7 +201,7 @@ namespace Volumey.Model
             return false;
         }
 
-        internal void ResetMuteHotkey()
+        public void ResetMuteHotkey()
         {
             if(this.muteKey != null)
                 HotkeysControl.UnregisterHotkey(this.muteKey);
@@ -160,22 +217,34 @@ namespace Volumey.Model
             {
                 if(hotkey.Equals(this.volumeUp))
                 {
-                    this.SetVolume(this.Volume + HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
-                    this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
+                    this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify:true, ref GuidValue.Internal.Empty);
                 }
                 else if(hotkey.Equals(this.volumeDown))
                 {
-                    this.SetVolume(this.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty);
-                    this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
+                    this.SetVolume(this.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
                 }
             }
 
             if(this.muteHotkeyRegistered && hotkey.Equals(this.muteKey))
             {
-                this.IsMuted = !this._isMuted;
-                this.AudioSessionStateNotificationMediator?.NotifyAudioStateChange(this);
+                this.SetMute(!this._isMuted, notify: true, ref GuidValue.Internal.Empty);
             }
         }
+
+        public void SetVolume(int newVol, bool notify, ref Guid guid)
+        {
+            SetVolume(newVol, ref guid);
+            if(notify)
+                this.StateNotificationMediator?.NotifyAudioStateChange(this);
+        }
+
+        public void SetMute(bool muteState, bool notify, ref Guid guid)
+        {
+            SetMute(muteState);
+            if(notify)
+                this.StateNotificationMediator?.NotifyAudioStateChange(this);
+        }
+        
         
         private void SetVolume(int newVol, ref Guid guid)
         {
@@ -218,10 +287,14 @@ namespace Volumey.Model
         {
             Logger.Info("Failed to change state of the master session", e);
         }
+        
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        public override void Dispose()
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public void Dispose()
         {
-            base.Dispose();
             this.notificationHandler.VolumeChanged -= OnVolumeChanged;
             this.notificationHandler.Dispose();
         }

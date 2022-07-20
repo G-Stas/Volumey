@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using log4net;
@@ -14,13 +15,13 @@ namespace Volumey.ViewModel.Settings
 {
 	public sealed class AppsHotkeysViewModel : HotkeyViewModel
 	{
-		private AudioSessionModel selectedSession;
-		public AudioSessionModel SelectedSession
+		private AudioProcessModel selectedProcess;
+		public AudioProcessModel SelectedProcess
 		{
-			get => selectedSession;
+			get => selectedProcess;
 			set
 			{
-				this.selectedSession = value;
+				this.selectedProcess = value;
 				OnPropertyChanged();
 			}
 		}
@@ -77,12 +78,12 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 		
-		public ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> RegisteredSessions { get; }
+		public ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> RegisteredProcesses { get; }
 
 		/// <summary>
-		/// Containts registered sessions that are currently launched
+		/// Containts registered processes that are currently launched
 		/// </summary>
-		private readonly List<AudioSessionModel> LaunchedSessions = new List<AudioSessionModel>();
+		private readonly List<AudioProcessModel> LaunchedProcesses = new List<AudioProcessModel>();
 
 		public ICommand AddAppCommand { get; }
 		public ICommand RemoveAppCommand { get; }
@@ -98,12 +99,12 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private AudioSessionStateNotificationMediator _sMediator;
-		private AudioSessionStateNotificationMediator SessionStateMediator
+		private AudioProcessStateNotificationMediator _sMediator;
+		private AudioProcessStateNotificationMediator ProcessStateMediator
 		{
 			get
 			{
-				this._sMediator ??= new AudioSessionStateNotificationMediator();
+				this._sMediator ??= new AudioProcessStateNotificationMediator();
 				return this._sMediator;
 			}
 		}
@@ -123,8 +124,8 @@ namespace Volumey.ViewModel.Settings
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			this.VolumeStep = SettingsProvider.Settings.VolumeStep;
-			this.RegisteredSessions = SettingsProvider.HotkeysSettings.GetRegisteredSessions();
-			if(this.RegisteredSessions.Keys.Count > 0)
+			this.RegisteredProcesses = SettingsProvider.HotkeysSettings.GetRegisteredProcesses();
+			if(this.RegisteredProcesses.Keys.Count > 0)
 			{
 				if(HotkeysControl.IsActive)
 					this.RegisterLoadedHotkeys();
@@ -139,26 +140,25 @@ namespace Volumey.ViewModel.Settings
 		/// </summary>
 		private void RegisterLoadedHotkeys()
 		{
-			if(this.RegisteredSessions == null || this.DefaultDevice == null)
+			if(this.RegisteredProcesses == null || this.DefaultDevice == null)
 				return;
-			this.DefaultDevice.SessionCreated += OnSessionCreated;
+			this.DefaultDevice.ProcessCreated += OnProcessStarted;
 			this.FindAndSetupRegisteredHotkeys();
 		}
 
 		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
 			if(this.DefaultDevice != null)
-				this.DefaultDevice.SessionCreated -= OnSessionCreated;
+				this.DefaultDevice.ProcessCreated -= OnProcessStarted;
 			
-			//Reset hotkeys for all currently launched sessions
-			var launchedSessionCount = this.LaunchedSessions.Count;
-			for(int i = launchedSessionCount-1; i >= 0; i--)
+			//Reset hotkeys for all currently launched processes
+			var launchedProcessesCount = this.LaunchedProcesses.Count;
+			for(int i = launchedProcessesCount-1; i >= 0; i--)
 			{
-				var session = this.LaunchedSessions[i];
-				session.ResetVolumeHotkeys();
-				session.ResetStateNotificationMediator();
-				session.SessionEnded -= OnSessionEnded;
-				this.LaunchedSessions.Remove(session);
+				var process = this.LaunchedProcesses[i];
+				process.ResetVolumeHotkeys();
+				process.ResetStateMediator();
+				this.LaunchedProcesses.Remove(process);
 			}
 			
 			this.DefaultDevice = newDevice;
@@ -166,38 +166,38 @@ namespace Volumey.ViewModel.Settings
 			if(newDevice == null)
 				return;
 			
-			if(this.RegisteredSessions.Keys.Count != 0)
+			if(this.RegisteredProcesses.Keys.Count != 0)
 			{
-				this.DefaultDevice.SessionCreated += OnSessionCreated;
+				this.DefaultDevice.ProcessCreated += OnProcessStarted;
 				this.FindAndSetupRegisteredHotkeys();
 			}
 		}
 
 		/// <summary>
-		/// Search for registered sessions amongst sessions of the current default output device and set its hotkeys
+		/// Search for registered processes amongst processes of the current default output device and set its hotkeys
 		/// </summary>
 		private void FindAndSetupRegisteredHotkeys()
 		{
 			if(this.DefaultDevice == null)
 				return;
-			for(int i = 0; i < this.DefaultDevice.Sessions.Count; i++)
+			for(int i = 0; i < this.DefaultDevice.Processes.Count; i++)
 			{
-				var session = this.DefaultDevice.Sessions[i];
-				if(this.RegisteredSessions.TryGetValue(session.Name, out var hotkeys))
+				var process = this.DefaultDevice.Processes[i];
+				if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
 				{
-					session.SetVolumeHotkeys(hotkeys.Item1, hotkeys.Item2);
-					session.SessionEnded += OnSessionEnded;
-					this.LaunchedSessions.Add(session);
-					if(SettingsProvider.NotificationsSettings.Enabled)
-						session.SetStateNotificationMediator(this.SessionStateMediator);
+					process.SetVolumeHotkeys(hotkeys.Item1, hotkeys.Item2);
+					process.Exited += OnProcessExited;
+					this.LaunchedProcesses.Add(process);
+					if(SettingsProvider.NotificationsSettings.Enabled && process.StateNotificationMediator == null)
+						process.SetStateMediator(this.ProcessStateMediator);
 				}
 			}
 		}
 
 		private async Task AddApp()
 		{
-			var session = this.SelectedSession;
-			if(this.RegisteredSessions.ContainsKey(session.Name))
+			var process = this.SelectedProcess;
+			if(this.RegisteredProcesses.ContainsKey(process.Name))
 				return;
 
 			if(HotkeysControl.HotkeysAreValid(this.VolumeUp, this.VolumeDown) is var error && error != ErrorMessageType.None)
@@ -206,50 +206,34 @@ namespace Volumey.ViewModel.Settings
 				return;
 			}
 
-			if(!session.SetVolumeHotkeys(this.VolumeUp, this.VolumeDown))
+			if(!process.SetVolumeHotkeys(this.VolumeUp, this.VolumeDown))
 			{
 				this.SetErrorMessage(ErrorMessageType.VolumeReg);
 				return;
 			}
-			session.SessionEnded += OnSessionEnded;
-			if(SettingsProvider.NotificationsSettings.Enabled)
-				session.SetStateNotificationMediator(this.SessionStateMediator);
+			
+			process.Exited += OnProcessExited;
+			
+			if(SettingsProvider.NotificationsSettings.Enabled && process.StateNotificationMediator == null)
+				process.SetStateMediator(this.ProcessStateMediator);
 			this.SetErrorMessage(ErrorMessageType.None);
-
-			try
-			{
-				//Find other sessions with the same name (i.e. sessions of the same process) to set its hotkeys as well
-				for(int i = 0; i < this.DefaultDevice.Sessions.Count; i++)
-				{
-					var otherSession = this.DefaultDevice.Sessions[i];
-					if(otherSession.Name.Equals(session.Name) && otherSession != session)
-					{
-						otherSession.SetVolumeHotkeys(this.VolumeUp, this.VolumeDown);
-						otherSession.SessionEnded += OnSessionEnded;
-						this.LaunchedSessions.Add(otherSession);
-						if(SettingsProvider.NotificationsSettings.Enabled)
-							otherSession.SetStateNotificationMediator(this.SessionStateMediator);
-					}
-				}
-			}
-			catch { }
 
 			var hotkeys = new Tuple<HotKey, HotKey>(this.VolumeUp, this.VolumeDown);
 
-			//Subscribe to SessionCreated event to search for registered sessions amongst new sessions
-			if (this.RegisteredSessions.Keys.Count == 0 && this.DefaultDevice != null)
-				this.DefaultDevice.SessionCreated += OnSessionCreated;
-			this.RegisteredSessions.Add(session.Name, hotkeys);
-			this.LaunchedSessions.Add(session);
+			//Subscribe to ProcessCreated event to search for registered processes amongst new processes
+			if (this.RegisteredProcesses.Keys.Count == 0 && this.DefaultDevice != null)
+				this.DefaultDevice.ProcessCreated += OnProcessStarted;
+			this.RegisteredProcesses.Add(process.Name, hotkeys);
+			this.LaunchedProcesses.Add(process);
 
-			Logger.Info($"Registered app hotkeys. App: [{session.Name}] +vol: [{this.VolumeUp}] -vol: [{this.VolumeDown}], count: [{this.RegisteredSessions.Keys.Count.ToString()}]");
+			Logger.Info($"Registered app hotkeys. App: [{process.Name}] +vol: [{this.VolumeUp}] -vol: [{this.VolumeDown}], count: [{this.RegisteredProcesses.Keys.Count.ToString()}]");
 			
 			this.VolumeUp = this.VolumeDown = null;
-			this.SelectedSession = null;
+			this.SelectedProcess = null;
 			
 			try
 			{
-				SettingsProvider.HotkeysSettings.AddRegisteredSession(session.Name, hotkeys);
+				SettingsProvider.HotkeysSettings.AddRegisteredProcess(process.Name, hotkeys);
 				await SettingsProvider.SaveSettings().ConfigureAwait(false);
 			}
 			catch { }
@@ -260,30 +244,26 @@ namespace Volumey.ViewModel.Settings
 			if(this.SelectedRegApp == null)
 				return;
 
-			var sessionName = this.SelectedRegApp.Value.Key;
-			
-			//Find sessions with the selected name (i.e. all sessions of this process) and reset its hotkeys
-			var launchedSessionCount = this.LaunchedSessions.Count;
-			for(int i = launchedSessionCount-1; i >= 0; i--)
+			var processName = this.SelectedRegApp.Value.Key;
+
+			AudioProcessModel process = this.LaunchedProcesses.FirstOrDefault(p => p.Name.Equals(processName));
+
+			if(process != null)
 			{
-				var session = this.LaunchedSessions[i];
-				if(session.Name.Equals(sessionName))
-				{
-					session.ResetVolumeHotkeys();
-					session.ResetStateNotificationMediator();
-					session.SessionEnded -= OnSessionEnded;
-					this.LaunchedSessions.Remove(session);
-				}
+				process.ResetVolumeHotkeys();
+				process.ResetStateMediator();
+				process.Exited -= OnProcessExited;
+				this.LaunchedProcesses.Remove(process);
 			}
 			
-			this.RegisteredSessions.Remove(sessionName);
+			this.RegisteredProcesses.Remove(processName);
 
-			//No need to handle this event if there are no registered hotkeys anymore
-			if(this.RegisteredSessions.Keys.Count == 0 && this.DefaultDevice != null)
-				this.DefaultDevice.SessionCreated -= OnSessionCreated;
+			//no need to handle this event if there are no registered hotkeys anymore
+			if(this.RegisteredProcesses.Keys.Count == 0 && this.DefaultDevice != null)
+				this.DefaultDevice.ProcessCreated -= OnProcessStarted;
 			try
 			{
-				SettingsProvider.HotkeysSettings.RemoveRegisteredSession(sessionName);
+				SettingsProvider.HotkeysSettings.RemoveRegisteredSession(processName);
 				await SettingsProvider.SaveSettings().ConfigureAwait(false);
 			}
 			catch { }
@@ -294,41 +274,41 @@ namespace Volumey.ViewModel.Settings
 			if(e.PropertyName.Equals(nameof(SettingsProvider.NotificationsSettings.Enabled)))
 			{
 				if(SettingsProvider.NotificationsSettings.Enabled)
-					SetVolumeStateMediatorForActiveSessions();
+					SetVolumeStateMediatorForActiveProcesses();
 				else
-					ResetVolumeStateMediatorForActiveSessions();
+					ResetVolumeStateMediatorForActiveProcesses();
 			}
 		}
 
-		private void SetVolumeStateMediatorForActiveSessions()
+		private void SetVolumeStateMediatorForActiveProcesses()
 		{
-			foreach(var session in this.LaunchedSessions)
-				session.SetStateNotificationMediator(this.SessionStateMediator);
+			foreach(var process in this.LaunchedProcesses)
+				process.SetStateMediator(this.ProcessStateMediator);
 		}
 
-		private void ResetVolumeStateMediatorForActiveSessions()
+		private void ResetVolumeStateMediatorForActiveProcesses()
 		{
-			foreach(var session in this.LaunchedSessions)
-				session.ResetStateNotificationMediator();
+			foreach(var process in this.LaunchedProcesses)
+				process.ResetStateMediator();
 		}
 
-		private void OnSessionEnded(AudioSessionModel session)
+		private void OnProcessExited(AudioProcessModel process)
 		{
-			session.ResetVolumeHotkeys();
-			session.ResetStateNotificationMediator();
-			session.SessionEnded -= OnSessionEnded;
-			this.LaunchedSessions.Remove(session);
+			process.ResetVolumeHotkeys();
+			process.ResetStateMediator();
+			process.Exited -= OnProcessExited;
+			this.LaunchedProcesses.Remove(process);
 		}
 
-		private void OnSessionCreated(AudioSessionModel newSession)
+		private void OnProcessStarted(AudioProcessModel process)
 		{
-			if(this.RegisteredSessions.TryGetValue(newSession.Name, out var hotkeys))
+			if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
 			{
-				newSession.SetVolumeHotkeys(volUp: hotkeys.Item1, volDown: hotkeys.Item2);
-				newSession.SessionEnded += OnSessionEnded;
-				this.LaunchedSessions.Add(newSession);
+				process.SetVolumeHotkeys(volUp: hotkeys.Item1, volDown: hotkeys.Item2);
+				process.Exited += OnProcessExited;
+				this.LaunchedProcesses.Add(process);
 				if(SettingsProvider.NotificationsSettings.Enabled)
-					newSession.SetStateNotificationMediator(this.SessionStateMediator);
+					process.SetStateMediator(this.ProcessStateMediator);
 			}
 		}
 	}

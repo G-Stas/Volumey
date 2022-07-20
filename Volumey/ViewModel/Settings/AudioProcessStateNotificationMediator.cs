@@ -3,14 +3,14 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
 {
-	public class AudioSessionStateNotificationMediator
+	public class AudioProcessStateNotificationMediator
 	{
-		internal void NotifyAudioStateChange(IManagedAudioSession sender)
+		internal void NotifyAudioStateChange(IManagedMasterAudioSession sender)
 		{
 			NotificationManagerHelper.ShowNotification(sender);
 		}
 
-		internal void NotifyOfDisposing(IManagedAudioSession sender)
+		internal void NotifyOfDisposing(IManagedMasterAudioSession sender)
 		{
 			NotificationManagerHelper.CloseNotification(sender);
 		}

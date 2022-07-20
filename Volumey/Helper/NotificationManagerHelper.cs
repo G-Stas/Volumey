@@ -35,7 +35,7 @@ namespace Volumey.Helper
 			NotificationDisplayTime = TimeSpan.FromSeconds(SettingsProvider.NotificationsSettings.DisplayTimeInSeconds);
 		}
 
-		internal static void ShowNotification(IManagedAudioSession session)
+		internal static void ShowNotification(IManagedMasterAudioSession session)
 		{
 			try
 			{
@@ -51,7 +51,7 @@ namespace Volumey.Helper
 			}
 		}
 
-		internal static void CloseNotification(IManagedAudioSession session)
+		internal static void CloseNotification(IManagedMasterAudioSession session)
 		{
 			try
 			{
@@ -68,8 +68,8 @@ namespace Volumey.Helper
 		{
 			try
 			{
-				var dummySession = new DummyAudioSession(50, false, "Application", IconHelper.GenericExeIcon);
-				var content = new VolumeNotificationContent(dummySession);
+				IManagedMasterAudioSession dummy = new AudioProcessModel(50, false, "Application", default, IconHelper.GenericExeIcon, null);
+				var content = new VolumeNotificationContent(dummy);
 				_notificationManager.ShowNotification(content, _exampleNotificationId, false, TimeSpan.MaxValue);
 			}
 			catch(ObjectDisposedException) { }
@@ -116,21 +116,6 @@ namespace Volumey.Helper
 		internal static void SetNotificationDisplayTime(int timeInSeconds)
 		{
 			NotificationDisplayTime = TimeSpan.FromSeconds(timeInSeconds);
-		}
-
-		private class DummyAudioSession : BaseAudioSession
-		{
-			public DummyAudioSession(int volume, bool isMuted, string id, Icon icon, AudioSessionStateNotificationMediator audioSessionStateNotificationMediator = null) :
-				base(volume, isMuted, id, uint.MinValue, icon, audioSessionStateNotificationMediator)
-			{
-				this.Name = id;
-			}
-			public override string Name { get; set; }
-
-			public override bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
-				=> false;
-
-			public override void ResetVolumeHotkeys() { }
 		}
 	}
 }
