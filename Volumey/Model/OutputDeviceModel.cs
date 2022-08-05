@@ -170,7 +170,7 @@ namespace Volumey.Model
 		{
 			try
 			{
-				AudioProcessModel process = Processes.FirstOrDefault(p => p.ProcessId.Equals(newSession.model.ProcessId));
+				AudioProcessModel process = Processes.FirstOrDefault(p => p.FilePath.Equals(newSession.model.FilePath));
 				if(process != null)
 				{
 					dispatcher.Invoke(() =>

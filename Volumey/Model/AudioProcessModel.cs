@@ -31,6 +31,8 @@ namespace Volumey.Model
 
 		private readonly uint _processId;
 		public uint ProcessId => this._processId;
+		
+		public string FilePath { get; }
 
 		private bool _isMuted;
 		public bool IsMuted
@@ -114,13 +116,15 @@ namespace Volumey.Model
 		private bool _muteKeyRegistered;
 		private object _sessionsLock = new object();
 
-		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, Icon icon, Process proc, AudioProcessStateNotificationMediator stateNotificationMediator = null)
+		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, AudioProcessStateNotificationMediator stateNotificationMediator = null)
 		{
 			_volume = volume;
 			_isMuted = isMuted;
 			_icon = icon;
 			_processId = processId;
 			Name = name;
+			FilePath = filePath;
+			
 			try { _iconSource = icon.GetAsImageSource(); }
 			catch { }
 

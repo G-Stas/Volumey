@@ -57,6 +57,8 @@ namespace Volumey.Model
         private readonly uint _processId;
         public uint ProcessId => this._processId;
 
+        public string FilePath { get; }
+
         private int _volume;
         public int Volume
         {
@@ -140,6 +142,7 @@ namespace Volumey.Model
             this._icon = icon;
             this._iconSource = icon.GetAsImageSource();
             this.Name = friendlyName;
+            this.FilePath = this.Name;
             this.DeviceDesc = desc;
             this.masterVolume = mVolume;
             this.notificationHandler = nHandler;

@@ -11,6 +11,7 @@ namespace Volumey.Model
 		public int Volume { get; set; }
 		public string Id { get; }
 		public uint ProcessId { get; }
+		public string FilePath { get; }
 		public ICommand MuteCommand { get; set; }
 	}
 }

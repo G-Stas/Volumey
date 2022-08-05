@@ -93,7 +93,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		
 		private static List<AudioProcessModel> GetCurrentProcessList(this IDevice device, IAudioSessionEnumerator sessionEnum)
 		{
-			Dictionary<uint, AudioProcessModel> processes = new Dictionary<uint, AudioProcessModel>();
+			Dictionary<string, AudioProcessModel> processes = new Dictionary<string, AudioProcessModel>();
 			var list = new List<AudioProcessModel>();
 		
 			if(sessionEnum == null)
@@ -110,7 +110,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 					if(session == null)
 						continue;
 					
-					if(processes.TryGetValue(session.ProcessId, out AudioProcessModel process))
+					if(processes.TryGetValue(session.FilePath, out AudioProcessModel process))
 					{
 						session.Name = process.Name;
 						process.AddSession(session);
@@ -124,7 +124,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 						
 						model.AddSession(session);
 						session.Name = model.Name;
-						processes.Add(session.ProcessId, model);
+						processes.Add(session.FilePath, model);
 
 						//put system sounds model on top of the session list
 						if(isSystemSounds)
@@ -211,7 +211,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				Logger.Error($"Failed to create process model from session model, process: [{processName}]", e);
 				return null;
 			}
-			AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, icon, proc);
+			AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc);
 			return model;
 		}
 
@@ -225,6 +225,14 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			var sessionControl = (IAudioSessionControl2) sControl;
 			sessionControl.GetProcessId(out uint processId);
 
+			string filePath = processId.ToString();
+
+			try
+			{
+				filePath = Process.GetProcessById((int)processId).MainModule.FileName;
+			}
+			catch { }
+			
 			try
 			{
 				var sessionVolume = new AudioSessionVolume(sessionControl);
@@ -237,9 +245,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				try { sessionStateNotifications.RegisterNotifications(); }
 				catch { }
 
-				AudioSessionModel session = new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionId, processId, 
-					                      sessionVolume,
-					                      sessionStateNotifications);
+				AudioSessionModel session = new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionId, processId,
+				                                                  filePath,
+				                                                  sessionVolume,
+				                                                  sessionStateNotifications);
 				return session;
 			}
 			catch(Exception e)

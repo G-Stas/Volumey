@@ -162,15 +162,17 @@ namespace Volumey.ViewModel.Settings
 			}
 
 			Process process = null;
+			string filePath = string.Empty;
 			try
 			{
 				process = Process.GetProcessById((int)foregroundWindowProcId);
+				filePath = process.MainModule.FileName;
 			}
 			catch { }
 
 			try
 			{
-				audioProcess = _defaultDevice?.Processes.First(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName)); 
+				audioProcess = _defaultDevice?.Processes.First(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath)); 
 			}
 			catch
 			{
