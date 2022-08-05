@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Windows.Input;
 using Moq;
 using Volumey.Controls;
@@ -23,7 +24,7 @@ namespace Volumey.Tests
 
 			this.proc = GetProcessMock("app", 50, false);
 			
-			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, sessionVolumeMock.Object,
+			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
 				sessionStateNotif.Object);
 			
 			proc.AddSession(model);
@@ -96,7 +97,7 @@ namespace Volumey.Tests
 		public void FirstAddedSessionShouldSetAsTracked()
 		{
 			//arrange
-			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, sessionVolumeMock.Object,
+			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
 			                                  sessionStateNotif.Object);
 			proc.Sessions.Clear();
 			FieldInfo field = typeof(AudioProcessModel).GetField("_trackedSession", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -113,7 +114,7 @@ namespace Volumey.Tests
 		public void TrackedSessionStateChangesShouldReflectOnProcess()
 		{
 			//arrange
-			var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, sessionVolumeMock.Object,
+			var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
 			                                  sessionStateNotif.Object);
 			proc.Sessions.Clear();
 			proc.Volume = 0;
@@ -175,12 +176,12 @@ namespace Volumey.Tests
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			var sessionStateNotifications = new Mock<IAudioSessionStateNotifications>();
-			return new AudioSessionModel(muteState, volume, id, default, sessionVolumeMock.Object, sessionStateNotifications.Object);
+			return new AudioSessionModel(muteState, volume, id, default, default, default, sessionVolumeMock.Object, sessionStateNotifications.Object);
 		}
 
 		internal static AudioProcessModel GetProcessMock(string name, int volume, bool muteState)
 		{
-			return new AudioProcessModel(volume, muteState, name, default, null, null);
+			return new AudioProcessModel(volume, muteState, name, default, default, default, null, null);
 		}
 	}
 }
