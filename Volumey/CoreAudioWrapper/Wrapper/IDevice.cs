@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Windows.Media;
 using log4net;
 using Volumey.CoreAudioWrapper.CoreAudio;
@@ -140,34 +138,22 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 		private static AudioProcessModel GetProcessModelFromSessionModel(this AudioSessionModel session, IAudioSessionControl sControl, out bool isSystemSounds)
 		{
-			Process proc;
+			Process proc = null;
 			isSystemSounds = false;
+			string processName = session.Name;
 
 			try
 			{
 				proc = Process.GetProcessById((int)session.ProcessId);
-			}
-			catch(Exception e)
-			{
-				Logger.Error($"Failed to get session process", e);
-				return null;
-			}
-
-			Icon icon = null;
-			string processName;
-
-			try
-			{
 				FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(proc.MainModule.FileName);
 				if(!string.IsNullOrEmpty(fileInfo.FileDescription))
 					processName = fileInfo.FileDescription;
 				else
 					processName = proc.ProcessName;
 			}
-			catch
-			{
-				processName = proc.ProcessName;
-			}
+			catch { }
+
+			Icon icon = null;
 
 			try
 			{
@@ -226,10 +212,13 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			sessionControl.GetProcessId(out uint processId);
 
 			string filePath = processId.ToString();
+			string name = filePath;
 
 			try
 			{
-				filePath = Process.GetProcessById((int)processId).MainModule.FileName;
+				Process proc = Process.GetProcessById((int)processId);
+				name = proc.ProcessName;
+				filePath = proc.MainModule.FileName;
 			}
 			catch { }
 			
@@ -246,6 +235,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				catch { }
 
 				AudioSessionModel session = new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionId, processId,
+				                                                  name,
 				                                                  filePath,
 				                                                  sessionVolume,
 				                                                  sessionStateNotifications);
@@ -263,54 +253,62 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			Icon icon = null;
 			try
 			{
-				icon = IconHelper.GetFromProcess(proc);
+				icon = IconHelper.GetFromProcess(proc) ?? TryExtractIconAlternatively(proc, sc);
 			}
 			catch(Win32Exception)
 			{
 				//"Win32Exception occurs when a 32-bit process is trying to access the modules of a 64-bit process"
 				//occurs when the exe is a system process or it was launched via admin rights
 				
-				//it's possible to get system process icon from its IAudioSessionControl interface
-				sc.GetIconPath(out var iconPath);
-				if(string.IsNullOrEmpty(iconPath))
-				{
-					//the icon path will be empty if the exe was launched with admin rights
-					//looks like its impossible to get an icon of an exe with admin rights so we return generic windows exe icon
-					return IconHelper.GenericExeIcon;
-				}
-
-				try
-				{
-					//"The format of an icon resource specifier is "executable-file-path,resource-identifier"
-					//where executable-file-path contains the fully qualified path of the file on a computer that contains the icon resource
-					//and resource-identifier specifies an integer that identifies the resource."
-					string[] resource = iconPath.Split(',');
-					if(resource.Length < 2)
-						throw new Exception();
-
-					//extract the icon from dll
-					icon = IconHelper.GetFromDll(filePath: resource[0],
-					                             resourceId: int.Parse(resource[1], CultureInfo.InvariantCulture));
-				}
-				catch { }
-
-				if(icon == null)
-				{
-					try
-					{
-						icon = IconHelper.GetFromFilePath(iconPath);
-					}
-					catch(Exception e)
-					{
-						Logger.Error($"Failed to extract session icon from the file path, process: [{proc.ProcessName}] file path: [{iconPath}]", e);
-					}
-				}
+				icon = TryExtractIconAlternatively(proc, sc);
 			}
 			catch(Exception e)
 			{
-				Logger.Error($"Failed to extract icon from the process: [{proc.ProcessName}]", e);
+				Logger.Error($"Failed to extract icon from the process: [{proc?.ProcessName}]", e);
 			}
 			return icon ?? IconHelper.GenericExeIcon;
+		}
+
+		private static Icon TryExtractIconAlternatively(Process proc, IAudioSessionControl sc)
+		{
+			Icon icon = null;
+
+			//it's possible to get system process icon from its IAudioSessionControl interface
+			sc.GetIconPath(out var iconPath);
+			if(string.IsNullOrEmpty(iconPath))
+			{
+				//the icon path will be empty if the exe was launched with admin rights
+				//looks like its impossible to get an icon of an exe with admin rights so we return generic windows exe icon
+				return IconHelper.GenericExeIcon;
+			}
+
+			try
+			{
+				//"The format of an icon resource specifier is "executable-file-path,resource-identifier"
+				//where executable-file-path contains the fully qualified path of the file on a computer that contains the icon resource
+				//and resource-identifier specifies an integer that identifies the resource."
+				string[] resource = iconPath.Split(',');
+				if(resource.Length < 2)
+					throw new Exception();
+
+				//extract the icon from dll
+				icon = IconHelper.GetFromDll(filePath: resource[0],
+				                             resourceId: int.Parse(resource[1], CultureInfo.InvariantCulture));
+			}
+			catch { }
+
+			if(icon == null)
+			{
+				try
+				{
+					icon = IconHelper.GetFromFilePath(iconPath);
+				}
+				catch(Exception e)
+				{
+					Logger.Error($"Failed to extract session icon from the file path, process: [{proc?.ProcessName}] file path: [{iconPath}]", e);
+				}
+			}
+			return icon;
 		}
 
 		private static bool IsSystemSounds(this IAudioSessionControl2 sc) => sc.IsSystemSoundsSession().Equals(0x0);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -9,10 +8,8 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
-using Volumey.Controls;
 using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.Wrapper;
-using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model
 {
@@ -95,7 +92,7 @@ namespace Volumey.Model
 
         private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-        public AudioSessionModel(bool isMuted, int volume, string id, uint processId, string filePath, IAudioSessionVolume aVolume,
+        public AudioSessionModel(bool isMuted, int volume, string id, uint processId, string name, string filePath, IAudioSessionVolume aVolume,
             IAudioSessionStateNotifications sStateNotifications)
         {
             _isMuted = isMuted;
@@ -103,6 +100,7 @@ namespace Volumey.Model
             _id = id;
             _processId = processId;
             FilePath = filePath;
+            Name = name;
             sessionVolume = aVolume;
             sessionStateNotifications = sStateNotifications;
             sessionStateNotifications.VolumeChanged += OnVolumeChanged;
