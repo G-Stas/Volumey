@@ -172,6 +172,38 @@ namespace Volumey.Tests
 			Assert.Equal(proc.IsMuted, additionalSession1.IsMuted);
 		}
 
+		[Fact]
+		public void VolumeMustNotExceedMaxValue()
+		{
+			//arrange 
+			var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
+			proc.AddSession(additionalSession);
+			int maxVolume = 100;
+			proc.Volume = maxVolume;
+
+			//act
+			proc.Volume += 5;
+
+			//assert 
+			Assert.Equal(maxVolume, proc.Volume);
+		}
+		
+		[Fact]
+		public void VolumeMustNotBeLessThanMinValue()
+		{
+			//arrange 
+			var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
+			proc.AddSession(additionalSession);
+			int minVolume = 0;
+			proc.Volume = minVolume;
+
+			//act
+			proc.Volume -= 5;
+
+			//assert 
+			Assert.Equal(minVolume, proc.Volume);
+		}
+
 		internal static AudioSessionModel GetSessionMock(int volume, bool muteState, string id)
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();

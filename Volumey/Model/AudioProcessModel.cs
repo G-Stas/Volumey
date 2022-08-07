@@ -71,7 +71,7 @@ namespace Volumey.Model
 					lock(_sessionsLock)
 					{
 						foreach(AudioSessionModel session in Sessions)
-							session.Volume = value;
+							session.Volume = this._volume;
 					}
 					OnPropertyChanged();
 				}
