@@ -18,6 +18,11 @@ namespace Volumey.ViewModel.Settings
 		
 		private ErrorMessageType currentErrType = ErrorMessageType.None;
 		protected ErrorMessageType CurrentErrorType => currentErrType;
+
+		public HotkeyViewModel()
+		{
+			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
+		}
 		
 		protected void SetErrorMessage(ErrorMessageType type)
 		{

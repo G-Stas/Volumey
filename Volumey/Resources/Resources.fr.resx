@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>Se souvenir de la dernière position</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Ajouter un raccourci clavier</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Raccourcis multimédias</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Touche de raccourci de remplacement</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Supprimer le raccourci clavier</value>
+  </data>
 </root>

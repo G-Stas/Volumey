@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Input;
 
 namespace Volumey.Helper
 {
@@ -255,6 +256,88 @@ namespace Volumey.Helper
             if(GetWindowThreadProcessId(handle, out procId) > 0)
                 return procId;
             return uint.MinValue;
+        }
+
+        [DllImport("user32.dll")]
+        public static extern uint SendInput(uint nInputs, INPUT [] pInputs, int cbSize);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct INPUT
+        {
+            internal InputType type;
+            internal InputUnion U;
+            internal static int Size
+            {
+                get { return Marshal.SizeOf(typeof(INPUT)); }
+            }
+        }
+
+        public enum InputType : uint
+        {
+            INPUT_MOUSE,
+            INPUT_KEYBOARD,
+            INPUT_HARDWARE
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct InputUnion
+        {
+            [FieldOffset(0)]
+            internal MOUSEINPUT mi;
+            [FieldOffset(0)]
+            internal KEYBDINPUT ki;
+            [FieldOffset(0)]
+            internal HARDWAREINPUT hi;
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct MOUSEINPUT
+        {
+            internal int dx;
+            internal int dy;
+            internal int mouseData;
+            internal int dwFlags;
+            internal uint time;
+            internal UIntPtr dwExtraInfo;
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct KEYBDINPUT
+        {
+            internal byte wVk;
+            internal byte wScan;
+            internal int dwFlags;
+            internal int time;
+            internal UIntPtr dwExtraInfo;
+        }
+        
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct HARDWAREINPUT
+        {
+            internal int uMsg;
+            internal short wParamL;
+            internal short wParamH;
+        }
+        
+        /// <summary>
+        /// If specified, the key is being released. If not specified, the key is being pressed.
+        /// </summary>
+        private const int KEYEVENTF_KEYUP = 0x0002;
+
+        internal static void SimulateKeyPress(Key keyToSimulate)
+        {
+            INPUT[] inputs = new INPUT[2];
+		          
+            var pressInput = new INPUT();
+            pressInput.type = InputType.INPUT_KEYBOARD;
+            pressInput.U.ki.wVk = (byte)KeyInterop.VirtualKeyFromKey(keyToSimulate);
+            inputs[0] = pressInput;
+		          
+            var releaseInput = pressInput;
+            releaseInput.U.ki.dwFlags = KEYEVENTF_KEYUP;
+            inputs[1] = releaseInput;
+
+            SendInput((uint)inputs.Length, inputs, INPUT.Size);
         }
         
         [ComImport]

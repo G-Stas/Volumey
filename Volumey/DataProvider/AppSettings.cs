@@ -9,6 +9,8 @@ using log4net;
 using Notification.Wpf.Controls;
 using Volumey.Controls;
 using Volumey.Helper;
+using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.DataProvider
 {
@@ -361,6 +363,9 @@ namespace Volumey.DataProvider
 			}
 
 			[OptionalField]
+			public List<SystemHotkey> RegisteredSystemHotkeys = new List<SystemHotkey>();
+
+			[OptionalField]
 			private Dictionary<string, (SerializableHotkey up, SerializableHotkey down)> serializableRegisteredSessions;
 
 			internal ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> GetRegisteredProcesses()
@@ -490,6 +495,9 @@ namespace Volumey.DataProvider
 					this.VolumeUpKey = VolumeDownKey = Key.None;
 					this.VolumeUpModifiers = VolumeDownModifiers = ModifierKeys.None;
 				}
+
+				if(RegisteredSystemHotkeys == null)
+					RegisteredSystemHotkeys = new List<SystemHotkey>();
 			}
 		}
 

@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>记住最后一个位置</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>添加热键</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>媒体热键</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>替换热键</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>删除热键</value>
+  </data>
 </root>

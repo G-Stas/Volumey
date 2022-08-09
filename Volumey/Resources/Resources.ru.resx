@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>Запоминать последнюю позицию</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Добавить хоткей</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Мультимедиа хоткеи</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Заменить на хоткей</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Удалить хоткей</value>
+  </data>
 </root>

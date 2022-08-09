@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>最後の位置を覚えてください</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>ホットキーを追加</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>メディアのホットキー</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>交換用ホットキー</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>ホットキーを削除</value>
+  </data>
 </root>

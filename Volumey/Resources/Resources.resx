@@ -192,4 +192,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

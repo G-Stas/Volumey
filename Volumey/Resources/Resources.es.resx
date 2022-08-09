@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>Recordar última posición</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Agregar tecla de acceso directo</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Teclas de acceso rápido multimedia</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Tecla de acceso rápido de reemplazo</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Eliminar tecla de acceso directo</value>
+  </data>
 </root>

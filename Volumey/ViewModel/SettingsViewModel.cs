@@ -19,6 +19,7 @@ namespace Volumey.ViewModel
         public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
         public NotificationViewModel NotificationsViewModel { get; }
         public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
+        public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
         public LangSettings LangSettings { get; }
         public ICommand GitHubCommand { get; }
         public ICommand TipCommand { get; }
@@ -78,6 +79,7 @@ namespace Volumey.ViewModel
             this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel();
             this.ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel();
             this.NotificationsViewModel = new NotificationViewModel();
+            this.SystemHotkeysViewModel = new SystemHotkeysViewModel();
             this.GitHubCommand = new ActionCommand(async () => await OpenWebPage("https://github.com/G-Stas/Volumey"));
             this.TipCommand = new ActionCommand(async (param) => await OpenWebPage(param as string));
 

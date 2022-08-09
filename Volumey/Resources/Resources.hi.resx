@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>अंतिम स्थिति याद रखें</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>हॉटकी जोड़ें</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>मीडिया हॉटकी</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>रिप्लेसमेंट हॉटकी</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>हॉटकी निकालें</value>
+  </data>
 </root>

@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>Ricorda l'ultima posizione</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Aggiungi tasto di scelta rapida</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Tasti di scelta rapida multimediali</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Tasto di scelta rapida sostitutivo</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Tasto di scelta rapida sostitutivo</value>
+  </data>
 </root>

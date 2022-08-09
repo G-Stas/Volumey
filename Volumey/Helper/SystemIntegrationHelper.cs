@@ -6,6 +6,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 using log4net;
 using Microsoft.Win32;
 
@@ -175,6 +176,18 @@ namespace Volumey.Helper
 				}
 			}
 			catch { }
+		}
+
+		internal static void SimulateKeyPress(Key key)
+		{
+			try
+			{
+				NativeMethods.SimulateKeyPress(key);
+			}
+			catch(Exception e)
+			{
+				_logger.Error($"Failed to simulate key press: {key.ToString()}", e);
+			}
 		}
 	}
 }

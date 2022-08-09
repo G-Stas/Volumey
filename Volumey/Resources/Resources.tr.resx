@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>Son pozisyonu hatırla</value>
   </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Kısayol tuşunu kaldır</value>
+  </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Kısayol tuşu ekle</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Medya kısayol tuşları</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Yedek kısayol tuşu</value>
+  </data>
 </root>

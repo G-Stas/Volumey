@@ -235,4 +235,16 @@
   <data name="Settings_LastPosition" xml:space="preserve">
     <value>Lembrar a última posição</value>
   </data>
+  <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Adicionar tecla de atalho</value>
+  </data>
+  <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Teclas de atalho de mídia</value>
+  </data>
+  <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Tecla de atalho de substituição</value>
+  </data>
+  <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Remover tecla de atalho</value>
+  </data>
 </root>
