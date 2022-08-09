@@ -187,11 +187,11 @@
 									Placement="RightEdgeAlignedBottom">
 									<ui:CommandBarFlyout.SecondaryCommands>
 										<!-- for some reason AppBarButton won't bind its label to item when they are created inside of the ItemsControl binded to TipSources so I'll hardcode them -->
-										<ui:AppBarButton
-											Label="{Binding TipSources[0].Item1}"
-											ToolTip="{Binding TipSources[0].Item2}"
-											Command="{Binding TipCommand}"
-											CommandParameter="{Binding TipSources[0].Item2}"/>
+										<!-- <ui:AppBarButton -->
+										<!-- 	Label="{Binding TipSources[0].Item1}" -->
+										<!-- 	ToolTip="{Binding TipSources[0].Item2}" -->
+										<!-- 	Command="{Binding TipCommand}" -->
+										<!-- 	CommandParameter="{Binding TipSources[0].Item2}"/> -->
 										<ui:AppBarButton
 											Label="{Binding TipSources[1].Item1}"
 											ToolTip="{Binding TipSources[1].Item2}"
