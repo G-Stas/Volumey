@@ -63,9 +63,6 @@
             <BitmapImage x:Key="GitHubDark" UriSource="Resources/Icons/ButtonIcon/github-dark.png" />
 
             <!--override default style properties-->
-            <CornerRadius x:Key="SliderThumbCornerRadius">4</CornerRadius>
-            <system:Double x:Key="SliderHorizontalThumbWidth">8</system:Double>
-            <system:Double x:Key="SliderHorizontalThumbHeight">25</system:Double>
             <Thickness x:Key="ToolTipBorderThemeThickness">0</Thickness>
             <Thickness x:Key="ComboBoxDropdownBorderThickness">0</Thickness>
             <CornerRadius x:Key="OverlayCornerRadius">6</CornerRadius>

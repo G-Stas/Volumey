@@ -37,5 +37,6 @@
 
     <Color x:Key="SystemControlAcrylicWindowTintColor">#FF000000</Color>
     <Color x:Key="SystemControlAcrylicWindowFallbackColor">#FF1F1F1F</Color>
+	<Color x:Key="SliderThumbBackgroundColor">#FF474747</Color>
     <SolidColorBrush x:Key="SystemControlAcrylicWindowForegroundBrush" Color="{StaticResource SystemBaseHighColor}" />
 </ResourceDictionary>

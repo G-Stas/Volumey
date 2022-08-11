@@ -54,12 +54,17 @@
     <sys:Double x:Key="SliderPostContentMargin">15</sys:Double>
     <sys:Double x:Key="SliderHorizontalHeight">32</sys:Double>
     <sys:Double x:Key="SliderVerticalWidth">32</sys:Double>
-    <CornerRadius x:Key="SliderThumbCornerRadius">10</CornerRadius>
+    <CornerRadius x:Key="SliderThumbCornerRadius">15</CornerRadius>
     <sys:Double x:Key="SliderHorizontalThumbWidth">20</sys:Double>
     <sys:Double x:Key="SliderHorizontalThumbHeight">20</sys:Double>
     <sys:Double x:Key="SliderVerticalThumbWidth">20</sys:Double>
     <sys:Double x:Key="SliderVerticalThumbHeight">20</sys:Double>
-
+    <sys:Double x:Key="SliderTrackHeight">4</sys:Double>
+    <Duration x:Key="ThumbAnimationDuration">0:0:0.1</Duration>
+    <Thickness x:Key="InnerThumbDefaultMargin">5</Thickness>
+    <Thickness x:Key="InnerThumbMouseOverMargin">3</Thickness>
+    <Thickness x:Key="InnerThumbClickedMargin">6</Thickness>
+    
     <ui:CornerRadiusFilterConverter x:Key="TopLeftCornerRadiusDoubleValueConverter" Filter="TopLeftValue" />
     <ui:CornerRadiusFilterConverter x:Key="BottomRightCornerRadiusDoubleValueConverter" Filter="BottomRightValue" />
 
@@ -83,15 +88,73 @@
     <Style TargetType="Thumb" x:Key="SliderThumbStyle">
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="{DynamicResource SliderThumbBackground}" />
+        <Setter Property="Foreground" Value="{DynamicResource SliderThumbBackgroundColorBrush}"/>
         <Setter Property="IsTabStop" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
                     <Border
-                        Background="{TemplateBinding Background}"
+                        Background="{TemplateBinding Foreground}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{DynamicResource SliderThumbCornerRadius}" />
+                        CornerRadius="{DynamicResource SliderThumbCornerRadius}">
+                        <Border
+                            x:Name="InnerThumb"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource SliderThumbCornerRadius}"
+                            Margin="{StaticResource InnerThumbDefaultMargin}">
+                        </Border>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        
+                        <EventTrigger RoutedEvent="MouseEnter">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Duration="{StaticResource ThumbAnimationDuration}"
+                                                        To="{StaticResource InnerThumbMouseOverMargin}"
+                                                        Storyboard.TargetName="InnerThumb"
+                                                        Storyboard.TargetProperty="Margin"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
+                        <EventTrigger RoutedEvent="MouseLeave">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Duration="{StaticResource ThumbAnimationDuration}"
+                                                        To="{StaticResource InnerThumbDefaultMargin}"
+                                                        Storyboard.TargetName="InnerThumb"
+                                                        Storyboard.TargetProperty="Margin"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
+                        <EventTrigger RoutedEvent="PreviewMouseLeftButtonDown">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Duration="{StaticResource ThumbAnimationDuration}"
+                                                        To="{StaticResource InnerThumbClickedMargin}"
+                                                        Storyboard.TargetName="InnerThumb"
+                                                        Storyboard.TargetProperty="Margin"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+
+                        <EventTrigger RoutedEvent="PreviewMouseLeftButtonUp">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ThicknessAnimation Duration="{StaticResource ThumbAnimationDuration}"
+                                                        To="{StaticResource InnerThumbMouseOverMargin}"
+                                                        Storyboard.TargetName="InnerThumb"
+                                                        Storyboard.TargetProperty="Margin"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                        
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -145,7 +208,7 @@
                     <Rectangle
                         x:Name="HorizontalTrackRect"
                         Fill="{TemplateBinding Background}"
-                        Height="{DynamicResource SliderTrackThemeHeight}"
+                        Height="{StaticResource SliderTrackHeight}"
                         Grid.Row="1"
                         Grid.ColumnSpan="3"
                         RadiusX="{TemplateBinding ui:ControlHelper.CornerRadius, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
@@ -198,8 +261,8 @@
                                 x:Name="HorizontalThumb"
                                 Style="{StaticResource SliderThumbStyle}"
                                 DataContext="{TemplateBinding Value}"
-                                Height="{DynamicResource SliderHorizontalThumbHeight}"
-                                Width="{DynamicResource SliderHorizontalThumbWidth}"
+                                Height="{StaticResource SliderHorizontalThumbWidth}"
+                                Width="{StaticResource SliderHorizontalThumbHeight}"
                                 ui:FocusVisualHelper.FocusVisualMargin="-14,-6,-14,-6">
                                 <Thumb.Resources>
                                     <Style TargetType="ToolTip" BasedOn="{StaticResource SliderAutoToolTipStyle}" />
@@ -238,6 +301,7 @@
                 <Setter TargetName="HorizontalDecreaseRect" Property="Fill" Value="{DynamicResource SliderTrackValueFillDisabled}" />
                 <Setter TargetName="HorizontalTrackRect" Property="Fill" Value="{DynamicResource SliderTrackFillDisabled}" />
                 <Setter TargetName="HorizontalThumb" Property="Background" Value="{DynamicResource SliderThumbBackgroundDisabled}" />
+                <Setter TargetName="HorizontalThumb" Property="Foreground" Value="{DynamicResource SliderThumbBackgroundDisabled}" />
                 <Setter TargetName="TopTickBar" Property="Fill" Value="{DynamicResource SliderTickBarFillDisabled}" />
                 <Setter TargetName="BottomTickBar" Property="Fill" Value="{DynamicResource SliderTickBarFillDisabled}" />
                 <Setter TargetName="SliderContainer" Property="Background" Value="{DynamicResource SliderContainerBackgroundDisabled}" />

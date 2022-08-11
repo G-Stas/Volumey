@@ -25,4 +25,5 @@
     <SolidColorBrush x:Key="SystemListLowColorBrush" Color="{DynamicResource SystemListLowColor}" />
     <SolidColorBrush x:Key="SystemListMediumColorBrush" Color="{DynamicResource SystemListMediumColor}" />
     <SolidColorBrush x:Key="SystemControlWindowBrush" Color="{DynamicResource SystemAltHighColor}" />
+	<SolidColorBrush x:Key="SliderThumbBackgroundColorBrush" Color="{DynamicResource SliderThumbBackgroundColor}"/>
 </ResourceDictionary>
