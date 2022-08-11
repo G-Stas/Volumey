@@ -15,7 +15,7 @@
 
     <UserControl.Resources>
         <converters:NoDeviceToVisibilityConverter x:Key="NoDeviceToVisibilityConverter" />
-        <converters:DeviceIsDefaultToEnabledConverter x:Key="DeviceIsDefaultToVisibilityConverter"/>
+        <converters:DeviceIsDefaultToVisibilityPropertiesConverter x:Key="DeviceIsDefaultToVisibilityPropertiesConverter"/>
         
         <SolidColorBrush x:Key="ButtonBackground" Color="{DynamicResource SystemAltMediumLowColor}"/>
         <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{DynamicResource SystemAltLowColor}"/>
@@ -53,35 +53,39 @@
                         Width="Auto"
                         IsSynchronizedWithCurrentItem="False"
                         ui:ControlHelper.CornerRadius="4"/>
-                <ui:DropDownButton
-                        Grid.Column="1"
-                        DockPanel.Dock="Left"
-                        Height="32"
-                        Padding="5 0 5 0"
-                        Margin="3 0 0 0"
-                        ui:ControlHelper.CornerRadius="4"
-                        Background="{DynamicResource ComboBoxBackground}"
-                        BorderBrush="{DynamicResource SystemChromeHighColorBrush}">
-                    <ui:DropDownButton.IsEnabled>
-                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityConverter}">
+                    <ui:DropDownButton Grid.Column="1"
+                                       DockPanel.Dock="Left"
+                                       Height="32"
+                                       Padding="5 0 5 0"
+                                       Margin="3 0 0 0"
+                                       ui:ControlHelper.CornerRadius="4"
+                                       Background="{DynamicResource ComboBoxBackground}"
+                                       BorderBrush="{DynamicResource SystemChromeHighColorBrush}">
+                        
+                        <ui:DropDownButton.Visibility>
+                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
+                                <Binding Path="SelectedDevice"/>
+                                <Binding Path="DefaultDevice"/>
+                            </MultiBinding>
+                        </ui:DropDownButton.Visibility>
+                        <ui:DropDownButton.IsEnabled>
+                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
                                 <Binding Path="SelectedDevice"/>
                                 <Binding Path="DefaultDevice"/>
                             </MultiBinding>
                         </ui:DropDownButton.IsEnabled>
-                        
+
                         <ui:DropDownButton.Content>
-                            <ui:FontIcon Glyph="&#xE9f5;" />
+                            <ui:FontIcon Glyph="&#xE9f5;"/>
                         </ui:DropDownButton.Content>
-                        
+
                         <ui:DropDownButton.Flyout>
-                            <ui:CommandBarFlyout 
-                                Placement="BottomEdgeAlignedLeft">
+                            <ui:CommandBarFlyout Placement="BottomEdgeAlignedLeft">
                                 <ui:CommandBarFlyout.SecondaryCommands>
-                                    <ui:AppBarButton 
-                                        Label="{lc:Localization TrayMenu_ChangeDevice}"
-                                        Command="{Binding SetDefaultDeviceCommand}">
+                                    <ui:AppBarButton Label="{lc:Localization TrayMenu_ChangeDevice}"
+                                                     Command="{Binding SetDefaultDeviceCommand}">
                                         <ui:AppBarButton.Icon>
-                                            <ui:FontIcon Glyph="&#xF623;" />
+                                            <ui:FontIcon Glyph="&#xF623;"/>
                                         </ui:AppBarButton.Icon>
                                     </ui:AppBarButton>
                                 </ui:CommandBarFlyout.SecondaryCommands>
