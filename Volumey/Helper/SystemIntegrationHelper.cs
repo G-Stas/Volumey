@@ -1,5 +1,4 @@
-﻿#if(!STORE)
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
@@ -15,6 +14,8 @@ namespace Volumey.Helper
 	internal static class SystemIntegrationHelper
 	{
 		private static ILog _logger = LogManager.GetLogger(typeof(SystemIntegrationHelper));
+#if(!STORE)
+
 		private static readonly string StartupRegistryPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
 		private static readonly string StartupRegistryKeyName = "Volumey";
 		private static readonly string StartupRegistryValue;
@@ -177,6 +178,7 @@ namespace Volumey.Helper
 			}
 			catch { }
 		}
+#endif
 
 		internal static void SimulateKeyPress(Key key)
 		{
@@ -191,4 +193,3 @@ namespace Volumey.Helper
 		}
 	}
 }
-#endif
