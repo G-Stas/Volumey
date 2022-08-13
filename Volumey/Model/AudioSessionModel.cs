@@ -47,7 +47,7 @@ namespace Volumey.Model
                 {
                     this._isMuted = value;
                     this.SetMute(value);
-                    this.MuteStateChanged?.Invoke(value);
+                    this.MuteStateChanged?.Invoke(value, GuidValue.Internal.VolumeGUID);
                     OnPropertyChanged();
                 }
             }
@@ -68,7 +68,7 @@ namespace Volumey.Model
                     else
                         this._volume = value;
 
-                    this.VolumeChanged?.Invoke(value);
+                    this.VolumeChanged?.Invoke(value, GuidValue.Internal.VolumeGUID);
                     this.SetVolume(this._volume, ref GuidValue.Internal.VolumeGUID);
                 }
                 OnPropertyChanged();
@@ -84,8 +84,8 @@ namespace Volumey.Model
         private readonly IAudioSessionStateNotifications sessionStateNotifications;
         private readonly IAudioSessionVolume sessionVolume;
         public event Action<AudioSessionModel> SessionEnded;
-        public event Action<int> VolumeChanged;
-        public event Action<bool> MuteStateChanged;
+        public event Action<int, Guid> VolumeChanged;
+        public event Action<bool, Guid> MuteStateChanged;
 
         private static ILog logger;
         private static ILog Logger => logger ??= LogManager.GetLogger(typeof(AudioSessionModel));
@@ -117,7 +117,12 @@ namespace Volumey.Model
 
         private void OnVolumeChanged(VolumeChangedEventArgs e)
         {
+            if(this.Volume != e.NewVolume)
+                this.VolumeChanged?.Invoke(this.Volume, Guid.Empty);
             this.Volume = e.NewVolume;
+            
+            if(this.IsMuted != e.IsMuted)
+                this.MuteStateChanged?.Invoke(this.IsMuted, Guid.Empty);
             this.IsMuted = e.IsMuted;
         }
 
@@ -130,7 +135,7 @@ namespace Volumey.Model
         private void OnStateChanged(AudioSessionState newState)
             => this._state = newState;
 
-        internal void SetVolume(int newVol, ref Guid guid)
+        private void SetVolume(int newVol, ref Guid guid)
         {
             try
             {
@@ -146,7 +151,7 @@ namespace Volumey.Model
             }
         }
 
-        internal void SetMute(bool mute)
+        private void SetMute(bool mute)
         {
             try { this.sessionVolume?.SetMute(mute); }
             catch(COMException com)

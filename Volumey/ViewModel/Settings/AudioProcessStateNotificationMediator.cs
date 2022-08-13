@@ -1,4 +1,5 @@
-﻿using Volumey.Helper;
+﻿using System.Windows;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
@@ -7,12 +8,18 @@ namespace Volumey.ViewModel.Settings
 	{
 		internal void NotifyAudioStateChange(IManagedMasterAudioSession sender)
 		{
-			NotificationManagerHelper.ShowNotification(sender);
+			Application.Current.Dispatcher.InvokeAsync(() =>
+			{
+				NotificationManagerHelper.ShowNotification(sender);
+			});
 		}
 
 		internal void NotifyOfDisposing(IManagedMasterAudioSession sender)
 		{
-			NotificationManagerHelper.CloseNotification(sender);
+			Application.Current.Dispatcher.InvokeAsync(() =>
+			{
+				NotificationManagerHelper.CloseNotification(sender);
+			});
 		}
 	}
 }

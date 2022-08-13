@@ -79,10 +79,10 @@ namespace Volumey.Model
 		internal void SetStateNotificationMediator(AudioProcessStateNotificationMediator mediator)
 			=> this.Master.SetStateMediator(mediator);
 
-		internal void ResetStateNotificationMediator()
-			=> this.Master.ResetStateMediator();
+		internal void ResetStateNotificationMediator(bool force = false)
+			=> this.Master.ResetStateMediator(force);
 
-		internal bool SetMuteHotkeys(HotKey key)
+		internal bool SetMuteHotkey(HotKey key)
 			=> this.Master.SetMuteHotkey(key);
 
 		internal void ResetMuteHotkeys()

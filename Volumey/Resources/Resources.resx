@@ -204,4 +204,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

@@ -15,9 +15,8 @@
 		<Style TargetType="{x:Type ComboBox}"
 			   BasedOn="{StaticResource SettingsComboBoxStyle}"/>
 		
-		<Style TargetType="{x:Type localControls:VolumeSlider}" BasedOn="{StaticResource DefaultSliderStyle}">
+		<Style TargetType="{x:Type localControls:VolumeSlider}" BasedOn="{StaticResource {x:Type localControls:VolumeSlider}}">
 			<Setter Property="Width" Value="178"/>
-			<Setter Property="Height" Value="{StaticResource SliderHeight}"/>
 			<Setter Property="Minimum" Value="{Binding MinIndent}"/>
 			<Setter Property="Maximum" Value="{Binding MaxIndent}"/>
 			<Setter Property="HorizontalAlignment" Value="Left"/>
@@ -37,6 +36,9 @@
 	<StackPanel>
 		<TextBlock Text="{lc:Localization Notifications_Header}"/>
 		<controls:ToggleSwitch IsOn="{Binding NotificationsEnabled}"/>
+		
+		<TextBlock Text="{lc:Localization Notifications_ReactAll}"/>
+		<controls:ToggleSwitch IsOn="{Binding ReactToAllVolumeChanges}"/>
 
 		<TextBlock Text="{lc:Localization Notifications_Position}"/>
 		<ComboBox ItemsSource="{Binding Positions}"
@@ -52,8 +54,7 @@
 							HorizontalAlignment="Left"/>
 		
 		<TextBlock Text="{lc:Localization Notifications_Vertical}"/>
-		<localControls:VolumeSlider Value="{Binding VerticalIndent}"
-									EnableMouseWheel="True"/>
+		<localControls:VolumeSlider Value="{Binding VerticalIndent}"/>
 		
 		<TextBlock Text="{lc:Localization Notifications_Horizontal}"/>
 		<localControls:VolumeSlider Value="{Binding HorizontalIndent}"/>

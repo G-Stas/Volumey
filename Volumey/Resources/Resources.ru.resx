@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>Удалить хоткей</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Отображать при любых изменениях звука</value>
+  </data>
 </root>

@@ -559,6 +559,18 @@ namespace Volumey.DataProvider
 				}
 			}
 
+			[OptionalField]
+			private bool reactToAllVolumeChanges;
+			public bool ReactToAllVolumeChanges
+			{
+				get => this.reactToAllVolumeChanges;
+				set
+				{
+					this.reactToAllVolumeChanges = value;
+					OnPropertyChanged();
+				}
+			}
+
 			[field: NonSerialized]
 			public event PropertyChangedEventHandler PropertyChanged;
 

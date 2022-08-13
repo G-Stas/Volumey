@@ -247,4 +247,7 @@
   <data name="Settings_MediaReplace" xml:space="preserve">
     <value>Yedek kısayol tuşu</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Tüm ses seviyesi değişikliklerinde göster</value>
+  </data>
 </root>

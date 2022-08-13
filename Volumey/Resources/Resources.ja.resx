@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>ホットキーを削除</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>すべてのボリューム変更時に表示</value>
+  </data>
 </root>

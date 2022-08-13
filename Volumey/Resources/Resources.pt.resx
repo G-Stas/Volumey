@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>Remover tecla de atalho</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Exibição em todas as alterações de volume</value>
+  </data>
 </root>

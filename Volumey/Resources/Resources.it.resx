@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>Tasto di scelta rapida sostitutivo</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Mostra su tutte le modifiche al volume</value>
+  </data>
 </root>

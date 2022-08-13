@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>Eliminar tecla de acceso directo</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Mostrar en todos los cambios de volumen</value>
+  </data>
 </root>

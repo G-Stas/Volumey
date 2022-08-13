@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>हॉटकी निकालें</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>सभी वॉल्यूम परिवर्तनों पर प्रदर्शित करें</value>
+  </data>
 </root>

@@ -138,7 +138,7 @@ namespace Volumey.ViewModel.Settings
 			{
 				if(this.muteHotkeyRegistered)
 				{
-					this.defaultDevice.SetMuteHotkeys(this.muteKey);
+					this.defaultDevice.SetMuteHotkey(this.muteKey);
 					if(SettingsProvider.NotificationsSettings.Enabled)
 						this.defaultDevice.SetStateNotificationMediator(this.DeviceMediator);
 				}
@@ -212,7 +212,7 @@ namespace Volumey.ViewModel.Settings
 
 			if(this.defaultDevice != null)
 			{
-				if(this.defaultDevice.SetMuteHotkeys(key))
+				if(this.defaultDevice.SetMuteHotkey(key))
 				{
 					this.defaultDevice.Disabled += OnDefaultDeviceDisabled;
 					if(SettingsProvider.NotificationsSettings.Enabled)
@@ -289,7 +289,7 @@ namespace Volumey.ViewModel.Settings
 				}
 				if(muteHotkeyRegistered)
 				{
-					newDevice.SetMuteHotkeys(this.muteKey);
+					newDevice.SetMuteHotkey(this.muteKey);
 					if(SettingsProvider.NotificationsSettings.Enabled)
 						newDevice.SetStateNotificationMediator(this.DeviceMediator);
 				}

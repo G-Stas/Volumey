@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>Remove hotkey</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Display on any volume change</value>
+  </data>
 </root>

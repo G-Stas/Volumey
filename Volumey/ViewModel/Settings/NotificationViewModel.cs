@@ -6,6 +6,7 @@ using Microsoft.Xaml.Behaviors.Core;
 using Notification.Wpf.Controls;
 using Volumey.Helper;
 using Volumey.DataProvider;
+using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -32,10 +33,11 @@ namespace Volumey.ViewModel.Settings
 				this._selectedPosition = value;
 				NotificationManagerHelper.ChangePosition(value);
 				OnPropertyChanged();
+				
+				if(SettingsProvider.NotificationsSettings.Position == value)
+					return;
 				Task.Run(() =>
 				{
-					if(SettingsProvider.NotificationsSettings.Position == value)
-						return;
 					SettingsProvider.NotificationsSettings.Position = value;
 					_ = SettingsProvider.SaveSettings();
 				});
@@ -50,13 +52,42 @@ namespace Volumey.ViewModel.Settings
 			{
 				this._notificationsEnabled = value;
 				OnPropertyChanged();
+				
+				if(SettingsProvider.NotificationsSettings.Enabled == value)
+					return;
 				Task.Run(() =>
 				{
-					if(SettingsProvider.NotificationsSettings.Enabled == value)
-						return;
 					SettingsProvider.NotificationsSettings.Enabled = value;
 					_ = SettingsProvider.SaveSettings();
 				});
+			}
+		}
+
+		private bool _reactToAllChanges;
+		public bool ReactToAllVolumeChanges
+		{
+			get => _reactToAllChanges;
+			set
+			{
+				if(_reactToAllChanges == value)
+					return;
+				
+				_reactToAllChanges = value;
+				OnPropertyChanged();
+
+				if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges != value)
+				{
+					SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = value;
+					Task.Run(async () =>
+					{
+						await SettingsProvider.SaveSettings();
+					});
+				}
+
+				if(value)
+					SetStateMediatorForDefaultDeviceProcesses();
+				else 
+					ResetStateMediatorForDefaultDeviceProcesses();
 			}
 		}
 
@@ -143,10 +174,86 @@ namespace Volumey.ViewModel.Settings
 			this.HorizontalIndent = SettingsProvider.NotificationsSettings.HorizontalIndent;
 			this.VerticalIndent = SettingsProvider.NotificationsSettings.VerticalIndent;
 			this.SelectedPosition = SettingsProvider.NotificationsSettings.Position;
+			this.ReactToAllVolumeChanges = SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges;
 			
 			this.UnloadedCommand = new ActionCommand(() => this.PreviewIsOn = false);
 
 			this.DisplayTime = SettingsProvider.NotificationsSettings.DisplayTimeInSeconds;
+		}
+
+		private IDeviceProvider _deviceProvider;
+		private OutputDeviceModel _currentDefaultDevice;
+		private AudioProcessStateNotificationMediator StateMediator = new AudioProcessStateNotificationMediator();
+
+		private void SetStateMediatorForDefaultDeviceProcesses()
+		{
+			if(_deviceProvider == null)
+				_deviceProvider = DeviceProvider.GetInstance();
+			
+			_deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
+
+			_currentDefaultDevice = _deviceProvider.DefaultDevice;
+			if(_currentDefaultDevice == null)
+				return;
+
+			_currentDefaultDevice.ProcessCreated += OnProcessCreated;
+			_currentDefaultDevice.SetStateNotificationMediator(StateMediator);
+
+			foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+				proc.SetStateMediator(StateMediator);
+		}
+
+		private void ResetStateMediatorForDefaultDeviceProcesses()
+		{
+			if(_deviceProvider == null)
+				_deviceProvider = DeviceProvider.GetInstance();
+
+			_deviceProvider.DefaultDeviceChanged -= OnDefaultDeviceChanged;
+
+			if(_currentDefaultDevice == null)
+				return;
+
+			if(!_currentDefaultDevice.Master.AnyHotkeyRegistered)
+				_currentDefaultDevice.ResetStateNotificationMediator();
+			_currentDefaultDevice.ProcessCreated -= OnProcessCreated;
+
+			foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+			{
+				if(!proc.AnyHotkeyRegistered)
+					proc.ResetStateMediator();
+			}
+
+			_currentDefaultDevice = null;
+		}
+
+		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+		{
+			if(_currentDefaultDevice != null)
+			{
+				foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+				{
+					proc.ResetStateMediator(force: true);
+				}
+
+				_currentDefaultDevice.ProcessCreated -= OnProcessCreated;
+				_currentDefaultDevice.ResetStateNotificationMediator(force: true);
+			}
+
+			_currentDefaultDevice = newDevice;
+
+			if(_currentDefaultDevice == null)
+				return;
+			
+			_currentDefaultDevice.ProcessCreated += OnProcessCreated;
+			_currentDefaultDevice.SetStateNotificationMediator(StateMediator);
+			
+			foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+				proc.SetStateMediator(StateMediator);
+		}
+
+		private void OnProcessCreated(AudioProcessModel newProcess)
+		{
+			newProcess.SetStateMediator(StateMediator);
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;

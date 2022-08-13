@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,6 +11,7 @@ using System.Windows.Media;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
@@ -100,6 +100,8 @@ namespace Volumey.Model
 			}
 		}
 
+		public bool AnyHotkeyRegistered { get; private set; }
+
 		/// <summary>
 		/// Session of the process which is used as reference to current process state i.e. its current volume and mute state 
 		/// </summary>
@@ -109,11 +111,11 @@ namespace Volumey.Model
 
 		private HotKey _volumeUp;
 		private HotKey _volumeDown;
-		private HotKey _muteKey;
+		// private HotKey _muteKey;
 
 		public ICommand MuteCommand { get; set; }
 
-		private bool _muteKeyRegistered;
+		// private bool _muteKeyRegistered;
 		private object _sessionsLock = new object();
 
 		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, AudioProcessStateNotificationMediator stateNotificationMediator = null)
@@ -139,7 +141,6 @@ namespace Volumey.Model
 				}
 			}
 			catch { }
-			
 			
 			Sessions = new ObservableCollection<AudioSessionModel>();
 
@@ -173,16 +174,28 @@ namespace Volumey.Model
 			}
 		}
 
-		private void OnTrackedSessionStateChanged(bool muteState)
+		private void OnTrackedSessionStateChanged(bool muteState, Guid context)
 		{
 			this._isMuted = muteState;
 			OnPropertyChanged(nameof(IsMuted));
+
+			if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+			{
+				if(!context.Equals(GuidValue.Internal.VolumeGUID))
+					StateNotificationMediator?.NotifyAudioStateChange(this);
+			}
 		}
 
-		private void OnTrackedSessionVolumeChanged(int volume)
+		private void OnTrackedSessionVolumeChanged(int volume, Guid context)
 		{
 			this._volume = volume;
 			OnPropertyChanged(nameof(Volume));
+			
+			if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+			{
+				if(!context.Equals(GuidValue.Internal.VolumeGUID))
+					StateNotificationMediator?.NotifyAudioStateChange(this);
+			}
 		}
 
 		public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
@@ -194,6 +207,7 @@ namespace Volumey.Model
 					this._volumeUp = volUp;
 					this._volumeDown = volDown;
 					HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+					AnyHotkeyRegistered = true;
 					return true;
 				}
 			}
@@ -208,28 +222,29 @@ namespace Volumey.Model
 
 		public bool SetMuteHotkey(HotKey hotkey)
 		{
-			try
-			{
-				if(hotkey != null && HotkeysControl.RegisterHotkey(hotkey))
-				{
-					this._muteKey = hotkey;
-					HotkeysControl.HotkeyPressed += OnHotkeyPressed;
-					this._muteKeyRegistered = true;
-					return true;
-				}
-			}
-			catch { }
+			// try
+			// {
+			// 	if(hotkey != null && HotkeysControl.RegisterHotkey(hotkey))
+			// 	{
+			// 		this._muteKey = hotkey;
+			// 		HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+			// 		this._muteKeyRegistered = true;
+			// 		HotkeysRegistered = true;
+			// 		return true;
+			// 	}
+			// }
+			// catch { }
 			return false;
 		}
 
 		public void ResetMuteHotkey()
 		{
-			if(this._muteKey != null)
-				HotkeysControl.UnregisterHotkey(this._muteKey);
-			if(!this._muteKeyRegistered)
-				HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
-			this._muteKeyRegistered = false;
-			this._muteKey = null;
+			// if(this._muteKey != null)
+			// 	HotkeysControl.UnregisterHotkey(this._muteKey);
+			// if(!this._muteKeyRegistered)
+			// 	HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+			// this._muteKeyRegistered = false;
+			// this._muteKey = null;
 		}
 
 		private void UnregisterHotkeys()
@@ -243,6 +258,7 @@ namespace Volumey.Model
 				catch { }
 			}
 			HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+			AnyHotkeyRegistered = false;
 			this._volumeUp = this._volumeDown = null;
 		}
 
@@ -253,7 +269,7 @@ namespace Volumey.Model
 				StateNotificationMediator?.NotifyAudioStateChange(this);
 		}
 
-		public void SetMute(bool newState, bool notify, ref Guid guid)
+		public void SetMute(bool newState, bool notify, ref Guid context)
 		{
 			this.IsMuted = newState;
 			if(notify)
@@ -265,8 +281,10 @@ namespace Volumey.Model
 			StateNotificationMediator = mediator;
 		}
 
-		public void ResetStateMediator()
+		public void ResetStateMediator(bool force = false)
 		{
+			if(!force && SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+				return;
 			StateNotificationMediator = null;
 		}
 
@@ -322,6 +340,8 @@ namespace Volumey.Model
 
 		public void Dispose()
 		{
+			this.StateNotificationMediator?.NotifyOfDisposing(this);
+			
 			if(this._icon != null)
 			{
 				NativeMethods.DestroyIcon(this._icon.Handle);

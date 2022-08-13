@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>删除热键</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>显示所有音量变化</value>
+  </data>
 </root>

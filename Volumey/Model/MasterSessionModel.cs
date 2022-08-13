@@ -9,6 +9,7 @@ using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
@@ -88,7 +89,7 @@ namespace Volumey.Model
                 if(this._isMuted != value)
                 {
                     this._isMuted = value;
-                    this.SetMute(value);
+                    this.SetMute(value, GuidValue.Internal.VolumeGUID);
                     OnPropertyChanged();
                 }
             }
@@ -121,9 +122,11 @@ namespace Volumey.Model
         private HotKey volumeUp;
         private HotKey volumeDown;
         private HotKey muteKey;
-
+        
         private bool volumeHotkeysRegistered;
         private bool muteHotkeyRegistered;
+
+        public bool AnyHotkeyRegistered => volumeHotkeysRegistered || muteHotkeyRegistered;
         
         public AudioProcessStateNotificationMediator StateNotificationMediator { get; private set; }
 
@@ -173,8 +176,10 @@ namespace Volumey.Model
             StateNotificationMediator = mediator;
         }
 
-        public void ResetStateMediator()
+        public void ResetStateMediator(bool force = false)
         {
+            if(!force && SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+                return;
             StateNotificationMediator = null;
         }
 
@@ -241,17 +246,22 @@ namespace Volumey.Model
                 this.StateNotificationMediator?.NotifyAudioStateChange(this);
         }
 
-        public void SetMute(bool muteState, bool notify, ref Guid guid)
+        public void SetMute(bool muteState, bool notify, ref Guid context)
         {
-            SetMute(muteState);
+            SetMute(muteState, context);
             if(notify)
                 this.StateNotificationMediator?.NotifyAudioStateChange(this);
         }
         
         
-        private void SetVolume(int newVol, ref Guid guid)
+        private void SetVolume(int newVol, ref Guid context)
         {
-            try { this.masterVolume?.SetVolume(newVol, ref guid); }
+            try
+            {
+                this.masterVolume?.SetVolume(newVol, ref context);
+                if(!context.Equals(GuidValue.Internal.VolumeGUID))
+                    this.StateNotificationMediator?.NotifyAudioStateChange(this);
+            }
             catch(COMException com)
             {
                 LogStateException(com);
@@ -262,9 +272,14 @@ namespace Volumey.Model
             }
         }
 
-        private void SetMute(bool muteState)
+        private void SetMute(bool muteState, Guid context)
         {
-            try { this.masterVolume?.SetMute(muteState); }
+            try
+            {
+                this.masterVolume?.SetMute(muteState); 
+                if(!context.Equals(GuidValue.Internal.VolumeGUID))
+                    this.StateNotificationMediator?.NotifyAudioStateChange(this);
+            }
             catch(COMException com)
             {
                 LogStateException(com);
@@ -277,6 +292,12 @@ namespace Volumey.Model
 
         private void OnVolumeChanged(VolumeChangedEventArgs e)
         {
+            if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+            {
+                if(this.Volume != e.NewVolume || this.IsMuted != e.IsMuted)
+                    this.StateNotificationMediator?.NotifyAudioStateChange(this);
+            }
+            
             this.Volume = e.NewVolume;
             this.IsMuted = e.IsMuted;
         }
@@ -293,11 +314,12 @@ namespace Volumey.Model
         
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public void Dispose()
         {
+            this.StateNotificationMediator?.NotifyOfDisposing(this);
             this.notificationHandler.VolumeChanged -= OnVolumeChanged;
             this.notificationHandler.Dispose();
         }

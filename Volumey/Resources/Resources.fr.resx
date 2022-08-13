@@ -247,4 +247,7 @@
   <data name="Settings_RemoveHotkey" xml:space="preserve">
     <value>Supprimer le raccourci clavier</value>
   </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Affichage sur tous les changements de volume</value>
+  </data>
 </root>
