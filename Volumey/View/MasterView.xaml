@@ -96,7 +96,7 @@
              <Grid
                 Width="Auto">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" x:Name="IconCol"/>
+                    <ColumnDefinition Width="{StaticResource ImageColumnWidth}" x:Name="IconCol"/>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -115,7 +115,7 @@
                     IsMuted="{Binding SelectedDevice.Master.IsMuted}"
                     Width="{StaticResource SliderWidth}"
                     Height="{StaticResource SliderHeight}"
-                    Margin="5 0 0 0"
+                    Margin="3 0 0 0"
                     VerticalContentAlignment="Center" />
                 <Label
                     Grid.Column="2"

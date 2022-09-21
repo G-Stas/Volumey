@@ -74,9 +74,10 @@
             <system:Double x:Key="TextBlockHeaderWidth">200</system:Double>
             <system:Double x:Key="GroupBoxHeaderFontSize">17</system:Double>
             <system:Double x:Key="ImageSize">24</system:Double>
+            <GridLength x:Key="ImageColumnWidth">45</GridLength>
 
             <Thickness x:Key="SliderMargin">5, -4, 0, 0</Thickness>
-            <Thickness x:Key="ImageMargin">7, 3, 8, 0</Thickness>
+            <Thickness x:Key="ImageMargin">8, 1, 8, 0</Thickness>
             <Thickness x:Key="ContentMargin">0 5 0 0</Thickness>
             <Thickness x:Key="BoxMargin">0 2 0 0</Thickness>
             <Thickness x:Key="MuteButtonMargin">0 -3 0 0</Thickness>
@@ -165,6 +166,19 @@
                 <Setter Property="RenderTransform">
                     <Setter.Value>
                         <ScaleTransform ScaleX="1.1" ScaleY="1.1" />
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            
+            <Style x:Key="SessionMuteButtonStyle" 
+                   TargetType="{x:Type ui:AppBarButton}"
+                   BasedOn="{StaticResource DefaultAppBarButtonStyle}">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Width" Value="26"/>
+                <Setter Property="Height" Value="26"/>
+                <Setter Property="RenderTransform">
+                    <Setter.Value>
+                        <ScaleTransform ScaleX="1" ScaleY="1" />
                     </Setter.Value>
                 </Setter>
             </Style>

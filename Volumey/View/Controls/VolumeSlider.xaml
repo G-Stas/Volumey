@@ -249,6 +249,7 @@
                             <RepeatButton
                                 x:Name="HorizontalDecrease"
                                 Command="{x:Static Slider.DecreaseLarge}"
+                                Margin="-1 0 -2 0"
                                 Style="{StaticResource RepeatButtonTransparent}" />
                         </Track.DecreaseRepeatButton>
                         <Track.IncreaseRepeatButton>
