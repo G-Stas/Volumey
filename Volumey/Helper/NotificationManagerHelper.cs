@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Drawing;
 using log4net;
 using Notification.Wpf;
 using Notification.Wpf.Controls;
-using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.View.Controls;
-using Volumey.ViewModel.Settings;
 using Brush = System.Windows.Media.Brush;
 
 namespace Volumey.Helper
@@ -19,7 +16,7 @@ namespace Volumey.Helper
 
 		private const string _exampleNotificationId = "E7D8A20F-94C6-4027-A53A-267938F9FD90";
 		public const int MinIndent = 15;
-		public const int MaxIndent = 100;
+		public const int MaxIndent = 500;
 
 		private static ILog _logger;
 		private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationManagerHelper));
