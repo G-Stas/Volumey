@@ -18,6 +18,7 @@ using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
 using Volumey.DataProvider;
+using Volumey.Model;
 using Volumey.View.DialogContent;
 
 namespace Volumey.View
@@ -38,17 +39,13 @@ namespace Volumey.View
         private int prevMsg;
         private bool positionChanged;
 
-        private const int SessionControlDefaultHeight = 52;
         private const int ScrollStep = 30;
         private const double NavPaneHeight = 32;
         private const int BorderIndent = 11;
 
-        public static readonly DependencyProperty RememberLastPositionProperty = DependencyProperty.Register("RememberLastPosition", typeof(bool), typeof(MainView));
-        private bool RememberLastPosition
-        {
-	        get => (bool)GetValue(RememberLastPositionProperty);
-	        set => SetValue(RememberLastPositionProperty, value);
-        }
+        public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo) , typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
+
+        private ScreenInfo SelectedScreen => (ScreenInfo)GetValue(SelectedScreenProperty);
 
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
@@ -84,6 +81,7 @@ namespace Volumey.View
             
             SetTrayIconTooltip();
             SetControlsNameScope();
+            SetBindings();
 
             this.ContentFrame.SizeChanged += (sender, args) => OnCurrentPageSizeChanged();
             this.ContentFrame.Navigated += (sender, args) =>
@@ -98,16 +96,6 @@ namespace Volumey.View
 			var settingsVm = (SettingsViewModel)TryFindResource("SettingsViewModel");
 			this.HotkeyMessageHandler = settingsVm.GetHotkeyMessageHandler();
 			settingsVm.SetWindowHandle(this.Hwnd);
-
-			var appBehaviorVm = (AppBehaviorViewModel)this.DataContext;
-			var binding = new Binding
-			{
-				Source = appBehaviorVm,
-				Path = new PropertyPath("RememberLastPosition"),
-				Mode = BindingMode.OneWay,
-				UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-			};
-			BindingOperations.SetBinding(this, RememberLastPositionProperty, binding);
 		}
 
 		/// <summary>
@@ -122,6 +110,19 @@ namespace Volumey.View
 				NameScope.SetNameScope(cm, nameScope);
 			if(this.Tray.TrayToolTip is ToolTip tooltip)
 				NameScope.SetNameScope(tooltip, nameScope);
+		}
+
+		private void SetBindings()
+		{
+			var appBehaviorVm = (AppBehaviorViewModel)this.DataContext;
+			var displayBinding = new Binding
+			{
+				Source = appBehaviorVm,
+				Path = new PropertyPath("SelectedScreen"),
+				Mode = BindingMode.OneWay,
+				UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+			};
+			BindingOperations.SetBinding(this, SelectedScreenProperty, displayBinding);
 		}
 
 		private void SetTrayIconTooltip()
@@ -179,12 +180,6 @@ namespace Volumey.View
 		/// </summary>
 		private void SetWindowPosition()
 		{
-			if(RememberLastPosition)
-			{
-				if(this.Top < SystemParameters.VirtualScreenHeight && this.Left < SystemParameters.VirtualScreenWidth && (this.Left + this.Width) > 0)
-					return;
-				//If work area was changed and window became out of bounds then we will reset its position ignoring the "rememember last position" flag
-			}
 			TaskBarLocation taskBarLocation = GetTaskBarLocation();
 			double topPos;
 
@@ -192,29 +187,29 @@ namespace Volumey.View
 			{
 				case TaskBarLocation.TOP:
 
-					this.Left = SystemParameters.WorkArea.Right - this.ActualWidth - BorderIndent;
-					topPos = SystemParameters.WorkArea.Top + BorderIndent;
+					this.Left = SelectedScreen.AbsoluteRight - this.ActualWidth - BorderIndent;
+					topPos = SelectedScreen.AbsoluteTop + BorderIndent;
 					this.Top = topPos < 0 ? 0 : topPos;
 					break;
 
                 case TaskBarLocation.BOTTOM:
 
-                    this.Left = SystemParameters.WorkArea.Right - this.ActualWidth - BorderIndent;
-                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight - BorderIndent;
+                    this.Left = SelectedScreen.AbsoluteRight - this.ActualWidth - BorderIndent;
+                    topPos = SelectedScreen.AbsoluteBottom - this.ActualHeight - BorderIndent;
                     this.Top = topPos < 0 ? 0 : topPos;
                     break;
 
                 case TaskBarLocation.LEFT:
 
-                    this.Left = SystemParameters.WorkArea.Left + BorderIndent;
-                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight - BorderIndent;
+                    this.Left = SelectedScreen.AbsoluteLeft + BorderIndent;
+                    topPos = SelectedScreen.AbsoluteBottom - this.ActualHeight - BorderIndent;
                     this.Top = topPos < 0 ? 0 : topPos;
                     break;
 
                 case TaskBarLocation.RIGHT:
 
-                    this.Left = SystemParameters.WorkArea.Right - this.ActualWidth - BorderIndent;
-                    topPos = SystemParameters.WorkArea.Bottom - this.ActualHeight - BorderIndent;
+                    this.Left = SelectedScreen.AbsoluteRight - this.ActualWidth - BorderIndent;
+                    topPos = SelectedScreen.AbsoluteBottom - this.ActualHeight - BorderIndent;
                     this.Top = topPos < 0 ? 0 : topPos;
                     break;
             }
@@ -222,7 +217,7 @@ namespace Volumey.View
 
 		private void LimitWindowHeightIfNecessary()
 		{
-			var desktopHeight = SystemParameters.WorkArea.Height;
+			var desktopHeight = SelectedScreen.Height;
 			var maxHeight = desktopHeight * 0.6;
 			
 			if(this.ContentFrame.Content is MixerView)
@@ -444,6 +439,16 @@ namespace Volumey.View
 	        else if(this.ContentFrame.Content is SettingsView settings)
 		        scrollViewer = settings.ScrollViewer;
 	        return scrollViewer;
+        }
+        
+        
+        private static void SelectedScreenChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+	        if(d is MainView view)
+	        {
+		        view.LimitWindowHeightIfNecessary();
+		        view.SetWindowPosition();
+	        }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

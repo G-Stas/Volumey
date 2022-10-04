@@ -1,8 +1,8 @@
 ﻿namespace Volumey.View.SettingsPage
 {
-	public partial class WindowBehaviorPage
+	public partial class AppBehaviorPage
 	{
-		public WindowBehaviorPage()
+		public AppBehaviorPage()
 		{
 			InitializeComponent();
 		}

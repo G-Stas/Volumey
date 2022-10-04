@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -192,18 +195,27 @@ namespace Volumey.ViewModel
 	        }
         }
 
-        private bool rememberLastPosition;
-        public bool RememberLastPosition
+        private ScreenInfo selectedScreen;
+        public ScreenInfo SelectedScreen
         {
-	        get => rememberLastPosition;
+	        get => selectedScreen;
 	        set
 	        {
-		        rememberLastPosition = value;
-		        SettingsProvider.Settings.RememberLastPosition = value;
-		        _ = SettingsProvider.SaveSettings();
+		        selectedScreen = value;
 		        OnPropertyChanged();
+		        
+		        int index = AllScreens.IndexOf(value);
+		        if(SettingsProvider.Settings.SelectedScreenIndex != index)
+		        {
+			        SettingsProvider.Settings.SelectedScreenIndex = index;
+			        SettingsProvider.SaveSettings();
+		        }
 	        }
         }
+
+        public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
+
+        private IScreenInfoProvider screenInfoProvider = new ScreenInfoProvider();
         
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
@@ -225,6 +237,9 @@ namespace Volumey.ViewModel
         /// Amount of ms to block tray for 
         /// </summary>
         private const double trayBlockDelay = 300;
+
+        private static ILog _logger;
+        private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
 		private bool restartInvoked = false;
 
@@ -260,12 +275,13 @@ namespace Volumey.ViewModel
 
 			this.windowLeft = SettingsProvider.Settings.WindowLeft;
 			this.windowTop = SettingsProvider.Settings.WindowTop;
-			this.rememberLastPosition = SettingsProvider.Settings.RememberLastPosition;
 
 			#if(!STORE)
 			this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();
 			this.addToStartMenu = SystemIntegrationHelper.CheckIfStartMenuLinkExists();
 			#endif
+
+			SetSelectedScreen();
 		}
 
 		/// <summary>
@@ -276,6 +292,53 @@ namespace Volumey.ViewModel
 			this.trayBlocked = true;
 			this.trayBlockTimer.Stop();
 			this.trayBlockTimer.Start();
+		}
+
+		private void SetSelectedScreen()
+		{
+			foreach(var screen in screenInfoProvider.GetAllScreensInfo())
+				AllScreens.Add(screen);
+
+			int selectedScreenIndex = SettingsProvider.Settings.SelectedScreenIndex;
+			if(AllScreens.Count - 1 < selectedScreenIndex)
+				SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
+			else
+				SelectedScreen = AllScreens[selectedScreenIndex];
+		}
+
+		/// <summary>
+		/// Executes after the window was displayed to check if the selected screen is available.
+		/// If not, will reset the <see cref="SelectedScreen"/> to the primary screen.
+		/// Also will update <see cref="AllScreens"/> to actual data.
+		/// </summary>
+		private void CheckIfSelectedScreenIsAvailable()
+		{
+			Task.Run(() =>
+			{
+				var screens = screenInfoProvider.GetAllScreensInfo().ToList();
+
+				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
+				{
+					App.Current.Dispatcher.Invoke(() =>
+					{
+						AllScreens.Clear();
+						foreach(var screen in screens)
+							AllScreens.Add(screen);
+					});
+				}
+
+				//Hide the window if the selected screen is not available so the user would have to open it again using the available screen
+				if(!screens.Contains(SelectedScreen))
+				{
+					SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
+				}
+			}).ContinueWith(task =>
+			{
+				if(task.Exception != null)
+				{
+					Logger.Error("Failed to check the screen for availability", task.Exception.Flatten());
+				}
+			}, TaskContinuationOptions.OnlyOnFaulted);
 		}
 
 		private void OnDeviceFormatChanged(OutputDeviceModel sender)
@@ -328,6 +391,7 @@ namespace Volumey.ViewModel
 					//bring the window to the foreground and change page
 					this.DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, this.displayedAsPopup);
 					this.WindowIsVisible = true;
+					CheckIfSelectedScreenIsAvailable();
 				}
 				else
 					this.WindowIsVisible = false;
@@ -337,8 +401,11 @@ namespace Volumey.ViewModel
 				if(this.popupEnabled && this.displayedMinimalistic)
 					this.DisplayMinimalistic = false;
 				this.DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, this.displayedAsPopup);
-				if (!WindowIsVisible)
+				if(!WindowIsVisible)
+				{
 					WindowIsVisible = true;
+					CheckIfSelectedScreenIsAvailable();
+				}
 			}
 		}
 

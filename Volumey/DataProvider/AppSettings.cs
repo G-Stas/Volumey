@@ -163,7 +163,14 @@ namespace Volumey.DataProvider
 			set => rememberLastPosition = value;
 		}
 
-
+		[OptionalField]
+		private int selectedScreenIndex;
+		public int SelectedScreenIndex
+		{
+			get => selectedScreenIndex;
+			set => selectedScreenIndex = value;
+		}
+		
 		// [OptionalField]
 		// private bool blockHotkeys = true;
 		// public bool BlockHotkeys

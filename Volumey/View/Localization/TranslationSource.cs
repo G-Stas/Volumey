@@ -44,6 +44,7 @@ namespace Volumey.Localization
 
         private readonly ResourceManager resManager = Resources.Resources.ResourceManager;
 
+        private readonly CultureInfo defaultCulture = CultureInfo.GetCultureInfo("en");
 		private CultureInfo currentCulture;
 		
 		public CultureInfo CurrentCulture
@@ -58,8 +59,16 @@ namespace Volumey.Localization
 				}
 			}
 		}
-		
-		public string this[string key] => this.resManager.GetString(key, this.currentCulture);
+
+		public string this[string key]
+		{
+			get
+			{
+				string resource = this.resManager.GetString(key, this.currentCulture);
+				//If the resource for the selected culture is not localized we will return English localized resource 
+				return string.IsNullOrEmpty(resource) ? this.resManager.GetString(key, defaultCulture) : resource;
+			}
+		}
 		
 		public const string NoDeviceCaptionKey = "Error_NoDevice";
 		public const string MutedCaptionKey = "Status_Muted";

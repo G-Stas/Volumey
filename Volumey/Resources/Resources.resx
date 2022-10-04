@@ -207,4 +207,7 @@
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value></value>
   </data>
+  <data name="Settings_SelectedScreen" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

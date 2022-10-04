@@ -250,4 +250,7 @@
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>Display on any volume change</value>
   </data>
+  <data name="Settings_SelectedScreen" xml:space="preserve">
+    <value>Screen to display</value>
+  </data>
 </root>
