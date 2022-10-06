@@ -1,7 +1,10 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Notification.Wpf.Controls;
 using Volumey.Helper;
@@ -164,9 +167,40 @@ namespace Volumey.ViewModel.Settings
 		public int MinDisplayTime { get; } = 1;
 		
 		public ICommand UnloadedCommand { get; }  
+		public ICommand LoadedCommand { get; }
 
 		public static int MinIndent => NotificationManagerHelper.MinIndent;
 		public static int MaxIndent => NotificationManagerHelper.MaxIndent;
+
+		private ScreenInfo selectedScreen;
+		public ScreenInfo SelectedScreen
+		{
+			get => selectedScreen;
+			set
+			{
+				selectedScreen = value;
+				OnPropertyChanged();
+				
+				NotificationManagerHelper.SetWindowWorkArea(value.AbsoluteLeft, value.AbsoluteTop, value.Width, value.Height);
+		        
+				int index = AllScreens.IndexOf(value);
+				if(SettingsProvider.NotificationsSettings.SelectedScreenIndex != index)
+				{
+					SettingsProvider.NotificationsSettings.SelectedScreenIndex = index;
+					_ = SettingsProvider.SaveSettings();
+				}
+			}
+		}
+
+		public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
+
+		private IScreenInfoProvider _screenInfoProvider = new ScreenInfoProvider();
+		private IDeviceProvider _deviceProvider;
+		private OutputDeviceModel _currentDefaultDevice;
+		private AudioProcessStateNotificationMediator StateMediator = new AudioProcessStateNotificationMediator();
+
+		private static ILog _logger;
+		private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationViewModel));
 
 		public NotificationViewModel()
 		{
@@ -177,13 +211,53 @@ namespace Volumey.ViewModel.Settings
 			this.ReactToAllVolumeChanges = SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges;
 			
 			this.UnloadedCommand = new ActionCommand(() => this.PreviewIsOn = false);
+			this.LoadedCommand = new ActionCommand(this.CheckIfSelectedScreenIsAvailable);
 
 			this.DisplayTime = SettingsProvider.NotificationsSettings.DisplayTimeInSeconds;
+			
+			SetSelectedScreen();
 		}
+		
+		private void SetSelectedScreen()
+		{
+			foreach(var screen in _screenInfoProvider.GetAllScreensInfo())
+				AllScreens.Add(screen);
 
-		private IDeviceProvider _deviceProvider;
-		private OutputDeviceModel _currentDefaultDevice;
-		private AudioProcessStateNotificationMediator StateMediator = new AudioProcessStateNotificationMediator();
+			int selectedScreenIndex = SettingsProvider.NotificationsSettings.SelectedScreenIndex;
+			if(AllScreens.Count - 1 < selectedScreenIndex)
+				SelectedScreen = _screenInfoProvider.GetPrimaryScreenInfo();
+			else
+				SelectedScreen = AllScreens[selectedScreenIndex];
+		}
+		
+		private void CheckIfSelectedScreenIsAvailable()
+		{
+			Task.Run(() =>
+			{
+				var screens = _screenInfoProvider.GetAllScreensInfo().ToList();
+		
+				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
+				{
+					App.Current.Dispatcher.Invoke(() =>
+					{
+						AllScreens.Clear();
+						foreach(var screen in screens)
+							AllScreens.Add(screen);
+					});
+				}
+		
+				if(!screens.Contains(SelectedScreen))
+				{
+					SelectedScreen = _screenInfoProvider.GetPrimaryScreenInfo();
+				}
+			}).ContinueWith(task =>
+			{
+				if(task.Exception != null)
+				{
+					Logger.Error("Failed to check the screen for availability", task.Exception.Flatten());
+				}
+			}, TaskContinuationOptions.OnlyOnFaulted);
+		}
 
 		private void SetStateMediatorForDefaultDeviceProcesses()
 		{

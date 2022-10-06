@@ -26,16 +26,14 @@
 
 			<TextBlock Text="{lc:Localization Settings_AlwaysTop}"/>
 			<ui:ToggleSwitch IsOn="{Binding AlwaysOnTop}"/>
-			
-			<TextBlock
-				Text="{lc:Localization Settings_SelectedScreen}"
-				Width="{StaticResource TextBlockWidth}"/>
-			<ComboBox
-				SelectedItem="{Binding SelectedScreen}"
-				ItemsSource="{Binding AllScreens}"
-				IsSynchronizedWithCurrentItem="False"
-				Style="{StaticResource SettingsComboBoxStyle}"/>
-			
+
+			<TextBlock Text="{lc:Localization Settings_SelectedScreen}"
+					   Width="{StaticResource TextBlockWidth}"/>
+			<ComboBox SelectedItem="{Binding SelectedScreen}"
+					  ItemsSource="{Binding AllScreens}"
+					  IsSynchronizedWithCurrentItem="False"
+					  Style="{StaticResource SettingsComboBoxStyle}"/>
+
 		</StackPanel>
 	</StackPanel>
 </ui:Page>

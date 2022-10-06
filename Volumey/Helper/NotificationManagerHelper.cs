@@ -89,6 +89,11 @@ namespace Volumey.Helper
 			}
 		}
 
+		internal static void SetWindowWorkArea(double left, double top, double width, double height)
+		{
+			_notificationManager.SetWorkArea(left, top, width, height);
+		}
+
 		internal static void ChangePosition(NotificationPosition newPosition)
 		{
 			_notificationManager.ChangeNotificationAreaPosition(newPosition);

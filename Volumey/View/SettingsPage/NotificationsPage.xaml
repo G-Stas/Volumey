@@ -31,6 +31,11 @@
 			EventName="Unloaded">
 			<behaviors:InvokeCommandAction Command="{Binding UnloadedCommand}"/>
 		</behaviors:EventTrigger>
+		
+		<behaviors:EventTrigger
+			EventName="Loaded">
+			<behaviors:InvokeCommandAction Command="{Binding LoadedCommand}"/>
+		</behaviors:EventTrigger>
 	</behaviors:Interaction.Triggers>
 	
 	<StackPanel>
@@ -43,6 +48,13 @@
 		<TextBlock Text="{lc:Localization Notifications_Position}"/>
 		<ComboBox ItemsSource="{Binding Positions}"
 				  SelectedItem="{Binding SelectedPosition}"/>
+
+		<TextBlock Text="{lc:Localization Settings_SelectedScreen}"
+				   Width="{StaticResource TextBlockWidth}"/>
+		<ComboBox SelectedItem="{Binding SelectedScreen}"
+				  ItemsSource="{Binding AllScreens}"
+				  IsSynchronizedWithCurrentItem="False"
+				  Style="{StaticResource SettingsComboBoxStyle}"/>
 		
 		<TextBlock Text="{lc:Localization Notifications_Time}"/>
 		<controls:NumberBox Value="{Binding DisplayTime}"

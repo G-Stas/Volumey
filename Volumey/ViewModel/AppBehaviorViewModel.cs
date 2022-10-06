@@ -208,7 +208,7 @@ namespace Volumey.ViewModel
 		        if(SettingsProvider.Settings.SelectedScreenIndex != index)
 		        {
 			        SettingsProvider.Settings.SelectedScreenIndex = index;
-			        SettingsProvider.SaveSettings();
+			        _ = SettingsProvider.SaveSettings();
 		        }
 	        }
         }
@@ -327,7 +327,6 @@ namespace Volumey.ViewModel
 					});
 				}
 
-				//Hide the window if the selected screen is not available so the user would have to open it again using the available screen
 				if(!screens.Contains(SelectedScreen))
 				{
 					SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
