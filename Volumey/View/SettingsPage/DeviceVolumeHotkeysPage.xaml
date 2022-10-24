@@ -64,6 +64,10 @@
 				IsEnabled="{Binding MuteKey, Converter={StaticResource AnyPropertyIsNullToEnabledConverter}}">
 			</ui:ToggleSwitch>
 		</StackPanel>
+		
+		<TextBlock Text="{lc:Localization Settings_PreventBalanceReset}"/>
+		<ui:ToggleSwitch IsOn="{Binding PreventResettingVolumeBalance}"/>
+		
 		<TextBlock
 			Text="{Binding ErrorMessage}"
 			Foreground="Red"/>

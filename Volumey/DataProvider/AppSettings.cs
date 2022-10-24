@@ -370,6 +370,9 @@ namespace Volumey.DataProvider
 			}
 
 			[OptionalField]
+			public bool PreventResettingVolumeBalance;
+
+			[OptionalField]
 			public List<SystemHotkey> RegisteredSystemHotkeys = new List<SystemHotkey>();
 
 			[OptionalField]

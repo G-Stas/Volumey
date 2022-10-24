@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Threading.Tasks;
 using log4net;
 using Volumey.Controls;
 using Volumey.DataProvider;
@@ -80,6 +81,22 @@ namespace Volumey.ViewModel.Settings
 				OnPropertyChanged();
 			}
 		}
+		
+		private bool _preventResettingVolumeBalance;
+		public bool PreventResettingVolumeBalance
+		{
+			get => _preventResettingVolumeBalance;
+			set
+			{
+				_preventResettingVolumeBalance = value;
+				OnPropertyChanged();
+				if(SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance != value)
+				{
+					SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance = value;
+					_ = Task.Run(async () => { await SettingsProvider.SaveSettings(); });
+				}
+			}
+		}
 
 		private AudioProcessStateNotificationMediator _dMediator;
 		private AudioProcessStateNotificationMediator DeviceMediator
@@ -102,6 +119,7 @@ namespace Volumey.ViewModel.Settings
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			var hotkeysSettings = SettingsProvider.HotkeysSettings;
+			PreventResettingVolumeBalance = hotkeysSettings.PreventResettingVolumeBalance;
 			var anyHotkeysRegistered = false;
 			
 			//set volume hotkeys if they are exist in settings

@@ -253,4 +253,7 @@
   <data name="Settings_SelectedScreen" xml:space="preserve">
     <value>Screen to display</value>
   </data>
+  <data name="Settings_PreventBalanceReset" xml:space="preserve">
+    <value>Prevent resetting the volume balance by muting the device instead of setting the volume to 0</value>
+  </data>
 </root>

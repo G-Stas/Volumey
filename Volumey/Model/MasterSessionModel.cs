@@ -225,11 +225,19 @@ namespace Volumey.Model
             {
                 if(hotkey.Equals(this.volumeUp))
                 {
+                    if(SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance && this.IsMuted)
+                        this.SetMute(false, notify: false, ref GuidValue.Internal.Empty);
                     this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify:true, ref GuidValue.Internal.Empty);
                 }
                 else if(hotkey.Equals(this.volumeDown))
                 {
-                    this.SetVolume(this.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+                    int newValue = this.Volume - HotkeysControl.VolumeStep;
+                    if(SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance && newValue <= 0)
+                    {
+                        this.SetMute(true, notify: true, ref GuidValue.Internal.Empty);
+                    }
+                    else
+                        this.SetVolume(newValue, notify: true, ref GuidValue.Internal.Empty);
                 }
             }
 

@@ -253,4 +253,7 @@
   <data name="Settings_SelectedScreen" xml:space="preserve">
     <value>Дисплей для отображения</value>
   </data>
+  <data name="Settings_PreventBalanceReset" xml:space="preserve">
+    <value>Предотвращать сброс баланса звука заглушая устройство вместо установки громкости на 0</value>
+  </data>
 </root>
