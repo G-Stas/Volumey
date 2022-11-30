@@ -27,6 +27,7 @@
 		</Style>
 		
 		<converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" CountLimit="1"/>
+		<converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
 	</Page.Resources>
 	
 	<behaviors:Interaction.Triggers>
@@ -73,7 +74,8 @@
 		<localControls:VolumeSlider Value="{Binding VerticalIndent}"/>
 		
 		<TextBlock Text="{lc:Localization Notifications_Horizontal}"/>
-		<localControls:VolumeSlider Value="{Binding HorizontalIndent}"/>
+		<localControls:VolumeSlider Value="{Binding HorizontalIndent}"
+									IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBoolConverter}}"/>
 		
 		<TextBlock Text="{lc:Localization Notifications_Preview}"/>
 		<controls:ToggleSwitch IsOn="{Binding PreviewIsOn}"/>

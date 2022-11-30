@@ -36,6 +36,10 @@ namespace Volumey.ViewModel.Settings
 				if(this._selectedPosition == value)
 					return;
 				this._selectedPosition = value;
+
+				NotificationsPositionIsCentered = value == NotificationPosition.TopCenter || value == NotificationPosition.BottomCenter;
+				OnPropertyChanged(nameof(NotificationsPositionIsCentered));
+				
 				NotificationManagerHelper.ChangePosition(value);
 				OnPropertyChanged();
 				
@@ -48,6 +52,8 @@ namespace Volumey.ViewModel.Settings
 				});
 			}
 		}
+		
+		public bool NotificationsPositionIsCentered { get; set; }
 
 		private bool _notificationsEnabled;
 		public bool NotificationsEnabled
