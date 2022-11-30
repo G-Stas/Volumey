@@ -9,11 +9,13 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Navigation;
 using Hardcodet.Wpf.TaskbarNotification;
 using Volumey.Helper;
 using Volumey.ViewModel;
 using log4net;
+using Microsoft.Win32;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
@@ -40,7 +42,8 @@ namespace Volumey.View
         private bool positionChanged;
 
         private const int ScrollStep = 30;
-        private const double NavPaneHeight = 32;
+        private static object NavPaneHeight = (double)32;
+        private static object NavPaneHiddenHeight = (double)0;
         private const int BorderIndent = 11;
 
         public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo) , typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
@@ -62,7 +65,7 @@ namespace Volumey.View
 		public MainView()
 		{
 			InitializeComponent();
-
+			
             //force create HWND of the window
             //since the window is hidden at the startup
             //and HWND of the window is not going to be created until the window is shown at least once
@@ -187,33 +190,35 @@ namespace Volumey.View
 			{
 				case TaskBarLocation.TOP:
 
-					this.Left = SelectedScreen.AbsoluteRight - this.ActualWidth - BorderIndent;
-					topPos = SelectedScreen.AbsoluteTop + BorderIndent;
-					this.Top = topPos < 0 ? 0 : topPos;
+					topPos = SelectedScreen.WorkingAreaTop + BorderIndent;
+					MoveTo(SelectedScreen.WorkingAreaLeft + SelectedScreen.Width - this.ActualWidth * SelectedScreen.ScaleFactor - BorderIndent, topPos < 0 ? 0 : topPos);
 					break;
 
                 case TaskBarLocation.BOTTOM:
 
-                    this.Left = SelectedScreen.AbsoluteRight - this.ActualWidth - BorderIndent;
-                    topPos = SelectedScreen.AbsoluteBottom - this.ActualHeight - BorderIndent;
-                    this.Top = topPos < 0 ? 0 : topPos;
+                    topPos = SelectedScreen.WorkingAreaBottom - this.ActualHeight * SelectedScreen.ScaleFactor - BorderIndent;
+                    MoveTo(SelectedScreen.WorkingAreaLeft + SelectedScreen.Width - this.ActualWidth * SelectedScreen.ScaleFactor - BorderIndent, topPos < 0 ? 0 : topPos);
                     break;
 
                 case TaskBarLocation.LEFT:
 
-                    this.Left = SelectedScreen.AbsoluteLeft + BorderIndent;
-                    topPos = SelectedScreen.AbsoluteBottom - this.ActualHeight - BorderIndent;
-                    this.Top = topPos < 0 ? 0 : topPos;
+                    topPos = SelectedScreen.WorkingAreaBottom - this.ActualHeight * SelectedScreen.ScaleFactor - BorderIndent;
+                    MoveTo(SelectedScreen.WorkingAreaLeft + BorderIndent, topPos < 0 ? 0 : topPos);
                     break;
 
                 case TaskBarLocation.RIGHT:
 
-                    this.Left = SelectedScreen.AbsoluteRight - this.ActualWidth - BorderIndent;
-                    topPos = SelectedScreen.AbsoluteBottom - this.ActualHeight - BorderIndent;
-                    this.Top = topPos < 0 ? 0 : topPos;
+                    topPos = SelectedScreen.WorkingAreaBottom - this.ActualHeight * SelectedScreen.ScaleFactor - BorderIndent;
+                    MoveTo(SelectedScreen.WorkingAreaLeft + SelectedScreen.Width - this.ActualWidth * SelectedScreen.ScaleFactor - BorderIndent, topPos < 0 ? 0 : topPos);
                     break;
             }
         }
+		
+		private void MoveTo(double left, double top)
+		{
+			NativeMethods.SetWindowPos(this.Hwnd, (IntPtr)NativeMethods.SpecialWindowHandles.Top,
+			             (int)left, (int)top, (int)this.Width, (int)this.Height, NativeMethods.SetWindowPosFlags.ShowWindow);
+		}
 
 		private void LimitWindowHeightIfNecessary()
 		{
@@ -238,7 +243,7 @@ namespace Volumey.View
 			
 			//hide navigation pane if in popup mode 
 			if(isPopupMode)
-				this.Resources["NavigationViewTopPaneHeight"] = (double)0;
+				this.Resources["NavigationViewTopPaneHeight"] = NavPaneHiddenHeight;
 			else
 				this.Resources["NavigationViewTopPaneHeight"] = NavPaneHeight;
 			
@@ -446,6 +451,8 @@ namespace Volumey.View
         {
 	        if(d is MainView view)
 	        {
+		        if(!view.IsVisible)
+			        return;
 		        view.LimitWindowHeightIfNecessary();
 		        view.SetWindowPosition();
 	        }

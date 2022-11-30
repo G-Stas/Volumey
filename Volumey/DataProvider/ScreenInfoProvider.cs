@@ -9,20 +9,23 @@ namespace Volumey.DataProvider
 		public ScreenInfo GetPrimaryScreenInfo()
 		{
 			var screen = Screen.PrimaryScreen;
-			return new ScreenInfo(screen.DeviceName, screen.WpfBounds.Width, screen.WpfBounds.Height,
-			                       screen.WpfWorkingArea.Left, screen.WpfWorkingArea.Right,
-			                       screen.WpfWorkingArea.Top, screen.WpfWorkingArea.Bottom);
+			return new ScreenInfo(screen.DeviceName, screen.Primary, screen.WorkingArea.Width, screen.WorkingArea.Height,
+			                      screen.Bounds.Width, screen.Bounds.Height,
+			                      screen.WorkingArea.Left, screen.WorkingArea.Right, 
+			                      screen.WorkingArea.Top, screen.WorkingArea.Bottom, screen.ScaleFactor); 
 		}
 
 		public IEnumerable<ScreenInfo> GetAllScreensInfo()
 		{
 			List<ScreenInfo> screens = new List<ScreenInfo>();
-			
+
 			foreach(var screen in Screen.AllScreens)
 			{
-				screens.Add(new ScreenInfo(screen.DeviceName, screen.WpfBounds.Width, screen.WpfBounds.Height, 
-				                             screen.WpfWorkingArea.Left, screen.WpfWorkingArea.Right, 
-				                             screen.WpfWorkingArea.Top, screen.WpfWorkingArea.Bottom));
+				var current = new ScreenInfo(screen.DeviceName, screen.Primary, screen.WorkingArea.Width, screen.WorkingArea.Height,
+												screen.Bounds.Width, screen.Bounds.Height,
+			                                    screen.WorkingArea.Left, screen.WorkingArea.Right,
+			                                    screen.WorkingArea.Top, screen.WorkingArea.Bottom, screen.ScaleFactor); 
+				screens.Add(current);
 			}
 			return screens;
 		}

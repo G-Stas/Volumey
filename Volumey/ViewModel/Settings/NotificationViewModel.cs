@@ -1,10 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using log4net;
+using Microsoft.Win32;
 using Microsoft.Xaml.Behaviors.Core;
 using Notification.Wpf.Controls;
 using Volumey.Helper;
@@ -181,7 +183,7 @@ namespace Volumey.ViewModel.Settings
 				selectedScreen = value;
 				OnPropertyChanged();
 				
-				NotificationManagerHelper.SetWindowWorkArea(value.AbsoluteLeft, value.AbsoluteTop, value.Width, value.Height);
+				NotificationManagerHelper.SetWindowWorkArea(value.WorkingAreaLeft, value.WorkingAreaTop, value.Width / value.ScaleFactor, value.Height / value.ScaleFactor);
 		        
 				int index = AllScreens.IndexOf(value);
 				if(SettingsProvider.NotificationsSettings.SelectedScreenIndex != index)
@@ -216,15 +218,22 @@ namespace Volumey.ViewModel.Settings
 			this.DisplayTime = SettingsProvider.NotificationsSettings.DisplayTimeInSeconds;
 			
 			SetSelectedScreen();
+			
+			SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
 		}
-		
+
+		private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+		{
+			CheckIfSelectedScreenIsAvailable();
+		}
+
 		private void SetSelectedScreen()
 		{
 			foreach(var screen in _screenInfoProvider.GetAllScreensInfo())
 				AllScreens.Add(screen);
 
 			int selectedScreenIndex = SettingsProvider.NotificationsSettings.SelectedScreenIndex;
-			if(AllScreens.Count - 1 < selectedScreenIndex)
+			if(AllScreens.Count - 1 < selectedScreenIndex || selectedScreenIndex < 0)
 				SelectedScreen = _screenInfoProvider.GetPrimaryScreenInfo();
 			else
 				SelectedScreen = AllScreens[selectedScreenIndex];
@@ -240,6 +249,8 @@ namespace Volumey.ViewModel.Settings
 				{
 					App.Current.Dispatcher.Invoke(() =>
 					{
+						if(PreviewIsOn)
+							PreviewIsOn = false;
 						AllScreens.Clear();
 						foreach(var screen in screens)
 							AllScreens.Add(screen);
@@ -248,8 +259,11 @@ namespace Volumey.ViewModel.Settings
 		
 				if(!screens.Contains(SelectedScreen))
 				{
-					SelectedScreen = _screenInfoProvider.GetPrimaryScreenInfo();
+					SelectedScreen = AllScreens.FirstOrDefault(s => s.IsPrimary);
 				}
+				//Update the SelectedScreen property in the UI as it will be set to none if the AllScreens collection would change
+				else
+					OnPropertyChanged(nameof(SelectedScreen));
 			}).ContinueWith(task =>
 			{
 				if(task.Exception != null)
@@ -334,5 +348,10 @@ namespace Volumey.ViewModel.Settings
 
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+		~NotificationViewModel()
+		{
+			SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+		}
 	}
 }

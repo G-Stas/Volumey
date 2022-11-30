@@ -10,6 +10,7 @@ using System.Timers;
 using System.Windows.Input;
 using System.Windows.Interop;
 using log4net;
+using Microsoft.Win32;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Helper;
@@ -238,6 +239,8 @@ namespace Volumey.ViewModel
         /// </summary>
         private const double trayBlockDelay = 300;
 
+        public ICommand LoadedCommand { get; set; }
+
         private static ILog _logger;
         private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
@@ -275,13 +278,22 @@ namespace Volumey.ViewModel
 
 			this.windowLeft = SettingsProvider.Settings.WindowLeft;
 			this.windowTop = SettingsProvider.Settings.WindowTop;
+			
+			this.LoadedCommand = new ActionCommand(this.CheckIfSelectedScreenIsAvailable);
 
 			#if(!STORE)
 			this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();
 			this.addToStartMenu = SystemIntegrationHelper.CheckIfStartMenuLinkExists();
 			#endif
+			
+			SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
 
 			SetSelectedScreen();
+		}
+
+		private void OnSystemDisplaySettingsChanged(object sender, EventArgs e)
+		{
+			CheckIfSelectedScreenIsAvailable();
 		}
 
 		/// <summary>
@@ -300,7 +312,7 @@ namespace Volumey.ViewModel
 				AllScreens.Add(screen);
 
 			int selectedScreenIndex = SettingsProvider.Settings.SelectedScreenIndex;
-			if(AllScreens.Count - 1 < selectedScreenIndex)
+			if(AllScreens.Count - 1 < selectedScreenIndex || selectedScreenIndex < 0)
 				SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
 			else
 				SelectedScreen = AllScreens[selectedScreenIndex];
@@ -329,8 +341,11 @@ namespace Volumey.ViewModel
 
 				if(!screens.Contains(SelectedScreen))
 				{
-					SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
+					SelectedScreen = AllScreens.FirstOrDefault(s => s.IsPrimary);
 				}
+				//Update the SelectedScreen property in the UI as it will be set to none if the AllScreens collection would change
+				else
+					OnPropertyChanged(nameof(SelectedScreen));
 			}).ContinueWith(task =>
 			{
 				if(task.Exception != null)
@@ -457,6 +472,11 @@ namespace Volumey.ViewModel
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		~AppBehaviorViewModel()
+		{
+			SystemEvents.DisplaySettingsChanged -= OnSystemDisplaySettingsChanged;
 		}
 	}
 }

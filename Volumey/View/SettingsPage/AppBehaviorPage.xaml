@@ -6,6 +6,7 @@
 		 xmlns:ui="http://schemas.modernwpf.com/2019"
 		 xmlns:lc="clr-namespace:Volumey.Localization"
 		 xmlns:converters="clr-namespace:Volumey.View.Converters"
+		 xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
 		 mc:Ignorable="d">
 	<ui:Page.Resources>
 		<ResourceDictionary>
@@ -15,6 +16,7 @@
 						Value="{StaticResource TextBlockWidth}"/>
 			</Style>
 			<converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+			<converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" CountLimit="1"/>
 		</ResourceDictionary>
 	</ui:Page.Resources>
 	<StackPanel>
@@ -27,13 +29,24 @@
 			<TextBlock Text="{lc:Localization Settings_AlwaysTop}"/>
 			<ui:ToggleSwitch IsOn="{Binding AlwaysOnTop}"/>
 
-			<TextBlock Text="{lc:Localization Settings_SelectedScreen}"
-					   Width="{StaticResource TextBlockWidth}"/>
-			<ComboBox SelectedItem="{Binding SelectedScreen}"
-					  ItemsSource="{Binding AllScreens}"
-					  IsSynchronizedWithCurrentItem="False"
-					  Style="{StaticResource SettingsComboBoxStyle}"/>
-
+			<StackPanel Visibility="{Binding AllScreens.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}">
+				<TextBlock Text="{lc:Localization Settings_SelectedScreen}"
+						   Width="{StaticResource TextBlockWidth}"/>
+			
+				<ComboBox SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
+						  ItemsSource="{Binding AllScreens}"
+						  IsSynchronizedWithCurrentItem="True"
+						  Style="{StaticResource SettingsComboBoxStyle}"/>
+			</StackPanel>
+			
+			<b:Interaction.Triggers>
+				<b:EventTrigger
+					EventName="Loaded"
+					SourceObject="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type StackPanel}}}">
+					<b:InvokeCommandAction Command="{Binding LoadedCommand}"/>
+				</b:EventTrigger>
+			</b:Interaction.Triggers>
+			
 		</StackPanel>
 	</StackPanel>
 </ui:Page>

@@ -7,6 +7,7 @@
 	  xmlns:localControls="clr-namespace:Volumey.Controls"
 	  xmlns:lc="clr-namespace:Volumey.Localization"
 	  xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
+	  xmlns:converters="clr-namespace:Volumey.View.Converters"
 	  mc:Ignorable="d"
 	  DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=NotificationsViewModel}">
 	<Page.Resources>
@@ -24,6 +25,8 @@
 			<Setter Property="IsMoveToPointEnabled" Value="True"/>
 			<Setter Property="EnableMouseWheel" Value="True"/>
 		</Style>
+		
+		<converters:CollectionCountToVisibilityConverter x:Key="CollectionCountToVisibilityConverter" CountLimit="1"/>
 	</Page.Resources>
 	
 	<behaviors:Interaction.Triggers>
@@ -49,12 +52,13 @@
 		<ComboBox ItemsSource="{Binding Positions}"
 				  SelectedItem="{Binding SelectedPosition}"/>
 
-		<TextBlock Text="{lc:Localization Settings_SelectedScreen}"
-				   Width="{StaticResource TextBlockWidth}"/>
-		<ComboBox SelectedItem="{Binding SelectedScreen}"
-				  ItemsSource="{Binding AllScreens}"
-				  IsSynchronizedWithCurrentItem="False"
-				  Style="{StaticResource SettingsComboBoxStyle}"/>
+		<StackPanel Visibility="{Binding AllScreens.Count, Converter={StaticResource CollectionCountToVisibilityConverter}}">
+			<TextBlock Text="{lc:Localization Settings_SelectedScreen}"
+					   Width="{StaticResource TextBlockWidth}"/>
+			<ComboBox SelectedItem="{Binding SelectedScreen}"
+					  ItemsSource="{Binding AllScreens}"
+					  Style="{StaticResource SettingsComboBoxStyle}"/>
+		</StackPanel>
 		
 		<TextBlock Text="{lc:Localization Notifications_Time}"/>
 		<controls:NumberBox Value="{Binding DisplayTime}"
