@@ -173,4 +173,8 @@
       <HintPath>Resources\Notification.Wpf.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\ButtonIcon\boosty.png" />
+  </ItemGroup>
 </Project>

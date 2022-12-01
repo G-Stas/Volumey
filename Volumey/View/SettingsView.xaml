@@ -183,22 +183,28 @@
 							</ui:DropDownButton.Content>
 							
 							<ui:DropDownButton.Flyout>
-								<ui:CommandBarFlyout 
-									Placement="RightEdgeAlignedBottom">
-									<ui:CommandBarFlyout.SecondaryCommands>
-										<!-- for some reason AppBarButton won't bind its label to item when they are created inside of the ItemsControl binded to TipSources so I'll hardcode them -->
-										<!-- <ui:AppBarButton -->
-										<!-- 	Label="{Binding TipSources[0].Item1}" -->
-										<!-- 	ToolTip="{Binding TipSources[0].Item2}" -->
-										<!-- 	Command="{Binding TipCommand}" -->
-										<!-- 	CommandParameter="{Binding TipSources[0].Item2}"/> -->
-										<ui:AppBarButton
-											Label="{Binding TipSources[1].Item1}"
-											ToolTip="{Binding TipSources[1].Item2}"
-											Command="{Binding TipCommand}"
-											CommandParameter="{Binding TipSources[1].Item2}"/>
-									</ui:CommandBarFlyout.SecondaryCommands>
-								</ui:CommandBarFlyout>
+								<ui:MenuFlyout Placement="RightEdgeAlignedBottom">
+									<Button Command="{Binding TipCommand}"
+											CommandParameter="{Binding TipSource.Item2}"
+											Background="Transparent"
+											BorderThickness="0"
+											Width="100"
+											Margin="-6 -5 -12 -5"
+											Padding="0 4"
+											HorizontalContentAlignment="Left"
+											HorizontalAlignment="Left">
+										<StackPanel Orientation="Horizontal">
+											<Image Source="../Resources/Icons/ButtonIcon/boosty.png"
+												   Width="24"
+												   Height="24"
+												   RenderOptions.BitmapScalingMode="HighQuality"
+												   Margin="10 0 5 0"/>
+											<Label Content="{Binding TipSource.Item1}"
+												   ToolTip="{Binding TipSource.Item2}"
+												   VerticalContentAlignment="Center"/>
+										</StackPanel>
+									</Button>
+								</ui:MenuFlyout>
 							</ui:DropDownButton.Flyout>
 							
 						</ui:DropDownButton>

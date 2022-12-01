@@ -24,11 +24,7 @@ namespace Volumey.ViewModel
         public ICommand GitHubCommand { get; }
         public ICommand TipCommand { get; }
 
-        public ObservableCollection<Tuple<string, string>> TipSources { get; } = new ObservableCollection<Tuple<string, string>>()
-        {
-            new Tuple<string, string>("Ko-fi", "https://ko-fi.com/stasg"),
-            new Tuple<string, string>("YooMoney", "https://yoomoney.ru/to/410013849895981")
-        };
+        public Tuple<string, string> TipSource { get; } = new Tuple<string, string>("Boosty", "https://boosty.to/stasg");
 
         private IntPtr windowHandle;
         
