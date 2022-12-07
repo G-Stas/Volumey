@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -107,7 +108,7 @@ namespace Volumey.Model
 		/// </summary>
 		private AudioSessionModel _trackedSession;
 
-		public AudioProcessStateNotificationMediator StateNotificationMediator { get; private set; }
+		public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
 
 		private HotKey _volumeUp;
 		private HotKey _volumeDown;
@@ -117,8 +118,10 @@ namespace Volumey.Model
 
 		// private bool _muteKeyRegistered;
 		private object _sessionsLock = new object();
+		
+		private static Dispatcher _dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, AudioProcessStateNotificationMediator stateNotificationMediator = null)
+		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, IAudioProcessStateMediator stateNotificationMediator = null)
 		{
 			_volume = volume;
 			_isMuted = isMuted;
@@ -276,7 +279,7 @@ namespace Volumey.Model
 				StateNotificationMediator?.NotifyAudioStateChange(this);
 		}
 
-		public void SetStateMediator(AudioProcessStateNotificationMediator mediator)
+		public void SetStateMediator(IAudioProcessStateMediator mediator)
 		{
 			StateNotificationMediator = mediator;
 		}
@@ -307,7 +310,7 @@ namespace Volumey.Model
 		{
 			if(session != null)
 			{
-				App.Current?.Dispatcher.Invoke(() =>
+				_dispatcher.Invoke(() =>
 				{
 					if(_trackedSession == session)
 					{

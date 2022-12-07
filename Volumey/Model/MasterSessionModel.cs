@@ -128,7 +128,7 @@ namespace Volumey.Model
 
         public bool AnyHotkeyRegistered => volumeHotkeysRegistered || muteHotkeyRegistered;
         
-        public AudioProcessStateNotificationMediator StateNotificationMediator { get; private set; }
+        public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
 
         private IAudioSessionVolume masterVolume { get; }
         private IMasterVolumeNotificationHandler notificationHandler { get; }
@@ -171,7 +171,7 @@ namespace Volumey.Model
             return false;
         }
 
-        public void SetStateMediator(AudioProcessStateNotificationMediator mediator)
+        public void SetStateMediator(IAudioProcessStateMediator mediator)
         {
             StateNotificationMediator = mediator;
         }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
 using Moq;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
@@ -29,9 +31,27 @@ namespace Volumey.Tests
 			
 			proc.AddSession(model);
 		}
+		
+		[Fact]
+		public void TrackedSessionMustChangeToAnotherSession()
+		{
+			//arrange
+			var trackedSession = this.proc.Sessions[0];
+			Assert.Single(proc.Sessions);
+			
+			var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
+			proc.AddSession(additionalSession);
+			
+			//act
+			sessionStateNotif.Raise(n => n.SessionEnded += null);
+			
+			//assert
+			Assert.DoesNotContain(trackedSession, this.proc.Sessions);
+			sessionStateNotif.Verify(n => n.Dispose(), Times.Once);
+		}
 
 		[Fact]
-		public void VolumeShouldBeChangedToCorrectValue()
+		public void VolumeMustChangeToCorrectValue()
 		{
 			var newVolume = this.proc.Volume + 1;
 
@@ -42,7 +62,7 @@ namespace Volumey.Tests
 		}
 
 		[Fact]
-		public void MuteStateShouldBeChanged()
+		public void MuteStateMustChanged()
 		{
 			var newMuteState = !this.proc.IsMuted;
 
@@ -53,7 +73,7 @@ namespace Volumey.Tests
 		}
 
 		[Fact]
-		public void HotkeyShouldIncrementVolume()
+		public void HotkeyMustIncrementVolume()
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
@@ -75,7 +95,7 @@ namespace Volumey.Tests
 		}
 		
 		[Fact]
-		public void RandomHotkeyShouldNotChangeVolume()
+		public void RandomHotkeyMustNotChangeVolume()
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
@@ -94,7 +114,7 @@ namespace Volumey.Tests
 		}
 
 		[Fact]
-		public void FirstAddedSessionShouldSetAsTracked()
+		public void FirstAddedSessionMustSetAsTracked()
 		{
 			//arrange
 			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
@@ -111,7 +131,7 @@ namespace Volumey.Tests
 		}
 
 		[Fact]
-		public void TrackedSessionStateChangesShouldReflectOnProcess()
+		public void TrackedSessionStateChangesMustReflectOnProcess()
 		{
 			//arrange
 			var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
@@ -131,7 +151,7 @@ namespace Volumey.Tests
 		}
 
 		[Fact]
-		public void ProcessStateChangesShouldReflectOnItsSessions()
+		public void ProcessStateChangesMustReflectOnItsSessions()
 		{
 			//arrange
 			proc.Sessions.Clear();
@@ -152,7 +172,7 @@ namespace Volumey.Tests
 		}
 
 		[Fact]
-		public void AdditionalSessionsShouldHaveSameStateAsProcess()
+		public void AdditionalSessionsMustHaveSameStateAsProcess()
 		{
 			//arrange
 			var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
@@ -202,6 +222,94 @@ namespace Volumey.Tests
 
 			//assert 
 			Assert.Equal(minVolume, proc.Volume);
+		}
+		
+		[Fact]
+		public void VolumeHotkeysMustReset()
+		{
+			//arrange
+			var hManagerMock = new Mock<IHotkeyManager>();
+			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			HotKey upHotkey = new HotKey(Key.Z);
+			HotKey downHotkey = new HotKey(Key.X);
+
+			FieldInfo volumeUpField = typeof(AudioProcessModel).GetField("_volumeUp", BindingFlags.NonPublic | BindingFlags.Instance);
+			FieldInfo volumeDownField = typeof(AudioProcessModel).GetField("_volumeDown", BindingFlags.NonPublic | BindingFlags.Instance);
+			
+			this.proc.SetVolumeHotkeys(upHotkey, downHotkey);
+			
+			//act
+			this.proc.ResetVolumeHotkeys();
+			
+			//arrange
+			//verify hotkey manager is called twice to unregister the required hotkeys in system
+			hManagerMock.Verify(m => m.UnregisterHotkey(upHotkey), Times.Once);
+			hManagerMock.Verify(m => m.UnregisterHotkey(downHotkey), Times.Once);
+			
+			HotKey actualVolumeUpValue = (HotKey)volumeUpField.GetValue(this.proc);
+			HotKey actualVolumeDownValue = (HotKey)volumeDownField.GetValue(this.proc);
+			
+			Assert.Null(actualVolumeUpValue);
+			Assert.Null(actualVolumeDownValue);
+		}
+		
+		[Fact]
+		public void SetVolumeHotkeysReturnsFalse_IfHotkeyManagerFails()
+		{
+			//arrange
+			var hManagerMock = new Mock<IHotkeyManager>();
+			HotKey up = new HotKey(Key.V);
+			HotKey down = new HotKey(Key.B);
+			hManagerMock.Setup(hm => hm.RegisterHotkey(up)).Throws(new COMException());
+			hManagerMock.Setup(hm => hm.RegisterHotkey(down)).Throws(new COMException());
+			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			
+			//act
+			var result = this.proc.SetVolumeHotkeys(up, down);
+			
+			//assert
+			Assert.False(result);
+		}
+		
+		[Fact]
+		public void StateMediatorMustReset()
+		{
+			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = false;
+			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
+			this.proc.SetStateMediator(stateMediatorMock.Object);
+			
+			Assert.Equal(stateMediatorMock.Object, this.proc.StateNotificationMediator);
+			
+			this.proc.ResetStateMediator();
+			
+			Assert.Null(this.proc.StateNotificationMediator);
+		}
+		
+		[Fact]
+		public void StateMediatorMustNotReset_IfReactingToAnyVolumeChangesEnabled()
+		{
+			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = true;
+			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
+			this.proc.SetStateMediator(stateMediatorMock.Object);
+			
+			Assert.Equal(stateMediatorMock.Object, this.proc.StateNotificationMediator);
+			
+			this.proc.ResetStateMediator();
+			
+			Assert.Equal(stateMediatorMock.Object, this.proc.StateNotificationMediator);
+		}
+		
+		[Fact]
+		public void MuteCommandInvertsMuteState()
+		{
+			//arrange
+			var muteState = this.proc.IsMuted;
+			
+			//act
+			this.proc.MuteCommand.Execute(null);
+			
+			//assert
+			Assert.Equal(!muteState, this.proc.IsMuted);
 		}
 
 		internal static AudioSessionModel GetSessionMock(int volume, bool muteState, string id)

@@ -4,9 +4,9 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
 {
-	public class AudioProcessStateNotificationMediator
+	public class AudioProcessStateNotificationMediator : IAudioProcessStateMediator
 	{
-		internal void NotifyAudioStateChange(IManagedMasterAudioSession sender)
+		public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
 		{
 			Application.Current.Dispatcher.InvokeAsync(() =>
 			{
@@ -14,7 +14,7 @@ namespace Volumey.ViewModel.Settings
 			});
 		}
 
-		internal void NotifyOfDisposing(IManagedMasterAudioSession sender)
+		public void NotifyOfDisposing(IManagedMasterAudioSession sender)
 		{
 			Application.Current.Dispatcher.InvokeAsync(() =>
 			{
