@@ -7,6 +7,7 @@
 			 xmlns:controls1="http://schemas.modernwpf.com/2019"
 			 xmlns:controls="clr-namespace:Volumey.Controls"
 			 xmlns:converters="clr-namespace:Volumey.View.Converters"
+			 xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
 			 DataContext="{StaticResource DeviceProviderViewModel}">
 	<UserControl.Resources>
 		<converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
@@ -171,6 +172,37 @@
 								</Grid>
 							</DataTemplate>
 						</ItemsControl.ItemTemplate>
+						
+						<ItemsControl.Resources>
+							<Storyboard x:Key="ExpandFadeIn">
+								<DoubleAnimation Storyboard.TargetProperty="Opacity"
+												 Storyboard.Target="{Binding ElementName=ItemsControl}" 
+												 From="0" To="1" Duration="0:0:.12" />
+							</Storyboard>
+            
+							<Storyboard x:Key="HideFadeOut">
+								<DoubleAnimation Storyboard.TargetProperty="Opacity"
+												 Storyboard.Target="{Binding ElementName=ItemsControl}"
+												 From="1" To="0" Duration="0:0:.12" />
+							</Storyboard>
+						</ItemsControl.Resources>
+						
+						<behaviors:Interaction.Triggers>
+							<behaviors:DataTrigger
+								Binding="{Binding ElementName=ItemsControl, Path=Visibility}"
+								Value="Collapsed"
+								Comparison="Equal">
+								<behaviors:ControlStoryboardAction Storyboard="{StaticResource HideFadeOut}"/>
+							</behaviors:DataTrigger>
+
+							<behaviors:DataTrigger
+								Binding="{Binding ElementName=ItemsControl, Path=Visibility}"
+								Value="Visible"
+								Comparison="Equal">
+								<behaviors:ControlStoryboardAction Storyboard="{StaticResource ExpandFadeIn}"/>
+							</behaviors:DataTrigger>
+						</behaviors:Interaction.Triggers>
+						
 					</ItemsControl>
 				</Grid>
 			</DataTemplate>
