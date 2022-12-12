@@ -48,7 +48,7 @@
     <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
     <PublishTrimmed>true</PublishTrimmed>
     <EntryPointProjectUniqueName>..\Volumey\Volumey.csproj</EntryPointProjectUniqueName>
-    <PackageCertificateThumbprint>76246D285057B60E0325670AF6052C6608538348</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>4C35C87C27DF585ADB27E931920DB86F5AC13F96</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Never</AppxBundle>
