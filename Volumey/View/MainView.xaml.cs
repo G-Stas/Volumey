@@ -9,19 +9,16 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
 using System.Windows.Navigation;
 using Hardcodet.Wpf.TaskbarNotification;
 using Volumey.Helper;
 using Volumey.ViewModel;
 using log4net;
-using Microsoft.Win32;
 using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using ModernWpf.Navigation;
 using Volumey.DataProvider;
 using Volumey.Model;
-using Volumey.View.DialogContent;
 
 namespace Volumey.View
 {

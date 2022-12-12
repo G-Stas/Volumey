@@ -48,7 +48,7 @@
     <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
     <PublishTrimmed>true</PublishTrimmed>
     <EntryPointProjectUniqueName>..\Volumey\Volumey.csproj</EntryPointProjectUniqueName>
-    <PackageCertificateKeyFile>Volumey.Package_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateThumbprint>76246D285057B60E0325670AF6052C6608538348</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Never</AppxBundle>

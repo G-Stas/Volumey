@@ -10,7 +10,6 @@ using Notification.Wpf.Controls;
 using Volumey.Controls;
 using Volumey.Helper;
 using Volumey.Model;
-using Volumey.ViewModel.Settings;
 
 namespace Volumey.DataProvider
 {
