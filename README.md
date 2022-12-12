@@ -10,7 +10,11 @@
   <br>
   <br>
   <a href='//www.microsoft.com/store/apps/9mzcq03mx0s3?cid=storebadge&ocid=badge'>
-      <img width="160" src='https://developer.microsoft.com/store/badges/images/English_get-it-from-MS.png' alt='English badge' 
+      <img width="160" src='https://developer.microsoft.com/store/badges/images/English_get-it-from-MS.png' alt='English badge'/>
+  </a>
+  <br>
+  <a href='https://boosty.to/stasg'>
+      <img width="160" src='https://i.imgur.com/fS20w8T.png'/>
   </a>
 </h4>
 
