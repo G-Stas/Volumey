@@ -344,6 +344,7 @@ namespace Volumey.View
 		        {
 			        var menu = NativeMethods.GetSystemMenu(this.Hwnd, false);
 			        NativeMethods.EnableMenuItem(menu, SC_MINIMIZE, MF_GRAYED | MF_BYCOMMAND);
+			        NativeMethods.EnableMenuItem(menu, 0xF030, MF_GRAYED | MF_BYCOMMAND);
 			        break;
 		        }
 			
