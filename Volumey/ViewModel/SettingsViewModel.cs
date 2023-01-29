@@ -15,6 +15,7 @@ namespace Volumey.ViewModel
         public AppsHotkeysViewModel HotkeysViewModel { get; }
         public OpenHotkeyViewModel OpenHotkeyViewModel { get; }
         public VolumeLimitViewModel VolumeLimitViewModel { get; }
+        public AppVolumeSyncViewModel AppVolumeSyncViewModel { get; }
         public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
         public NotificationViewModel NotificationsViewModel { get; }
         public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
@@ -71,6 +72,7 @@ namespace Volumey.ViewModel
             this.DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel();
             this.OpenHotkeyViewModel = new OpenHotkeyViewModel();
             this.VolumeLimitViewModel = new VolumeLimitViewModel();
+            this.AppVolumeSyncViewModel = new AppVolumeSyncViewModel();
             this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel();
             this.ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel();
             this.NotificationsViewModel = new NotificationViewModel();
