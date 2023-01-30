@@ -10,8 +10,8 @@
 
 namespace Volumey.Resources {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -189,6 +189,15 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Notifications_ReactAll {
+            get {
+                return ResourceManager.GetString("Notifications_ReactAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Notifications_Time {
             get {
                 return ResourceManager.GetString("Notifications_Time", resourceCulture);
@@ -225,6 +234,15 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_AddHotkey {
+            get {
+                return ResourceManager.GetString("Settings_AddHotkey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_AlwaysTop {
             get {
                 return ResourceManager.GetString("Settings_AlwaysTop", resourceCulture);
@@ -237,6 +255,15 @@ namespace Volumey.Resources {
         internal static string Settings_AppsHotkeys {
             get {
                 return ResourceManager.GetString("Settings_AppsHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_AppVolumeSync {
+            get {
+                return ResourceManager.GetString("Settings_AppVolumeSync", resourceCulture);
             }
         }
         
@@ -324,6 +351,24 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_ForegroundVolumeDown {
+            get {
+                return ResourceManager.GetString("Settings_ForegroundVolumeDown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_ForegroundVolumeUp {
+            get {
+                return ResourceManager.GetString("Settings_ForegroundVolumeUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_HeaderHotkeys {
             get {
                 return ResourceManager.GetString("Settings_HeaderHotkeys", resourceCulture);
@@ -378,6 +423,42 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_LastPosition {
+            get {
+                return ResourceManager.GetString("Settings_LastPosition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_LaunchStartup {
+            get {
+                return ResourceManager.GetString("Settings_LaunchStartup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_MediaHotkeys {
+            get {
+                return ResourceManager.GetString("Settings_MediaHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_MediaReplace {
+            get {
+                return ResourceManager.GetString("Settings_MediaReplace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_MixerSettings {
             get {
                 return ResourceManager.GetString("Settings_MixerSettings", resourceCulture);
@@ -423,6 +504,15 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_PreventBalanceReset {
+            get {
+                return ResourceManager.GetString("Settings_PreventBalanceReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_RemoveApp {
             get {
                 return ResourceManager.GetString("Settings_RemoveApp", resourceCulture);
@@ -435,6 +525,33 @@ namespace Volumey.Resources {
         internal static string Settings_RemoveDevice {
             get {
                 return ResourceManager.GetString("Settings_RemoveDevice", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_RemoveHotkey {
+            get {
+                return ResourceManager.GetString("Settings_RemoveHotkey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_SelectedScreen {
+            get {
+                return ResourceManager.GetString("Settings_SelectedScreen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Settings_StartMenu {
+            get {
+                return ResourceManager.GetString("Settings_StartMenu", resourceCulture);
             }
         }
         

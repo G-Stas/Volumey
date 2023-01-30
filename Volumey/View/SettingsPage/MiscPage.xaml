@@ -24,8 +24,8 @@
 		<StackPanel DataContext="{Binding VolumeLimitViewModel}">
 			<TextBlock Text="{lc:Localization Settings_VolumeLimit}"
 					   HorizontalAlignment="Left"/>
-			<StackPanel Orientation="Horizontal">
-				<ui:NumberBox Minimum="1"
+            <StackPanel Orientation="Horizontal">
+                <ui:NumberBox Minimum="1"
 							  Maximum="99"
 							  LargeChange="5"
 							  SmallChange="1"
@@ -35,16 +35,21 @@
 							  ValueChanged="NumberBox_OnValueChanged"
 							  Width="170"
 							  HorizontalAlignment="Left"/>
-				<TextBlock Text="%"
+                <TextBlock Text="%"
 						   HorizontalAlignment="Center"
 						   VerticalAlignment="Center"
 						   Margin="5 0 0 0"
 						   Width="Auto"/>
-			</StackPanel>
-			<ui:ToggleSwitch IsOn="{Binding IsOn}"/>
-		</StackPanel>
-		
-		<TextBlock Text="{lc:Localization Settings_VolumeStep}"/>
+            </StackPanel>
+            <ui:ToggleSwitch IsOn="{Binding IsOn}"/>
+        </StackPanel>
+        <StackPanel DataContext="{Binding AppVolumeSyncViewModel}">
+            <TextBlock Text="{lc:Localization Settings_AppVolumeSync}"
+					   />
+            <ui:ToggleSwitch IsOn="{Binding IsOn}"/>
+        </StackPanel>
+
+        <TextBlock Text="{lc:Localization Settings_VolumeStep}"/>
 		<ui:NumberBox Minimum="1"
 					  Maximum="100"
 					  LargeChange="5"

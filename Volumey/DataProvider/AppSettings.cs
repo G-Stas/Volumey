@@ -73,8 +73,15 @@ namespace Volumey.DataProvider
 			get => volumeLimitIsOn;
 			set => volumeLimitIsOn = value;
 		}
+        [OptionalField]
+        private bool syncAppVolumeIsOn;
+        public bool SyncAppVolumeIsOn
+        {
+			get => syncAppVolumeIsOn;
+			set => syncAppVolumeIsOn = value;
+		}
 
-		[OptionalField]
+        [OptionalField]
 		private int volumeLimit = 50;
 		public int VolumeLimit
 		{
