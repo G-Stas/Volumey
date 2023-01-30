@@ -70,13 +70,13 @@ namespace Volumey.ViewModel.Settings
 
         private void SyncSessionVolume()
         {
-			if (this.IsOn)
+			if(this.IsOn)
 			{
 				foreach (var process in this.defaultDevice.Processes)
 				{
-					if (process.Volume != this.MasterVolume)
+					if(process.Volume != this.MasterVolume)
 					{
-						process.SetVolume(this.MasterVolume, false, ref GuidValue.Internal.VolumeGUID);
+						process.Volume = this.MasterVolume;
 					}
 				}
 			}
@@ -103,9 +103,9 @@ namespace Volumey.ViewModel.Settings
 
         private void OnMasterPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-			if (sender is MasterSessionModel && e.PropertyName == nameof(MasterSessionModel.Volume))
+			if(sender is MasterSessionModel masterSession && e.PropertyName == nameof(MasterSessionModel.Volume))
 			{
-				this.masterVolume = ((MasterSessionModel)sender).Volume;
+				this.masterVolume = masterSession.Volume;
 				SyncSessionVolume();
             }
         }
