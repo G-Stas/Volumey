@@ -299,11 +299,13 @@ namespace Volumey.Model
 				this.SetVolume(this.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 		}
 
+		private bool _exitedInvoked;
+
 		private void OnProcessExited(object? sender, EventArgs e)
 		{
 			if(sender is Process process)
 				process.Exited -= OnProcessExited;
-			this.Exited?.Invoke(this);
+			InvokeExited();
 		}
 
 		private void OnSessionEnded(AudioSessionModel session)
@@ -312,28 +314,37 @@ namespace Volumey.Model
 			{
 				_dispatcher.Invoke(() =>
 				{
-					if(_trackedSession == session)
-					{
-						_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
-						_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
-						lock(_sessionsLock)
-						{
-							_trackedSession = this.Sessions.FirstOrDefault();
-						}
-						if(_trackedSession != null)
-						{
-							_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
-							_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
-						}
-					}
 					session.SessionEnded -= OnSessionEnded;
 					lock(_sessionsLock)
 					{
 						this.Sessions.Remove(session);
+						if(this.Sessions.Count == 0)
+							InvokeExited();
+						
+						if(_trackedSession == session)
+						{
+							_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
+							_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
+
+							_trackedSession = this.Sessions.FirstOrDefault();
+							if(_trackedSession != null)
+							{
+								_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
+								_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
+							}
+						}
 					}
 					session.Dispose();
 				});
 			}
+		}
+
+		private void InvokeExited()
+		{
+			if(_exitedInvoked)
+				return;
+			_exitedInvoked = true;
+			this.Exited?.Invoke(this);
 		}
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -341,8 +352,13 @@ namespace Volumey.Model
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+		private bool _disposed;
+
 		public void Dispose()
 		{
+			if(_disposed)
+				return;
+			_disposed = true;
 			this.StateNotificationMediator?.NotifyOfDisposing(this);
 			
 			if(this._icon != null)
