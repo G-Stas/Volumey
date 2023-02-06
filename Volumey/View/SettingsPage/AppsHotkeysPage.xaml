@@ -88,9 +88,9 @@
 								<Binding
 									Path="Key"/>
 								<Binding
-									Path="Value.Item1"/>
+									Path="Value.VolumeUp"/>
 								<Binding
-									Path="Value.Item2"/>
+									Path="Value.VolumeDown"/>
 							</MultiBinding>
 						</TextBlock.Text>
 					</TextBlock>

@@ -25,8 +25,8 @@ namespace Volumey.ViewModel.Settings
             }
         }
 
-        private KeyValuePair<HotKey, Tuple<string, string>>? _selectedRegDev;
-        public KeyValuePair<HotKey, Tuple<string, string>>? SelectedRegDev
+        private KeyValuePair<HotKey, DeviceInfo>? _selectedRegDev;
+        public KeyValuePair<HotKey, DeviceInfo>? SelectedRegDev
         {
             get => this._selectedRegDev;
             set
@@ -36,7 +36,7 @@ namespace Volumey.ViewModel.Settings
             }
         }
 
-        public ObservableConcurrentDictionary<HotKey, Tuple<string, string>> RegisteredDevices { get; }
+        public ObservableConcurrentDictionary<HotKey, DeviceInfo> RegisteredDevices { get; }
 
         private HotKey _hotkey;
         public HotKey HotKey
@@ -65,7 +65,7 @@ namespace Volumey.ViewModel.Settings
 
             this.AddDeviceCommand = new ActionCommand(AddDevice);
             this.RemoveDeviceCommand = new ActionCommand(RemoveDevice);
-            
+
             this.RegisteredDevices = SettingsProvider.HotkeysSettings.GetRegisteredDevices();
             if(this.RegisteredDevices.Keys.Count > 0)
             {
@@ -82,8 +82,8 @@ namespace Volumey.ViewModel.Settings
         private void RegisterLoadedHotkeys()
         {
             HotkeysControl.HotkeyPressed += OnHotkeyPressed;
-            foreach (var tuple in this.RegisteredDevices)
-                HotkeysControl.RegisterHotkey(tuple.Key);
+            foreach(var hotkeyDeviceInfoPair in this.RegisteredDevices)
+                HotkeysControl.RegisterHotkey(hotkeyDeviceInfoPair.Key);
         }
 
         /// <summary>
@@ -98,18 +98,20 @@ namespace Volumey.ViewModel.Settings
                 {
                     foreach(var registeredDevice in this.RegisteredDevices)
                     {
-                        string id = registeredDevice.Value.Item1;
-                        string name = registeredDevice.Value.Item2;
+                        string id = registeredDevice.Value.ID;
+                        string name = registeredDevice.Value.Name;
                         
                         if(activeDevice.CompareId(id) || activeDevice.Master.Name.Equals(name))
                         {
                             var actualFriendlyName = activeDevice.Master.DeviceFriendlyName;
-                            var friendlyName = registeredDevice.Value.Item2;
+                            var friendlyName = registeredDevice.Value.Name;
                             if(!actualFriendlyName.Equals(friendlyName) || !activeDevice.CompareId(id))
                             {
-                                this.RegisteredDevices[registeredDevice.Key] = new Tuple<string, string>(activeDevice.Id, actualFriendlyName);
-                                SettingsProvider.HotkeysSettings.RemoveRegisteredDevice(registeredDevice.Key);
-                                SettingsProvider.HotkeysSettings.AddRegisteredDevice(registeredDevice.Key, activeDevice.Id, actualFriendlyName);
+                                DeviceInfo deviceInfo = new DeviceInfo(activeDevice.Id, actualFriendlyName);
+                                HotKey hotkey = registeredDevice.Key;
+                                this.RegisteredDevices[hotkey] = deviceInfo;
+                                SettingsProvider.HotkeysSettings.RemoveRegisteredDevice(hotkey);
+                                SettingsProvider.HotkeysSettings.AddRegisteredDevice(hotkey, deviceInfo);
                                 _ = SettingsProvider.SaveSettings();
                             }
                         }
@@ -121,16 +123,16 @@ namespace Volumey.ViewModel.Settings
 
         private void AddDevice()
         {
-            if(this.RegisteredDevices.Values.Any(val => val.Item1.Equals(this.SelectedDevice.Id)))
+            if(this.RegisteredDevices.Values.Any(deviceInfo => deviceInfo.ID.Equals(this.SelectedDevice.Id)))
                 return;
             
-            if (this.RegisteredDevices.ContainsKey(this.HotKey))
+            if(this.RegisteredDevices.ContainsKey(this.HotKey))
             {
                 this.SetErrorMessage(ErrorMessageType.HotkeyExists);
                 return;
             }
 
-            if (HotkeysControl.HotkeyIsValid(this.HotKey) is var error && error != ErrorMessageType.None)
+            if(HotkeysControl.HotkeyIsValid(this.HotKey) is var error && error != ErrorMessageType.None)
             {
                 this.SetErrorMessage(error);
                 return;
@@ -141,15 +143,16 @@ namespace Volumey.ViewModel.Settings
             if (RegisteredDevices.Keys.Count == 0)
                 HotkeysControl.HotkeyPressed += OnHotkeyPressed;
 
-            if (!HotkeysControl.RegisterHotkey(this.HotKey))
+            if(!HotkeysControl.RegisterHotkey(this.HotKey))
             {
                 this.SetErrorMessage(ErrorMessageType.OpenReg);
                 return;
             }
-            var id = this.SelectedDevice.Id;
-            var name = this.SelectedDevice.Master.DeviceFriendlyName;
+            
+            DeviceInfo deviceInfo = new DeviceInfo(this.SelectedDevice.Id, this.SelectedDevice.Master.DeviceFriendlyName);
             var hotkey = this.HotKey;
-            this.RegisteredDevices.Add(hotkey, new Tuple<string, string>(id, name));
+            
+            this.RegisteredDevices.Add(hotkey, deviceInfo);
             this.SelectedDevice = null;
             this.HotKey = null;
             Task.Run(() =>
@@ -157,7 +160,7 @@ namespace Volumey.ViewModel.Settings
                 try
                 {
                     this.Logger.Info($"Registered default device hotkey: {hotkey.ToString()}, count: {this.RegisteredDevices.Keys.Count.ToString()}");
-                    SettingsProvider.HotkeysSettings.AddRegisteredDevice(hotkey, id, name);
+                    SettingsProvider.HotkeysSettings.AddRegisteredDevice(hotkey, deviceInfo);
                     _ = SettingsProvider.SaveSettings();
                 }
                 catch { }
@@ -167,15 +170,15 @@ namespace Volumey.ViewModel.Settings
 
         private void RemoveDevice()
         {
-            if (this.SelectedRegDev == null || !this.SelectedRegDev.HasValue)
+            if(this.SelectedRegDev == null || !this.SelectedRegDev.HasValue)
                 return;
 
-            var hotkey = this.SelectedRegDev.Value.Key;
+            HotKey hotkey = this.SelectedRegDev.Value.Key;
 
             HotkeysControl.UnregisterHotkey(hotkey);
             this.RegisteredDevices.Remove(hotkey);
 
-            if (this.RegisteredDevices.Keys.Count == 0)
+            if(this.RegisteredDevices.Keys.Count == 0)
                 HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
 
             this.SelectedRegDev = null;
@@ -191,11 +194,8 @@ namespace Volumey.ViewModel.Settings
 
         private void OnHotkeyPressed(HotKey pressedHotkey)
         {
-            if (RegisteredDevices.TryGetValue(pressedHotkey, out var value))
-            {
-                var id = value.Item1;
-                this.DeviceProvider.SetDefaultDevice(id);
-            }
+            if(RegisteredDevices.TryGetValue(pressedHotkey, out DeviceInfo deviceInfo))
+                this.DeviceProvider.SetDefaultDevice(deviceInfo.ID);
         }
     }
 }

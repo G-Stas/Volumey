@@ -48,8 +48,8 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 		
-		private KeyValuePair<string, Tuple<HotKey, HotKey>>? selectedRegApp;
-		public KeyValuePair<string, Tuple<HotKey, HotKey>>? SelectedRegApp
+		private KeyValuePair<string, VolumeHotkeysPair>? selectedRegApp;
+		public KeyValuePair<string, VolumeHotkeysPair>? SelectedRegApp
 		{
 			get => selectedRegApp;
 			set
@@ -78,7 +78,7 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 		
-		public ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> RegisteredProcesses { get; }
+		public ObservableConcurrentDictionary<string, VolumeHotkeysPair> RegisteredProcesses { get; }
 
 		/// <summary>
 		/// Containts registered processes that are currently launched
@@ -185,7 +185,7 @@ namespace Volumey.ViewModel.Settings
 				var process = this.DefaultDevice.Processes[i];
 				if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
 				{
-					process.SetVolumeHotkeys(hotkeys.Item1, hotkeys.Item2);
+					process.SetVolumeHotkeys(hotkeys.VolumeUp, hotkeys.VolumeDown);
 					process.Exited += OnProcessExited;
 					this.LaunchedProcesses.Add(process);
 					if(SettingsProvider.NotificationsSettings.Enabled && process.StateNotificationMediator == null)
@@ -218,7 +218,7 @@ namespace Volumey.ViewModel.Settings
 				process.SetStateMediator(this.ProcessStateMediator);
 			this.SetErrorMessage(ErrorMessageType.None);
 
-			var hotkeys = new Tuple<HotKey, HotKey>(this.VolumeUp, this.VolumeDown);
+			var hotkeys = new VolumeHotkeysPair(this.VolumeUp, this.VolumeDown);
 
 			//Subscribe to ProcessCreated event to search for registered processes amongst new processes
 			if (this.RegisteredProcesses.Keys.Count == 0 && this.DefaultDevice != null)
@@ -304,7 +304,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
 			{
-				process.SetVolumeHotkeys(volUp: hotkeys.Item1, volDown: hotkeys.Item2);
+				process.SetVolumeHotkeys(volUp: hotkeys.VolumeUp, volDown: hotkeys.VolumeDown);
 				process.Exited += OnProcessExited;
 				this.LaunchedProcesses.Add(process);
 				if(SettingsProvider.NotificationsSettings.Enabled)

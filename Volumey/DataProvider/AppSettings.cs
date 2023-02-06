@@ -384,9 +384,9 @@ namespace Volumey.DataProvider
 			[OptionalField]
 			private Dictionary<string, (SerializableHotkey up, SerializableHotkey down)> serializableRegisteredSessions;
 
-			internal ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>> GetRegisteredProcesses()
+			internal ObservableConcurrentDictionary<string, VolumeHotkeysPair> GetRegisteredProcesses()
 			{
-				var dictionary = new ObservableConcurrentDictionary<string, Tuple<HotKey, HotKey>>();
+				var dictionary = new ObservableConcurrentDictionary<string, VolumeHotkeysPair>();
 				if(this.serializableRegisteredSessions == null)
 				{
 					this.serializableRegisteredSessions = new Dictionary<string, (SerializableHotkey, SerializableHotkey)>();
@@ -394,10 +394,10 @@ namespace Volumey.DataProvider
 				}
 				if(this.serializableRegisteredSessions.Count == 0)
 					return dictionary;
+				
 				foreach(var (key, (up, down)) in this.serializableRegisteredSessions)
-				{
-					dictionary.Add(key, new Tuple<HotKey, HotKey>(up.ToHotKey(), down.ToHotKey()));
-				}
+					dictionary.Add(key, new VolumeHotkeysPair(up.ToHotKey(), down.ToHotKey()));
+				
 				return dictionary;
 			}
 			
@@ -452,11 +452,11 @@ namespace Volumey.DataProvider
 				return false;
 			}
 
-			internal void AddRegisteredProcess(string processName, Tuple<HotKey, HotKey> hotkeys)
+			internal void AddRegisteredProcess(string processName, VolumeHotkeysPair hotkeys)
 			{
-				if(processName == null || hotkeys.Item1 == null || hotkeys.Item2 == null)
+				if(processName == null || hotkeys.VolumeUp == null || hotkeys.VolumeDown == null)
 					return;
-				this.serializableRegisteredSessions.Add(processName, hotkeys.ToTuple());
+				this.serializableRegisteredSessions.Add(processName, (hotkeys.VolumeUp.ToSerializableHotkey(), hotkeys.VolumeDown.ToSerializableHotkey()));
 			}
 
 			internal void RemoveRegisteredSession(string sessionName)
@@ -469,9 +469,9 @@ namespace Volumey.DataProvider
 			[OptionalField]
 			private Dictionary<SerializableHotkey, (string id, string name)> serializableRegisteredDevices;
 
-			internal ObservableConcurrentDictionary<HotKey, Tuple<string, string>> GetRegisteredDevices()
+			internal ObservableConcurrentDictionary<HotKey, DeviceInfo> GetRegisteredDevices()
 			{
-				var dict = new ObservableConcurrentDictionary<HotKey, Tuple<string, string>>();
+				var dict = new ObservableConcurrentDictionary<HotKey, DeviceInfo>();
 				if(this.serializableRegisteredDevices == null)
 				{
 					this.serializableRegisteredDevices = new Dictionary<SerializableHotkey, (string id, string name)>();
@@ -482,14 +482,14 @@ namespace Volumey.DataProvider
 					return dict;
 
 				foreach(var tuple in this.serializableRegisteredDevices)
-					dict.Add(tuple.Key.ToHotKey(), new Tuple<string, string>(tuple.Value.id, tuple.Value.name));
+					dict.Add(tuple.Key.ToHotKey(), new DeviceInfo(tuple.Value.id, tuple.Value.name));
 
 				return dict;
 			}
 
-			internal void AddRegisteredDevice(HotKey hotkey, string deviceId, string name)
+			internal void AddRegisteredDevice(HotKey hotkey, DeviceInfo deviceInfo)
 			{
-				this.serializableRegisteredDevices.Add(hotkey.ToSerializableHotkey(), (deviceId, name));
+				this.serializableRegisteredDevices.Add(hotkey.ToSerializableHotkey(), (deviceInfo.ID, deviceInfo.Name));
 			}
 
 			internal void RemoveRegisteredDevice(HotKey hotkey)

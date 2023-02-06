@@ -27,6 +27,7 @@ using Volumey.Helper;
 
 namespace Volumey.Controls
 {
+    [Serializable]
     public class HotKey : IEquatable<HotKey>
     {
         private const int VK_MENU = 18;
