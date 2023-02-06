@@ -67,15 +67,15 @@ namespace Volumey.ViewModel.Settings
             this.RemoveDeviceCommand = new ActionCommand(RemoveDevice);
             
             this.RegisteredDevices = SettingsProvider.HotkeysSettings.GetRegisteredDevices();
-            if (this.RegisteredDevices.Keys.Count > 0)
+            if(this.RegisteredDevices.Keys.Count > 0)
             {
-                if (HotkeysControl.IsActive)
+                if(HotkeysControl.IsActive)
                     this.RegisterLoadedHotkeys();
                 else
                     HotkeysControl.Activated += this.RegisterLoadedHotkeys;
 
                 //Update registered devices names once on startup
-                UpdateNames();
+                Task.Run(UpdateNamesOrIDs);
             }
         }
 
@@ -87,24 +87,31 @@ namespace Volumey.ViewModel.Settings
         }
 
         /// <summary>
-        /// Check if registered devices have changed their names and update them
+        /// Check if registered devices have changed their names or IDs to update these values in settings,
+        /// since IDs are critical for setting default device in system
         /// </summary>
-        private void UpdateNames()
+        private void UpdateNamesOrIDs()
         {
             try
             {
-                for (int i = 0; i < this.DeviceProvider.ActiveDevices.Count; i++)
+                foreach(var activeDevice in this.DeviceProvider.ActiveDevices)
                 {
-                    var activeDevice = this.DeviceProvider.ActiveDevices[i];
-                    foreach (var device in this.RegisteredDevices)
+                    foreach(var registeredDevice in this.RegisteredDevices)
                     {
-                        var id = device.Value.Item1;
-                        if (activeDevice.CompareId(id))
+                        string id = registeredDevice.Value.Item1;
+                        string name = registeredDevice.Value.Item2;
+                        
+                        if(activeDevice.CompareId(id) || activeDevice.Master.Name.Equals(name))
                         {
                             var actualFriendlyName = activeDevice.Master.DeviceFriendlyName;
-                            var friendlyName = device.Value.Item2;
-                            if (!actualFriendlyName.Equals(friendlyName))
-                                this.RegisteredDevices[device.Key] = new Tuple<string, string>(id, actualFriendlyName);
+                            var friendlyName = registeredDevice.Value.Item2;
+                            if(!actualFriendlyName.Equals(friendlyName) || !activeDevice.CompareId(id))
+                            {
+                                this.RegisteredDevices[registeredDevice.Key] = new Tuple<string, string>(activeDevice.Id, actualFriendlyName);
+                                SettingsProvider.HotkeysSettings.RemoveRegisteredDevice(registeredDevice.Key);
+                                SettingsProvider.HotkeysSettings.AddRegisteredDevice(registeredDevice.Key, activeDevice.Id, actualFriendlyName);
+                                _ = SettingsProvider.SaveSettings();
+                            }
                         }
                     }
                 }
