@@ -1,7 +1,6 @@
 ﻿using System;
 using log4net;
 using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
-using Volumey.Model;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -10,7 +9,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     /// </summary>
     class AudioSessionProvider : ISessionProvider
     {
-        public event Action<(AudioSessionModel, IAudioSessionControl)> SessionCreated;
+        public event Action<object, SessionCreatedEventArgs> SessionCreated;
         private IAudioSessionManager2 sessionManager;
 
         internal AudioSessionProvider(IAudioSessionManager2 sessionManager)
@@ -23,7 +22,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         {
             var session = sessionControl.GetAudioSessionModel();
             if(session != null)
-                this.SessionCreated?.Invoke((session, sessionControl));
+                this.SessionCreated?.Invoke(this, new SessionCreatedEventArgs(session, sessionControl));
             return 0;
         }
 

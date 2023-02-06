@@ -32,6 +32,8 @@ namespace Volumey.Model
         private readonly string _id;
         public string Id => this._id;
 
+        public Guid GroupingParam { get; }
+
         private readonly uint _processId;
         public uint ProcessId => this._processId;
         
@@ -92,13 +94,14 @@ namespace Volumey.Model
 
         private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-        public AudioSessionModel(bool isMuted, int volume, string id, uint processId, string name, string filePath, IAudioSessionVolume aVolume,
+        public AudioSessionModel(bool isMuted, int volume, string id, uint processId, string name, string filePath, Guid groupingParam, IAudioSessionVolume aVolume,
             IAudioSessionStateNotifications sStateNotifications)
         {
             _isMuted = isMuted;
             _volume = volume;
             _id = id;
             _processId = processId;
+            GroupingParam = groupingParam;
             FilePath = filePath;
             Name = name;
             sessionVolume = aVolume;

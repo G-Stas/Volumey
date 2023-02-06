@@ -12,6 +12,7 @@ namespace Volumey.Model
 		public string Id { get; }
 		public uint ProcessId { get; }
 		public string FilePath { get; }
+		public Guid GroupingParam { get; }
 		public ICommand MuteCommand { get; set; }
 	}
 }

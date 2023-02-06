@@ -166,25 +166,24 @@ namespace Volumey.Model
 			exitedProcess.Dispose();
 		}
 
-		private void OnSessionCreated((AudioSessionModel model, IAudioSessionControl sessionControl) newSession)
+		private void OnSessionCreated(object sender, SessionCreatedEventArgs e)
 		{
 			try
 			{
-				AudioProcessModel process = Processes.FirstOrDefault(p => p.FilePath.Equals(newSession.model.FilePath));
-				if(process != null)
+				if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(e.SessionModel.GroupingParam) || p.FilePath.Equals(e.SessionModel.FilePath)) is AudioProcessModel process)
 				{
 					dispatcher.Invoke(() =>
 					{
-						newSession.model.Name = process.Name;
-						process.AddSession(newSession.model);
+						e.SessionModel.Name = process.Name;
+						process.AddSession(e.SessionModel);
 					});
 				}
 				else
 				{
 					dispatcher.Invoke(() =>
 					{
-						AudioProcessModel newProcess = newSession.model.GetProcessModelFromSessionModel(newSession.sessionControl);
-						newProcess.AddSession(newSession.model);
+						AudioProcessModel newProcess = e.SessionModel.GetProcessModelFromSessionModel(e.SessionControl);
+						newProcess.AddSession(e.SessionModel);
 						lock(_processesLock)
 						{
 							this.Processes.Add(newProcess);

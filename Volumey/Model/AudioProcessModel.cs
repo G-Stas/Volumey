@@ -32,8 +32,10 @@ namespace Volumey.Model
 
 		private readonly uint _processId;
 		public uint ProcessId => this._processId;
-		
+
 		public string FilePath { get; }
+
+		public Guid GroupingParam { get; private set; } = Guid.Empty;
 
 		private bool _isMuted;
 		public bool IsMuted
@@ -164,6 +166,7 @@ namespace Volumey.Model
 					{
 						this.Volume = newSession.Volume;
 						this.IsMuted = newSession.IsMuted;
+						this.GroupingParam = newSession.GroupingParam;
 						_trackedSession = newSession;
 						_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
 						_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;

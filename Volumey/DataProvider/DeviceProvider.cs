@@ -115,7 +115,6 @@ namespace Volumey.DataProvider
 					//Prevent if it's already the default device
 					if(DefaultDevice != null && !DefaultDevice.CompareId(id))
 					{
-						// Debug.WriteLine($"Activating device {id}");
 						this.PolicyClient.SetDefaultEndpointDevice(id);
 					}
 				}

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Media;
 using log4net;
 using Volumey.CoreAudioWrapper.CoreAudio;
@@ -91,11 +92,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		
 		private static List<AudioProcessModel> GetCurrentProcessList(this IDevice device, IAudioSessionEnumerator sessionEnum)
 		{
-			Dictionary<string, AudioProcessModel> processes = new Dictionary<string, AudioProcessModel>();
-			var list = new List<AudioProcessModel>();
+			List<AudioProcessModel> processes = new List<AudioProcessModel>();
 		
 			if(sessionEnum == null)
-				return list;
+				return processes;
 		
 			sessionEnum.GetCount(out int sessionCount);
 			for(int i = 0; i < sessionCount; i++)
@@ -103,37 +103,36 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				try
 				{
 					sessionEnum.GetSession(i, out IAudioSessionControl sessionControl);
-					var session = sessionControl.GetAudioSessionModel();
+					AudioSessionModel session = sessionControl.GetAudioSessionModel();
 
 					if(session == null)
 						continue;
 					
-					if(processes.TryGetValue(session.FilePath, out AudioProcessModel process))
+					if(processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
 					{
 						session.Name = process.Name;
 						process.AddSession(session);
 					}
 					else
 					{
-						AudioProcessModel model = session.GetProcessModelFromSessionModel((IAudioSessionControl2)sessionControl, out bool isSystemSounds);
+						AudioProcessModel newProcess = session.GetProcessModelFromSessionModel((IAudioSessionControl2)sessionControl, out bool isSystemSounds);
 						
-						if(model == null)
+						if(newProcess == null)
 							continue;
 						
-						model.AddSession(session);
-						session.Name = model.Name;
-						processes.Add(session.FilePath, model);
+						newProcess.AddSession(session);
+						session.Name = newProcess.Name;
 
-						//put system sounds model on top of the session list
+						//put system sounds process on top of the processes list
 						if(isSystemSounds)
-							list.Insert(0, model);
+							processes.Insert(0, newProcess);
 						else
-							list.Add(model);
+							processes.Add(newProcess);
 					}
 				}
 				catch { }
 			}
-			return list;
+			return processes;
 		}
 
 		private static AudioProcessModel GetProcessModelFromSessionModel(this AudioSessionModel session, IAudioSessionControl sControl, out bool isSystemSounds)
@@ -230,6 +229,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				sessionControl.GetSessionIdentifier(out var sessionId);
 
 				AudioSessionStateNotifications sessionStateNotifications = new AudioSessionStateNotifications(sessionControl);
+				
+				sControl.GetGroupingParam(out Guid groupingParam);
 
 				try { sessionStateNotifications.RegisterNotifications(); }
 				catch { }
@@ -237,6 +238,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				AudioSessionModel session = new AudioSessionModel(muteState, Convert.ToInt32(volume * 100), sessionId, processId,
 				                                                  name,
 				                                                  filePath,
+				                                                  groupingParam,
 				                                                  sessionVolume,
 				                                                  sessionStateNotifications);
 				return session;

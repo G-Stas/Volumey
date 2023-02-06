@@ -58,6 +58,8 @@ namespace Volumey.Model
         private readonly uint _processId;
         public uint ProcessId => this._processId;
 
+        public Guid GroupingParam { get; } = Guid.Empty;
+        
         public string FilePath { get; }
 
         private int _volume;

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using Moq;
@@ -25,7 +26,7 @@ namespace Volumey.Tests
 
 			this.proc = GetProcessMock("app", 50, false);
 			
-			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
+			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
 				sessionStateNotif.Object);
 			
 			proc.AddSession(model);
@@ -116,7 +117,7 @@ namespace Volumey.Tests
 		public void FirstAddedSessionMustSetAsTracked()
 		{
 			//arrange
-			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
+			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
 			                                  sessionStateNotif.Object);
 			proc.Sessions.Clear();
 			FieldInfo field = typeof(AudioProcessModel).GetField("_trackedSession", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -133,7 +134,7 @@ namespace Volumey.Tests
 		public void TrackedSessionStateChangesMustReflectOnProcess()
 		{
 			//arrange
-			var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, sessionVolumeMock.Object,
+			var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
 			                                  sessionStateNotif.Object);
 			proc.Sessions.Clear();
 			proc.Volume = 0;
@@ -315,7 +316,7 @@ namespace Volumey.Tests
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			var sessionStateNotifications = new Mock<IAudioSessionStateNotifications>();
-			return new AudioSessionModel(muteState, volume, id, default, default, default, sessionVolumeMock.Object, sessionStateNotifications.Object);
+			return new AudioSessionModel(muteState, volume, id, default, default, default, Guid.Empty, sessionVolumeMock.Object, sessionStateNotifications.Object);
 		}
 
 		internal static AudioProcessModel GetProcessMock(string name, int volume, bool muteState)
