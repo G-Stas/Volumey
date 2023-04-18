@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using log4net;
 using Notification.Wpf;
 using Notification.Wpf.Controls;
@@ -21,6 +22,7 @@ namespace Volumey.Helper
 		private static ILog _logger;
 		private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationManagerHelper));
 
+		private static HashSet<string> _displayedNotificationKeys = new HashSet<string>();
 		static NotificationManagerHelper()
 		{
 			_notificationManager = new NotificationManager();
@@ -38,7 +40,16 @@ namespace Volumey.Helper
 			{
 				if(_notificationManager.IsDisplayed(session.Id, resetDisplayTimer: true))
 					return;
+
+				// when switch session, other displayed session notification should be closed.
+				foreach(var key in _displayedNotificationKeys)
+				{
+					_notificationManager.CloseNotification(key);
+				}
+				_displayedNotificationKeys.Clear();
+
 				var content = new VolumeNotificationContent(session);
+				_displayedNotificationKeys.Add(session.Id);
 				_notificationManager.ShowNotification(content, session.Id, true, NotificationDisplayTime);
 			}
 			catch(ObjectDisposedException) { }
