@@ -75,7 +75,7 @@ namespace Volumey.ViewModel.Settings
                     HotkeysControl.Activated += this.RegisterLoadedHotkeys;
 
                 //Update registered devices names once on startup
-                Task.Run(UpdateNamesOrIDs);
+                UpdateNamesOrIDs();
             }
         }
 
