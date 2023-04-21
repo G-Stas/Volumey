@@ -22,6 +22,7 @@ namespace Volumey.Helper
 		private static ILog _logger;
 		private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationManagerHelper));
 
+		private static string _lastDisplayedSessionId = string.Empty;
 		private static HashSet<string> _displayedNotificationKeys = new HashSet<string>();
 		static NotificationManagerHelper()
 		{
@@ -41,12 +42,17 @@ namespace Volumey.Helper
 				if(_notificationManager.IsDisplayed(session.Id, resetDisplayTimer: true))
 					return;
 
-				// when switch session, other displayed session notification should be closed.
-				foreach(var key in _displayedNotificationKeys)
+				if(string.IsNullOrEmpty(_lastDisplayedSessionId) == false && _lastDisplayedSessionId != session.Id)
 				{
-					_notificationManager.CloseNotification(key);
+					// when switch session, other displayed session notification should be closed.
+					foreach(var key in _displayedNotificationKeys)
+					{
+						_notificationManager.CloseNotification(key);
+					}
+					_displayedNotificationKeys.Clear();
 				}
-				_displayedNotificationKeys.Clear();
+				//record last displayed id
+				_lastDisplayedSessionId = session.Id;
 
 				var content = new VolumeNotificationContent(session);
 				_displayedNotificationKeys.Add(session.Id);
