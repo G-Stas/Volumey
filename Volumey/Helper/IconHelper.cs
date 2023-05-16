@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows;
@@ -11,20 +10,6 @@ namespace Volumey.Helper
 {
 	static class IconHelper
 	{
-		public static Icon GetFromProcess(Process process)
-		{
-			if(process == null)
-				return null;
-			Icon icon = null;
-			App.Current.Dispatcher.Invoke(() =>
-			{
-				//get application icon by full path to its exe file
-				var fileName = process.GetMainModuleFileName();
-				icon = Icon.ExtractAssociatedIcon(fileName);
-			});
-			return icon;
-		}
-
 		public static Icon GetFromDll(string filePath, int resourceId, bool largeIcon = true)
 		{
 			Icon icon = null;

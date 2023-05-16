@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Input;
@@ -175,19 +174,27 @@ namespace Volumey.Helper
             /// The rate at which the Window is to be flashed, in milliseconds. If Zero, the function uses the default cursor blink rate.  
             /// </summary>
             internal UInt32 dwTimeout;
-        }  
-        
-        [DllImport("kernel32.dll", SetLastError=true, CharSet = CharSet.Auto)]
-        private static extern bool QueryFullProcessImageName([In]IntPtr hProcess, [In]int dwFlags, [Out]StringBuilder lpExeName, ref uint lpdwSize);
-
-        internal static string GetMainModuleFileName(this Process process, int buffer = 1024)
-        {
-            var fileNameBuilder = new StringBuilder(buffer);
-            uint bufferLength = (uint) fileNameBuilder.Capacity + 1;
-            return QueryFullProcessImageName(process.Handle, 0, fileNameBuilder, ref bufferLength)
-                       ? fileNameBuilder.ToString()
-                       : null;
         }
+        
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr OpenProcess(ProcessAccessFlags dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+    
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool CloseHandle(IntPtr handle);
+    
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern bool QueryFullProcessImageName(IntPtr hProcess, uint dwFlags,
+                                                     [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpExeName,
+                                                     ref uint lpdwSize);
+        
+        [Flags]
+        public enum ProcessAccessFlags : uint
+        {
+            QueryLimitedInformation = 0x00001000
+        }
+    
+        public const uint MAX_PATH = 256;
         
         [DllImport("user32.dll")]
         public static extern  uint MapVirtualKey(uint uCode, MapType uMapType);

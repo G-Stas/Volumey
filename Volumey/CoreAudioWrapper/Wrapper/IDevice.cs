@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Media;
 using log4net;
 using Volumey.CoreAudioWrapper.CoreAudio;
@@ -253,20 +255,43 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		private static Icon ExtractSessionIcon(Process proc, IAudioSessionControl sc)
 		{
 			Icon icon = null;
+			IntPtr processHandle = IntPtr.Zero;
 			try
 			{
-				icon = IconHelper.GetFromProcess(proc) ?? TryExtractIconAlternatively(proc, sc);
-			}
-			catch(Win32Exception)
-			{
-				//"Win32Exception occurs when a 32-bit process is trying to access the modules of a 64-bit process"
-				//occurs when the exe is a system process or it was launched via admin rights
+				//open a handle to the process with the PROCESS_QUERY_LIMITED_INFORMATION flag
+				processHandle =
+					NativeMethods.OpenProcess(NativeMethods.ProcessAccessFlags.QueryLimitedInformation, false, proc.Id);
+
+				if(processHandle != IntPtr.Zero)
+				{
+					StringBuilder sb = new StringBuilder((int)NativeMethods.MAX_PATH);
+					uint pathSize = NativeMethods.MAX_PATH;
+
+					if(!NativeMethods.QueryFullProcessImageName(processHandle, 0, sb, ref pathSize))
+					{
+						int error = Marshal.GetLastWin32Error();
+						Logger.Error($"{nameof(NativeMethods.QueryFullProcessImageName)} failed with error code {error}");
+					}
+
+					icon = Icon.ExtractAssociatedIcon(sb.ToString());
+				}
+				else
+				{
+					int error = Marshal.GetLastWin32Error();
+					Logger.Error($"{nameof(NativeMethods.OpenProcess)} failed with error code {error}");
+				}
 				
-				icon = TryExtractIconAlternatively(proc, sc);
+				icon ??= TryExtractIconAlternatively(proc, sc);
 			}
 			catch(Exception e)
 			{
 				Logger.Error($"Failed to extract icon from the process: [{proc?.ProcessName}]", e);
+				icon = TryExtractIconAlternatively(proc, sc);
+			}
+			finally
+			{
+				if(processHandle != IntPtr.Zero)
+					NativeMethods.CloseHandle(processHandle);
 			}
 			return icon ?? IconHelper.GenericExeIcon;
 		}
