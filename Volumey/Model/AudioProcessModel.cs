@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -311,35 +312,42 @@ namespace Volumey.Model
 			InvokeExited();
 		}
 
-		private void OnSessionEnded(AudioSessionModel session)
+		private async void OnSessionEnded(AudioSessionModel endedSession)
 		{
-			if(session != null)
+			if(endedSession != null)
+				await ProcessEndedSession(endedSession);
+		}
+
+		private async Task ProcessEndedSession(AudioSessionModel endedSession)
+		{
+			endedSession.SessionEnded -= OnSessionEnded;
+			await _dispatcher.InvokeAsync(() =>
 			{
-				_dispatcher.Invoke(() =>
+				lock(_sessionsLock)
 				{
-					session.SessionEnded -= OnSessionEnded;
+					this.Sessions.Remove(endedSession);
+					if(this.Sessions.Count == 0)
+						InvokeExited();
+				}
+			}).Task.ContinueWith(_ =>
+			{
+				if(_trackedSession == endedSession)
+				{
+					_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
+					_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
+
 					lock(_sessionsLock)
 					{
-						this.Sessions.Remove(session);
-						if(this.Sessions.Count == 0)
-							InvokeExited();
-						
-						if(_trackedSession == session)
-						{
-							_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
-							_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
-
-							_trackedSession = this.Sessions.FirstOrDefault();
-							if(_trackedSession != null)
-							{
-								_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
-								_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
-							}
-						}
+						_trackedSession = this.Sessions.FirstOrDefault();
 					}
-					session.Dispose();
-				});
-			}
+					if(_trackedSession != null)
+					{
+						_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
+						_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
+					}
+				}
+				endedSession.Dispose();
+			});
 		}
 
 		private void InvokeExited()

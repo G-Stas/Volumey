@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Moq;
 using Volumey.Controls;
@@ -16,18 +17,18 @@ namespace Volumey.Tests
 	public class AudioProcessModelTests
 	{
 		private AudioProcessModel proc;
-		private Mock<IAudioSessionStateNotifications> sessionStateNotif;
+		private Mock<IAudioSessionStateNotifications> trackedSessionStateNotif;
 		private Mock<IAudioSessionVolume> sessionVolumeMock;
 
 		public AudioProcessModelTests()
 		{
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
-			this.sessionStateNotif = new Mock<IAudioSessionStateNotifications>();
+			this.trackedSessionStateNotif = new Mock<IAudioSessionStateNotifications>();
 
 			this.proc = GetProcessMock("app", 50, false);
 			
 			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
-				sessionStateNotif.Object);
+				trackedSessionStateNotif.Object);
 			
 			proc.AddSession(model);
 		}
@@ -38,16 +39,26 @@ namespace Volumey.Tests
 			//arrange
 			var trackedSession = this.proc.Sessions[0];
 			Assert.Single(proc.Sessions);
-			
+
 			var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
 			proc.AddSession(additionalSession);
-			
+
+			MethodInfo endedSessionHandler = typeof(OutputDeviceModel).GetMethod("ProcessEndedSession",
+																				 BindingFlags.NonPublic | BindingFlags.Instance);
+
 			//act
-			sessionStateNotif.Raise(n => n.SessionEnded += null);
 			
-			//assert
-			Assert.DoesNotContain(trackedSession, this.proc.Sessions);
-			sessionStateNotif.Verify(n => n.Dispose(), Times.Once);
+			//Simulate that the handler was called from the background thread because normally it invokes by events
+			Task.Run(() =>
+						 {
+							 var task = (Task)endedSessionHandler.Invoke(this.proc, new object[] { trackedSession });
+							 task.Wait();
+						 }).ContinueWith(t =>
+			{
+				//assert
+				Assert.DoesNotContain(trackedSession, this.proc.Sessions);
+				trackedSessionStateNotif.Verify(n => n.Dispose(), Times.Once);
+			});
 		}
 
 		[Fact]
@@ -55,7 +66,7 @@ namespace Volumey.Tests
 		{
 			var newVolume = this.proc.Volume + 1;
 
-			this.sessionStateNotif.Raise(m => m.VolumeChanged += null,
+			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null,
 				new object[] { new VolumeChangedEventArgs(newVolume, this.proc.IsMuted) });
 
 			Assert.Equal(newVolume, this.proc.Volume);
@@ -66,7 +77,7 @@ namespace Volumey.Tests
 		{
 			var newMuteState = !this.proc.IsMuted;
 
-			this.sessionStateNotif.Raise(m => m.VolumeChanged += null,
+			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null,
 				new object[] { new VolumeChangedEventArgs(this.proc.Volume, newMuteState) });
 
 			Assert.Equal(newMuteState, this.proc.IsMuted);
@@ -90,7 +101,7 @@ namespace Volumey.Tests
 			//verify the call to external API is made
 			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.VolumeGUID), Times.AtLeastOnce);
 			//simualate callback from external API
-			this.sessionStateNotif.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.proc.IsMuted));
+			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.proc.IsMuted));
 			Assert.Equal(newVolume, this.proc.Volume);
 		}
 		
@@ -118,7 +129,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var model = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
-			                                  sessionStateNotif.Object);
+			                                  trackedSessionStateNotif.Object);
 			proc.Sessions.Clear();
 			FieldInfo field = typeof(AudioProcessModel).GetField("_trackedSession", BindingFlags.NonPublic | BindingFlags.Instance);
 			
@@ -135,7 +146,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
-			                                  sessionStateNotif.Object);
+			                                  trackedSessionStateNotif.Object);
 			proc.Sessions.Clear();
 			proc.Volume = 0;
 			proc.IsMuted = false;

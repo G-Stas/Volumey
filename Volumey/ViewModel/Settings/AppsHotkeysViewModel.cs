@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -180,9 +181,8 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(this.DefaultDevice == null)
 				return;
-			for(int i = 0; i < this.DefaultDevice.Processes.Count; i++)
+			foreach(AudioProcessModel process in this.DefaultDevice.GetImmutableProcesses())
 			{
-				var process = this.DefaultDevice.Processes[i];
 				if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
 				{
 					process.SetVolumeHotkeys(hotkeys.VolumeUp, hotkeys.VolumeDown);

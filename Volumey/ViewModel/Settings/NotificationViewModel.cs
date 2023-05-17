@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -95,10 +96,17 @@ namespace Volumey.ViewModel.Settings
 					});
 				}
 
-				if(value)
-					SetStateMediatorForDefaultDeviceProcesses();
-				else 
-					ResetStateMediatorForDefaultDeviceProcesses();
+				Task.Run(async () =>
+				{
+					if(value)
+						await SetStateMediatorForDefaultDeviceProcesses();
+					else 
+						await ResetStateMediatorForDefaultDeviceProcesses();
+				}).ContinueWith(task =>
+				{
+					Logger.Error("Failed to set/reset mediator for default device processes", task?.Exception?.Flatten());
+				}, TaskContinuationOptions.OnlyOnFaulted);
+				
 			}
 		}
 
@@ -279,7 +287,7 @@ namespace Volumey.ViewModel.Settings
 			}, TaskContinuationOptions.OnlyOnFaulted);
 		}
 
-		private void SetStateMediatorForDefaultDeviceProcesses()
+		private async Task SetStateMediatorForDefaultDeviceProcesses()
 		{
 			if(_deviceProvider == null)
 				_deviceProvider = DeviceProvider.GetInstance();
@@ -293,11 +301,11 @@ namespace Volumey.ViewModel.Settings
 			_currentDefaultDevice.ProcessCreated += OnProcessCreated;
 			_currentDefaultDevice.SetStateNotificationMediator(StateMediator);
 
-			foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+			foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
 				proc.SetStateMediator(StateMediator);
 		}
 
-		private void ResetStateMediatorForDefaultDeviceProcesses()
+		private async Task ResetStateMediatorForDefaultDeviceProcesses()
 		{
 			if(_deviceProvider == null)
 				_deviceProvider = DeviceProvider.GetInstance();
@@ -311,7 +319,7 @@ namespace Volumey.ViewModel.Settings
 				_currentDefaultDevice.ResetStateNotificationMediator();
 			_currentDefaultDevice.ProcessCreated -= OnProcessCreated;
 
-			foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+			foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
 			{
 				if(!proc.AnyHotkeyRegistered)
 					proc.ResetStateMediator();
@@ -320,11 +328,11 @@ namespace Volumey.ViewModel.Settings
 			_currentDefaultDevice = null;
 		}
 
-		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+		private async void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
 			if(_currentDefaultDevice != null)
 			{
-				foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+				foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
 				{
 					proc.ResetStateMediator(force: true);
 				}
@@ -341,7 +349,7 @@ namespace Volumey.ViewModel.Settings
 			_currentDefaultDevice.ProcessCreated += OnProcessCreated;
 			_currentDefaultDevice.SetStateNotificationMediator(StateMediator);
 			
-			foreach(AudioProcessModel proc in _currentDefaultDevice.Processes)
+			foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
 				proc.SetStateMediator(StateMediator);
 		}
 

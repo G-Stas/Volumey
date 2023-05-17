@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -145,19 +146,17 @@ namespace Volumey.ViewModel.Settings
 			_ = SettingsProvider.SaveSettings();
 		}
 
-		private bool TryGetForegroundAudioProcess(out AudioProcessModel audioProcess)
+		private async Task<(bool succeed, AudioProcessModel? foundProcess)> TryGetForegroundAudioProcess()
 		{
-			audioProcess = null;
-			
 			if(_defaultDevice == null)
 			{
-				return false;
+				return (false, null);
 			}
 
 			uint foregroundWindowProcId = GetForegroundWindowProcessId();
 			if(foregroundWindowProcId == uint.MinValue)
 			{
-				return false;
+				return (false, null);
 			}
 
 			Process process = null;
@@ -169,15 +168,17 @@ namespace Volumey.ViewModel.Settings
 			}
 			catch { }
 
+			AudioProcessModel foundProcess;
 			try
 			{
-				audioProcess = _defaultDevice?.Processes.First(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath)); 
+				IImmutableList<AudioProcessModel> curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
+				foundProcess = curDeviceProcesses.First(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath)); 
 			}
 			catch
 			{
-				return false;
+				return (false, null);
 			}
-			return true;
+			return (true, foundProcess);
 		}
 
 		private uint GetForegroundWindowProcessId()
@@ -193,7 +194,7 @@ namespace Volumey.ViewModel.Settings
 			return uint.MinValue;
 		}
 
-		private void OnHotkeyPressed(HotKey hotkey)
+		private async void OnHotkeyPressed(HotKey hotkey)
 		{
 			if(!_hotkeysRegistered)
 				return;
@@ -202,20 +203,20 @@ namespace Volumey.ViewModel.Settings
 
 			if(hotkey.Equals(this._volumeUpHotkey))
 			{
-				if(TryGetForegroundAudioProcess(out AudioProcessModel process))
+				if(await TryGetForegroundAudioProcess() is (bool succeed, AudioProcessModel foundProcess) && succeed)
 				{
-					if(process.StateNotificationMediator == null)
-						process.SetStateMediator(this.StateMediator);
-					process.SetVolume(process.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+					if(foundProcess.StateNotificationMediator == null)
+						foundProcess.SetStateMediator(this.StateMediator);
+					foundProcess.SetVolume(foundProcess.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 				}
 			}
 			else if(hotkey.Equals(this._volumeDownHotkey))
 			{
-				if(TryGetForegroundAudioProcess(out AudioProcessModel process))
+				if(await TryGetForegroundAudioProcess() is (bool succeed, AudioProcessModel foundProcess) && succeed)
 				{
-					if(process.StateNotificationMediator == null)
-						process.SetStateMediator(this.StateMediator);
-					process.SetVolume(process.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+					if(foundProcess.StateNotificationMediator == null)
+						foundProcess.SetStateMediator(this.StateMediator);
+					foundProcess.SetVolume(foundProcess.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 				}
 			}
 		}

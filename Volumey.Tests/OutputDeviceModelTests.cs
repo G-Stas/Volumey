@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
+using System.Threading.Tasks;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Model;
@@ -36,15 +37,22 @@ namespace Volumey.Tests
         }
 
         [Fact]
-        public void SessionEndedEvent_SessionShouldBeRemoved()
+        public void ProcessExitedEvent_ProcessShouldBeRemoved()
         {
             var process = this.model.Processes[0];
-            MethodInfo OnSessionEndedHandler = typeof(AudioProcessModel).GetMethod("OnProcessExited",
-                BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo processExitedHandler = typeof(OutputDeviceModel).GetMethod("OnProcessExitedAsync",
+                                                                                   BindingFlags.NonPublic |
+                                                                                   BindingFlags.Instance);
 
-            OnSessionEndedHandler?.Invoke(process, new object[]{null, null});
-
-            Assert.DoesNotContain(process, this.model.Processes);
+            //Simulate that the handler was called from the background thread because normally it invokes by events
+            Task.Run(() =>
+            {
+                var task = (Task)processExitedHandler?.Invoke(this.model, new object[] { process });
+                task.Wait();
+            }).ContinueWith((t) =>
+            {
+                Assert.DoesNotContain(process, this.model.Processes);
+            });
         }
         
 

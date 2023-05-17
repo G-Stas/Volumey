@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using log4net;
-using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Model;
 
@@ -10,12 +9,9 @@ namespace Volumey.ViewModel.Settings
 {
 	public sealed class AppVolumeSyncViewModel : INotifyPropertyChanged
 	{
-		private int masterVolume = 100;
-		public int MasterVolume
-		{
-			get => masterVolume;
-		}
-        private bool isOn;
+		private int MasterVolume { get; set; } = 100;
+
+		private bool isOn;
 		public bool IsOn
 		{
 			get => isOn;
@@ -28,7 +24,7 @@ namespace Volumey.ViewModel.Settings
 					this.defaultDevice = deviceProvider.DefaultDevice;
 					if(this.defaultDevice != null)
 					{
-                        this.masterVolume = this.defaultDevice.Master.Volume;
+                        this.MasterVolume = this.defaultDevice.Master.Volume;
                         this.defaultDevice.ProcessCreated += OnProcessCreated;
 						this.defaultDevice.Master.PropertyChanged += OnMasterPropertyChanged;
 					}
@@ -47,7 +43,7 @@ namespace Volumey.ViewModel.Settings
 					Task.Run(() =>
 					{
 						if(isOn)
-							Logger.Info($"Synchronising Application volume to Master volume on change.");
+							Logger.Info("Synchronising app volume to master volume on change.");
 						SettingsProvider.Settings.SyncAppVolumeIsOn = value;
 						_ = SettingsProvider.SaveSettings();
 					});
@@ -68,11 +64,11 @@ namespace Volumey.ViewModel.Settings
 			this.IsOn = SettingsProvider.Settings.SyncAppVolumeIsOn;
 		}
 
-        private void SyncSessionVolume()
+        private async Task SyncSessionVolume()
         {
 			if(this.IsOn)
 			{
-				foreach (var process in this.defaultDevice.Processes)
+				foreach (var process in await this.defaultDevice.GetImmutableProcessesAsync())
 				{
 					if(process.Volume != this.MasterVolume)
 					{
@@ -82,7 +78,7 @@ namespace Volumey.ViewModel.Settings
 			}
         }
 
-        private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+        private async void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
 			if(this.defaultDevice != null)
 				this.defaultDevice.ProcessCreated -= OnProcessCreated;
@@ -90,8 +86,8 @@ namespace Volumey.ViewModel.Settings
 			if(this.IsOn && newDevice != null)
 			{
 				newDevice.ProcessCreated += OnProcessCreated;
-				masterVolume = newDevice.Master.Volume;
-				SyncSessionVolume();
+				MasterVolume = newDevice.Master.Volume;
+				await SyncSessionVolume();
 			}
 		}
 
@@ -101,12 +97,12 @@ namespace Volumey.ViewModel.Settings
 				newProcess.Volume = this.MasterVolume;
 		}
 
-        private void OnMasterPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private async void OnMasterPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
 			if(sender is MasterSessionModel masterSession && e.PropertyName == nameof(MasterSessionModel.Volume))
 			{
-				this.masterVolume = masterSession.Volume;
-				SyncSessionVolume();
+				this.MasterVolume = masterSession.Volume;
+				await SyncSessionVolume();
             }
         }
 
