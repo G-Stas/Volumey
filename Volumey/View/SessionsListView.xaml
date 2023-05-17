@@ -12,6 +12,8 @@
 	<UserControl.Resources>
 		<converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
 		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+		<converters:CollectionCountToVisibilityConverter CountLimit="1" x:Key="SessionCountToVisibilityConverter"/>
+		<converters:MultipleVisibilityToSingleVisibilityConverter x:Key="MultipleVisibilityToSingle"/>
 		
 		<!-- Override default toggle button style resources-->
 		<SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="Transparent"/>
@@ -114,8 +116,13 @@
 								  Grid.Column="0"
 								  Grid.ColumnSpan="4"
 								  ItemsSource="{Binding Sessions}"
-								  Width="Auto"
-								  Visibility="{Binding ElementName=_toggle, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+								  Width="Auto">
+						<ItemsControl.Visibility>
+							<MultiBinding Converter="{StaticResource MultipleVisibilityToSingle}">
+								<Binding ElementName="_toggle" Path="IsChecked" Converter="{StaticResource BoolToVisibilityConverter}"/>
+								<Binding Path="Sessions.Count" Converter="{StaticResource SessionCountToVisibilityConverter}"/>
+							</MultiBinding>
+						</ItemsControl.Visibility>
 						<ItemsControl.ItemTemplate>
 							<DataTemplate>
 								<Grid Width="Auto"
