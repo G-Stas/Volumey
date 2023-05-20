@@ -59,7 +59,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>音量调整步骤</value>
+    <value>音量调节步长</value>
   </data>
   <data name="Settings_OpenMixer" xml:space="preserve">
     <value>打开音量混合器（快捷键）</value>
@@ -206,7 +206,7 @@
     <value>显示通知示例</value>
   </data>
   <data name="Notifications_Time" xml:space="preserve">
-    <value>以秒为单位显示时间</value>
+    <value>通知显示时间（单位：秒）</value>
   </data>
   <data name="Settings_DeviceBottom" xml:space="preserve">
     <value>在底部显示设备控制</value>
@@ -250,7 +250,13 @@
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>显示所有音量变化</value>
   </data>
-    <data name="Settings_AppVolumeSync" xml:space="preserve">
-    <value>使所有应用程序音量与主音量同步</value>
+  <data name="Settings_SelectedScreen" xml:space="preserve">
+    <value>将窗口显示在该屏幕上：</value>
+  </data>
+  <data name="Settings_PreventBalanceReset" xml:space="preserve">
+    <value>将设备静音而不是将音量设置为0，以避免重置音量平衡</value>
+  </data>    
+  <data name="Settings_AppVolumeSync" xml:space="preserve">
+    <value>使所有应用程序的音量与主音量同步</value>
   </data>
 </root>
