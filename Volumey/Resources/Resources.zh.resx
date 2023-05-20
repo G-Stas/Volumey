@@ -250,4 +250,7 @@
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>显示所有音量变化</value>
   </data>
+    <data name="Settings_AppVolumeSync" xml:space="preserve">
+    <value>使所有应用程序音量与主音量同步</value>
+  </data>
 </root>
