@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string" />
+                            <xsd:attribute name="type" type="xsd:string" />
+                            <xsd:attribute name="mimetype" type="xsd:string" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string" />
+                            <xsd:attribute name="name" type="xsd:string" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" />
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Крок регулювання гучності</value>
+  </data>
+    <data name="Settings_OpenMixer" xml:space="preserve">
+    <value>Відкрити мікшер (hotkey)</value>
+  </data>
+    <data name="Settings_IncreaseHotkey" xml:space="preserve">
+    <value>Збільшити гучність (hotkey)</value>
+  </data>
+    <data name="Settings_DecreaseHotkey" xml:space="preserve">
+    <value>Зменшити гучність (hotkey)</value>
+  </data>
+    <data name="Settings_HeaderHotkeys" xml:space="preserve">
+    <value>Хоткеї (необхідний запущений додаток)</value>
+  </data>
+    <data name="Settings_Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+    <data name="Settings_HeaderMisc" xml:space="preserve">
+    <value>Різне</value>
+  </data>
+    <data name="Settings_Lang" xml:space="preserve">
+    <value>Мова</value>
+  </data>
+    <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Параметри звуку</value>
+  </data>
+    <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Панель керуванням звуку</value>
+  </data>
+    <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Вихід</value>
+  </data>
+    <data name="TabHeader_Mixer" xml:space="preserve">
+    <value>Мікшер</value>
+  </data>
+    <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Налаштування</value>
+  </data>
+  <data name="Settings_MusicApp" xml:space="preserve">
+    <value>Програма</value>
+  </data>
+    <data name="Error_Diff" xml:space="preserve">
+    <value>Встановіть різні гарячі клавіші</value>
+  </data>
+    <data name="Error_VolumeReg" xml:space="preserve">
+    <value>Не вдалося зареєструвати гарячі клавіші</value>
+  </data>
+    <data name="Error_OpenReg" xml:space="preserve">
+    <value>Не вдалося зареєструвати гарячу клавішу</value>
+  </data>
+    <data name="Notification_Yes" xml:space="preserve">
+    <value>Ок</value>
+  </data>
+    <data name="Notification_No" xml:space="preserve">
+    <value>Ні</value>
+  </data>
+    <data name="Notification_Later" xml:space="preserve">
+    <value>Пізніше</value>
+  </data>
+    <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>Доступне оновлення. Ви хочете оновити програму?</value>
+  </data>
+    <data name="Error_NoDevice" xml:space="preserve">
+    <value>Пристрій виводу не виявлено</value>
+  </data>
+    <data name="Error_F12" xml:space="preserve">
+    <value>F12 зарезервований ОС</value>
+  </data>
+    <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>Гаряча клавіша уже додана</value>
+  </data>
+    <data name="Settings_DecreaseDevice" xml:space="preserve">
+    <value>Зменшити гучність пристрою виводу</value>
+  </data>
+    <data name="Settings_IncreaseDevice" xml:space="preserve">
+    <value>Підвищити гучність пристрою виводу</value>
+  </data>
+    <data name="Settings_AddApp" xml:space="preserve">
+    <value>Додати програму</value>
+  </data>
+    <data name="Settings_RemoveApp" xml:space="preserve">
+    <value>Видалити програму</value>
+  </data>
+    <data name="Settings_VolumeLimit" xml:space="preserve">
+    <value>Обмежити гучність запущеної програми, якщо вона встановлена на 100%</value>
+  </data>
+    <data name="Settings_AppsHotkeys" xml:space="preserve">
+    <value>Гарячі клавіші для програм</value>
+  </data>
+    <data name="Settings_Tip" xml:space="preserve">
+    <value>Buy me a coffee :)</value>
+  </data>
+    <data name="Settings_AddDevice" xml:space="preserve">
+    <value>Додати пристрій</value>
+  </data>
+    <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
+    <value>Змінити пристрій виводу за замовчуванням за гарячою клавішею</value>
+  </data>
+    <data name="Settings_RemoveDevice" xml:space="preserve">
+    <value>Видалити пристрій</value>
+  </data>
+    <data name="TrayMenu_ChangeDevice" xml:space="preserve">
+    <value>Змінити пристрій виводу за замовчуванням</value>
+  </data>
+    <data name="Settings_Device" xml:space="preserve">
+    <value>Пристрій виводу</value>
+  </data>
+    <data name="Settings_Hotkey" xml:space="preserve">
+    <value>Гаряча клавіша</value>
+  </data>
+    <data name="Settings_BlockHotkeys" xml:space="preserve">
+    <value>Блокувати зареєстровані гарячі клавіші у системі</value>
+  </data>
+    <data name="Settings_Duplicates" xml:space="preserve">
+    <value>Дозволити дублікати гарячих клавіш</value>
+  </data>
+    <data name="Settings_MuteDevice" xml:space="preserve">
+    <value>Заглушити пристрій виводу</value>
+  </data>
+    <data name="Settings_DeviceHotkeys" xml:space="preserve">
+    <value>Гарячі клавіші для контролю пристрою виведення</value>
+  </data>
+    <data name="Settings_Popup" xml:space="preserve">
+    <value>Режим спливаючого вікна</value>
+  </data>
+    <data name="Settings_AlwaysTop" xml:space="preserve">
+    <value>Відображати поверх інших вікон</value>
+  </data>
+    <data name="Status_Muted" xml:space="preserve">
+    <value>Заглушений</value>
+  </data>
+    <data name="Notifications_Header" xml:space="preserve">
+    <value>OSD повідомлення</value>
+  </data>
+    <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Горизонтальний відступ</value>
+  </data>
+    <data name="Notifications_Position" xml:space="preserve">
+    <value>Положення</value>
+  </data>
+    <data name="Notifications_Preview" xml:space="preserve">
+    <value>Показати приклад повідомлення</value>
+  </data>
+    <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Вертикальний відступ</value>
+  </data>
+    <data name="Notifications_Time" xml:space="preserve">
+    <value>Час відображення в секундах</value>
+  </data>
+    <data name="Settings_DeviceBottom" xml:space="preserve">
+    <value>Відображати мікшер пристрою виводу внизу</value>
+  </data>
+    <data name="Settings_DeviceIcon" xml:space="preserve">
+    <value>Відображати іконку пристрою виводу у системному треї</value>
+  </data>
+    <data name="Settings_MixerSettings" xml:space="preserve">
+    <value>Налаштування мікшера</value>
+  </data>
+    <data name="Settings_WindowBehavior" xml:space="preserve">
+    <value>Поведінка вікна</value>
+  </data>
+    <data name="Settings_LaunchStartup" xml:space="preserve">
+    <value>Запускати програму на старті системи</value>
+  </data>
+    <data name="Settings_StartMenu" xml:space="preserve">
+    <value>Додати програму в меню Пуск</value>
+  </data>
+    <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
+    <value>Підвищити гучність програми на передньому плані</value>
+  </data>
+    <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
+    <value>Зменшити гучність програми на передньому плані</value>
+  </data>
+    <data name="Settings_LastPosition" xml:space="preserve">
+    <value>Запам'ятовувати останню позицію</value>
+  </data>
+    <data name="Settings_AddHotkey" xml:space="preserve">
+    <value>Додати гарячу клавішу</value>
+  </data>
+    <data name="Settings_MediaHotkeys" xml:space="preserve">
+    <value>Гарячі клавіші мультимедіа</value>
+  </data>
+    <data name="Settings_MediaReplace" xml:space="preserve">
+    <value>Змінити на гарячу клавішу</value>
+  </data>
+    <data name="Settings_RemoveHotkey" xml:space="preserve">
+    <value>Видалити гарячу клавішу</value>
+  </data>
+    <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Відображати за будь-яких змін звуку</value>
+  </data>
+    <data name="Settings_SelectedScreen" xml:space="preserve">
+    <value>Дисплей для відображення</value>
+  </data>
+    <data name="Settings_PreventBalanceReset" xml:space="preserve">
+    <value>Запобігати скиданню балансу звуку заглушуючи пристрій замість встановлення гучності на 0</value>
+  </data>
+  <data name="Settings_AppVolumeSync" xml:space="preserve">
+    <value>Синхронізувати гучність усіх додатків з головною гучністю</value>
+  </data>
+</root>

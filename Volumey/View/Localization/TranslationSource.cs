@@ -20,7 +20,8 @@ namespace Volumey.Localization
 			new CultureInfo("ja").NativeName,
 			new CultureInfo("zh").NativeName,
 			new CultureInfo("hi").NativeName,
-			new CultureInfo("tr").NativeName
+			new CultureInfo("tr").NativeName,
+			new CultureInfo("uk-ua").NativeName
 		};
 
 		private static readonly Dictionary<string, string> CultureDictionary = new Dictionary<string, string>
@@ -35,7 +36,8 @@ namespace Volumey.Localization
 			{Languages[7], "ja"},
 			{Languages[8], "zh"},
 			{Languages[9], "hi"},
-			{Languages[10], "tr"}
+			{Languages[10], "tr"},
+			{Languages[11], "uk-ua"}
 		};
 		
 		private static readonly TranslationSource instance = new TranslationSource();
