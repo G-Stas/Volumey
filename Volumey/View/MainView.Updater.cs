@@ -28,6 +28,7 @@ namespace Volumey.View
 
 		private async Task CheckForUpdate()
 		{
+			return;
 			AutoUpdater.ShowSkipButton = false;
 			AutoUpdater.ReportErrors = false;
 			AutoUpdater.LetUserSelectRemindLater = false;
