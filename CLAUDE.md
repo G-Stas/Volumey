@@ -8,6 +8,13 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 
 **Git remotes (as of 2026-10-08):** this clone was originally made from Colin Findlay's fork, so `origin` → `colinfindlay-nz/Volumey` (stale: its `main` stops at Dec 2022), and **`upstream` → `G-Stas/Volumey`, the real repo**. Base work on `upstream/main`, and push to and open PRs against `G-Stas/Volumey`. The owner may rename the remotes (`origin` = G-Stas). Check with `git remote -v` and update this note. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into the real `main`; the fork's `feature/synchroniseAppVolumes` branch is obsolete.
 
+## Branching (decided 2026-10-08)
+- **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
+- **`release/2.0`**: integration branch for the next major update (2.0). It starts from `upgrade/dotnet10-mstest` (.NET 10 + MSTest) and collects all modernization work: JSON settings, NAudio, hook hotkeys, the new UI, and GitHub issue fixes.
+- **Work branches**: branch off `release/2.0` with a descriptive name (e.g. `feature/json-settings`, `fix/app-volume-sync-device-switch`). Merge them back into `release/2.0`, through a PR against `release/2.0` once the branches are on GitHub. Never commit feature work directly to `main`.
+- Keep `release/2.0` buildable and green (`dotnet test`). If a hotfix lands on `main`, merge `main` into `release/2.0`.
+- When 2.0 ships: bump the version (see *Release checklist*), merge `release/2.0` into `main`, and tag `v2.0.0.0`.
+
 ## Repo layout
 
 ```
