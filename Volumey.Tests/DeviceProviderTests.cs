@@ -6,10 +6,11 @@ using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Model;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+	[TestClass]
 	public class DeviceProviderTests
 	{
 		private DeviceProvider model;
@@ -32,13 +33,13 @@ namespace Volumey.Tests
 			model = GetDeviceProviderMock(iDeviceEnumMock.Object, deviceStateNotifMock.Object);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DefaultDeviceShouldReferenceCorrectObject()
 		{
-			Assert.Equal(this.model.DefaultDevice, this.defaultDevice);
+			Assert.AreEqual(this.model.DefaultDevice, this.defaultDevice);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void ActiveDeviceAddedEvent_NewDeviceShouldBeAdded()
 		{
 			var devicesCount = this.model.ActiveDevices.Count;
@@ -46,11 +47,11 @@ namespace Volumey.Tests
 		
 			this.deviceStateNotifMock.Raise(m => m.ActiveDeviceAdded += null, newDevice);
 		
-			Assert.Equal(devicesCount + 1, this.model.ActiveDevices.Count);
+			Assert.AreEqual(devicesCount + 1, this.model.ActiveDevices.Count);
 			Assert.Contains(newDevice, this.model.ActiveDevices);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DeviceDisabledEvent_DisabledDeviceShouldBeRemoved()
 		{
 			var deviceCount = model.ActiveDevices.Count;
@@ -58,11 +59,11 @@ namespace Volumey.Tests
 			
 			deviceStateNotifMock.Raise(m => m.DeviceDisabled += null, disabledDevice.Id);
 			
-			Assert.Equal(deviceCount - 1, model.ActiveDevices.Count);
+			Assert.AreEqual(deviceCount - 1, model.ActiveDevices.Count);
 			Assert.DoesNotContain(disabledDevice, this.model.ActiveDevices);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void FirstDeviceAdded_NoOutputDeviceShouldBeFalse()
 		{
 			//remove all active devices
@@ -70,17 +71,17 @@ namespace Volumey.Tests
 			for(int i = activeDevicesCount - 1; i >= 0; i--)
 				deviceStateNotifMock.Raise(m => m.DeviceDisabled += null, this.model.ActiveDevices[i].Id);
 			
-			Assert.True(this.model.NoOutputDevices);	
+			Assert.IsTrue(this.model.NoOutputDevices);	
 
 			var newDevice = OutputDeviceModelTests.GetDeviceMock("222", "newDevice", this.deviceStateNotifMock.Object);
 			deviceStateNotifMock.Raise(m => m.ActiveDeviceAdded += null, newDevice);
 			
-			Assert.False(this.model.NoOutputDevices);
+			Assert.IsFalse(this.model.NoOutputDevices);
 			Assert.Contains(newDevice, this.model.ActiveDevices);
-			Assert.Equal(newDevice, this.model.DefaultDevice);
+			Assert.AreEqual(newDevice, this.model.DefaultDevice);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DefaultDeviceChangedEvent_DefaultDevicePropertyShouldBeChanged()
 		{
 			var device = OutputDeviceModelTests.GetDeviceMock("222", "headphones", this.deviceStateNotifMock.Object);
@@ -88,11 +89,11 @@ namespace Volumey.Tests
 
 			deviceStateNotifMock.Raise(m => m.DefaultDeviceChanged += null, device.Id);
 
-			Assert.Equal(device, this.model.DefaultDevice);
+			Assert.AreEqual(device, this.model.DefaultDevice);
 		}
 
-		[Fact]
-		public static void DefaultDeviceShouldNotBeNull_WhenDeviceEnumeratorReturnsInvalidDefaultDeviceId()
+		[TestMethod]
+		public void DefaultDeviceShouldNotBeNull_WhenDeviceEnumeratorReturnsInvalidDefaultDeviceId()
 		{
 			var IDeviceEnumMock = new Mock<IDeviceEnumerator>();
 			var deviceStateNotificationMock = new Mock<IDeviceStateNotificationHandler>();
@@ -107,7 +108,7 @@ namespace Volumey.Tests
 				new object[] {IDeviceEnumMock.Object, deviceStateNotificationMock.Object}, CultureInfo.InvariantCulture,
 				null);
 			
-			Assert.NotNull(model.DefaultDevice);
+			Assert.IsNotNull(model.DefaultDevice);
 		}
 
 		public static DeviceProvider GetDeviceProviderMock(IDeviceEnumerator deviceEnum, IDeviceStateNotificationHandler deviceState)

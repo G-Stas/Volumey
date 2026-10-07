@@ -10,10 +10,11 @@ using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+	[TestClass]
 	public class MasterSessionModelTests
 	{
 		private MasterSessionModel model;
@@ -41,17 +42,17 @@ namespace Volumey.Tests
 				new Mock<ISessionProvider>().Object, this.model, new List<AudioProcessModel>());
 		}
 
-		[Fact]
+		[TestMethod]
 		public void VolumeShouldBeChangedToCorrectValue()
 		{
 			var newVolume = this.model.Volume + 1;
 
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, false));
 			
-			Assert.Equal(this.model.Volume, newVolume);
+			Assert.AreEqual(this.model.Volume, newVolume);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void MuteStateMustChange()
 		{
 			var newMuteState = !this.model.IsMuted;
@@ -59,10 +60,10 @@ namespace Volumey.Tests
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null,
 				new VolumeChangedEventArgs(this.model.Volume, newMuteState));
 
-			Assert.Equal(this.model.IsMuted, newMuteState);
+			Assert.AreEqual(this.model.IsMuted, newMuteState);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void IconPathChangedEvent_IconSourceShouldBeChanged()
 		{
 			var newIcon = SystemIcons.WinLogo;
@@ -70,10 +71,10 @@ namespace Volumey.Tests
 			this.iDeviceMock.Setup(m => m.GetIcon()).Returns(newIcon);
 			this.deviceStateMock.Raise(m => m.IconPathChanged += null, this.deviceOwner.Id);
 			
-			Assert.Equal(this.model.Icon, newIcon);
+			Assert.AreEqual(this.model.Icon, newIcon);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void NameChangedEvent_NamePropertiesShouldBeChanged()
 		{
 			var newFriendlyName = "speakers";
@@ -84,11 +85,11 @@ namespace Volumey.Tests
 
 			this.deviceStateMock.Raise(m => m.NameChanged += null, this.deviceOwner.Id);
 
-			Assert.Equal(this.model.DeviceFriendlyName, newFriendlyName);
-			Assert.Equal(this.model.DeviceDesc, newDeviceDesc);
+			Assert.AreEqual(this.model.DeviceFriendlyName, newFriendlyName);
+			Assert.AreEqual(this.model.DeviceDesc, newDeviceDesc);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void HotkeyMustIncrementVolume()
 		{
 			//arrange
@@ -107,10 +108,10 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.Empty), Times.AtLeastOnce);
 			//simualate callback from external API
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.model.IsMuted));
-			Assert.Equal(newVolume, this.model.Volume);
+			Assert.AreEqual(newVolume, this.model.Volume);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void HotkeyMustDecrementVolume()
 		{
 			//arrange
@@ -129,10 +130,10 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.Empty), Times.AtLeastOnce);
 			//simualate callback from external API
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.model.IsMuted));
-			Assert.Equal(newVolume, this.model.Volume);
+			Assert.AreEqual(newVolume, this.model.Volume);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void HotkeyMustMuteVolume()
 		{
 			//arrange
@@ -148,10 +149,10 @@ namespace Volumey.Tests
 			//assert
 			this.sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Once);
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(this.model.Volume, !muteState));
-			Assert.Equal(!muteState, this.model.IsMuted);
+			Assert.AreEqual(!muteState, this.model.IsMuted);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void RandomHotkeyMustNotMuteVolume()
 		{
 			var hManagerMock = new Mock<IHotkeyManager>();
@@ -163,10 +164,10 @@ namespace Volumey.Tests
 			hManagerMock.Raise(m => m.HotkeyPressed += null, new HotKey(Key.Space));
 			
 			this.sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Never);
-			Assert.Equal(muteState, this.model.IsMuted);
+			Assert.AreEqual(muteState, this.model.IsMuted);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void SetMuteReturnsFalse_IfHotkeyManagerFails()
 		{
 			//arrange
@@ -179,10 +180,10 @@ namespace Volumey.Tests
 			var result = this.model.SetMuteHotkey(muteKey);
 			
 			//assert
-			Assert.False(result);
+			Assert.IsFalse(result);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void SetVolumeHotkeysReturnsFalse_IfHotkeyManagerFails()
 		{
 			//arrange
@@ -197,38 +198,38 @@ namespace Volumey.Tests
 			var result = this.model.SetVolumeHotkeys(up, down);
 			
 			//assert
-			Assert.False(result);
+			Assert.IsFalse(result);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void StateMediatorMustReset()
 		{
 			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = false;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.model.SetStateMediator(stateMediatorMock.Object);
 			
-			Assert.Equal(stateMediatorMock.Object, this.model.StateNotificationMediator);
+			Assert.AreEqual(stateMediatorMock.Object, this.model.StateNotificationMediator);
 			
 			this.model.ResetStateMediator();
 			
-			Assert.Null(this.model.StateNotificationMediator);
+			Assert.IsNull(this.model.StateNotificationMediator);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void StateMediatorMustNotReset_IfReactingToAnyVolumeChangesEnabled()
 		{
 			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = true;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.model.SetStateMediator(stateMediatorMock.Object);
 			
-			Assert.Equal(stateMediatorMock.Object, this.model.StateNotificationMediator);
+			Assert.AreEqual(stateMediatorMock.Object, this.model.StateNotificationMediator);
 			
 			this.model.ResetStateMediator();
 			
-			Assert.Equal(stateMediatorMock.Object, this.model.StateNotificationMediator);
+			Assert.AreEqual(stateMediatorMock.Object, this.model.StateNotificationMediator);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void SessionMustMuteToPreventResettingVolumeBalance_IfEnabled()
 		{
 			//arrange
@@ -251,10 +252,10 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Once);
 
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(volume, !muteState));
-			Assert.Equal(!muteState, this.model.IsMuted);
+			Assert.AreEqual(!muteState, this.model.IsMuted);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void RandomHotkeyMustNotChangeVolume()
 		{
 			//arrange
@@ -273,7 +274,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void VolumeHotkeysMustBeSet()
 		{
 			//arrange
@@ -289,7 +290,7 @@ namespace Volumey.Tests
 			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
 			
 			//assert
-			Assert.True(this.model.AnyHotkeyRegistered);
+			Assert.IsTrue(this.model.AnyHotkeyRegistered);
 			
 			//verify hotkey manager is called twice to register the required hotkeys in system
 			hManagerMock.Verify(m => m.RegisterHotkey(upHotkey), Times.Once);
@@ -298,11 +299,11 @@ namespace Volumey.Tests
 			HotKey actualVolumeUpValue = (HotKey)volumeUpField.GetValue(this.model);
 			HotKey actualVolumeDownValue = (HotKey)volumeDownField.GetValue(this.model);
 			
-			Assert.Equal(upHotkey, actualVolumeUpValue);
-			Assert.Equal(downHotkey, actualVolumeDownValue);
+			Assert.AreEqual(upHotkey, actualVolumeUpValue);
+			Assert.AreEqual(downHotkey, actualVolumeDownValue);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void MuteHotkeyMustBeSet()
 		{
 			//arrange
@@ -316,16 +317,16 @@ namespace Volumey.Tests
 			this.model.SetMuteHotkey(muteKey);
 			
 			//assert
-			Assert.True(this.model.AnyHotkeyRegistered);
+			Assert.IsTrue(this.model.AnyHotkeyRegistered);
 			
 			//verify the hotkey manager is actually called to unregister the hotkey in system
 			hManagerMock.Verify(m => m.RegisterHotkey(muteKey), Times.Once);
 
 			HotKey actualKeyValue = (HotKey)muteKeyField.GetValue(this.model);
-			Assert.Equal(muteKey, actualKeyValue);
+			Assert.AreEqual(muteKey, actualKeyValue);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void MuteHotkeyMustReset()
 		{
 			//arrange
@@ -345,10 +346,10 @@ namespace Volumey.Tests
 
 			HotKey actualKeyValue = (HotKey)muteKeyField.GetValue(this.model);
 			
-			Assert.Null(actualKeyValue);
+			Assert.IsNull(actualKeyValue);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void VolumeHotkeysMustReset()
 		{
 			//arrange
@@ -373,11 +374,11 @@ namespace Volumey.Tests
 			HotKey actualVolumeUpValue = (HotKey)volumeUpField.GetValue(this.model);
 			HotKey actualVolumeDownValue = (HotKey)volumeDownField.GetValue(this.model);
 			
-			Assert.Null(actualVolumeUpValue);
-			Assert.Null(actualVolumeDownValue);
+			Assert.IsNull(actualVolumeUpValue);
+			Assert.IsNull(actualVolumeDownValue);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void MuteCommandInvertsMuteState()
 		{
 			//arrange
@@ -387,7 +388,7 @@ namespace Volumey.Tests
 			this.model.MuteCommand.Execute(null);
 			
 			//assert
-			Assert.Equal(!muteState, this.model.IsMuted);
+			Assert.AreEqual(!muteState, this.model.IsMuted);
 		}
 
 		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, Icon icon)

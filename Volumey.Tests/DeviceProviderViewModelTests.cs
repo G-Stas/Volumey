@@ -5,10 +5,11 @@ using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.ViewModel;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+	[TestClass]
 	public class DeviceProviderViewModelTests
 	{
 		private DeviceProviderViewModel model;
@@ -33,7 +34,7 @@ namespace Volumey.Tests
 			this.model = new DeviceProviderViewModel();
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DeviceDisabledEvent_DisabledSelectedDeviceShouldChangeToDefaultDevice()
 		{
 			//select not default output device
@@ -41,10 +42,10 @@ namespace Volumey.Tests
 
 			this.deviceProviderMock.Raise(m => m.DeviceDisabled += null, disabledDevice);
 			
-			Assert.Equal(this.deviceProviderMock.Object.DefaultDevice, this.model.SelectedDevice);
+			Assert.AreEqual(this.deviceProviderMock.Object.DefaultDevice, this.model.SelectedDevice);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DefaultDeviceChangedEvent_SelectedDeviceShouldChangeToNewDefaultDevice()
 		{
 			var newDefaultDevice = this.deviceProviderMock.Object.ActiveDevices[1];
@@ -52,7 +53,7 @@ namespace Volumey.Tests
 			this.deviceProviderMock.Setup(m => m.DefaultDevice).Returns(newDefaultDevice);
 			this.deviceProviderMock.Raise(m => m.DefaultDeviceChanged += null, newDefaultDevice);
 			
-			Assert.Equal(newDefaultDevice, this.model.SelectedDevice);
+			Assert.AreEqual(newDefaultDevice, this.model.SelectedDevice);
 		}
 	}
 }

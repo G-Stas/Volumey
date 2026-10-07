@@ -3,13 +3,14 @@ using System.Windows.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.ViewModel.Settings;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+	[TestClass]
 	public class HotkeysValidationTests
 	{
-		[Fact]
+		[TestMethod]
 		public void HotkeysValidationShouldReturn_DiffError()
 		{
 			//arrange
@@ -20,22 +21,22 @@ namespace Volumey.Tests
 			var errorType = HotkeysControl.HotkeysAreValid(upHotkey, downHotkey);
 
 			//assert
-			Assert.True(errorType == ErrorMessageType.Diff);
+			Assert.IsTrue(errorType == ErrorMessageType.Diff);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void NullsShouldNotPassHotkeysValidation()
 		{
 			//arrange
 			var hotkey = new HotKey(Key.A);
 
 			//act and assert
-			Assert.True(HotkeysControl.HotkeysAreValid(null, hotkey) != ErrorMessageType.None);
-			Assert.True(HotkeysControl.HotkeysAreValid(hotkey, null) != ErrorMessageType.None);
-			Assert.True(HotkeysControl.HotkeyIsValid(null) != ErrorMessageType.None);
+			Assert.IsTrue(HotkeysControl.HotkeysAreValid(null, hotkey) != ErrorMessageType.None);
+			Assert.IsTrue(HotkeysControl.HotkeysAreValid(hotkey, null) != ErrorMessageType.None);
+			Assert.IsTrue(HotkeysControl.HotkeyIsValid(null) != ErrorMessageType.None);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void HotkeysValidationShouldReturn_ExistsError()
 		{
 			var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
@@ -47,20 +48,20 @@ namespace Volumey.Tests
 			muteModeKeys.SetValue(settings, existingHotkey.ModifierKeys);
 			
 			//act and assert
-			Assert.True(HotkeysControl.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
-			Assert.True(HotkeysControl.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
+			Assert.IsTrue(HotkeysControl.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
+			Assert.IsTrue(HotkeysControl.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
 			            ErrorMessageType.HotkeyExists);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void SystemHotkeyShouldNotPassHotkeysValidation()
 		{
 			//arrange
 			var systemHotkey = new HotKey(Key.F12);
 
 			//act and assert
-			Assert.True(HotkeysControl.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
-			Assert.True(HotkeysControl.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
+			Assert.IsTrue(HotkeysControl.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
+			Assert.IsTrue(HotkeysControl.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
 		}
 	}
 }

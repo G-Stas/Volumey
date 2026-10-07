@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Model;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+    [TestClass]
     public class OutputDeviceModelTests
     {
         private OutputDeviceModel model;
@@ -36,7 +37,7 @@ namespace Volumey.Tests
             this.model = new OutputDeviceModel(deviceMock.Object, deviceStateMock.Object, sProviderMock.Object, master, processes);
         }
 
-        [Fact]
+        [TestMethod]
         public void ProcessExitedEvent_ProcessShouldBeRemoved()
         {
             var process = this.model.Processes[0];
@@ -56,7 +57,7 @@ namespace Volumey.Tests
         }
         
 
-        [Fact]
+        [TestMethod]
         public void DeviceNameChangedEvent_NamePropertiesShouldChange()
         {
             string newDeviceName = "speakers";
@@ -65,12 +66,12 @@ namespace Volumey.Tests
             
             this.deviceStateMock.Raise(m => m.NameChanged += null, new object[] { deviceId });
             
-            Assert.Equal(newDeviceName, this.model.Master.Name);
-            Assert.Equal(newDeviceName, this.model.Master.DeviceDesc);
-            Assert.Equal(newDeviceName, this.model.Master.DeviceFriendlyName);
+            Assert.AreEqual(newDeviceName, this.model.Master.Name);
+            Assert.AreEqual(newDeviceName, this.model.Master.DeviceDesc);
+            Assert.AreEqual(newDeviceName, this.model.Master.DeviceFriendlyName);
         }
 
-        [Fact]
+        [TestMethod]
         public void IconPathChangedEvent_DeviceIconShouldChanged()
         {
             var newIcon = SystemIcons.WinLogo;
@@ -78,7 +79,7 @@ namespace Volumey.Tests
 
             this.deviceStateMock.Raise(m => m.IconPathChanged += null, new object[] { deviceId });
             
-            Assert.Equal(newIcon, this.model.Master.Icon);
+            Assert.AreEqual(newIcon, this.model.Master.Icon);
         }
 
         internal static OutputDeviceModel GetDeviceMock(string id, string name, IDeviceStateNotificationHandler deviceStateHandler)

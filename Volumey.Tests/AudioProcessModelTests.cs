@@ -10,10 +10,11 @@ using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+	[TestClass]
 	public class AudioProcessModelTests
 	{
 		private AudioProcessModel proc;
@@ -33,12 +34,12 @@ namespace Volumey.Tests
 			proc.AddSession(model);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void TrackedSessionMustChangeToAnotherSession()
 		{
 			//arrange
 			var trackedSession = this.proc.Sessions[0];
-			Assert.Single(proc.Sessions);
+			Assert.ContainsSingle(proc.Sessions);
 
 			var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
 			proc.AddSession(additionalSession);
@@ -61,7 +62,7 @@ namespace Volumey.Tests
 			});
 		}
 
-		[Fact]
+		[TestMethod]
 		public void VolumeMustChangeToCorrectValue()
 		{
 			var newVolume = this.proc.Volume + 1;
@@ -69,10 +70,10 @@ namespace Volumey.Tests
 			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null,
 				new object[] { new VolumeChangedEventArgs(newVolume, this.proc.IsMuted) });
 
-			Assert.Equal(newVolume, this.proc.Volume);
+			Assert.AreEqual(newVolume, this.proc.Volume);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void MuteStateMustChanged()
 		{
 			var newMuteState = !this.proc.IsMuted;
@@ -80,10 +81,10 @@ namespace Volumey.Tests
 			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null,
 				new object[] { new VolumeChangedEventArgs(this.proc.Volume, newMuteState) });
 
-			Assert.Equal(newMuteState, this.proc.IsMuted);
+			Assert.AreEqual(newMuteState, this.proc.IsMuted);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void HotkeyMustIncrementVolume()
 		{
 			//arrange
@@ -102,10 +103,10 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.VolumeGUID), Times.AtLeastOnce);
 			//simualate callback from external API
 			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.proc.IsMuted));
-			Assert.Equal(newVolume, this.proc.Volume);
+			Assert.AreEqual(newVolume, this.proc.Volume);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void RandomHotkeyMustNotChangeVolume()
 		{
 			//arrange
@@ -124,7 +125,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock.Verify(m => m.SetVolume(this.proc.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void FirstAddedSessionMustSetAsTracked()
 		{
 			//arrange
@@ -138,10 +139,10 @@ namespace Volumey.Tests
 			
 			//assert
 			AudioSessionModel session = field.GetValue(proc) as AudioSessionModel;
-			Assert.Same(session, model);
+			Assert.AreSame(session, model);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void TrackedSessionStateChangesMustReflectOnProcess()
 		{
 			//arrange
@@ -157,11 +158,11 @@ namespace Volumey.Tests
 			tracked.IsMuted = true;
 
 			//assert
-			Assert.Equal(proc.Volume, tracked.Volume);
-			Assert.Equal(proc.IsMuted, tracked.IsMuted);
+			Assert.AreEqual(proc.Volume, tracked.Volume);
+			Assert.AreEqual(proc.IsMuted, tracked.IsMuted);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void ProcessStateChangesMustReflectOnItsSessions()
 		{
 			//arrange
@@ -176,13 +177,13 @@ namespace Volumey.Tests
 			proc.IsMuted = false;
 
 			//assert
-			Assert.Equal(proc.Volume, additionalSession.Volume);
-			Assert.Equal(proc.Volume, additionalSession1.Volume);
-			Assert.Equal(proc.IsMuted, additionalSession.IsMuted);
-			Assert.Equal(proc.IsMuted, additionalSession1.IsMuted);
+			Assert.AreEqual(proc.Volume, additionalSession.Volume);
+			Assert.AreEqual(proc.Volume, additionalSession1.Volume);
+			Assert.AreEqual(proc.IsMuted, additionalSession.IsMuted);
+			Assert.AreEqual(proc.IsMuted, additionalSession1.IsMuted);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void AdditionalSessionsMustHaveSameStateAsProcess()
 		{
 			//arrange
@@ -190,20 +191,20 @@ namespace Volumey.Tests
 			var additionalSession1 = GetSessionMock(25, true, proc.ProcessId.ToString());
 			
 			//verify tracked session is set before adding more sessions
-			Assert.Single(proc.Sessions);
+			Assert.ContainsSingle(proc.Sessions);
 			
 			//act 
 			proc.AddSession(additionalSession);
 			proc.AddSession(additionalSession1);
 			
 			//assert
-			Assert.Equal(proc.Volume, additionalSession.Volume);
-			Assert.Equal(proc.Volume, additionalSession1.Volume);
-			Assert.Equal(proc.IsMuted, additionalSession.IsMuted);
-			Assert.Equal(proc.IsMuted, additionalSession1.IsMuted);
+			Assert.AreEqual(proc.Volume, additionalSession.Volume);
+			Assert.AreEqual(proc.Volume, additionalSession1.Volume);
+			Assert.AreEqual(proc.IsMuted, additionalSession.IsMuted);
+			Assert.AreEqual(proc.IsMuted, additionalSession1.IsMuted);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void VolumeMustNotExceedMaxValue()
 		{
 			//arrange 
@@ -216,10 +217,10 @@ namespace Volumey.Tests
 			proc.Volume += 5;
 
 			//assert 
-			Assert.Equal(maxVolume, proc.Volume);
+			Assert.AreEqual(maxVolume, proc.Volume);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void VolumeMustNotBeLessThanMinValue()
 		{
 			//arrange 
@@ -232,10 +233,10 @@ namespace Volumey.Tests
 			proc.Volume -= 5;
 
 			//assert 
-			Assert.Equal(minVolume, proc.Volume);
+			Assert.AreEqual(minVolume, proc.Volume);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void VolumeHotkeysMustReset()
 		{
 			//arrange
@@ -260,11 +261,11 @@ namespace Volumey.Tests
 			HotKey actualVolumeUpValue = (HotKey)volumeUpField.GetValue(this.proc);
 			HotKey actualVolumeDownValue = (HotKey)volumeDownField.GetValue(this.proc);
 			
-			Assert.Null(actualVolumeUpValue);
-			Assert.Null(actualVolumeDownValue);
+			Assert.IsNull(actualVolumeUpValue);
+			Assert.IsNull(actualVolumeDownValue);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void SetVolumeHotkeysReturnsFalse_IfHotkeyManagerFails()
 		{
 			//arrange
@@ -279,38 +280,38 @@ namespace Volumey.Tests
 			var result = this.proc.SetVolumeHotkeys(up, down);
 			
 			//assert
-			Assert.False(result);
+			Assert.IsFalse(result);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void StateMediatorMustReset()
 		{
 			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = false;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.proc.SetStateMediator(stateMediatorMock.Object);
 			
-			Assert.Equal(stateMediatorMock.Object, this.proc.StateNotificationMediator);
+			Assert.AreEqual(stateMediatorMock.Object, this.proc.StateNotificationMediator);
 			
 			this.proc.ResetStateMediator();
 			
-			Assert.Null(this.proc.StateNotificationMediator);
+			Assert.IsNull(this.proc.StateNotificationMediator);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void StateMediatorMustNotReset_IfReactingToAnyVolumeChangesEnabled()
 		{
 			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = true;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.proc.SetStateMediator(stateMediatorMock.Object);
 			
-			Assert.Equal(stateMediatorMock.Object, this.proc.StateNotificationMediator);
+			Assert.AreEqual(stateMediatorMock.Object, this.proc.StateNotificationMediator);
 			
 			this.proc.ResetStateMediator();
 			
-			Assert.Equal(stateMediatorMock.Object, this.proc.StateNotificationMediator);
+			Assert.AreEqual(stateMediatorMock.Object, this.proc.StateNotificationMediator);
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void MuteCommandInvertsMuteState()
 		{
 			//arrange
@@ -320,7 +321,7 @@ namespace Volumey.Tests
 			this.proc.MuteCommand.Execute(null);
 			
 			//assert
-			Assert.Equal(!muteState, this.proc.IsMuted);
+			Assert.AreEqual(!muteState, this.proc.IsMuted);
 		}
 
 		internal static AudioSessionModel GetSessionMock(int volume, bool muteState, string id)

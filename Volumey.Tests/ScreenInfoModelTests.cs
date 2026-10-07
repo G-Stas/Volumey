@@ -1,8 +1,9 @@
 ﻿using Volumey.Model;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Volumey.Tests
 {
+	[TestClass]
 	public class ScreenInfoModelTests
 	{
 		private ScreenInfo model;
@@ -12,38 +13,38 @@ namespace Volumey.Tests
 			model = new ScreenInfo(".//DISPLAY1", true, 1920, 1018, 1920, 1080, 0, 1920, 0, 1018, 1);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void ToStringShouldDisplayCorrectNativeResolutionValues()
 		{
 			//assert
 			string expectedValue = $"{model.Name} ({model.NativeWidth}x{model.NativeHeight})";
-			Assert.Equal(expectedValue, model.ToString());
+			Assert.AreEqual(expectedValue, model.ToString());
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void EqualsWithOtherModelShouldReturnFalse()
 		{
 			//arrange
 			ScreenInfo other = new ScreenInfo(".//DISPLAY2", false, 2880, 1776, 2880, 1800, 1920, 4800, 0, 1776, 1.5);
 			
 			//assert
-			Assert.False(model.Equals(other));
+			Assert.IsFalse(model.Equals(other));
 		}
 
-		[Fact]
+		[TestMethod]
 		public void EqualsWithNullShouldReturnFalse()
 		{
-			Assert.False(model.Equals(null));
+			Assert.IsFalse(model.Equals(null));
 		}
 		
-		[Fact]
+		[TestMethod]
 		public void EqualsShouldReturnTrue()
 		{
 			//arrange
 			ScreenInfo other = new ScreenInfo(".//DISPLAY1", true, 1920, 1018, 1920, 1080, 0, 1920, 0, 1018, 1);
 			
 			//assert
-			Assert.True(model.Equals(other));
+			Assert.IsTrue(model.Equals(other));
 		}
 	}
 }
