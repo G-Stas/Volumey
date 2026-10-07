@@ -147,7 +147,11 @@ Each step should leave a working, shippable build.
 Use `NAudio.Wasapi` / `NAudio.CoreAudioApi`.
 - `MMDeviceEnumerator`, `MMDevice`, `AudioEndpointVolume` (+`OnVolumeNotification`), `AudioSessionManager` (`OnSessionCreated`, `Sessions`), `AudioSessionControl` (`RegisterEventClient` / `IAudioSessionEventsHandler`, `SimpleAudioVolume`, `GetProcessID`, `IconPath`, `DisplayName`), and `IMMNotificationClient` via `RegisterEndpointNotificationCallback` all exist in NAudio.
 - **Not in NAudio:** `IPolicyConfig` (set the default device). Keep `PolicyClient` + `IPolicyConfig.cs`.
-- Before you rely on NAudio, check whether it can pass a custom **event-context GUID** on volume/mute writes, because the echo suppression depends on it. If NAudio hard-codes `Guid.Empty`, keep a small interop path for writes or find another way to tell self-originated changes apart.
+- **Event-context GUID (checked against NAudio master, Oct 2026):**
+  - Endpoint (master) volume is fine. `AudioEndpointVolume.NotificationGuid` sets the context used by the `MasterVolumeLevelScalar`/`Mute` setters, and `AudioVolumeNotificationData.EventContext` exposes it in callbacks.
+  - Per-app sessions are **not** covered. `SimpleAudioVolume.Volume`/`Mute` hard-code `Guid.Empty`, and `IAudioSessionEventsHandler.OnVolumeChanged(float, bool)` drops the context. Keep a small interop path for session volume writes and session events (`ISimpleAudioVolume`, `IAudioSessionEvents`), or replace the echo suppression for sessions with something else (e.g. compare against the last value the app wrote).
+- **Device format:** NAudio has no device-format property. Read `PKEY_AudioEngine_DeviceFormat` from `MMDevice.Properties` and parse the `WAVEFORMATEX` blob, as the current code does.
+- NAudio's `AudioSessionManager.OnSessionCreated` passes a raw `IAudioSessionControl` (wrap it yourself), on a COM thread. NAudio objects have finalizers that make COM calls, so dispose them explicitly.
 - Keep the wrapper interfaces, or replacements for them, so the tests can keep mocking the audio layer. Models must not depend on NAudio types directly.
 
 ### B. New settings format (simpler versioning)
