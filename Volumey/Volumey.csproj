@@ -1,9 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Lowest Windows version the app runs on (matches the Store package TargetPlatformMinVersion) -->
+    <SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
+    <!-- Settings are still stored with BinaryFormatter (removed from .NET 9+, provided by the
+         System.Runtime.Serialization.Formatters compat package). Remove once settings move to JSON. -->
+    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
+    <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
     <Platforms>x64</Platforms>
     <RootNamespace>Volumey</RootNamespace>
     <StartupObject>Volumey.Startup</StartupObject>
@@ -11,7 +17,9 @@
     <ApplicationIcon>Resources\Icons\icon.ico</ApplicationIcon>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Configurations>Debug;Release;Store</Configurations>
-    <SelfContained>False</SelfContained>
+    <!-- The Store MSIX carries its own .NET runtime; the GitHub zip build needs the .NET Desktop Runtime installed -->
+    <SelfContained Condition="'$(Configuration)'=='Store'">True</SelfContained>
+    <SelfContained Condition="'$(Configuration)'!='Store'">False</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyVersion>1.5.4.0</AssemblyVersion>
     <Version>1.5.4.0</Version>
@@ -43,15 +51,14 @@
   <ItemGroup>
     <PackageReference Include="Autoupdater.NET.Official" Version="1.8.2" />
     <PackageReference Include="log4net-loggly" Version="9.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.19041.1" />
+    <!-- Override vulnerable transitive versions pulled in by log4net-loggly (log4net 2.0.8, Newtonsoft.Json 10.0.3) -->
+    <PackageReference Include="log4net" Version="2.0.17" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
-    <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <!-- .NET Framework-only package (NU1701), used for ObservableConcurrentDictionary -->
+    <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" NoWarn="NU1701" />
+    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="10.0.12" />
     <PackageReference Include="WpfScreenHelper" Version="2.1.0" />
   </ItemGroup>
 
