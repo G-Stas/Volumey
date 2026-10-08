@@ -34,6 +34,7 @@ namespace Volumey.Tests
 			Assert.IsTrue(File.Exists(this.SettingsFile));
 			Assert.AreEqual(VolumeySettings.CurrentVersion, settings.Version);
 			Assert.AreEqual(new VolumeySettings().General.VolumeStep, settings.General.VolumeStep);
+			Assert.IsTrue(settings.Hotkeys.BlockInSystem, "hotkeys block by default, as in 1.x");
 		}
 
 		[TestMethod]
@@ -59,6 +60,7 @@ namespace Volumey.Tests
 
 			Assert.AreEqual(AppTheme.Dark, settings.General.Theme);
 			Assert.AreEqual(3, settings.General.VolumeStep);
+			Assert.IsTrue(settings.Hotkeys.BlockInSystem, "upgrading from 1.x keeps blocking hotkeys");
 			CollectionAssert.AreEqual(legacyContent, File.ReadAllBytes(legacy));
 		}
 

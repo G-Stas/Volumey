@@ -16,9 +16,9 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
-- Validated on `release/2.0`: Release build, 144/144 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
+- Validated on `release/2.0`: Release build, 152/152 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Open work branch `feature/sharphook-hotkeys`** (item D, not merged yet): non-blocking hotkeys through SharpHook plus the mode toggle. Done: Release build, 152/152 unit tests, 8/8 integration tests, the Store MSIX build (contains `SharpHook.dll` and `uiohook.dll`), and a dev run (toggle saves `Hotkeys.BlockInSystem`, the hook DLL loads, repeated switching and a start in hook mode work, clean log). **Still to check before merging:** pressing real hotkeys in both modes (keys reach other apps only in non-blocking mode), and switching modes with hotkeys registered. These need real key presses, so the owner does them.
+- **Next planned step:** tray icon on H.NotifyIcon.Wpf (item F). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
 - Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ## Branching (decided 2026-10-08)
@@ -244,7 +244,7 @@ Each step should leave a working, shippable build.
    - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
-5. Hotkeys through a library, with a non-blocking mode (item D). Implemented on `feature/sharphook-hotkeys`, runtime check by the owner pending.
+5. ~~Hotkeys through a library, with a non-blocking mode (item D).~~ Done (2026-10-09).
 6. Tray icon on the current NotifyIcon library (item F).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
@@ -295,7 +295,7 @@ Candidates (state as of Oct 2026):
 - **NHotkey.Wpf** (4.0.0, Jan 2026): a small wrapper around `RegisterHotKey`. It's a candidate for the **blocking** mode if the own `HotkeyManager` should go too; otherwise keep `HotkeyManager` for blocking mode.
 - Not recommended: H.Hooks (last release Dec 2024), MouseKeyHook (Apr 2023), GlobalHotKeys (2017).
 
-**Implemented on `feature/sharphook-hotkeys` (2026-10-09)**, see *Hotkeys*. Owner's decision: keep the own `HotkeyManager` for blocking mode (SharpHook can only swallow keys from its hook, which isn't the same as `RegisterHotKey`: no conflict check, blind to elevated windows), SharpHook for non-blocking mode. The old `HotkeyHookManager` and its P/Invokes are deleted. `AllowDuplicates` was dropped: duplicates stay rejected in both modes.
+**Done (2026-10-09)**, see *Hotkeys*. Blocking stays the default (also for 1.x upgrades and older settings files), as before. Owner's decision: keep the own `HotkeyManager` for blocking mode (SharpHook can only swallow keys from its hook, which isn't the same as `RegisterHotKey`: no conflict check, blind to elevated windows), SharpHook for non-blocking mode. The old `HotkeyHookManager` and its P/Invokes are deleted. `AllowDuplicates` was dropped: duplicates stay rejected in both modes.
 
 Things to get right:
 - **Callback speed:** Windows silently removes low-level hooks that respond too slowly (`LowLevelHooksTimeout`, about 1 s). Never make COM audio calls on the hook thread; dispatch the work.
