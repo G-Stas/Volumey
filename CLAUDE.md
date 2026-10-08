@@ -108,6 +108,7 @@ Use the scripts in `scripts/` to run and look at the app without the owner's hel
 - **`./scripts/run-dev.ps1 [-Reset] [-ImportRealSettings] [-NoBuild] [-Minimized]`** builds and starts the Debug build. It prints the PID and the paths of the settings and log files.
   - **Isolated from the installed app:** Debug builds use their own single-instance mutex and `WM_SHOWME` message (suffix `-dev`, see `Startup.InstanceSuffix`), so they run next to an installed release build.
   - **Hotkey clash:** a hotkey can be registered by only one of the two apps at a time.
+  - **Autostart and Start Menu:** a non-Store build re-points an existing autostart entry (`HKCU\...\Run\Volumey`) and Start Menu shortcut (`Volumey.lnk`) to its own exe on every start, so a moved zip build keeps working. A debug build uses its own names (`Volumey-dev`, via `Startup.InstanceSuffix`), so a dev run never touches the installed app's entries. Before this fix (2026-10-09) dev runs re-pointed them at the repo's Debug exe.
   - **Settings:** they go to `-DataDir` (default `%TEMP%\Volumey-dev`) through `VOLUMEY_SETTINGS_DIR`, never the real `%LOCALAPPDATA%\Volumey`.
   - **Importing:** `-ImportRealSettings` copies the real 1.x `appconfig` into the data folder (read-only) so the importer runs on real data.
   - **Logging:** goes to `<DataDir>\volumey.log` through `VOLUMEY_LOG_FILE`, including unhandled exceptions (Debug builds otherwise have no logging and crash on errors).

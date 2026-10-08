@@ -17,7 +17,9 @@ namespace Volumey.Helper
 #if(!STORE)
 
 		private static readonly string StartupRegistryPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-		private static readonly string StartupRegistryKeyName = "Volumey";
+		//a debug build has its own names, so a dev run never re-points the autostart entry or the shortcut of the installed app
+		private static readonly string StartupRegistryKeyName = "Volumey" + Startup.InstanceSuffix;
+		private static readonly string StartMenuLinkName = "Volumey" + Startup.InstanceSuffix + ".lnk";
 		private static readonly string StartupRegistryValue;
 		
 		static SystemIntegrationHelper()
@@ -119,7 +121,7 @@ namespace Volumey.Helper
 
 				link.SetPath(exePath);
 				IPersistFile file = (IPersistFile)link;
-				file.Save(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"), false);
+				file.Save(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), false);
 				return true;
 			}
 			catch(Exception e)
@@ -133,7 +135,7 @@ namespace Volumey.Helper
 		{
 			try
 			{
-				File.Delete(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"));
+				File.Delete(Path.Combine(StartMenuProgramsPath, StartMenuLinkName));
 			}
 			catch { }
 		}
@@ -142,7 +144,7 @@ namespace Volumey.Helper
 		{
 			try
 			{
-				if(File.Exists(Path.Combine(StartMenuProgramsPath, "Volumey.lnk")))
+				if(File.Exists(Path.Combine(StartMenuProgramsPath, StartMenuLinkName)))
 				{
 					UpdateStartMenuShortcutIfExePathHasChanged();
 					return true;
@@ -162,7 +164,7 @@ namespace Volumey.Helper
 				var link = (NativeMethods.IShellLink)new NativeMethods.ShellLink();
 				IPersistFile file = (IPersistFile)link;
 				
-				file.Load(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"), (int)0x00000002L);
+				file.Load(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), (int)0x00000002L);
 				StringBuilder sb = new StringBuilder(260);
 				var data = new NativeMethods.WIN32_FIND_DATA();
 				link.GetPath(sb, sb.Capacity, out data, 0x1);
@@ -173,7 +175,7 @@ namespace Volumey.Helper
 				if(!existingShortcutExePath.Equals(exePath))
 				{
 					link.SetPath(exePath);
-					file.Save(Path.Combine(StartMenuProgramsPath, "Volumey.lnk"), false);
+					file.Save(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), false);
 				}
 			}
 			catch { }
