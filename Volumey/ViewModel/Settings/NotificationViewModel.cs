@@ -44,12 +44,11 @@ namespace Volumey.ViewModel.Settings
 				NotificationManagerHelper.ChangePosition(value);
 				OnPropertyChanged();
 				
-				if(SettingsProvider.NotificationsSettings.Position == value)
+				if(SettingsProvider.Settings.Notifications.Position == value)
 					return;
 				Task.Run(() =>
 				{
-					SettingsProvider.NotificationsSettings.Position = value;
-					_ = SettingsProvider.SaveSettings();
+					SettingsProvider.Settings.Notifications.Position = value;
 				});
 			}
 		}
@@ -65,12 +64,11 @@ namespace Volumey.ViewModel.Settings
 				this._notificationsEnabled = value;
 				OnPropertyChanged();
 				
-				if(SettingsProvider.NotificationsSettings.Enabled == value)
+				if(SettingsProvider.Settings.Notifications.Enabled == value)
 					return;
 				Task.Run(() =>
 				{
-					SettingsProvider.NotificationsSettings.Enabled = value;
-					_ = SettingsProvider.SaveSettings();
+					SettingsProvider.Settings.Notifications.Enabled = value;
 				});
 			}
 		}
@@ -87,12 +85,11 @@ namespace Volumey.ViewModel.Settings
 				_reactToAllChanges = value;
 				OnPropertyChanged();
 
-				if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges != value)
+				if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges != value)
 				{
-					SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = value;
+					SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = value;
 					Task.Run(async () =>
 					{
-						await SettingsProvider.SaveSettings();
 					});
 				}
 
@@ -138,7 +135,7 @@ namespace Volumey.ViewModel.Settings
 					return;
 				}
 				this._verticalIndent = value;
-				SettingsProvider.NotificationsSettings.VerticalIndent = value;
+				SettingsProvider.Settings.Notifications.VerticalIndent = value;
 				NotificationManagerHelper.SetVerticalIndent(value);
 				OnPropertyChanged();
 			}
@@ -157,7 +154,7 @@ namespace Volumey.ViewModel.Settings
 					return;
 				}
 				this._horizontalIndent = value;
-				SettingsProvider.NotificationsSettings.HorizontalIndent = value;
+				SettingsProvider.Settings.Notifications.HorizontalIndent = value;
 				NotificationManagerHelper.SetHorizontalIndent(value);
 				OnPropertyChanged();
 			}
@@ -173,7 +170,7 @@ namespace Volumey.ViewModel.Settings
 					this._displayTime = 3;
 				else
 					this._displayTime = value;
-				SettingsProvider.NotificationsSettings.DisplayTimeInSeconds = this._displayTime;
+				SettingsProvider.Settings.Notifications.DisplayTimeSeconds = this._displayTime;
 				NotificationManagerHelper.SetNotificationDisplayTime(this._displayTime);
 				OnPropertyChanged();
 			}
@@ -200,10 +197,9 @@ namespace Volumey.ViewModel.Settings
 				NotificationManagerHelper.SetWindowWorkArea(value.WorkingAreaLeft, value.WorkingAreaTop, value.Width / value.ScaleFactor, value.Height / value.ScaleFactor);
 		        
 				int index = AllScreens.IndexOf(value);
-				if(SettingsProvider.NotificationsSettings.SelectedScreenIndex != index)
+				if(SettingsProvider.Settings.Notifications.ScreenIndex != index)
 				{
-					SettingsProvider.NotificationsSettings.SelectedScreenIndex = index;
-					_ = SettingsProvider.SaveSettings();
+					SettingsProvider.Settings.Notifications.ScreenIndex = index;
 				}
 			}
 		}
@@ -220,16 +216,16 @@ namespace Volumey.ViewModel.Settings
 
 		public NotificationViewModel()
 		{
-			this.NotificationsEnabled = SettingsProvider.NotificationsSettings.Enabled;
-			this.HorizontalIndent = SettingsProvider.NotificationsSettings.HorizontalIndent;
-			this.VerticalIndent = SettingsProvider.NotificationsSettings.VerticalIndent;
-			this.SelectedPosition = SettingsProvider.NotificationsSettings.Position;
-			this.ReactToAllVolumeChanges = SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges;
+			this.NotificationsEnabled = SettingsProvider.Settings.Notifications.Enabled;
+			this.HorizontalIndent = SettingsProvider.Settings.Notifications.HorizontalIndent;
+			this.VerticalIndent = SettingsProvider.Settings.Notifications.VerticalIndent;
+			this.SelectedPosition = SettingsProvider.Settings.Notifications.Position;
+			this.ReactToAllVolumeChanges = SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges;
 			
 			this.UnloadedCommand = new ActionCommand(() => this.PreviewIsOn = false);
 			this.LoadedCommand = new ActionCommand(this.CheckIfSelectedScreenIsAvailable);
 
-			this.DisplayTime = SettingsProvider.NotificationsSettings.DisplayTimeInSeconds;
+			this.DisplayTime = SettingsProvider.Settings.Notifications.DisplayTimeSeconds;
 			
 			SetSelectedScreen();
 			
@@ -246,7 +242,7 @@ namespace Volumey.ViewModel.Settings
 			foreach(var screen in _screenInfoProvider.GetAllScreensInfo())
 				AllScreens.Add(screen);
 
-			int selectedScreenIndex = SettingsProvider.NotificationsSettings.SelectedScreenIndex;
+			int selectedScreenIndex = SettingsProvider.Settings.Notifications.ScreenIndex;
 			if(AllScreens.Count - 1 < selectedScreenIndex || selectedScreenIndex < 0)
 				SelectedScreen = _screenInfoProvider.GetPrimaryScreenInfo();
 			else

@@ -16,7 +16,7 @@ namespace Volumey.ViewModel.Settings
 			set
 			{
 				volumeLimit = value;
-				SettingsProvider.Settings.VolumeLimit = value;
+				SettingsProvider.Settings.General.VolumeLimit = value;
 				OnPropertyChanged();
 			}
 		}
@@ -46,14 +46,13 @@ namespace Volumey.ViewModel.Settings
 					}
 					this.defaultDevice = null;
 				}
-				if(SettingsProvider.Settings.VolumeLimitIsOn != value)
+				if(SettingsProvider.Settings.General.VolumeLimitEnabled != value)
 				{
 					Task.Run(() =>
 					{
 						if(isOn)
 							Logger.Info($"Volume limit enabled, vol: [{this.VolumeLimit}]");
-						SettingsProvider.Settings.VolumeLimitIsOn = value;
-						_ = SettingsProvider.SaveSettings();
+						SettingsProvider.Settings.General.VolumeLimitEnabled = value;
 					});
 				}
 				OnPropertyChanged();
@@ -69,8 +68,8 @@ namespace Volumey.ViewModel.Settings
 		public VolumeLimitViewModel()
 		{
 			this.deviceProvider = DeviceProvider.GetInstance();
-			this.VolumeLimit = SettingsProvider.Settings.VolumeLimit;
-			this.IsOn = SettingsProvider.Settings.VolumeLimitIsOn;
+			this.VolumeLimit = SettingsProvider.Settings.General.VolumeLimit;
+			this.IsOn = SettingsProvider.Settings.General.VolumeLimitEnabled;
 		}
 
 		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)

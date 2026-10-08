@@ -24,12 +24,13 @@ namespace Volumey.Helper
 		static NotificationManagerHelper()
 		{
 			_notificationManager = new NotificationManager();
-			_notificationManager.ChangeNotificationAreaPosition(SettingsProvider.NotificationsSettings.Position);
-			_notificationManager.SetNotificationAreaHorizontalIndent(SettingsProvider.NotificationsSettings.HorizontalIndent);
-			_notificationManager.SetNotificationAreaVerticalIndent(SettingsProvider.NotificationsSettings.VerticalIndent);
+			var settings = SettingsProvider.Settings;
+			_notificationManager.ChangeNotificationAreaPosition(settings.Notifications.Position);
+			_notificationManager.SetNotificationAreaHorizontalIndent(settings.Notifications.HorizontalIndent);
+			_notificationManager.SetNotificationAreaVerticalIndent(settings.Notifications.VerticalIndent);
 			_notificationManager.SetNotificationsMaxDisplayCount(3);
-			
-			NotificationDisplayTime = TimeSpan.FromSeconds(SettingsProvider.NotificationsSettings.DisplayTimeInSeconds);
+
+			NotificationDisplayTime = TimeSpan.FromSeconds(settings.Notifications.DisplayTimeSeconds);
 		}
 
 		internal static void ShowNotification(IManagedMasterAudioSession session)

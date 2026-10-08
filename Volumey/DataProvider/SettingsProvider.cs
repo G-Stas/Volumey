@@ -1,97 +1,128 @@
-﻿using System;
+using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Volumey.Localization;
+using System.Linq;
+using System.Threading;
 using log4net;
+using Nucs.JsonSettings;
+using Nucs.JsonSettings.Autosave;
+using Nucs.JsonSettings.Modulation.Recovery;
 using Volumey.Controls;
+using Volumey.DataProvider.Settings;
 
 namespace Volumey.DataProvider
 {
+    /// <summary>
+    /// Provides the app settings, stored in settings.json and saved automatically on every change.
+    /// </summary>
     public static class SettingsProvider
     {
-        public static AppSettings Settings { get; private set; }
-        public static AppSettings.HotkeysAppSettings HotkeysSettings => Settings.HotkeysSettings;
-        public static AppSettings.NotificationsAppSettings NotificationsSettings => Settings.NotificationsSettings;
-
         private const string ConfigFolderName = "Volumey";
-        private const string ConfigFileName = "appconfig";
+        private const string SettingsFileName = "settings.json";
+        /// <summary>BinaryFormatter settings file of Volumey 1.x, imported once when settings.json is created</summary>
+        private const string LegacySettingsFileName = "appconfig";
+        /// <summary>Overrides the settings folder, e.g. to run a dev build without touching the real settings</summary>
+        private const string SettingsDirVariable = "VOLUMEY_SETTINGS_DIR";
 
         //use LocalApplicationData path to access local app data store instead of using Windows.Storage because
         //it's unstable when certain applications like GIMP are launched as described in this issue:
         //https://github.com/microsoft/ProjectReunion/issues/101
-        private static readonly string SettingsDir = 
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ConfigFolderName);
-        private static readonly string SettingsFullPath = Path.Combine(SettingsDir, ConfigFileName);
+        private static readonly string SettingsDir = Environment.GetEnvironmentVariable(SettingsDirVariable) is string dir && dir.Length > 0
+            ? dir
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ConfigFolderName);
 
         private static ILog logger;
         private static ILog Logger => logger ??= LogManager.GetLogger(typeof(SettingsProvider));
 
-        static SettingsProvider() => LoadSettings();
+        private static VolumeySettings settings;
+        private static readonly object SettingsLock = new object();
 
-        private static void LoadSettings()
+        public static VolumeySettings Settings
         {
-            if(File.Exists(SettingsFullPath))
+            get
             {
-                try
-                {
-                    using(var fileStream = new FileStream(SettingsFullPath, FileMode.Open))
-                    {
-                        fileStream.Position = 0;
-                        Settings = (AppSettings) new BinaryFormatter().Deserialize(fileStream);
-                    }
-                    return;
-                }
-                catch(Exception e) { Logger.Error("Failed to load settings file", e); }
+                if(Volatile.Read(ref settings) is VolumeySettings s)
+                    return s;
+                lock(SettingsLock)
+                    return settings ??= LoadSettings();
             }
-        
-            //write default values to file on first launch or if config file doesn't exist or deserialization failed
-            Settings = new AppSettings { CurrentAppTheme = AppTheme.System, AppLanguage = TranslationSource.GetSystemLanguage() };
-            SaveSettings().GetAwaiter().GetResult();
         }
 
-        public static async Task SaveSettings()
+        /// <summary>
+        /// Replaces the settings, e.g. with a non-persistent <c>new VolumeySettings()</c> in tests.
+        /// </summary>
+        internal static void UseSettings(VolumeySettings volumeySettings)
         {
+            lock(SettingsLock)
+                settings = volumeySettings;
+        }
+
+        private static VolumeySettings LoadSettings()
+        {
+            string path = Path.Combine(SettingsDir, SettingsFileName);
             try
             {
-                if(!Directory.Exists(SettingsDir))
-                    Directory.CreateDirectory(SettingsDir);
+                Directory.CreateDirectory(SettingsDir);
+                bool firstLaunch = !File.Exists(path);
+
+                //a corrupted file is renamed to settings.<n>.json and defaults are loaded
+                var loaded = JsonSettings.Configure<VolumeySettings>(path)
+                                         .WithRecovery(RecoveryAction.RenameAndLoadDefault)
+                                         .LoadNow();
+                if(firstLaunch)
+                    ImportLegacySettings(loaded);
+                Migrate(loaded);
+                loaded.Save();
+                return loaded.EnableAutosave();
             }
             catch(Exception e)
             {
-                Logger.Error("Failed to create settings directory", e);
+                //keep the app working with default settings, changes just won't be saved
+                Logger.Error("Failed to load settings", e);
+                return new VolumeySettings();
             }
+        }
 
+        private static void Migrate(VolumeySettings volumeySettings)
+        {
+            //add migration steps here when the layout changes, e.g.:
+            //if(volumeySettings.Version < 2) { ...move values...; volumeySettings.Version = 2; }
+            volumeySettings.Version = VolumeySettings.CurrentVersion;
+        }
+
+        private static void ImportLegacySettings(VolumeySettings volumeySettings)
+        {
+            string legacyPath = Path.Combine(SettingsDir, LegacySettingsFileName);
+            if(!File.Exists(legacyPath))
+                return;
             try
             {
-                await using(var fileStream = new FileStream(SettingsFullPath, FileMode.OpenOrCreate))
-                {
-                    new BinaryFormatter().Serialize(fileStream, Settings);
-                }
+                using(var file = File.OpenRead(legacyPath))
+                    LegacySettingsImporter.Import(file, volumeySettings);
+                Logger.Info("Imported settings of the previous app version");
             }
             catch(Exception e)
             {
-                Logger.Error("Failed to save settings file", e);
+                Logger.Error("Failed to import settings of the previous app version", e);
             }
+            //the legacy file is left untouched so a downgrade to 1.x keeps its settings
         }
 
-        internal static AppSettings.SerializableHotkey ToSerializableHotkey(this HotKey hotkey)
-        {
-            if(hotkey == null)
-                return new AppSettings.SerializableHotkey(Key.None, ModifierKeys.None);
-            return new AppSettings.SerializableHotkey(hotkey.Key, hotkey.ModifierKeys);
-        }
-        
-        internal static (AppSettings.SerializableHotkey, AppSettings.SerializableHotkey) ToTuple(this Tuple<HotKey, HotKey> tuple)
-        {
-            if(tuple != null)
-            {
-                var (upHotkey, downHotkey) = tuple;
-                return (upHotkey.ToSerializableHotkey(), downHotkey.ToSerializableHotkey());    
-            }
-            return(new AppSettings.SerializableHotkey(Key.None, ModifierKeys.None), new AppSettings.SerializableHotkey(Key.None, ModifierKeys.None));
+        /// <summary>
+        /// Checks if the hotkey is already used by the device, mixer or app volume hotkeys.
+        /// </summary>
+        internal static bool HotkeyExists(HotKey hotkey) => HotkeysExist(hotkey, null);
 
+        internal static bool HotkeysExist(HotKey hotkey, HotKey hotkey2)
+        {
+            bool Matches(HotKey registered) => registered != null && (registered.Equals(hotkey) || registered.Equals(hotkey2));
+
+            var hotkeys = Settings.Hotkeys;
+            return Matches(hotkeys.DeviceVolumeUp) ||
+                   Matches(hotkeys.DeviceVolumeDown) ||
+                   Matches(hotkeys.OpenMixer) ||
+                   Matches(hotkeys.DeviceMute) ||
+                   hotkeys.Apps.Any(app => Matches(app.VolumeUp) || Matches(app.VolumeDown)) ||
+                   hotkeys.DefaultDevices.Any(device => Matches(device.Hotkey));
         }
     }
 }

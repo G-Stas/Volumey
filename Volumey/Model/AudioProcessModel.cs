@@ -186,7 +186,7 @@ namespace Volumey.Model
 			this._isMuted = muteState;
 			OnPropertyChanged(nameof(IsMuted));
 
-			if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+			if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 			{
 				if(!context.Equals(GuidValue.Internal.VolumeGUID))
 					StateNotificationMediator?.NotifyAudioStateChange(this);
@@ -198,7 +198,7 @@ namespace Volumey.Model
 			this._volume = volume;
 			OnPropertyChanged(nameof(Volume));
 			
-			if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+			if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 			{
 				if(!context.Equals(GuidValue.Internal.VolumeGUID))
 					StateNotificationMediator?.NotifyAudioStateChange(this);
@@ -290,7 +290,7 @@ namespace Volumey.Model
 
 		public void ResetStateMediator(bool force = false)
 		{
-			if(!force && SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+			if(!force && SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 				return;
 			StateNotificationMediator = null;
 		}

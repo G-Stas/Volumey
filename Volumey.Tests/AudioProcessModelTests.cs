@@ -286,7 +286,7 @@ namespace Volumey.Tests
 		[TestMethod]
 		public void StateMediatorMustReset()
 		{
-			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = false;
+			SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = false;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.proc.SetStateMediator(stateMediatorMock.Object);
 			
@@ -300,7 +300,7 @@ namespace Volumey.Tests
 		[TestMethod]
 		public void StateMediatorMustNotReset_IfReactingToAnyVolumeChangesEnabled()
 		{
-			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = true;
+			SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = true;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.proc.SetStateMediator(stateMediatorMock.Object);
 			

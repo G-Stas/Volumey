@@ -176,7 +176,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.OpenReg;
 			if(hotkey.ModifierKeys == ModifierKeys.None && hotkey.Key == Key.F12)
 				return ErrorMessageType.F12;
-			if(SettingsProvider.Settings.HotkeyExists(hotkey)) //!SettingsProvider.Settings.AllowDuplicates && 
+			if(SettingsProvider.HotkeyExists(hotkey)) //!SettingsProvider.Settings.AllowDuplicates && 
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
@@ -190,7 +190,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.F12;
 			if(up.Equals(down))
 				return ErrorMessageType.Diff;
-			if(SettingsProvider.Settings.HotkeysExist(up, down)) //!SettingsProvider.Settings.AllowDuplicates && 
+			if(SettingsProvider.HotkeysExist(up, down)) //!SettingsProvider.Settings.AllowDuplicates && 
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}

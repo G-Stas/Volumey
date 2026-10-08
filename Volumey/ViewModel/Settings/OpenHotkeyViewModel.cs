@@ -49,7 +49,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
-			if(SettingsProvider.HotkeysSettings.OpenMixer is HotKey openHotkey)
+			if(SettingsProvider.Settings.Hotkeys.OpenMixer is HotKey openHotkey)
 			{
 				this.hotkeyRegistered = this.isOn = true;
 				this.Hotkey = openHotkey;
@@ -81,11 +81,10 @@ namespace Volumey.ViewModel.Settings
 			{
 				if(HotkeysControl.RegisterOpenMixerHotkey(this.hotkey))
 				{
-					SettingsProvider.HotkeysSettings.OpenMixer = this.hotkey;
+					SettingsProvider.Settings.Hotkeys.OpenMixer = this.hotkey;
 					Task.Run(() =>
 					{
 						Logger.Info($"Registered open mixer hotkey: [{this.hotkey}]");
-						_ = SettingsProvider.SaveSettings();
 					});	
 					return true;
 				}
@@ -110,8 +109,7 @@ namespace Volumey.ViewModel.Settings
 			}
 			catch { }
 			this.SetErrorMessage(ErrorMessageType.None);
-			SettingsProvider.HotkeysSettings.OpenMixer = null;
-			_ = SettingsProvider.SaveSettings();
+			SettingsProvider.Settings.Hotkeys.OpenMixer = null;
 		}
 	}
 }

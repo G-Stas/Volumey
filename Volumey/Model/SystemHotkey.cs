@@ -2,50 +2,16 @@
 using System.Text;
 using System.Windows.Input;
 using Volumey.Controls;
-using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model
 {
-	[Serializable]
 	public class SystemHotkey
 	{
-		private Key _systemKey;
-		public Key SystemKey
-		{
-			get => _systemKey;
-			set
-			{
-				_systemKey = value;
-			} 
-		}
+		public Key SystemKey { get; set; }
 
-		[NonSerialized]
-		public HotKey _replacement;
-		public HotKey Replacement
-		{
-			get
-			{
-				if(_replacement == null)
-				{
-					var key = _serializableReplacement.ToHotKey();
-					if(key.Key != Key.None || key.ModifierKeys != ModifierKeys.None)
-					{
-						_replacement = key;
-						return _replacement;
-					}
-				}
-				return _replacement;
-			}
-			set
-			{
-				_replacement = value;
-				_serializableReplacement = _replacement.ToSerializableHotkey();
-			} 
-		}
-		
-		private AppSettings.SerializableHotkey _serializableReplacement;
+		public HotKey Replacement { get; set; }
 
 		public SystemHotkey(Key sysKey)
 		{

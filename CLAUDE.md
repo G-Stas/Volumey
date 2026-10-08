@@ -26,7 +26,8 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
     CoreAudio/           hand-written COM interop: IMMDevice*, IAudioSession*, IAudioEndpointVolume*, IPolicyConfig, PROPVARIANT...
     Wrapper/             thin managed wrapper: DeviceEnumerator, MMDevice, IDevice(+extensions that build models),
                          AudioSessionProvider, *Notifications/*Handler (COM callbacks -> C# events), PolicyClient, GuidValue
-  DataProvider/          DeviceProvider (singleton, active/default devices), SettingsProvider + AppSettings (persistence),
+  DataProvider/          DeviceProvider (singleton, active/default devices), SettingsProvider (settings store access),
+                         Settings/ (settings.json via Nucs.JsonSettings: VolumeySettings + sections, legacy 1.x importer),
                          ScreenInfoProvider
   Model/                 OutputDeviceModel, MasterSessionModel, AudioProcessModel, AudioSessionModel, SystemHotkey, ScreenInfo
   ViewModel/             AppBehaviorViewModel, DeviceProviderViewModel, SettingsViewModel, ThemeViewModel
@@ -60,7 +61,7 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
 ```
 
 - **Running a dev build while your installed Volumey is running does nothing.** Both use the same single-instance mutex, so the dev build just signals the installed one and exits. Quit the installed app first.
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 54 tests, all passing.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 62 tests, all passing. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
   - `PlatformTarget` is always x64 and the `RuntimeIdentifier` is win-x64, because the app's `RuntimeIdentifier` is win-x64 on every platform.
@@ -94,19 +95,44 @@ Bump the version in **3 places**: `Volumey/Volumey.csproj` (`Version`, `Assembly
 - Wrapper interfaces (`IDevice`, `IAudioSessionVolume`, `IAudioSessionStateNotifications`, `ISessionProvider`, `IDeviceStateNotificationHandler`, `IMasterVolumeNotificationHandler`) exist so the tests can mock COM with Moq.
 
 ### Hotkeys
-- `HotkeysControl` (static) holds the one `IHotkeyManager`. It ref-counts hotkeys (`HotkeysUserCount`) so that several features can share a combo, raises `HotkeyPressed`, and validates hotkeys (no bare F12, no duplicates via `AppSettings.HotkeyExists`).
+- `HotkeysControl` (static) holds the one `IHotkeyManager`. It ref-counts hotkeys (`HotkeysUserCount`) so that several features can share a combo, raises `HotkeyPressed`, and validates hotkeys (no bare F12, no duplicates via `SettingsProvider.HotkeyExists`).
 - `HotkeyManager` (**active**) uses `RegisterHotKey`/WM_HOTKEY, which blocks the key combo system-wide. `HotkeyHookManager` uses a low-level keyboard hook (`WH_KEYBOARD_LL`) that does not block keys. It is implemented but **unused**: the switching code in `SettingsViewModel` is commented out, along with the `BlockHotkeys` / `AllowDuplicates` settings.
 - Models subscribe to `HotkeysControl.HotkeyPressed` and handle their own up/down/mute hotkeys (`SetVolumeHotkeys`, `SetMuteHotkey`). App hotkeys are stored by **process name** (`VolumeHotkeysPair`) and get applied when a matching process shows up. Default-device hotkeys are stored as a `DeviceInfo` (ID + name), and an active device matches if its ID **or** its name matches, after which the stored info is refreshed.
 
 ### Settings persistence
-- `SettingsProvider` reads and writes `%LOCALAPPDATA%\Volumey\appconfig` with **`BinaryFormatter`** (`[Serializable] AppSettings` plus nested `HotkeysAppSettings` and `NotificationsAppSettings`). New fields use `[OptionalField]` to keep old files compatible, and `[OnDeserialized]` migrates old formats. The Store build writes the same path, because MSIX redirects LocalAppData to the package folder.
-- Saving uses `FileMode.OpenOrCreate` without truncating the file. If a newer payload is shorter, old bytes are left at the end. Use `FileMode.Create` instead.
-- On .NET 10, `BinaryFormatter` only works because of three things. **All of them are temporary, until settings move to JSON (item B):**
-  - the `System.Runtime.Serialization.Formatters` compat package (Microsoft's unsupported out-of-band copy);
-  - `<EnableUnsafeBinaryFormatterSerialization>true` in both the app and test projects;
-  - `NoWarn SYSLIB0011` in the app project.
-- The settings file stores type identities, so the **types inside it must stay loadable**. A real v1.5.4 file references the assemblies `mscorlib`, `WindowsBase` (`Key`/`ModifierKeys`), `Volumey` (`AppSettings` and its nested types, `SerializableHotkey`, …) and **`Notification.Wpf`** (the vendored popup library's position/enum types in `NotificationsAppSettings`). Renaming or moving any `[Serializable]` settings type, or removing or replacing `Notification.Wpf` before item B, breaks loading for existing users, and the app then silently resets to defaults. `ParallelExtensionsExtras` is *not* in the file.
-- Verified on 2026-10-08: a real v1.5.4 settings file (with app and device hotkeys) loads on the .NET 10 build, and it serializes and reloads unchanged.
+Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Settings/`). They're composed of sections.
+- **File:** `%LOCALAPPDATA%\Volumey\settings.json`. The Store build uses the same path, because MSIX redirects LocalAppData to the package folder.
+  - The environment variable **`VOLUMEY_SETTINGS_DIR`** overrides the folder. Use it to run a dev build without touching the real settings.
+- **Classes:**
+  - `VolumeySettings` (root, `NotifiyingJsonSettings`, `[Autosave]`) has the sections `General`, `Window`, `Hotkeys` and `Notifications`. Each section is a `SettingsSection` (`INotifyPropertyChanged`) marked `[NotifyChanges]`.
+  - Access them through `SettingsProvider.Settings`, e.g. `SettingsProvider.Settings.General.VolumeStep = 5`. There is no Save call.
+- **How saving works:**
+  - The `[Autosave]`/`[NotifyChanges]` attributes are woven into the setters **at build time** (AspectInjector, via the `Nucs.JsonSettings.Autosave`/`.NotifyChanges` packages).
+  - The library's `NotificationBinder` listens to each section's `PropertyChanged` and saves the whole file.
+  - `[NotifyChanges]` only raises `PropertyChanged` when the value actually changes, and it is **not inherited**, so put it on every new section class.
+  - **Items inside lists are not watched:** always assign a new list (`Hotkeys.Apps = newList`). Never mutate the list you got.
+  - VMs react to setting changes by subscribing to the section's `PropertyChanged`, e.g. `Settings.Notifications.PropertyChanged`.
+- **JSON format:**
+  - Readable and indented, with enums stored by name (`StringEnumConverter`).
+  - `HotKey` is stored as `{ "Key": "F1", "ModifierKeys": "Control, Shift" }`; Json.NET deserializes it through its constructor.
+  - `TypeNameHandling.None` means no .NET type names are written, so renaming or moving C# types is safe; renaming *properties* is not.
+- **Threading:** settings are also written from background threads. `VolumeySettings.Save` takes a lock so saves can't overlap. `PropertyChanged` fires on the writing thread.
+- **Versioning:** `VolumeySettings.Version` / `CurrentVersion`.
+  - Adding a property needs nothing, because missing values keep their defaults.
+  - Renaming, moving or retyping a property needs a bumped `CurrentVersion` and a step in `SettingsProvider.Migrate`. To read a removed or renamed value there, add a `[JsonExtensionData]` dictionary to the affected class.
+  - The library's own versioning module only resets or renames the file on a mismatch, so it isn't used.
+- **Corrupt file:** `RecoveryAction.RenameAndLoadDefault` renames it to `settings.<n>.json` and loads defaults. If loading fails for another reason, the app logs it and runs on unsaved defaults.
+- **Window position:** `Window.Left`/`Top` are kept in `AppBehaviorViewModel` and only written in `OnExit`, because they change on every window move.
+- **Import from 1.x (`LegacySettingsImporter`):** on the first start (no `settings.json` yet), the importer reads the old BinaryFormatter file `appconfig` once.
+  - It parses the file as plain data with **`System.Formats.Nrbf`**, which is part of .NET 10, so no old types and no BinaryFormatter are needed.
+  - The member names in the importer are the old `AppSettings` field names (e.g. `currentAppTheme`, `serializableRegisteredSessions`, `<MusicAppName>k__BackingField`) and must stay as they are.
+  - It also converts the oldest single-app hotkey format (`MusicAppName`).
+  - **`appconfig` is never modified or renamed**, so a downgrade to 1.x keeps its settings.
+  - Not imported, because nothing read them: `userHasRated`, `firstLaunchDate`, `launchCount`, `rememberLastPosition`.
+- **Tests:**
+  - `TestAssemblySetup` uses a plain `new VolumeySettings()`, which has no file and no autosave, so tests never touch the machine's settings.
+  - `VolumeySettingsTests` cover autosave of nested sections, the JSON format, notifications and recovery.
+  - `LegacySettingsImporterTests` use synthetic 1.x files in `Volumey.Tests/TestData/`, generated with the real 1.5.4 `AppSettings` class and BinaryFormatter. Don't commit a real user's `appconfig`: it contains device names and IDs.
 
 ### UI
 - ModernWpfUI 0.9.4 (Fluent-ish controls, NavigationView, ContentDialog). The theme comes from `ThemeViewModel` plus the `Colors.Light/Dark.xaml` + `Brushes.xaml` theme dictionaries, with the Windows accent color from `SystemColorHelper`.
@@ -124,14 +150,13 @@ Bump the version in **3 places**: `Volumey/Volumey.csproj` (`Version`, `Assembly
 | log4net-loggly 9.0.0 | remote logging to Loggly | **Loggly input key is committed in `log4net.config`** |
 | log4net 2.0.17, Newtonsoft.Json 13.0.4 (direct refs) | override the vulnerable transitive versions from log4net-loggly (2.0.8 / 10.0.3) | log4net 2.0.17 still has one moderate advisory (NU1902, GHSA-4f7c-pmjv-c25w). It's fixed in log4net 3.x, but log4net-loggly was built against 2.x, so test logging before bumping |
 | MSFT.ParallelExtensionsExtras 1.2.0 | `ObservableConcurrentDictionary` (built at runtime from settings) | .NET Framework-only package (NU1701 suppressed); worth replacing with a small in-repo class |
-| System.Runtime.Serialization.Formatters 10.0.x | BinaryFormatter on .NET 9+ | temporary, see Settings persistence |
+| Nucs.JsonSettings 2.3.2 (+ .Autosave, .NotifyChanges) | settings.json, autosave, change notifications | MIT, active (Aug 2026). Build-time weaving via AspectInjector; built on Newtonsoft.Json (already referenced) |
 | Microsoft.Xaml.Behaviors.Wpf, WpfScreenHelper | misc | |
 
 WinRT APIs (`StoreContext`, `AppInstance`, `Package`) come from the `-windows10.0.19041.0` TFM; the `Microsoft.Windows.SDK.Contracts` package is gone. `System.Drawing` comes from the Windows Desktop framework. Code analyzers come with the SDK, so there's no NetAnalyzers package.
 
 ## Known issues / gotchas found during analysis
-- Tests aren't isolated from the machine. Anything that touches `SettingsProvider` (e.g. `HotkeysValidationTests`) loads the **real** `%LOCALAPPDATA%\Volumey\appconfig`, and creates it if it's missing. The tests only change settings in memory, but their results can depend on the developer's own settings. Fix this with the `ISettingsStore` from item B.
-- The settings file is not truncated on save (see above).
+- **Dev builds use the real settings** unless `VOLUMEY_SETTINGS_DIR` is set. After the first 2.0 start, later changes made in 1.x aren't imported again; delete `settings.json` to re-import.
 - `AppVolumeSyncViewModel` subscribes to `defaultDevice.Master.PropertyChanged` when it's switched on, but never unsubscribes: not when it's switched off, and not when the default device changes. `OnDefaultDeviceChanged` also never subscribes to the new device's master. After a device switch, changing the *old* device's volume syncs the *new* device's apps, and the new device's master volume is ignored. Turning it off and on again adds a duplicate handler.
 - `SystemHotkey` overrides `Equals` without `GetHashCode` (CS0659). It is used in hash collections, so check this.
 - Several fire-and-forget `async` calls (CS4014) and `async void` handlers.
@@ -145,7 +170,7 @@ Each step should leave a working, shippable build.
 1. ~~Universal tests + green baseline (item E).~~ Done: MSTest, 54/54 passing.
 2. ~~Retarget to **.NET 10**~~. Done (2026-10-08): the app and tests are on `net10.0-windows10.0.19041.0`, and the Store MSIX builds. .NET 10 is LTS, supported until Nov 2028. Don't target .NET 11 until it ships as stable, and only move to it if the owner asks. BinaryFormatter is kept alive temporarily, see Settings persistence.
    - **Still to verify by hand:** launch the app and the installed MSIX and smoke-test them (tray, mixer, hotkeys, OSD, settings save, theme, autostart). The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET, so check them at runtime.
-3. New settings format (item B). This also removes the BinaryFormatter compat package, and it must land **before** `Notification.Wpf` is replaced (item C), because that library's types are stored in the binary settings file.
+3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. Audio layer → NAudio (item A).
 5. Non-blocking hook hotkeys (item D).
 6. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
@@ -161,14 +186,10 @@ Use `NAudio.Wasapi` / `NAudio.CoreAudioApi`.
 - NAudio's `AudioSessionManager.OnSessionCreated` passes a raw `IAudioSessionControl` (wrap it yourself), on a COM thread. NAudio objects have finalizers that make COM calls, so dispose them explicitly.
 - Keep the wrapper interfaces, or replacements for them, so the tests can keep mocking the audio layer. Models must not depend on NAudio types directly.
 
-### B. New settings format (simpler versioning)
-Replace `BinaryFormatter`, and its `[OptionalField]` / `[OnDeserialized]` versioning, with a readable format that has explicit versions.
-- Direction: **JSON via `System.Text.Json`** with a top-level `"version": N` field. An ordered list of migration steps (`vN → vN+1`) works on the `JsonNode` DOM before the file is bound to the settings classes. Missing properties fall back to defaults and unknown ones are ignored, so most additions need no migration.
-- Store hotkeys as readable `Key` / `ModifierKeys` names, not enum ints.
-- **One-time import of the old file.** When `%LOCALAPPDATA%\Volumey\appconfig` (binary) exists and the new file doesn't, read the old file once, write the new one, then rename the old file to `appconfig.bak`.
-  - The target is .NET 10, where `BinaryFormatter` throws `PlatformNotSupportedException`. Do the import with the unsupported compat package `System.Runtime.Serialization.Formatters` (used only for this one-time read), or with a custom reader for the old NRBF payload (`System.Formats.Nrbf`).
-- Write the file atomically: temp file, then `File.Replace` or `File.Move` with overwrite. This also fixes the "not truncated on save" bug.
-- Move persistence out of the static `SettingsProvider` into an injectable `ISettingsStore`, so tests can use an in-memory store.
+### B. New settings format
+**Done (2026-10-08).** The owner chose a plain JSON file with a ready-made library (Nucs.JsonSettings) and a composed settings object (root + sections). A LiteDB key-value store was tried first and dropped. See *Settings persistence*.
+
+Possible follow-up: inject `VolumeySettings` (or its sections) into the ViewModels and models instead of the static `SettingsProvider.Settings`, as part of the general "fewer statics" work in item E.
 
 ### C. Explore UI frameworks that look closer to native Windows 11
 The app uses ModernWpfUI 0.9.4. That version line is frozen, unsupported, and imitates the Windows 10 Fluent style.

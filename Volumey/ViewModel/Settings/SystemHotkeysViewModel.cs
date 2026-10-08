@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
@@ -55,7 +57,7 @@ namespace Volumey.ViewModel.Settings
 			AddHotkeyCommand = new ActionCommand(AddHotkey);
 			RemoveHotkeyCommand = new ActionCommand(RemoveHotkey);
 
-			RegisteredHotkeys = new ObservableCollection<SystemHotkey>(SettingsProvider.HotkeysSettings.RegisteredSystemHotkeys);
+			RegisteredHotkeys = new ObservableCollection<SystemHotkey>(SettingsProvider.Settings.Hotkeys.System.Select(h => new SystemHotkey(h.SystemKey, h.Replacement)));
 
 			foreach(var hotkey in hotkeys)
 			{
@@ -105,16 +107,13 @@ namespace Volumey.ViewModel.Settings
 			
 			RegisteredHotkeys.Add(_selectedHotkey);
 			
-			if(SettingsProvider.HotkeysSettings.RegisteredSystemHotkeys.Contains(_selectedHotkey))
-				SettingsProvider.HotkeysSettings.RegisteredSystemHotkeys.Remove(_selectedHotkey);
-			SettingsProvider.HotkeysSettings.RegisteredSystemHotkeys.Add(_selectedHotkey);
+			SaveRegisteredHotkeys();
 
 			Hotkeys.Remove(_selectedHotkey);
 
 			SelectedHotkey = null;
 			ReplacementHotKey = null;
 
-			SettingsProvider.SaveSettings();
 		}
 
 		private void RemoveHotkey()
@@ -126,14 +125,21 @@ namespace Volumey.ViewModel.Settings
 			
 			HotkeysControl.UnregisterHotkey(hotkey.Replacement);
 			RegisteredHotkeys.Remove(hotkey);
-			SettingsProvider.HotkeysSettings.RegisteredSystemHotkeys.Remove(hotkey);
+			SaveRegisteredHotkeys();
 			
 			hotkey.UnregisterHotkeyHandler();
 
 			hotkey.Replacement = null;
 			Hotkeys.Add(hotkey);
 			
-			SettingsProvider.SaveSettings();
+		}
+
+		private void SaveRegisteredHotkeys()
+		{
+			var entries = RegisteredHotkeys
+			              .Select(h => new SystemHotkeyEntry { SystemKey = h.SystemKey, Replacement = h.Replacement })
+			              .ToArray();
+			SettingsProvider.Settings.Hotkeys.System = entries;
 		}
 
 		private static List<SystemHotkey> GetMediaHotkeys()

@@ -6,10 +6,6 @@
     <!-- Lowest Windows version the app runs on (matches the Store package TargetPlatformMinVersion) -->
     <SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
-    <!-- Settings are still stored with BinaryFormatter (removed from .NET 9+, provided by the
-         System.Runtime.Serialization.Formatters compat package). Remove once settings move to JSON. -->
-    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
-    <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
     <Platforms>x64</Platforms>
     <RootNamespace>Volumey</RootNamespace>
     <StartupObject>Volumey.Startup</StartupObject>
@@ -58,8 +54,15 @@
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
     <!-- .NET Framework-only package (NU1701), used for ObservableConcurrentDictionary -->
     <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" NoWarn="NU1701" />
-    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="10.0.12" />
+    <!-- Settings (settings.json): autosave and change notifications are woven into the settings classes at build time -->
+    <PackageReference Include="Nucs.JsonSettings" Version="2.3.2" />
+    <PackageReference Include="Nucs.JsonSettings.Autosave" Version="2.3.2" />
+    <PackageReference Include="Nucs.JsonSettings.NotifyChanges" Version="2.3.2" />
     <PackageReference Include="WpfScreenHelper" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Volumey.Tests" />
   </ItemGroup>
 
   <ItemGroup>

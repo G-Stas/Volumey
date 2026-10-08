@@ -38,14 +38,13 @@ namespace Volumey.ViewModel.Settings
 					}
 					this.defaultDevice = null;
 				}
-				if(SettingsProvider.Settings.SyncAppVolumeIsOn != value)
+				if(SettingsProvider.Settings.General.AppVolumeSyncEnabled != value)
 				{
 					Task.Run(() =>
 					{
 						if(isOn)
 							Logger.Info("Synchronising app volume to master volume on change.");
-						SettingsProvider.Settings.SyncAppVolumeIsOn = value;
-						_ = SettingsProvider.SaveSettings();
+						SettingsProvider.Settings.General.AppVolumeSyncEnabled = value;
 					});
 				}
 				OnPropertyChanged();
@@ -61,7 +60,7 @@ namespace Volumey.ViewModel.Settings
 		public AppVolumeSyncViewModel()
 		{
 			this.deviceProvider = DeviceProvider.GetInstance();
-			this.IsOn = SettingsProvider.Settings.SyncAppVolumeIsOn;
+			this.IsOn = SettingsProvider.Settings.General.AppVolumeSyncEnabled;
 		}
 
         private async Task SyncSessionVolume()

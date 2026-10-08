@@ -31,7 +31,7 @@ namespace Volumey.ViewModel.Settings
 		
 		private void LoadLocalization()
 		{
-			try { TranslationSource.SetLanguage(new CultureInfo(SettingsProvider.Settings.AppLanguage)); }
+			try { TranslationSource.SetLanguage(new CultureInfo(SettingsProvider.Settings.General.Language ?? TranslationSource.GetSystemLanguage())); }
 			catch { TranslationSource.SetDefaultLanguage(); }
 			finally { this.SelectedLanguage = TranslationSource.Instance.CurrentCulture.NativeName; }
 		}
