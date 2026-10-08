@@ -10,15 +10,15 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 
 ## Current state (2026-10-09)
 - **All 2.0 work is local and unpushed** (owner's decision). Don't push and don't suggest pushing, PRs or CI runs unless the owner asks; validate everything locally (see *Validating a step*).
-- Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian), `release/2.0`, and the open work branch `feature/naudio` (item A).
-- **`feature/naudio`** (not merged yet): the audio layer is on NAudio.Wasapi 3.1.0. Done: Release build, 74/74 tests, the Store MSIX build (contains `NAudio.*.dll`), and a dev run (mixer with the device, app sessions, icons and the System Sounds name; clean log). App sessions verified on Steam (owner allowed it): volume and mute both ways (app ↔ Windows), and fast slider sweeps end on the right value with no jump back (session echo filter). Device (master) volume and mute verified on the "Наушники" device the same way (both directions, fast sweeps, mute from the app button and from Windows). Disabling and re-enabling the Maxwell headset (owner did it by hand) works: devices are removed and added, and the app follows the default device that Windows picks. The first try hung the app (deadlock between a COM release on the UI thread and a blocked device callback); fixed. **Still to check before merging:** device rename. Switching the default device from the app (`PolicyClient`) is unchanged code and wasn't tested; don't switch the output device without asking.
+- Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian) and `release/2.0`. No work branch is open.
 - `release/2.0` = `main` plus, in this order:
   1. MSTest instead of xUnit, and .NET 10 (app, tests, Store package).
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
-- Validated on `release/2.0`: Release build, 65/65 tests, the Store MSIX build, and dev runs (mixer, settings pages, settings saved through the UI, app and device hotkey lists).
+  4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
+- Validated on `release/2.0`: Release build, 74/74 tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Next planned step:** finish checking `feature/naudio` at runtime and merge it; then hotkeys through a library (item D).
+- **Next planned step:** hotkeys through a library (item D) on a new work branch from `release/2.0`.
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
@@ -232,18 +232,17 @@ Each step should leave a working, shippable build.
    - **Verified (2026-10-08, Debug build):** startup, mixer, settings pages, theme, update check, and settings save through the UI. **Still to verify:** hotkeys, OSD popups, autostart, the tray menu, and the installed MSIX. The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET.
    - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
-4. Audio layer → NAudio (item A). Implemented on `feature/naudio` (2026-10-09), runtime checks still open, see *Current state*.
+4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
 5. Hotkeys through a library, with a non-blocking mode (item D).
 6. Tray icon on the current NotifyIcon library (item F).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
 ### A. Replace the hand-written CoreAudio wrapper with NAudio
-**Implemented on `feature/naudio` (2026-10-09)** with NAudio.Wasapi 3.1.0; see *Audio layer* for how it works. Decisions:
+**Done (2026-10-09)** with NAudio.Wasapi 3.1.0; see *Audio layer* for how it works. Decisions:
 - **NAudio 3.x, not 2.x:** current line, targets `net9.0`. In 3.x the raw COM interfaces are internal, so a separate interop path for session volume (to keep the event context) wasn't possible. Session echo suppression now compares states instead (`SessionEchoFilter`).
 - Kept from the old code: `PolicyClient` + `IPolicyConfig.cs` (not in NAudio), and the wrapper interfaces (without their COM base interfaces), so the tests still mock the audio layer and models don't see NAudio types.
 - The device format is read from the `PKEY_AudioEngine_DeviceFormat` blob (NAudio returns `byte[]`) into `DeviceFormat`.
 - The app's own `AudioSessionState` enum had Active and Inactive swapped; the new enum matches Core Audio (only stored, never compared).
-- Still to do: the runtime checks listed under *Current state*.
 
 ### B. New settings format
 **Done (2026-10-08).** The owner chose a plain JSON file with a ready-made library (Nucs.JsonSettings) and a composed settings object (root + sections). A LiteDB key-value store was tried first and dropped. See *Settings persistence*.
