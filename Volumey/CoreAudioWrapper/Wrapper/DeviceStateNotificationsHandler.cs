@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using log4net;
-using Volumey.CoreAudioWrapper.CoreAudio;
-using Volumey.CoreAudioWrapper.CoreAudio.Enums;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+using NAudio.CoreAudioApi;
 using Volumey.Model;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
@@ -12,10 +9,13 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     /// <summary>
     /// Provides notifications when an audio endpoint device is added or removed,
     /// when the state or properties of an endpoint device change,
-    /// or when there is a change in the default role assigned to an endpoint device. 
+    /// or when there is a change in the default role assigned to an endpoint device.
+    /// NAudio raises the notifications on COM threads. They are passed to the UI thread without waiting:
+    /// a waiting callback thread deadlocks with the UI thread when that releases a device's COM objects,
+    /// because the release waits for running callbacks to return.
     /// </summary>
     public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHandler
-    { 
+    {
         public event Action<string> DefaultDeviceChanged;
         public event Action<string> NameChanged;
         public event Action<string> IconPathChanged;
@@ -23,138 +23,127 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public event Action<string> DeviceDisabled;
         public event Action<OutputDeviceModel> ActiveDeviceAdded;
 
-        private readonly IMMDeviceEnumerator deviceEnumerator;
+        private readonly MMDeviceEnumerator deviceEnumerator;
+        private readonly MMDeviceNotificationClient notificationClient;
 
         private ILog logger;
         private ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceStateNotificationsHandler));
 
-        public DeviceStateNotificationsHandler(IMMDeviceEnumerator sEnum)
+        public DeviceStateNotificationsHandler(DeviceEnumerator enumerator)
         {
-            this.deviceEnumerator = sEnum;
-            this.RegisterDeviceNotifications();
+            this.deviceEnumerator = enumerator.Enumerator;
+            this.notificationClient = this.deviceEnumerator.CreateNotificationClient(useSynchronizationContext: false);
+            this.notificationClient.DefaultDeviceChanged += OnDefaultDeviceChanged;
+            this.notificationClient.DeviceAdded += OnDeviceAdded;
+            this.notificationClient.DeviceStateChanged += OnDeviceStateChanged;
+            this.notificationClient.PropertyValueChanged += OnPropertyValueChanged;
         }
 
         /// <summary>
         /// Called when the default Endpoint device for a given role changes
         /// </summary>
-        /// <param name="flow">The dataflow direction</param>
-        /// <param name="role">The role</param>
-        /// <param name="deviceId">The ID of the Endpoint device that is now the default for the specified role</param>
-        public int OnDefaultDeviceChanged(EDataFlow flow, ERole role, string deviceId)
+        private void OnDefaultDeviceChanged(object sender, DefaultDeviceChangedEventArgs e)
         {
-            if(flow == EDataFlow.Render && role == ERole.Console)
+            if(e.Flow == DataFlow.Render && e.Role == Role.Console)
             {
-                this.DefaultDeviceChanged?.Invoke(deviceId);
+                Post(() => this.DefaultDeviceChanged?.Invoke(e.DeviceId));
             }
-            return 0;
         }
 
         /// <summary>
         /// Called when a new Endpoint device is added to the system
         /// </summary>
-        /// <param name="deviceId">The ID of the new Endpoint device</param>
-        public int OnDeviceAdded(string deviceId)
+        private void OnDeviceAdded(object sender, DeviceNotificationEventArgs e)
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Post(() =>
             {
                 try
                 {
-                    this.deviceEnumerator.GetDevice(deviceId, out IMMDevice newDevice);
-                    var device = new MMDevice(newDevice);
-                    if(device.GetDataFlow() == EDataFlow.Render && device.GetState() == DeviceState.Active)
-                    {
-                        var model = device.GetOutputDeviceModel(this);
-                        if(model != null)
-                            this.ActiveDeviceAdded?.Invoke(model);
-                    }
+                    this.AddIfActiveOutput(e.DeviceId);
                 }
-                catch(Exception e)
+                catch(Exception ex)
                 {
-                    Logger.Error("Failed to check/add new device", e);
+                    Logger.Error("Failed to check/add new device", ex);
                 }
             });
-            return 0;
         }
-
-        /// <summary>
-        /// Called when an Endpoint device is removed from the system
-        /// </summary>
-        /// <param name="deviceId">The ID of the Endpoint device that was removed</param>
-        public int OnDeviceRemoved(string deviceId) => 0;
 
         /// <summary>
         /// Called when the state of an Endpoint device changes
         /// </summary>
-        /// <param name="deviceId">The ID of the Endpoint device whose state has changed</param>
-        /// <param name="newState">The new state of the device</param>
-        public int OnDeviceStateChanged(string deviceId, DeviceState newState)
+        private void OnDeviceStateChanged(object sender, DeviceStateChangedEventArgs e)
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Post(() =>
             {
                 try
                 {
-                    this.deviceEnumerator.GetDevice(deviceId, out IMMDevice newDevice);
-                    var device = new MMDevice(newDevice);
-                    if(device.GetDataFlow() == EDataFlow.Render)
+                    if(e.NewState != DeviceState.Active)
                     {
-                        if(newState != DeviceState.Active)
-                            this.DeviceDisabled?.Invoke(deviceId);
-                        else
-                        {
-                            var model = device.GetOutputDeviceModel(this);
-                            if(model != null)
-                                this.ActiveDeviceAdded?.Invoke(model);
-                        }
+                        using var device = new AudioDevice(this.deviceEnumerator.GetDevice(e.DeviceId));
+                        if(device.GetDataFlow() == DataFlow.Render)
+                            this.DeviceDisabled?.Invoke(e.DeviceId);
                     }
+                    else
+                        this.AddIfActiveOutput(e.DeviceId);
                 }
                 catch { }
             });
-            return 0;
         }
 
-        public int OnPropertyValueChanged(string deviceId, PROPERTYKEY key)
+        private void AddIfActiveOutput(string deviceId)
         {
-            var friendlyName = PROPERTYKEY.DeviceProperties.FriendlyName;
-            if(key.Guid == friendlyName.Guid && (key.Id == friendlyName.Id || key.Id == PROPERTYKEY.DeviceProperties.Description.Id))
-            {
-                this.NameChanged?.Invoke(deviceId);
-                return 0;
-            }
+            var device = new AudioDevice(this.deviceEnumerator.GetDevice(deviceId));
+            OutputDeviceModel model = null;
+            if(device.GetDataFlow() == DataFlow.Render && device.GetState() == DeviceState.Active)
+                model = AudioModelFactory.CreateOutputDeviceModel(device, this);
 
-            var iconPath = PROPERTYKEY.DeviceProperties.IconPath;
-            if(key.Guid == iconPath.Guid && key.Id == iconPath.Id)
-            {
-                this.IconPathChanged?.Invoke(deviceId);
-                return 0;
-            }
+            if(model != null)
+                this.ActiveDeviceAdded?.Invoke(model);
+            else
+                device.Dispose();
+        }
 
-            var format = PROPERTYKEY.DeviceProperties.DeviceFormat;
-            if(key.Guid == format.Guid && key.Id == format.Id)
-            {
-                this.FormatChanged?.Invoke(deviceId);
-            }
-            return 0;
+        private void OnPropertyValueChanged(object sender, DevicePropertyChangedEventArgs e)
+        {
+            var key = e.PropertyKey;
+            if(IsKey(key, PropertyKeys.PKEY_Device_FriendlyName) || IsKey(key, PropertyKeys.PKEY_Device_DeviceDesc))
+                Post(() => this.NameChanged?.Invoke(e.DeviceId));
+            else if(IsKey(key, PropertyKeys.PKEY_Device_IconPath))
+                Post(() => this.IconPathChanged?.Invoke(e.DeviceId));
+            else if(IsKey(key, PropertyKeys.PKEY_AudioEngine_DeviceFormat))
+                Post(() => this.FormatChanged?.Invoke(e.DeviceId));
         }
 
         /// <summary>
-        /// Registers the object to receive device notifications
+        /// Runs the action on the UI thread without blocking the calling COM thread. The dispatcher keeps the order of the notifications.
         /// </summary>
-        private void RegisterDeviceNotifications()
-            => Marshal.ThrowExceptionForHR(this.deviceEnumerator.RegisterEndpointNotificationCallback(this));
-        
-
-        /// <summary>
-        /// Unregisters the object that was registered in a previous call to RegisterDeviceNotifications
-        /// </summary>
-        private void UnregisterDeviceNotifications()
+        private void Post(Action action)
         {
-            //Unregister on the thread pool because this call occasionally hangs and might hang the entire application when executed in the UI thread :\
-            Task.Run(() => { this.deviceEnumerator.UnregisterEndpointNotificationCallback(this); });
+            try
+            {
+                App.Current?.Dispatcher.InvokeAsync(() =>
+                {
+                    try { action(); }
+                    catch(Exception e) { Logger.Error("Failed to handle a device notification", e); }
+                });
+            }
+            catch(Exception e)
+            {
+                Logger.Error("Failed to dispatch a device notification", e);
+            }
         }
+
+        private static bool IsKey(PropertyKey key, PropertyKey expected)
+            => key.formatId == expected.formatId && key.propertyId == expected.propertyId;
 
         public void Dispose()
         {
-            this.UnregisterDeviceNotifications();
+            this.notificationClient.DefaultDeviceChanged -= OnDefaultDeviceChanged;
+            this.notificationClient.DeviceAdded -= OnDeviceAdded;
+            this.notificationClient.DeviceStateChanged -= OnDeviceStateChanged;
+            this.notificationClient.PropertyValueChanged -= OnPropertyValueChanged;
+            //Unregister on the thread pool because this call occasionally hangs and might hang the entire application when executed in the UI thread :\
+            Task.Run(() => this.notificationClient.Dispose());
         }
     }
 }

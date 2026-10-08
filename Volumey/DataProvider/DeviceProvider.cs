@@ -92,7 +92,7 @@ namespace Volumey.DataProvider
 				try
 				{
 					var devEnum = new DeviceEnumerator();
-					return instance = new DeviceProvider(devEnum, new DeviceStateNotificationsHandler(devEnum.MMDeviceEnumerator));
+					return instance = new DeviceProvider(devEnum, new DeviceStateNotificationsHandler(devEnum));
 				}
 				catch(Exception e)
 				{

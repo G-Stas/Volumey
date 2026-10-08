@@ -8,16 +8,17 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 
 **Git remotes:** `origin` → `G-Stas/Volumey` (the real repo). `colin` → `colinfindlay-nz/Volumey`, the fork this clone was first made from, which is stale and only kept for reference. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into `main`.
 
-## Current state (2026-10-08)
+## Current state (2026-10-09)
 - **All 2.0 work is local and unpushed** (owner's decision). Don't push and don't suggest pushing, PRs or CI runs unless the owner asks; validate everything locally (see *Validating a step*).
 - Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian) and `release/2.0`. No work branch is open.
 - `release/2.0` = `main` plus, in this order:
   1. MSTest instead of xUnit, and .NET 10 (app, tests, Store package).
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
-- Validated on `release/2.0`: Release build, 65/65 tests, the Store MSIX build, and dev runs (mixer, settings pages, settings saved through the UI, app and device hotkey lists).
+  4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
+- Validated on `release/2.0`: Release build, 74/74 tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Next planned step:** NAudio (item A) on a new `feature/naudio` branch from `release/2.0`.
+- **Next planned step:** hotkeys through a library (item D) on a new work branch from `release/2.0`.
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
@@ -45,9 +46,10 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
   Startup.cs             single-instance mutex, args, log4net init, Store activation check
   App.xaml(.cs)          global resources; instantiates the 4 root ViewModels as resources
   CoreAudioWrapper/
-    CoreAudio/           hand-written COM interop: IMMDevice*, IAudioSession*, IAudioEndpointVolume*, IPolicyConfig, PROPVARIANT...
-    Wrapper/             thin managed wrapper: DeviceEnumerator, MMDevice, IDevice(+extensions that build models),
-                         AudioSessionProvider, *Notifications/*Handler (COM callbacks -> C# events), PolicyClient, GuidValue
+    CoreAudio/           IPolicyConfig + ERole: the only hand-written COM interop left (set the default device)
+    Wrapper/             wrapper over NAudio: DeviceEnumerator, AudioDevice (IDevice), AudioModelFactory (builds models),
+                         AudioSessionProvider, *Notifications/*Handler (NAudio events -> C# events), SessionEchoFilter,
+                         DeviceFormat, PolicyClient, GuidValue
   DataProvider/          DeviceProvider (singleton, active/default devices), SettingsProvider (settings store access),
                          Settings/ (settings.json via Nucs.JsonSettings: VolumeySettings + sections, legacy 1.x importer),
                          ScreenInfoProvider
@@ -84,7 +86,7 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 65 tests, all passing. `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 74 tests, all passing. `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
   - `PlatformTarget` is always x64 and the `RuntimeIdentifier` is win-x64, because the app's `RuntimeIdentifier` is win-x64 on every platform.
@@ -129,12 +131,18 @@ Bump the version in **3 places**: `Volumey/Volumey.csproj` (`Version`, `Assembly
 4. The tray icon is `Hardcodet.NotifyIcon.Wpf` (`MainView.Tray`). Win11 uses a plain text tooltip because custom tooltips break there.
 
 ### Audio layer
-- `DeviceEnumerator` wraps `IMMDeviceEnumerator`. It builds an `OutputDeviceModel` for every active render endpoint through `IDeviceExtensions.GetOutputDeviceModel`, which activates `IAudioSessionManager2` and enumerates sessions into `AudioProcessModel`s.
-- `DeviceStateNotificationsHandler` (an `IMMNotificationClient`) raises DefaultDeviceChanged, ActiveDeviceAdded, DeviceDisabled, NameChanged, IconPathChanged and FormatChanged. These arrive on **COM/MTA threads**, and models marshal to the UI with `App.Current.Dispatcher.Invoke`.
-- `MasterSessionModel` is the endpoint volume (`IAudioEndpointVolume` + callback). `AudioProcessModel` groups one or more `AudioSessionModel`s (`ISimpleAudioVolume` + `IAudioSessionEvents`) that share a PID. `AudioSessionProvider` (`IAudioSessionNotification`) adds sessions as they are created (`SessionCreatedEventArgs`). Sessions are grouped into processes by PID and also by the session's grouping parameter. Outside `OutputDeviceModel`, read the processes through `GetImmutableProcessesAsync()`, not the live collection.
-- **Echo suppression:** volume and mute writes from the app pass `GuidValue.Internal.VolumeGUID` as the COM event context. Callbacks compare the context and skip work for self-originated changes. `GuidValue.Internal.Empty` marks hotkey-originated changes so that notifications still show. Keep this mechanism in any rewrite.
-- `PolicyClient` sets the default device through the **undocumented** `IPolicyConfig` COM interface, for all three roles (Console, Multimedia, Communications).
-- Wrapper interfaces (`IDevice`, `IAudioSessionVolume`, `IAudioSessionStateNotifications`, `ISessionProvider`, `IDeviceStateNotificationHandler`, `IMasterVolumeNotificationHandler`) exist so the tests can mock COM with Moq.
+Built on **NAudio.Wasapi 3.x** (`NAudio.CoreAudioApi`). NAudio 3 uses source-generated COM (`ComWrappers`); its raw COM interfaces are internal, so the app only uses NAudio's wrapper classes. Only `Volumey/CoreAudioWrapper/Wrapper/` touches NAudio types: models and VMs use the wrapper interfaces and the app's own types (`DeviceFormat`, `AudioSessionState`, `AudioSessionDisconnectReason`).
+- `DeviceEnumerator` wraps NAudio's `MMDeviceEnumerator`. It builds an `OutputDeviceModel` for every active render endpoint through `AudioModelFactory.CreateOutputDeviceModel`, which reads the device's `AudioSessionManager.Sessions` into `AudioProcessModel`s.
+- `AudioDevice` (`IDevice`) wraps NAudio's `MMDevice` and **owns** it: `OutputDeviceModel.Dispose` disposes it **on the thread pool**, which also releases its endpoint volume and session manager. A COM release waits for running audio callbacks, and those may wait for the UI thread, so never release device objects on the UI thread (it hung the app when a device was disabled). NAudio keeps a device's property store open, and an open store doesn't show later changes, so `AudioDevice` reopens the store for each property read (name, description, icon, format).
+- `DeviceStateNotificationsHandler` uses NAudio's `MMDeviceNotificationClient` (`CreateNotificationClient`, without a synchronization context) and raises DefaultDeviceChanged, ActiveDeviceAdded, DeviceDisabled, NameChanged, IconPathChanged and FormatChanged. NAudio raises them on **COM threads**; the handler passes every event to the UI thread with `Dispatcher.InvokeAsync` and **never waits** on the COM thread (a waiting callback deadlocks with a device release on the UI thread). Handlers downstream therefore run on the UI thread.
+- `MasterSessionModel` is the endpoint volume (`AudioEndpointVolume` + `OnVolumeNotification`). NAudio raises that event on the `SynchronizationContext` that was current when the endpoint volume was created (the UI thread in practice), otherwise on a COM thread.
+- `AudioProcessModel` groups one or more `AudioSessionModel`s that share a PID. A session is NAudio's `AudioSessionControl` + `SimpleAudioVolume` + an `IAudioSessionEventsHandler` (`AudioSessionStateNotifications`, which owns and disposes the session control). `AudioSessionProvider` (`AudioSessionManager.OnSessionCreated`, on a COM thread) adds sessions as they are created (`SessionCreatedEventArgs.CreateProcessModel`). Sessions are grouped into processes by PID and also by the session's grouping parameter. Outside `OutputDeviceModel`, read the processes through `GetImmutableProcessesAsync()`, not the live collection.
+- **Echo suppression** (skipping callbacks caused by the app's own writes). Keep it in any rewrite.
+  - **Master:** writes pass an event context through `AudioEndpointVolume.NotificationGuid`: `GuidValue.Internal.VolumeGUID` for UI changes (the callback skips them), `GuidValue.Internal.Empty` for hotkey changes so that notifications still show.
+  - **Sessions:** NAudio writes session volume with an empty context and drops the context from session events. `SessionEchoFilter` remembers the state (volume + mute) each own write leads to, for 1 s, and the session callback skips a matching report. The `ref Guid context` of `AudioSessionVolume.SetVolume` is ignored.
+  - Both callbacks also skip reports that don't match the current system state (outdated callbacks).
+- `PolicyClient` sets the default device through the **undocumented** `IPolicyConfig` COM interface (classic `[ComImport]` interop in `CoreAudioWrapper/CoreAudio/`, not in NAudio), for all three roles (Console, Multimedia, Communications).
+- Wrapper interfaces (`IDevice`, `IAudioSessionVolume`, `IAudioSessionStateNotifications`, `ISessionProvider`, `IDeviceStateNotificationHandler`, `IMasterVolumeNotificationHandler`, `IDeviceEnumerator`) exist so the tests can mock the audio layer with Moq.
 
 ### Hotkeys
 - `HotkeysControl` (static) holds the one `IHotkeyManager`. It ref-counts hotkeys (`HotkeysUserCount`) so that several features can share a combo, raises `HotkeyPressed`, and validates hotkeys (no bare F12, no duplicates via `SettingsProvider.HotkeyExists`).
@@ -193,6 +201,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 | log4net-loggly 9.0.0 | remote logging to Loggly | **Loggly input key is committed in `log4net.config`** |
 | log4net 2.0.17, Newtonsoft.Json 13.0.4 (direct refs) | override the vulnerable transitive versions from log4net-loggly (2.0.8 / 10.0.3) | log4net 2.0.17 still has one moderate advisory (NU1902, GHSA-4f7c-pmjv-c25w). It's fixed in log4net 3.x, but log4net-loggly was built against 2.x, so test logging before bumping |
 | — | `ObservableConcurrentDictionary` | In-repo `Helper/ObservableConcurrentDictionary.cs` (WPF-bindable; raises a reset on the creating thread's context). Replaced the .NET Framework-only `MSFT.ParallelExtensionsExtras` package |
+| NAudio.Wasapi 3.1.0 (+ NAudio.Core) | audio devices, endpoint volume, sessions | MIT, active (3.1.0 Sep 2026). Targets `net9.0`, AOT-compatible, source-generated COM. 3.x made the raw COM interfaces internal |
 | Nucs.JsonSettings 2.3.2 (+ .Autosave, .NotifyChanges) | settings.json, autosave, change notifications | MIT, active (Aug 2026). Build-time weaving via AspectInjector; built on Newtonsoft.Json (already referenced) |
 | Microsoft.Xaml.Behaviors.Wpf, WpfScreenHelper | misc | |
 
@@ -218,26 +227,22 @@ The owner is coming back to the project to work through the GitHub issues and mo
 
 ### Suggested order
 Each step should leave a working, shippable build.
-1. ~~Universal tests + green baseline (item E).~~ Done: MSTest (65 tests now).
+1. ~~Universal tests + green baseline (item E).~~ Done: MSTest.
 2. ~~Retarget to **.NET 10**~~. Done (2026-10-08): the app and tests are on `net10.0-windows10.0.19041.0`, and the Store MSIX builds. .NET 10 is LTS, supported until Nov 2028. Don't target .NET 11 until it ships as stable, and only move to it if the owner asks.
    - **Verified (2026-10-08, Debug build):** startup, mixer, settings pages, theme, update check, and settings save through the UI. **Still to verify:** hotkeys, OSD popups, autostart, the tray menu, and the installed MSIX. The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET.
    - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
-4. Audio layer → NAudio (item A).
+4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
 5. Hotkeys through a library, with a non-blocking mode (item D).
 6. Tray icon on the current NotifyIcon library (item F).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
 ### A. Replace the hand-written CoreAudio wrapper with NAudio
-Use `NAudio.Wasapi` / `NAudio.CoreAudioApi`.
-- `MMDeviceEnumerator`, `MMDevice`, `AudioEndpointVolume` (+`OnVolumeNotification`), `AudioSessionManager` (`OnSessionCreated`, `Sessions`), `AudioSessionControl` (`RegisterEventClient` / `IAudioSessionEventsHandler`, `SimpleAudioVolume`, `GetProcessID`, `IconPath`, `DisplayName`), and `IMMNotificationClient` via `RegisterEndpointNotificationCallback` all exist in NAudio.
-- **Not in NAudio:** `IPolicyConfig` (set the default device). Keep `PolicyClient` + `IPolicyConfig.cs`.
-- **Event-context GUID (checked against NAudio master, Oct 2026):**
-  - Endpoint (master) volume is fine. `AudioEndpointVolume.NotificationGuid` sets the context used by the `MasterVolumeLevelScalar`/`Mute` setters, and `AudioVolumeNotificationData.EventContext` exposes it in callbacks.
-  - Per-app sessions are **not** covered. `SimpleAudioVolume.Volume`/`Mute` hard-code `Guid.Empty`, and `IAudioSessionEventsHandler.OnVolumeChanged(float, bool)` drops the context. Keep a small interop path for session volume writes and session events (`ISimpleAudioVolume`, `IAudioSessionEvents`), or replace the echo suppression for sessions with something else (e.g. compare against the last value the app wrote).
-- **Device format:** NAudio has no device-format property. Read `PKEY_AudioEngine_DeviceFormat` from `MMDevice.Properties` and parse the `WAVEFORMATEX` blob, as the current code does.
-- NAudio's `AudioSessionManager.OnSessionCreated` passes a raw `IAudioSessionControl` (wrap it yourself), on a COM thread. NAudio objects have finalizers that make COM calls, so dispose them explicitly.
-- Keep the wrapper interfaces, or replacements for them, so the tests can keep mocking the audio layer. Models must not depend on NAudio types directly.
+**Done (2026-10-09)** with NAudio.Wasapi 3.1.0; see *Audio layer* for how it works. Decisions:
+- **NAudio 3.x, not 2.x:** current line, targets `net9.0`. In 3.x the raw COM interfaces are internal, so a separate interop path for session volume (to keep the event context) wasn't possible. Session echo suppression now compares states instead (`SessionEchoFilter`).
+- Kept from the old code: `PolicyClient` + `IPolicyConfig.cs` (not in NAudio), and the wrapper interfaces (without their COM base interfaces), so the tests still mock the audio layer and models don't see NAudio types.
+- The device format is read from the `PKEY_AudioEngine_DeviceFormat` blob (NAudio returns `byte[]`) into `DeviceFormat`.
+- The app's own `AudioSessionState` enum had Active and Inactive swapped; the new enum matches Core Audio (only stored, never compared).
 
 ### B. New settings format
 **Done (2026-10-08).** The owner chose a plain JSON file with a ready-made library (Nucs.JsonSettings) and a composed settings object (root + sections). A LiteDB key-value store was tried first and dropped. See *Settings persistence*.

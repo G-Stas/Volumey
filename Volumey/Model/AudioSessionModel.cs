@@ -8,7 +8,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
-using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.Wrapper;
 
 namespace Volumey.Model

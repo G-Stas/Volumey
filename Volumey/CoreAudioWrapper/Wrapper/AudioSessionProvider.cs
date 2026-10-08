@@ -1,6 +1,6 @@
 ﻿using System;
 using log4net;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+using NAudio.CoreAudioApi;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -10,39 +10,32 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     class AudioSessionProvider : ISessionProvider
     {
         public event Action<object, SessionCreatedEventArgs> SessionCreated;
-        private IAudioSessionManager2 sessionManager;
+        private readonly AudioSessionManager sessionManager;
 
-        internal AudioSessionProvider(IAudioSessionManager2 sessionManager)
+        internal AudioSessionProvider(AudioSessionManager sessionManager)
         {
             this.sessionManager = sessionManager;
-            this.RegisterSessionNotifications();
+            this.sessionManager.OnSessionCreated += OnSessionCreated;
         }
 
-        public int OnSessionCreated(IAudioSessionControl sessionControl)
+        //NAudio raises it on a COM thread
+        private void OnSessionCreated(object sender, AudioSessionControl sessionControl)
         {
-            var session = sessionControl.GetAudioSessionModel();
-            if(session != null)
-                this.SessionCreated?.Invoke(this, new SessionCreatedEventArgs(session, sessionControl));
-            return 0;
-        }
-
-        private void RegisterSessionNotifications()
-        {
-            try { this.sessionManager?.RegisterSessionNotification(this); }
+            try
+            {
+                var session = AudioModelFactory.CreateSessionModel(sessionControl);
+                if(session != null)
+                    this.SessionCreated?.Invoke(this, new SessionCreatedEventArgs(session, sessionControl));
+            }
             catch(Exception e)
             {
-                LogManager.GetLogger(typeof(AudioSessionProvider)).Error($"Failed to register session provider notifications", e);
+                LogManager.GetLogger(typeof(AudioSessionProvider)).Error("Failed to handle a new audio session", e);
             }
-        }
-
-        private void UnregisterSessionNotification()
-        {
-            this.sessionManager?.UnregisterSessionNotification(this);
         }
 
         public void Dispose()
         {
-            this.UnregisterSessionNotification();
+            this.sessionManager.OnSessionCreated -= OnSessionCreated;
         }
     }
 }

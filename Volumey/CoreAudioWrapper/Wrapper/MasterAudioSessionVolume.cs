@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+using NAudio.CoreAudioApi;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -9,19 +8,15 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     /// </summary>
     class MasterAudioSessionVolume : IAudioSessionVolume
     {
-        private readonly IAudioEndpointVolume audioVolume;
+        private readonly AudioEndpointVolume audioVolume;
 
-        public MasterAudioSessionVolume(IAudioEndpointVolume aVol)
+        public MasterAudioSessionVolume(AudioEndpointVolume aVol)
            => audioVolume = aVol;
 
         /// <summary>
         /// Get's the master volume level as a uniform scaling factor.
         /// </summary>
-        public float GetVolume()
-        {
-            Marshal.ThrowExceptionForHR(this.audioVolume.GetMasterVolumeLevelScalar(out float volumeLevel));
-            return volumeLevel;
-        }
+        public float GetVolume() => this.audioVolume.MasterVolumeLevelScalar;
 
         /// <summary>
         /// Sets the master volume level, using a uniform scaling factor.
@@ -40,24 +35,30 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             //prevent setting volume in system if the master session already has the same value
             if(sysVol != volumeLevel)
             {
-                float level = volumeLevel / 100.0f;
-                Marshal.ThrowExceptionForHR(this.audioVolume.SetMasterVolumeLevelScalar(level, ref context));
+                //NAudio passes NotificationGuid as the event context of its writes
+                lock(this.audioVolume)
+                {
+                    this.audioVolume.NotificationGuid = context;
+                    this.audioVolume.MasterVolumeLevelScalar = volumeLevel / 100.0f;
+                }
             }
         }
 
         /// <summary>
         /// Get the mute state for the master volume.
         /// </summary>
-        public bool GetMute()
-        {
-            Marshal.ThrowExceptionForHR(this.audioVolume.GetMute(out bool muteState));
-            return muteState;
-        }
+        public bool GetMute() => this.audioVolume.Mute;
 
         /// <summary>
         /// Set the mute state for the master volume.
         /// </summary>
-        public void SetMute(bool muteState) 
-            => Marshal.ThrowExceptionForHR(this.audioVolume.SetMute(muteState, ref GuidValue.Internal.VolumeGUID));
+        public void SetMute(bool muteState)
+        {
+            lock(this.audioVolume)
+            {
+                this.audioVolume.NotificationGuid = GuidValue.Internal.VolumeGUID;
+                this.audioVolume.Mute = muteState;
+            }
+        }
     }
 }

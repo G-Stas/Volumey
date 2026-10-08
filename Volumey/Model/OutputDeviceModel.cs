@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Volumey.Controls;
-using Volumey.CoreAudioWrapper.CoreAudio;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
@@ -49,7 +48,7 @@ namespace Volumey.Model
 		private readonly IDevice device;
 		private readonly ISessionProvider sessionProvider;
 		private readonly IDeviceStateNotificationHandler deviceStateEvents;
-		private WAVEFORMATEX? currentStreamFormat;
+		private DeviceFormat? currentStreamFormat;
 
 
 		private readonly SemaphoreSlim _processesSemaphore = new SemaphoreSlim(1, 1);
@@ -191,9 +190,9 @@ namespace Volumey.Model
 					await dispatcher.InvokeAsync(() =>
 					{
 						var newFormat = this.device.GetDeviceFormat();
-						if(newFormat.HasValue && !newFormat.Value.Equals(this.currentStreamFormat))
+						if(newFormat.HasValue && newFormat != this.currentStreamFormat)
 						{
-							currentStreamFormat = newFormat.Value;
+							currentStreamFormat = newFormat;
 							this.FormatChanged?.Invoke(this);
 						}
 					});
@@ -249,7 +248,7 @@ namespace Volumey.Model
 				}
 				else
 				{
-					AudioProcessModel newProcess = e.SessionModel.GetProcessModelFromSessionModel(e.SessionControl);
+					AudioProcessModel newProcess = e.CreateProcessModel();
 					newProcess.AddSession(e.SessionModel);
 					
 					await dispatcher.InvokeAsync(() =>
@@ -301,6 +300,10 @@ namespace Volumey.Model
 			}
 			
 			this._processesSemaphore.Dispose();
+			//Release the device's COM objects on the thread pool: a release waits for running audio callbacks,
+			//and those may wait for the UI thread
+			var disposedDevice = this.device;
+			_ = Task.Run(() => disposedDevice.Dispose());
 			this._disabled = null;
 			this.ProcessCreated = null;
 		}
