@@ -18,8 +18,21 @@ namespace Volumey.Tests
 			filter.OnVolumeWritten(60);
 
 			Assert.IsTrue(filter.IsEcho(60, false));
-			//the echo is consumed: the same state reported again comes from somewhere else
-			Assert.IsFalse(filter.IsEcho(60, false));
+			//Windows can deliver the same event again
+			Assert.IsTrue(filter.IsEcho(60, false));
+		}
+
+		[TestMethod]
+		public void RepeatedVolumeEchoAfterAMuteWriteIsStillAnEcho()
+		{
+			//the case that un-muted the app: a repeat of the volume echo arrived after the mute was written
+			var filter = CreateFilter(volume: 100);
+			filter.OnVolumeWritten(37);
+			Assert.IsTrue(filter.IsEcho(37, false));
+			filter.OnMuteWritten(true);
+
+			Assert.IsTrue(filter.IsEcho(37, false));
+			Assert.IsTrue(filter.IsEcho(37, true));
 		}
 
 		[TestMethod]
