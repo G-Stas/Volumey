@@ -239,6 +239,23 @@ namespace Volumey.ViewModel.Settings
 			_hotkeyPressed?.Invoke(hotkey);
 		}
 
+		/// <summary>
+		/// Forgets the hotkey manager, the registered hotkeys and all subscribers. Only for tests, which share this static state.
+		/// </summary>
+		internal static void Reset()
+		{
+			if(hotkeyManager != null)
+				hotkeyManager.HotkeyPressed -= OnHotkeyPressed;
+			hotkeyManager = null;
+			IsActive = false;
+			openMixer = null;
+			volumeStep = 1;
+			HotkeysUserCount.Clear();
+			Activated = null;
+			_hotkeyPressed = null;
+			OpenHotkeyPressed = null;
+		}
+
 		public static void Dispose()
 		{
 			hotkeyManager.Dispose();

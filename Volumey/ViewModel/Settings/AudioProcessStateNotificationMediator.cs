@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Threading;
 using Volumey.Helper;
 using Volumey.Model;
 
@@ -6,9 +7,11 @@ namespace Volumey.ViewModel.Settings
 {
 	public class AudioProcessStateNotificationMediator : IAudioProcessStateMediator
 	{
+		private static Dispatcher UiDispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
 		public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
 		{
-			Application.Current.Dispatcher.InvokeAsync(() =>
+			UiDispatcher.InvokeAsync(() =>
 			{
 				NotificationManagerHelper.ShowNotification(sender);
 			});
@@ -16,7 +19,7 @@ namespace Volumey.ViewModel.Settings
 
 		public void NotifyOfDisposing(IManagedMasterAudioSession sender)
 		{
-			Application.Current.Dispatcher.InvokeAsync(() =>
+			UiDispatcher.InvokeAsync(() =>
 			{
 				NotificationManagerHelper.CloseNotification(sender);
 			});

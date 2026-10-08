@@ -68,11 +68,12 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??=LogManager.GetLogger(typeof(ForegroundWindowVolumeViewModel));
 
-		internal ForegroundWindowVolumeViewModel()
+		internal ForegroundWindowVolumeViewModel() : this(DeviceProvider.GetInstance()) { }
+
+		internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider)
 		{
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
-			var deviceProvider = DeviceProvider.GetInstance();
 			_defaultDevice = deviceProvider.DefaultDevice;
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 

@@ -58,11 +58,13 @@ namespace Volumey.ViewModel.Settings
         private ILog _logger;
         private ILog Logger => this._logger ??= LogManager.GetLogger(typeof(DefaultDeviceHotkeysViewModel));
 
-        public DefaultDeviceHotkeysViewModel()
+        public DefaultDeviceHotkeysViewModel() : this(DataProvider.DeviceProvider.GetInstance()) { }
+
+        internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider)
         {
             ErrorDictionary.LanguageChanged += () => { this.SetErrorMessage(this.CurrentErrorType);};
             
-            this.DeviceProvider = DataProvider.DeviceProvider.GetInstance();
+            this.DeviceProvider = deviceProvider;
 
             this.AddDeviceCommand = new ActionCommand(AddDevice);
             this.RemoveDeviceCommand = new ActionCommand(RemoveDevice);
@@ -154,12 +156,14 @@ namespace Volumey.ViewModel.Settings
             this.RegisteredDevices.Add(hotkey, deviceInfo);
             this.SelectedDevice = null;
             this.HotKey = null;
+            //take the settings now: they may be replaced before the task runs
+            var hotkeySettings = SettingsProvider.Settings.Hotkeys;
             Task.Run(() =>
             {
                 try
                 {
                     this.Logger.Info($"Registered default device hotkey: {hotkey.ToString()}, count: {this.RegisteredDevices.Keys.Count.ToString()}");
-                    this.SaveRegisteredDevices();
+                    this.SaveRegisteredDevices(hotkeySettings);
                 }
                 catch { }
             });
@@ -200,12 +204,14 @@ namespace Volumey.ViewModel.Settings
             return devices;
         }
 
-        private void SaveRegisteredDevices()
+        private void SaveRegisteredDevices() => this.SaveRegisteredDevices(SettingsProvider.Settings.Hotkeys);
+
+        private void SaveRegisteredDevices(HotkeySettings hotkeySettings)
         {
             var entries = this.RegisteredDevices
                               .Select(d => new DeviceHotkeyEntry { Hotkey = d.Key, DeviceId = d.Value.ID, DeviceName = d.Value.Name })
                               .ToArray();
-            SettingsProvider.Settings.Hotkeys.DefaultDevices = entries;
+            hotkeySettings.DefaultDevices = entries;
         }
 
         private void OnHotkeyPressed(HotKey pressedHotkey)

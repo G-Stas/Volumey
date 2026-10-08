@@ -114,12 +114,13 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppsHotkeysViewModel));
 		
-		public AppsHotkeysViewModel()
+		public AppsHotkeysViewModel() : this(DeviceProvider.GetInstance()) { }
+
+		internal AppsHotkeysViewModel(IDeviceProvider dProvider)
 		{
 			this.AddAppCommand = new ActionCommand(AddApp);
 			this.RemoveAppCommand = new ActionCommand(RemoveApp);
 
-			var dProvider = DeviceProvider.GetInstance();
 			dProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.DefaultDevice = dProvider.DefaultDevice;
 

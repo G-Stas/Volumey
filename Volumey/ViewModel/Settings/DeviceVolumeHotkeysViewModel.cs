@@ -111,9 +111,10 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceVolumeHotkeysViewModel));
 
-		public DeviceVolumeHotkeysViewModel()
+		public DeviceVolumeHotkeysViewModel() : this(DeviceProvider.GetInstance()) { }
+
+		internal DeviceVolumeHotkeysViewModel(IDeviceProvider deviceProvider)
 		{
-			var deviceProvider = DeviceProvider.GetInstance();
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.defaultDevice = deviceProvider.DefaultDevice;
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
@@ -262,7 +263,8 @@ namespace Volumey.ViewModel.Settings
 
 		private void OnNotificationSettingsChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if(e.PropertyName == nameof(NotificationSettings.Enabled))
+			//no device (none is active, or the default one was disabled): the next default device gets the mediator when it's set
+			if(e.PropertyName == nameof(NotificationSettings.Enabled) && this.defaultDevice != null)
 			{
 				if(SettingsProvider.Settings.Notifications.Enabled)
 					this.defaultDevice.SetStateNotificationMediator(this.DeviceMediator);
