@@ -25,6 +25,8 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Controls;
 
+using Volumey.ViewModel.Settings;
+
 namespace Volumey.Controls
 {
 	public class HotKeyBox : TextBox
@@ -109,6 +111,7 @@ namespace Volumey.Controls
 
 		private void TextBoxOnGotFocus(object sender, RoutedEventArgs routedEventArgs)
 		{
+			HotkeysControl.IsEditingHotkey = true;
 			ComponentDispatcher.ThreadPreprocessMessage += this.ComponentDispatcherOnThreadPreprocessMessage;
 		}
 
@@ -123,6 +126,7 @@ namespace Volumey.Controls
 
 		private void TextBoxOnLostFocus(object sender, RoutedEventArgs routedEventArgs)
 		{
+			HotkeysControl.IsEditingHotkey = false;
 			ComponentDispatcher.ThreadPreprocessMessage -= this.ComponentDispatcherOnThreadPreprocessMessage;
 		}
 

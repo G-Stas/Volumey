@@ -18,7 +18,8 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
 - Validated on `release/2.0`: Release build, 144/144 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Next planned step:** hotkeys through a library (item D). Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C.
+- **Open work branch `feature/sharphook-hotkeys`** (item D, not merged yet): non-blocking hotkeys through SharpHook plus the mode toggle. Done: Release build, 152/152 unit tests, 8/8 integration tests, the Store MSIX build (contains `SharpHook.dll` and `uiohook.dll`), and a dev run (toggle saves `Hotkeys.BlockInSystem`, the hook DLL loads, repeated switching and a start in hook mode work, clean log). **Still to check before merging:** pressing real hotkeys in both modes (keys reach other apps only in non-blocking mode), and switching modes with hotkeys registered. These need real key presses, so the owner does them.
+- Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
@@ -58,7 +59,7 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
     Settings/            one VM per settings feature + HotkeysControl (static hotkey hub) + notification mediator
   View/                  MainView (window + tray), MixerView/MasterView/SessionsListView, SettingsView + SettingsPage/*,
                          Controls/ (HotkeyBox, VolumeSlider...), Converters/, Styles/, Localization/
-  Helper/                NativeMethods (P/Invoke), HotkeyManager / HotkeyHookManager, NotificationManagerHelper,
+  Helper/                NativeMethods (P/Invoke), HotkeyManager / SharpHookHotkeyManager, NotificationManagerHelper,
                          SystemIntegrationHelper (autostart/start menu), UpdateHelper, IconHelper...
   Resources/             Resources*.resx (localization), icons, and 2 vendored DLLs (see Dependencies)
   log4net.config         Loggly appender (Release/Store only)
@@ -88,7 +89,7 @@ dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 144 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 152 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - **Audio integration tests** (`Volumey.IntegrationTests`, category `Integration`, 8 tests): a separate project because they run a real WPF `Application` on its own UI thread (`AudioTestEnvironment`), as the app does, so model callbacks marshal to a real dispatcher; that would change how the unit tests behave. The test process plays silence (`TestAudioSession`, NAudio `WasapiPlayer`) to get its own session and uses that session's volume as "the Windows mixer". Device volumes are only read. Without an output device the tests are inconclusive; CI runs only `Volumey.Tests`. Windows remembers the test executable's session volume and mute between runs, so `TestAudioSession` resets them.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
@@ -151,7 +152,12 @@ Built on **NAudio.Wasapi 3.x** (`NAudio.CoreAudioApi`). NAudio 3 uses source-gen
 
 ### Hotkeys
 - `HotkeysControl` (static) holds the one `IHotkeyManager`. It ref-counts hotkeys (`HotkeysUserCount`) so that several features can share a combo, raises `HotkeyPressed`, and validates hotkeys (no bare F12, no duplicates via `SettingsProvider.HotkeyExists`).
-- `HotkeyManager` (**active**) uses `RegisterHotKey`/WM_HOTKEY, which blocks the key combo system-wide. `HotkeyHookManager` uses a low-level keyboard hook (`WH_KEYBOARD_LL`) that does not block keys. It is implemented but **unused**: the switching code in `SettingsViewModel` is commented out, along with the `BlockHotkeys` / `AllowDuplicates` settings.
+- Two hotkey managers behind `IHotkeyManager`; the setting `Hotkeys.BlockInSystem` (default `true`, toggle "Block registered hotkeys in the OS" on the Misc settings page, `SettingsViewModel.BlockHotkeysInSystem`) picks one:
+  - **Blocking** (`HotkeyManager`, the app's own code): `RegisterHotKey`/WM_HOTKEY. Other apps don't get the combo; registering fails if another app owns it. Works with elevated windows in front.
+  - **Non-blocking** (`SharpHookHotkeyManager`, SharpHook `EventLoopGlobalHook`, keyboard only): only listens, so other apps still get the keys. Registering never fails (a hook can't detect conflicts). It **doesn't see keys while an elevated (administrator) window is in focus** (the settings page says so). Key events arrive on the hook's event-loop thread; the manager only matches them there (`ToHotkey`: raw code = virtual-key code, `EventMask` → `ModifierKeys`, left/right modifiers alike, modifier keys alone ignored) and raises `HotkeyPressed` on the UI thread. Auto-repeat fires repeatedly, like `RegisterHotKey`.
+  - Switching at runtime: `HotkeysControl.SetHotkeyManager` moves the registered hotkeys to the new manager (a combo that fails to register there is logged and skipped), disposes the old one, keeps the user counts, and doesn't raise `Activated` again.
+  - `HotkeysControl.IsEditingHotkey` (set by `HotKeyBox` while it has focus) ignores hotkeys, so typing a registered combo into a hotkey box doesn't trigger it in non-blocking mode.
+  - Duplicates are rejected in both modes, as before. SharpHook brings the native `uiohook.dll` (copied next to the exe and into the MSIX).
 - Models subscribe to `HotkeysControl.HotkeyPressed` and handle their own up/down/mute hotkeys (`SetVolumeHotkeys`, `SetMuteHotkey`). App hotkeys are stored by **process name** (`VolumeHotkeysPair`) and get applied when a matching process shows up. Default-device hotkeys are stored as a `DeviceInfo` (ID + name), and an active device matches if its ID **or** its name matches, after which the stored info is refreshed.
 
 ### Settings persistence
@@ -208,6 +214,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 | — | `ObservableConcurrentDictionary` | In-repo `Helper/ObservableConcurrentDictionary.cs` (WPF-bindable; raises a reset on the creating thread's context). Replaced the .NET Framework-only `MSFT.ParallelExtensionsExtras` package |
 | NAudio.Wasapi 3.1.0 (+ NAudio.Core) | audio devices, endpoint volume, sessions | MIT, active (3.1.0 Sep 2026). Targets `net9.0`, AOT-compatible, source-generated COM. 3.x made the raw COM interfaces internal |
 | Nucs.JsonSettings 2.3.2 (+ .Autosave, .NotifyChanges) | settings.json, autosave, change notifications | MIT, active (Aug 2026). Build-time weaving via AspectInjector; built on Newtonsoft.Json (already referenced) |
+| SharpHook 8.0.0 | non-blocking hotkeys (keyboard hook) | MIT, active (Aug 2026). Ships native `uiohook.dll` (win-x64), included in the MSIX. Mouse hooks are available for later (issues #31, #70, #93) |
 | Microsoft.Xaml.Behaviors.Wpf, WpfScreenHelper | misc | |
 
 WinRT APIs (`StoreContext`, `AppInstance`, `Package`) come from the `-windows10.0.19041.0` TFM; the `Microsoft.Windows.SDK.Contracts` package is gone. `System.Drawing` comes from the Windows Desktop framework. Code analyzers come with the SDK, so there's no NetAnalyzers package.
@@ -237,7 +244,7 @@ Each step should leave a working, shippable build.
    - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
-5. Hotkeys through a library, with a non-blocking mode (item D).
+5. Hotkeys through a library, with a non-blocking mode (item D). Implemented on `feature/sharphook-hotkeys`, runtime check by the owner pending.
 6. Tray icon on the current NotifyIcon library (item F).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
@@ -288,10 +295,7 @@ Candidates (state as of Oct 2026):
 - **NHotkey.Wpf** (4.0.0, Jan 2026): a small wrapper around `RegisterHotKey`. It's a candidate for the **blocking** mode if the own `HotkeyManager` should go too; otherwise keep `HotkeyManager` for blocking mode.
 - Not recommended: H.Hooks (last release Dec 2024), MouseKeyHook (Apr 2023), GlobalHotKeys (2017).
 
-Plan:
-- Put the library behind `IHotkeyManager`, so `HotkeysControl` and the models stay unchanged. Then replace `Helper/HotkeyHookManager.cs` (the app's own `WH_KEYBOARD_LL` code, currently unused) with the library-based manager.
-- Re-enable the mode switch: the `BlockHotkeysInSystem`/`AllowDuplicateHotkeys` code is commented out in `ViewModel/SettingsViewModel.cs`, and `ConvertHotkeysToNewManager` in `HotkeysControl`. Store the choice in the settings, e.g. `Hotkeys.BlockInSystem`.
-- The `HotKey` model (`Key` + `ModifierKeys`) is WPF-based. Map the library's key codes to it in one place, and handle left/right modifier variants and auto-repeat.
+**Implemented on `feature/sharphook-hotkeys` (2026-10-09)**, see *Hotkeys*. Owner's decision: keep the own `HotkeyManager` for blocking mode (SharpHook can only swallow keys from its hook, which isn't the same as `RegisterHotKey`: no conflict check, blind to elevated windows), SharpHook for non-blocking mode. The old `HotkeyHookManager` and its P/Invokes are deleted. `AllowDuplicates` was dropped: duplicates stay rejected in both modes.
 
 Things to get right:
 - **Callback speed:** Windows silently removes low-level hooks that respond too slowly (`LowLevelHooksTimeout`, about 1 s). Never make COM audio calls on the hook thread; dispatch the work.

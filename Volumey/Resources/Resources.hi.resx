@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>पंजीकृत हॉटकी इनपुट को ब्लॉक करें</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>बंद होने पर हॉटकी की कुंजियाँ अन्य ऐप्स तक भी पहुँचती हैं, लेकिन व्यवस्थापक के रूप में चल रहा ऐप सक्रिय होने पर हॉटकी काम नहीं करतीं।</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>डुप्लीकेट हॉटकी की अनुमति दें</value>
   </data>

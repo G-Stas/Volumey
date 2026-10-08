@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Blockieren Sie registrierte Hotkeys im Betriebssystem</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Wenn aus, erreichen die Tasten eines Hotkeys auch andere Apps, aber Hotkeys funktionieren nicht, solange eine als Administrator ausgeführte App aktiv ist.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Doppelte hotkeys zulassen</value>
   </data>

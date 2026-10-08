@@ -47,6 +47,11 @@ namespace Volumey.DataProvider.Settings
 		public HotKey ForegroundVolumeUp { get; set; }
 		public HotKey ForegroundVolumeDown { get; set; }
 		public bool PreventResettingVolumeBalance { get; set; }
+		/// <summary>
+		/// True: hotkeys are registered with Windows and other apps don't get the keys (RegisterHotKey).
+		/// False: a keyboard hook only listens (SharpHook), so the keys still reach other apps.
+		/// </summary>
+		public bool BlockInSystem { get; set; } = true;
 		public IReadOnlyList<AppHotkeysEntry> Apps { get; set; } = Array.Empty<AppHotkeysEntry>();
 		public IReadOnlyList<DeviceHotkeyEntry> DefaultDevices { get; set; } = Array.Empty<DeviceHotkeyEntry>();
 		public IReadOnlyList<SystemHotkeyEntry> System { get; set; } = Array.Empty<SystemHotkeyEntry>();

@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>登録されたホットキー入力をブロックする</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>オフの場合、ホットキーのキー入力は他のアプリにも届きますが、管理者として実行中のアプリがアクティブな間はホットキーが動作しません。</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>重複するホットキーを許可する</value>
   </data>

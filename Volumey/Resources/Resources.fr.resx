@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Bloquer les raccourcis clavier enregistrés pour le système d'exploitation</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Si désactivé, les touches d&apos;un raccourci parviennent aussi aux autres applications, mais les raccourcis ne fonctionnent pas lorsqu&apos;une application exécutée en tant qu&apos;administrateur est active.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Autoriser les raccourcis clavier en double</value>
   </data>
