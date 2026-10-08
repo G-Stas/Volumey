@@ -1,9 +1,8 @@
 ﻿using System;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
-	public interface ISessionProvider : IAudioSessionNotification, IDisposable
+	public interface ISessionProvider : IDisposable
 	{
 		event Action<object, SessionCreatedEventArgs> SessionCreated;
 	}

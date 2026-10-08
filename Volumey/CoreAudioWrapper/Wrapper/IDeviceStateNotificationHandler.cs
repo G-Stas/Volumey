@@ -1,10 +1,9 @@
 ﻿using System;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
 using Volumey.Model;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
-	public interface IDeviceStateNotificationHandler : IMMNotificationClient, IDisposable
+	public interface IDeviceStateNotificationHandler : IDisposable
 	{
 		public event Action<string> DefaultDeviceChanged;
 		public event Action<string> NameChanged;

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Windows.Media;
-using Volumey.CoreAudioWrapper.CoreAudio.Enums;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
-	public interface IAudioSessionStateNotifications : IAudioSessionEvents, IDisposable
+	public interface IAudioSessionStateNotifications : IDisposable
 	{
 		public event Action SessionEnded;
 		public event Action<VolumeChangedEventArgs> VolumeChanged;

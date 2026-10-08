@@ -52,6 +52,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
+    <!-- Core Audio (devices, endpoint volume, audio sessions) -->
+    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
     <!-- Settings (settings.json): autosave and change notifications are woven into the settings classes at build time -->
     <PackageReference Include="Nucs.JsonSettings" Version="2.3.2" />
     <PackageReference Include="Nucs.JsonSettings.Autosave" Version="2.3.2" />

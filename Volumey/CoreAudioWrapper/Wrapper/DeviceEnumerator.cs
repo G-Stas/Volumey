@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using log4net;
-using Volumey.CoreAudioWrapper.CoreAudio;
-using Volumey.CoreAudioWrapper.CoreAudio.Enums;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+using NAudio.CoreAudioApi;
 using Volumey.Model;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
@@ -13,19 +10,17 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 	{
 		private ILog logger;
 		private ILog Logger => logger ??=LogManager.GetLogger(typeof(DeviceEnumerator));
-		
-		public IMMDeviceEnumerator MMDeviceEnumerator { get; }
-		
-		public DeviceEnumerator() => this.MMDeviceEnumerator = GetCOMEnumerator();
+
+		internal MMDeviceEnumerator Enumerator { get; }
+
+		public DeviceEnumerator() => this.Enumerator = new MMDeviceEnumerator();
 
 		public uint GetDeviceCount()
 		{
 			try
 			{
-				Marshal.ThrowExceptionForHR(this.MMDeviceEnumerator.EnumAudioEndpoints(EDataFlow.Render, DeviceState.Active,
-				                                                          out IMMDeviceCollection collection));
-				collection.GetCount(out uint devicesCount);
-				return devicesCount;
+				using var collection = this.Enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+				return (uint)collection.Count;
 			}
 			catch(Exception e)
 			{
@@ -42,10 +37,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			string id = string.Empty;
 			try
 			{
-				var dev = this.MMDeviceEnumerator.GetDefaultOutputDevice();
-				if(dev == null)
+				if(!this.Enumerator.TryGetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia, out var dev))
 					return string.Empty;
-				dev.GetId(out id);
+				using(dev)
+					id = dev.ID;
 			}
 			catch(Exception e)
 			{
@@ -57,15 +52,13 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		public List<OutputDeviceModel> GetCurrentActiveDevices(IDeviceStateNotificationHandler dsn)
 		{
 			var devices = new List<OutputDeviceModel>();
-			IMMDeviceCollection activeDevices = null;
-			uint count = 0;
+			MMDeviceCollection activeDevices;
+			int count;
 
 			try
 			{
-				Marshal.ThrowExceptionForHR(this.MMDeviceEnumerator.EnumAudioEndpoints(EDataFlow.Render, DeviceState.Active, out activeDevices));
-				activeDevices?.GetCount(out count);
-				if(count == 0)
-					return devices;
+				activeDevices = this.Enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+				count = activeDevices.Count;
 			}
 			catch(Exception e)
 			{
@@ -73,32 +66,26 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				return devices;
 			}
 
-			for(uint i = 0; i < count; i++)
+			using(activeDevices)
 			{
-				try
+				for(int i = 0; i < count; i++)
 				{
-					IMMDevice dev = null;
-					activeDevices?.Item(i, out dev);
-					if(dev == null)
-						continue;
-					var device = new MMDevice(dev);
-					var deviceModel = device.GetOutputDeviceModel(dsn);
-					if(deviceModel != null)
-						devices.Add(deviceModel);
-				}
-				catch(Exception e)
-				{
-					Logger.Error($"Failed to enumerate output devices", e);
+					try
+					{
+						var device = new AudioDevice(activeDevices[i]);
+						var deviceModel = AudioModelFactory.CreateOutputDeviceModel(device, dsn);
+						if(deviceModel != null)
+							devices.Add(deviceModel);
+						else
+							device.Dispose();
+					}
+					catch(Exception e)
+					{
+						Logger.Error($"Failed to enumerate output devices", e);
+					}
 				}
 			}
 			return devices;
-		}
-
-		private static IMMDeviceEnumerator GetCOMEnumerator()
-		{
-			MMDeviceEnumerator comObj = new MMDeviceEnumerator();
-			IMMDeviceEnumerator deviceEnumerator = (IMMDeviceEnumerator) comObj;
-			return deviceEnumerator;
 		}
 	}
 }
