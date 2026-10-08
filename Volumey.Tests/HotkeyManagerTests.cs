@@ -23,11 +23,7 @@ namespace Volumey.Tests
 
 		private static readonly HotKey CtrlShiftF5 = new HotKey(Key.F5, ModifierKeys.Control | ModifierKeys.Shift);
 
-		[TestInitialize]
-		public void Initialize() => HotkeysControl.Reset();
-
-		[TestCleanup]
-		public void Cleanup() => HotkeysControl.Reset();
+		private readonly HotkeyService hotkeys = new HotkeyService();
 
 		private static KeyboardHookEventArgs KeyPress(ushort virtualKey, EventMask mask)
 		{
@@ -88,16 +84,16 @@ namespace Volumey.Tests
 			first.Setup(m => m.RegisterHotkey(It.IsAny<HotKey>())).Callback<HotKey>(registered.Add);
 			first.Setup(m => m.GetRegisteredHotkeys()).Returns(registered);
 			int activations = 0;
-			HotkeysControl.Activated += () => activations++;
-			HotkeysControl.SetHotkeyManager(first.Object);
+			this.hotkeys.Activated += () => activations++;
+			this.hotkeys.SetHotkeyManager(first.Object);
 			var up = new HotKey(Key.Up, ModifierKeys.Control);
 			var down = new HotKey(Key.Down, ModifierKeys.Control);
-			HotkeysControl.RegisterHotkeysPair(up, down);
+			this.hotkeys.RegisterHotkeysPair(up, down);
 			var pressed = new List<HotKey>();
-			HotkeysControl.HotkeyPressed += pressed.Add;
+			this.hotkeys.HotkeyPressed += pressed.Add;
 
 			var second = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(second.Object);
+			this.hotkeys.SetHotkeyManager(second.Object);
 
 			second.Verify(m => m.RegisterHotkey(up), Times.Once);
 			second.Verify(m => m.RegisterHotkey(down), Times.Once);
@@ -110,7 +106,7 @@ namespace Volumey.Tests
 			Assert.AreEqual(down, Assert.ContainsSingle(pressed));
 
 			//the user counts survive the switch: unregistering reaches the new manager
-			HotkeysControl.UnregisterHotkeysPair(up, down);
+			this.hotkeys.UnregisterHotkeysPair(up, down);
 			second.Verify(m => m.UnregisterHotkey(up), Times.Once);
 		}
 
@@ -121,11 +117,11 @@ namespace Volumey.Tests
 			var up = new HotKey(Key.Up, ModifierKeys.Control);
 			var down = new HotKey(Key.Down, ModifierKeys.Control);
 			first.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { up, down });
-			HotkeysControl.SetHotkeyManager(first.Object);
+			this.hotkeys.SetHotkeyManager(first.Object);
 			var second = new Mock<IHotkeyManager>();
 			second.Setup(m => m.RegisterHotkey(up)).Throws(new InvalidOperationException("taken by another app"));
 
-			HotkeysControl.SetHotkeyManager(second.Object);
+			this.hotkeys.SetHotkeyManager(second.Object);
 
 			second.Verify(m => m.RegisterHotkey(down), Times.Once);
 		}
@@ -134,13 +130,13 @@ namespace Volumey.Tests
 		public void HotkeysDoNothingWhileOneIsBeingTyped()
 		{
 			var manager = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(manager.Object);
+			this.hotkeys.SetHotkeyManager(manager.Object);
 			var pressed = new List<HotKey>();
-			HotkeysControl.HotkeyPressed += pressed.Add;
+			this.hotkeys.HotkeyPressed += pressed.Add;
 
-			HotkeysControl.IsEditingHotkey = true;
+			this.hotkeys.IsEditingHotkey = true;
 			manager.Raise(m => m.HotkeyPressed += null, CtrlShiftF5);
-			HotkeysControl.IsEditingHotkey = false;
+			this.hotkeys.IsEditingHotkey = false;
 			manager.Raise(m => m.HotkeyPressed += null, CtrlShiftF5);
 
 			Assert.ContainsSingle(pressed);

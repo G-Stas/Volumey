@@ -10,6 +10,7 @@ using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View.Converters;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests
 {
@@ -29,7 +30,7 @@ namespace Volumey.Tests
 
 		private static MasterSessionModel CreateMaster(string name, int volume, bool muted)
 			=> new MasterSessionModel(name, "desc", volume, muted, "id", null,
-			                          new Mock<IAudioSessionVolume>().Object, new Mock<IMasterVolumeNotificationHandler>().Object);
+			                          new Mock<IAudioSessionVolume>().Object, new Mock<IMasterVolumeNotificationHandler>().Object, new HotkeyService());
 
 		[TestMethod]
 		public void BoolToVisibilityHidesOnTrue()

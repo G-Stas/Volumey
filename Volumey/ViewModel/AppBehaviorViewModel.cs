@@ -16,6 +16,7 @@ using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
+using Volumey.Services;
 
 namespace Volumey.ViewModel
 {
@@ -135,11 +136,11 @@ namespace Volumey.ViewModel
 			        return;
 
 		        if(value)
-			        this.launchAtStartup = SystemIntegrationHelper.EnableLaunchAtStartup();
+			        this.launchAtStartup = this.systemIntegration.EnableLaunchAtStartup();
 		        else
 		        {
 			        this.launchAtStartup = false;
-			        SystemIntegrationHelper.DisableLaunchAtStartup();
+			        this.systemIntegration.DisableLaunchAtStartup();
 		        }
 		        OnPropertyChanged();
 				#endif
@@ -157,11 +158,11 @@ namespace Volumey.ViewModel
 			        return;
 
 		        if(value)
-			        addToStartMenu = SystemIntegrationHelper.AddToStartMenu();
+			        addToStartMenu = this.systemIntegration.AddToStartMenu();
 		        else
 		        {
 			        this.addToStartMenu = false;
-			        SystemIntegrationHelper.RemoveFromStartMenu();
+			        this.systemIntegration.RemoveFromStartMenu();
 		        }
 		        OnPropertyChanged();
 				#endif
@@ -205,7 +206,10 @@ namespace Volumey.ViewModel
 
         public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
 
-        private IScreenInfoProvider screenInfoProvider = new ScreenInfoProvider();
+        private readonly IScreenInfoProvider screenInfoProvider;
+        private readonly IHotkeyService hotkeys;
+        private readonly IAppShell shell;
+        private readonly ISystemIntegration systemIntegration;
         
         /// <summary>
         /// Indicates whether the window is currently displayed as popup or not
@@ -235,9 +239,17 @@ namespace Volumey.ViewModel
 
 		private bool restartInvoked = false;
 
-		public AppBehaviorViewModel()
+		public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Devices, AppServices.Current.Screens,
+			AppServices.Current.Shell, AppServices.Current.SystemIntegration) { }
+
+		internal AppBehaviorViewModel(IHotkeyService hotkeys, IDeviceProvider devices, IScreenInfoProvider screenInfoProvider, IAppShell shell,
+			ISystemIntegration systemIntegration)
 		{
-			this.WindowIsVisible = !Startup.StartMinimized;
+			this.hotkeys = hotkeys;
+			this.screenInfoProvider = screenInfoProvider;
+			this.shell = shell;
+			this.systemIntegration = systemIntegration;
+			this.WindowIsVisible = !shell.StartMinimized;
 			this.ClosingCommand = new ActionCommand(OnWindowClosing);
 			this.TrayMixerCommand = new ActionCommand(() => OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false));
 			this.TraySettingsCommand = new ActionCommand(() => OpenCommand(isSettingsPage: true, displayAsPopup: false, reverseDisplaying: false));
@@ -250,11 +262,11 @@ namespace Volumey.ViewModel
 			this.SoundControlPanelCommand = new ActionCommand(SystemSoundUtilities.StartSoundControlPanel);
 			this.SoundSettingsCommand = new ActionCommand(SystemSoundUtilities.StartSoundSettings);
 			this.LostFocusCommand = new ActionCommand(OnLostFocus);
-			App.Current.SessionEnding += (sender, args) => OnExit();
+			shell.SessionEnding += OnExit;
 
-			HotkeysControl.OpenHotkeyPressed += OnOpenHotkeyPressed;
+			hotkeys.OpenHotkeyPressed += OnOpenHotkeyPressed;
 			ComponentDispatcher.ThreadFilterMessage += OnThreadFilterMessage;
-			DeviceProvider.GetInstance().DeviceFormatChanged += OnDeviceFormatChanged;
+			devices.DeviceFormatChanged += OnDeviceFormatChanged;
 
 			this.trayBlockTimer = new Timer(trayBlockDelay);
 			this.trayBlockTimer.AutoReset = false;
@@ -270,10 +282,9 @@ namespace Volumey.ViewModel
 			
 			this.LoadedCommand = new ActionCommand(this.CheckIfSelectedScreenIsAvailable);
 
-			#if(!STORE)
-			this.launchAtStartup = SystemIntegrationHelper.CheckIfStartupRegistryKeyExists();
-			this.addToStartMenu = SystemIntegrationHelper.CheckIfStartMenuLinkExists();
-			#endif
+			//always false in the Store build, whose autostart is the manifest's startup task
+			this.launchAtStartup = systemIntegration.LaunchesAtStartup();
+			this.addToStartMenu = systemIntegration.IsInStartMenu();
 			
 			SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
 
@@ -320,7 +331,7 @@ namespace Volumey.ViewModel
 
 				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
 				{
-					App.Current.Dispatcher.Invoke(() =>
+					this.shell.Dispatcher.Invoke(() =>
 					{
 						AllScreens.Clear();
 						foreach(var screen in screens)
@@ -360,12 +371,8 @@ namespace Volumey.ViewModel
 
 		private void RestartApp()
 		{
-			var pathToExe = Assembly.GetExecutingAssembly().Location.Replace(".dll", ".exe");
-			if(this.WindowIsVisible)
-				Process.Start(pathToExe, Startup.RestartArg);
-			else
-				Process.Start(pathToExe, $"{Startup.RestartArg} {Startup.MinimizedArg}");
-			App.Current.Dispatcher.Invoke(OnExit);
+			this.shell.StartNewInstance(minimized: !this.WindowIsVisible);
+			this.shell.Dispatcher.Invoke(OnExit);
 		}
 		
 		private void OnExit()
@@ -373,8 +380,8 @@ namespace Volumey.ViewModel
 			SettingsProvider.Settings.Window.Left = this.windowLeft;
 			SettingsProvider.Settings.Window.Top = this.windowTop;
 			LogManager.Shutdown();
-			HotkeysControl.Dispose();
-			App.Current.Shutdown();
+			this.hotkeys.Dispose();
+			this.shell.Shutdown();
 		}
 
 		/// <summary>

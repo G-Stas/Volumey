@@ -45,18 +45,21 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(OpenHotkeyViewModel));
 		
-		internal OpenHotkeyViewModel()
+		private readonly IHotkeyService hotkeys;
+
+		internal OpenHotkeyViewModel(IHotkeyService hotkeys)
 		{
+			this.hotkeys = hotkeys;
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			if(SettingsProvider.Settings.Hotkeys.OpenMixer is HotKey openHotkey)
 			{
 				this.hotkeyRegistered = this.isOn = true;
 				this.Hotkey = openHotkey;
-				if(HotkeysControl.IsActive)
+				if(this.hotkeys.IsActive)
 					this.RegisterLoadedHotkey();
 				else
-					HotkeysControl.Activated += RegisterLoadedHotkey;
+					this.hotkeys.Activated += RegisterLoadedHotkey;
 			}
 		}
 
@@ -64,14 +67,14 @@ namespace Volumey.ViewModel.Settings
 		{
 			try
 			{
-				HotkeysControl.RegisterOpenMixerHotkey(this.Hotkey);
+				this.hotkeys.RegisterOpenMixerHotkey(this.Hotkey);
 			}
 			catch { }
 		}
 		
 		private bool SaveHotkey(object param = null)
 		{
-			if(HotkeysControl.HotkeyIsValid(this.hotkey) is var error && error != ErrorMessageType.None)
+			if(this.hotkeys.HotkeyIsValid(this.hotkey) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
 				return false;
@@ -79,7 +82,7 @@ namespace Volumey.ViewModel.Settings
 			this.SetErrorMessage(ErrorMessageType.None);
 			try
 			{
-				if(HotkeysControl.RegisterOpenMixerHotkey(this.hotkey))
+				if(this.hotkeys.RegisterOpenMixerHotkey(this.hotkey))
 				{
 					SettingsProvider.Settings.Hotkeys.OpenMixer = this.hotkey;
 					Task.Run(() =>
@@ -105,7 +108,7 @@ namespace Volumey.ViewModel.Settings
 			try
 			{
 				this.hotkeyRegistered = false;
-				HotkeysControl.UnregisterOpenMixerHotkey(this.hotkey);
+				this.hotkeys.UnregisterOpenMixerHotkey(this.hotkey);
 			}
 			catch { }
 			this.SetErrorMessage(ErrorMessageType.None);

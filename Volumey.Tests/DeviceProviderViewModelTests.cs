@@ -4,6 +4,7 @@ using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Model;
+using Volumey.Services;
 using Volumey.ViewModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -26,12 +27,8 @@ namespace Volumey.Tests
 
 			this.deviceProviderMock.Setup(m => m.ActiveDevices).Returns(activeDevices);
 			this.deviceProviderMock.Setup(m => m.DefaultDevice).Returns(device1);
-			this.deviceProviderMock.Setup(m => m.NoOutputDevices).Returns(false);
-			
-			FieldInfo instance = typeof(DeviceProvider).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
-			instance.SetValue(null, deviceProviderMock.Object);
-			
-			this.model = new DeviceProviderViewModel();
+			this.deviceProviderMock.Setup(m => m.NoOutputDevices).Returns(false);			
+			this.model = new DeviceProviderViewModel(this.deviceProviderMock.Object, new Mock<IAppShell>().Object);
 		}
 
 		[TestMethod]

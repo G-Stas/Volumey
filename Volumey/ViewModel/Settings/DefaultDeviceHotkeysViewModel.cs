@@ -58,10 +58,11 @@ namespace Volumey.ViewModel.Settings
         private ILog _logger;
         private ILog Logger => this._logger ??= LogManager.GetLogger(typeof(DefaultDeviceHotkeysViewModel));
 
-        public DefaultDeviceHotkeysViewModel() : this(DataProvider.DeviceProvider.GetInstance()) { }
+        private readonly IHotkeyService hotkeys;
 
-        internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider)
+        internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys)
         {
+            this.hotkeys = hotkeys;
             ErrorDictionary.LanguageChanged += () => { this.SetErrorMessage(this.CurrentErrorType);};
             
             this.DeviceProvider = deviceProvider;
@@ -72,10 +73,10 @@ namespace Volumey.ViewModel.Settings
             this.RegisteredDevices = LoadRegisteredDevices();
             if(this.RegisteredDevices.Keys.Count > 0)
             {
-                if(HotkeysControl.IsActive)
+                if(this.hotkeys.IsActive)
                     this.RegisterLoadedHotkeys();
                 else
-                    HotkeysControl.Activated += this.RegisterLoadedHotkeys;
+                    this.hotkeys.Activated += this.RegisterLoadedHotkeys;
 
                 //Update registered devices names once on startup
                 UpdateNamesOrIDs();
@@ -84,9 +85,9 @@ namespace Volumey.ViewModel.Settings
 
         private void RegisterLoadedHotkeys()
         {
-            HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+            this.hotkeys.HotkeyPressed += OnHotkeyPressed;
             foreach(var hotkeyDeviceInfoPair in this.RegisteredDevices)
-                HotkeysControl.RegisterHotkey(hotkeyDeviceInfoPair.Key);
+                this.hotkeys.RegisterHotkey(hotkeyDeviceInfoPair.Key);
         }
 
         /// <summary>
@@ -133,7 +134,7 @@ namespace Volumey.ViewModel.Settings
                 return;
             }
 
-            if(HotkeysControl.HotkeyIsValid(this.HotKey) is var error && error != ErrorMessageType.None)
+            if(this.hotkeys.HotkeyIsValid(this.HotKey) is var error && error != ErrorMessageType.None)
             {
                 this.SetErrorMessage(error);
                 return;
@@ -142,9 +143,9 @@ namespace Volumey.ViewModel.Settings
             this.SetErrorMessage(ErrorMessageType.None);
 
             if (RegisteredDevices.Keys.Count == 0)
-                HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+                this.hotkeys.HotkeyPressed += OnHotkeyPressed;
 
-            if(!HotkeysControl.RegisterHotkey(this.HotKey))
+            if(!this.hotkeys.RegisterHotkey(this.HotKey))
             {
                 this.SetErrorMessage(ErrorMessageType.OpenReg);
                 return;
@@ -177,11 +178,11 @@ namespace Volumey.ViewModel.Settings
 
             HotKey hotkey = this.SelectedRegDev.Value.Key;
 
-            HotkeysControl.UnregisterHotkey(hotkey);
+            this.hotkeys.UnregisterHotkey(hotkey);
             this.RegisteredDevices.Remove(hotkey);
 
             if(this.RegisteredDevices.Keys.Count == 0)
-                HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+                this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
 
             this.SelectedRegDev = null;
             this.SetErrorMessage(ErrorMessageType.None);

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NAudio.CoreAudioApi;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 using static Volumey.IntegrationTests.AudioTestEnvironment;
 
 namespace Volumey.IntegrationTests
@@ -30,7 +31,7 @@ namespace Volumey.IntegrationTests
 			{
 				(this.handler, this.All) = OnUi(() =>
 				{
-					var enumerator = new DeviceEnumerator();
+					var enumerator = new DeviceEnumerator(new HotkeyService());
 					var stateHandler = new DeviceStateNotificationsHandler(enumerator);
 					return (stateHandler, enumerator.GetCurrentActiveDevices(stateHandler));
 				});
@@ -192,7 +193,7 @@ namespace Volumey.IntegrationTests
 			using var enumerator = new MMDeviceEnumerator();
 			using var mmDevice = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
-			var wrapper = new DeviceEnumerator();
+			var wrapper = new DeviceEnumerator(new HotkeyService());
 
 			Assert.AreEqual(mmDevice.ID, wrapper.GetDefaultDeviceId());
 			Assert.IsGreaterThan(0u, wrapper.GetDeviceCount());

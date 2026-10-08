@@ -10,6 +10,8 @@ namespace Volumey.Tests
 	[TestClass]
 	public class HotkeysValidationTests
 	{
+		private readonly HotkeyService hotkeys = new HotkeyService();
+
 		[TestMethod]
 		public void HotkeysValidationShouldReturn_DiffError()
 		{
@@ -18,7 +20,7 @@ namespace Volumey.Tests
 			var downHotkey = new HotKey(Key.A);
 
 			//act
-			var errorType = HotkeysControl.HotkeysAreValid(upHotkey, downHotkey);
+			var errorType = this.hotkeys.HotkeysAreValid(upHotkey, downHotkey);
 
 			//assert
 			Assert.IsTrue(errorType == ErrorMessageType.Diff);
@@ -31,9 +33,9 @@ namespace Volumey.Tests
 			var hotkey = new HotKey(Key.A);
 
 			//act and assert
-			Assert.IsTrue(HotkeysControl.HotkeysAreValid(null, hotkey) != ErrorMessageType.None);
-			Assert.IsTrue(HotkeysControl.HotkeysAreValid(hotkey, null) != ErrorMessageType.None);
-			Assert.IsTrue(HotkeysControl.HotkeyIsValid(null) != ErrorMessageType.None);
+			Assert.IsTrue(this.hotkeys.HotkeysAreValid(null, hotkey) != ErrorMessageType.None);
+			Assert.IsTrue(this.hotkeys.HotkeysAreValid(hotkey, null) != ErrorMessageType.None);
+			Assert.IsTrue(this.hotkeys.HotkeyIsValid(null) != ErrorMessageType.None);
 		}
 
 		[TestMethod]
@@ -43,8 +45,8 @@ namespace Volumey.Tests
 			SettingsProvider.Settings.Hotkeys.DeviceMute = existingHotkey;
 
 			//act and assert
-			Assert.IsTrue(HotkeysControl.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
-			Assert.IsTrue(HotkeysControl.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
+			Assert.IsTrue(this.hotkeys.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
+			Assert.IsTrue(this.hotkeys.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
 			            ErrorMessageType.HotkeyExists);
 		}
 
@@ -55,8 +57,8 @@ namespace Volumey.Tests
 			var systemHotkey = new HotKey(Key.F12);
 
 			//act and assert
-			Assert.IsTrue(HotkeysControl.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
-			Assert.IsTrue(HotkeysControl.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
+			Assert.IsTrue(this.hotkeys.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
+			Assert.IsTrue(this.hotkeys.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
 		}
 	}
 }

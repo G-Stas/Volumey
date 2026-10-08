@@ -5,6 +5,7 @@ using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
 using Volumey.Model;
+using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -103,7 +104,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			get
 			{
-				this._dMediator ??= new AudioProcessStateNotificationMediator();
+				this._dMediator ??= new AudioProcessStateNotificationMediator(this.notifications);
 				return this._dMediator;
 			}
 		}
@@ -111,10 +112,13 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceVolumeHotkeysViewModel));
 
-		public DeviceVolumeHotkeysViewModel() : this(DeviceProvider.GetInstance()) { }
+		private readonly IHotkeyService hotkeys;
+		private readonly INotificationService notifications;
 
-		internal DeviceVolumeHotkeysViewModel(IDeviceProvider deviceProvider)
+		internal DeviceVolumeHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
 		{
+			this.hotkeys = hotkeys;
+			this.notifications = notifications;
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.defaultDevice = deviceProvider.DefaultDevice;
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
@@ -142,10 +146,10 @@ namespace Volumey.ViewModel.Settings
 			//register hotkeys if there are any if the hotkey manager is set or wait for activation via event
 			if(anyHotkeysRegistered)
 			{
-				if(HotkeysControl.IsActive)
+				if(this.hotkeys.IsActive)
 					this.RegisterLoadedHotkeys();
 				else
-					HotkeysControl.Activated += this.RegisterLoadedHotkeys;
+					this.hotkeys.Activated += this.RegisterLoadedHotkeys;
 			}
 			SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
 		}
@@ -176,7 +180,7 @@ namespace Volumey.ViewModel.Settings
 			var up = this.VolumeUp;
 			var down = this.VolumeDown;
 
-			if(HotkeysControl.HotkeysAreValid(up, down) is var error && error != ErrorMessageType.None)
+			if(this.hotkeys.HotkeysAreValid(up, down) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
 				return false;
@@ -222,7 +226,7 @@ namespace Volumey.ViewModel.Settings
 		private bool SaveMuteHotkey()
 		{
 			var key = this.muteKey;
-			if(HotkeysControl.HotkeyIsValid(key) is var error && error != ErrorMessageType.None)
+			if(this.hotkeys.HotkeyIsValid(key) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
 				return false;

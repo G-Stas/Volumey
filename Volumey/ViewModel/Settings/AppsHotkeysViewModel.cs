@@ -12,6 +12,7 @@ using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
 using Volumey.Model;
+using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -75,7 +76,7 @@ namespace Volumey.ViewModel.Settings
 					//set new value in AppSettings but save it in App.Exit event handler
 					//or when other parameters will be saved
 					SettingsProvider.Settings.General.VolumeStep = value;
-					HotkeysControl.SetVolumeStep(value);
+					this.hotkeys.SetVolumeStep(value);
 				}
 			}
 		}
@@ -106,7 +107,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			get
 			{
-				this._sMediator ??= new AudioProcessStateNotificationMediator();
+				this._sMediator ??= new AudioProcessStateNotificationMediator(this.notifications);
 				return this._sMediator;
 			}
 		}
@@ -114,10 +115,13 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppsHotkeysViewModel));
 		
-		public AppsHotkeysViewModel() : this(DeviceProvider.GetInstance()) { }
+		private readonly IHotkeyService hotkeys;
+		private readonly INotificationService notifications;
 
-		internal AppsHotkeysViewModel(IDeviceProvider dProvider)
+		internal AppsHotkeysViewModel(IDeviceProvider dProvider, IHotkeyService hotkeys, INotificationService notifications)
 		{
+			this.hotkeys = hotkeys;
+			this.notifications = notifications;
 			this.AddAppCommand = new ActionCommand(AddApp);
 			this.RemoveAppCommand = new ActionCommand(RemoveApp);
 
@@ -130,10 +134,10 @@ namespace Volumey.ViewModel.Settings
 			this.RegisteredProcesses = LoadRegisteredProcesses();
 			if(this.RegisteredProcesses.Keys.Count > 0)
 			{
-				if(HotkeysControl.IsActive)
+				if(this.hotkeys.IsActive)
 					this.RegisterLoadedHotkeys();
 				else
-					HotkeysControl.Activated += this.RegisterLoadedHotkeys;
+					this.hotkeys.Activated += this.RegisterLoadedHotkeys;
 			}
 			SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
 		}
@@ -202,7 +206,7 @@ namespace Volumey.ViewModel.Settings
 			if(this.RegisteredProcesses.ContainsKey(process.Name))
 				return;
 
-			if(HotkeysControl.HotkeysAreValid(this.VolumeUp, this.VolumeDown) is var error && error != ErrorMessageType.None)
+			if(this.hotkeys.HotkeysAreValid(this.VolumeUp, this.VolumeDown) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
 				return;

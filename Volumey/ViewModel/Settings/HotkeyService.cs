@@ -8,18 +8,22 @@ using Volumey.DataProvider;
 
 namespace Volumey.ViewModel.Settings
 {
-	public static class HotkeysControl
+	/// <summary>
+	/// The app's hotkeys: holds the hotkey manager, counts the users of each hotkey so several features can share one,
+	/// raises the pressed hotkeys and validates new ones. One instance for the app (<see cref="AppServices"/>).
+	/// </summary>
+	public sealed class HotkeyService : IHotkeyService
 	{
-		/// <summary>
-		/// Invokes when a hotkey manager is set and is ready to register hotkeys
-		/// </summary>
 		private static ILog logger;
-		private static ILog Logger => logger ??= LogManager.GetLogger(typeof(HotkeysControl));
+		private static ILog Logger => logger ??= LogManager.GetLogger(typeof(HotkeyService));
 
-		internal static event Action Activated;
+		/// <summary>
+		/// Raised when the first hotkey manager is set and hotkeys can be registered
+		/// </summary>
+		public event Action Activated;
 
-		private static Action<HotKey> _hotkeyPressed;
-		internal static event Action<HotKey> HotkeyPressed
+		private Action<HotKey> _hotkeyPressed;
+		public event Action<HotKey> HotkeyPressed
 		{
 			add
 			{
@@ -29,28 +33,23 @@ namespace Volumey.ViewModel.Settings
 			}
 			remove => _hotkeyPressed -= value;
 		}
-		internal static event Action OpenHotkeyPressed;
+		public event Action OpenHotkeyPressed;
 		/// <summary>
 		/// Indicates whether a hotkey manager instance is set and hotkeys can be registered.
 		/// </summary>
-		internal static bool IsActive { get; private set; }
+		public bool IsActive { get; private set; }
 
-		private static int volumeStep = 1;
-		public static int VolumeStep
-		{
-			get => volumeStep;
-			private set => volumeStep = value;
-		}
+		public int VolumeStep { get; private set; } = 1;
 
-		private static HotKey openMixer;
-		private static IHotkeyManager hotkeyManager;
+		private HotKey openMixer;
+		private IHotkeyManager hotkeyManager;
 
 		/// <summary>
 		/// Keeps track of hotkeys and amount of its users to prevent early unregistering of hotkeys.
 		/// </summary>
-		private static readonly Dictionary<HotKey, int> HotkeysUserCount = new Dictionary<HotKey, int>();
+		private readonly Dictionary<HotKey, int> HotkeysUserCount = new Dictionary<HotKey, int>();
 
-		private static void IncrementHotkeyUserCounter(HotKey hotkey)
+		private void IncrementHotkeyUserCounter(HotKey hotkey)
 		{
 			if(HotkeysUserCount.ContainsKey(hotkey))
 				HotkeysUserCount[hotkey]++;
@@ -60,7 +59,7 @@ namespace Volumey.ViewModel.Settings
 
 		/// <param name="hotkey"></param>
 		/// <param name="lastUser">Flag to check if the call was for the last user and hotkey can be unregistered.</param>
-		private static void DecrementHotkeyUserCounter(HotKey hotkey, out bool lastUser)
+		private void DecrementHotkeyUserCounter(HotKey hotkey, out bool lastUser)
 		{
 			if(HotkeysUserCount.TryGetValue(hotkey, out var userCount))
 			{
@@ -77,7 +76,7 @@ namespace Volumey.ViewModel.Settings
 			lastUser = true;
 		}
 
-		public static bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
+		public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
 			if(hotkeyManager == null)
 				throw new NullReferenceException("Hotkey manager is not set");
@@ -102,7 +101,7 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		public static void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
+		public void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
 			if(hotkeyManager == null)
 				throw new NullReferenceException("Hotkey manager is not set");
@@ -118,7 +117,7 @@ namespace Volumey.ViewModel.Settings
 			catch { }
 		}
 
-		public static bool RegisterHotkey(HotKey hotkey)
+		public bool RegisterHotkey(HotKey hotkey)
 		{
 			try
 			{
@@ -130,7 +129,7 @@ namespace Volumey.ViewModel.Settings
 			return false;
 		}
 
-		public static void UnregisterHotkey(HotKey hotkey)
+		public void UnregisterHotkey(HotKey hotkey)
 		{
 			try
 			{
@@ -141,7 +140,7 @@ namespace Volumey.ViewModel.Settings
 			catch { }
 		}
 
-		public static bool RegisterOpenMixerHotkey(HotKey hotkey)
+		public bool RegisterOpenMixerHotkey(HotKey hotkey)
 		{
 			if(hotkeyManager == null)
 				return false;
@@ -158,7 +157,7 @@ namespace Volumey.ViewModel.Settings
 			return false;
 		}
 
-		public static void UnregisterOpenMixerHotkey(HotKey hotkey)
+		public void UnregisterOpenMixerHotkey(HotKey hotkey)
 		{
 			if(hotkeyManager == null)
 				return;
@@ -174,7 +173,7 @@ namespace Volumey.ViewModel.Settings
 			catch { }
 		}
 
-		public static ErrorMessageType HotkeyIsValid(HotKey hotkey)
+		public ErrorMessageType HotkeyIsValid(HotKey hotkey)
 		{
 			if(hotkey == null)
 				return ErrorMessageType.OpenReg;
@@ -185,7 +184,7 @@ namespace Volumey.ViewModel.Settings
 			return ErrorMessageType.None;
 		}
 
-		public static ErrorMessageType HotkeysAreValid(HotKey up, HotKey down)
+		public ErrorMessageType HotkeysAreValid(HotKey up, HotKey down)
 		{
 			if(up == null || down == null)
 				return ErrorMessageType.VolumeReg;
@@ -199,7 +198,7 @@ namespace Volumey.ViewModel.Settings
 			return ErrorMessageType.None;
 		}
 
-		internal static void SetVolumeStep(int newValue)
+		public void SetVolumeStep(int newValue)
 		{
 			VolumeStep = newValue;
 		}
@@ -208,7 +207,7 @@ namespace Volumey.ViewModel.Settings
 		/// Sets the hotkey manager. On a later call the registered hotkeys move from the previous manager to the new one,
 		/// which is then the only one, and the previous manager is disposed. The user counts stay as they are.
 		/// </summary>
-		public static void SetHotkeyManager(IHotkeyManager hm)
+		public void SetHotkeyManager(IHotkeyManager hm)
 		{
 			if(hotkeyManager == hm)
 				return;
@@ -241,8 +240,8 @@ namespace Volumey.ViewModel.Settings
 		/// Set while the user types a hotkey into a hotkey box, so the typed combination doesn't trigger a registered hotkey.
 		/// The blocking manager doesn't need it (the box swallows WM_HOTKEY), the non-blocking one does.
 		/// </summary>
-		internal static bool IsEditingHotkey { get; set; }
-		private static void OnHotkeyPressed(HotKey hotkey)
+		public bool IsEditingHotkey { get; set; }
+		private void OnHotkeyPressed(HotKey hotkey)
 		{
 			if(IsEditingHotkey)
 				return;
@@ -251,27 +250,9 @@ namespace Volumey.ViewModel.Settings
 			_hotkeyPressed?.Invoke(hotkey);
 		}
 
-		/// <summary>
-		/// Forgets the hotkey manager, the registered hotkeys and all subscribers. Only for tests, which share this static state.
-		/// </summary>
-		internal static void Reset()
+		public void Dispose()
 		{
-			if(hotkeyManager != null)
-				hotkeyManager.HotkeyPressed -= OnHotkeyPressed;
-			hotkeyManager = null;
-			IsActive = false;
-			openMixer = null;
-			volumeStep = 1;
-			HotkeysUserCount.Clear();
-			Activated = null;
-			_hotkeyPressed = null;
-			OpenHotkeyPressed = null;
-			IsEditingHotkey = false;
-		}
-
-		public static void Dispose()
-		{
-			hotkeyManager.Dispose();
+			hotkeyManager?.Dispose();
 		}
 	}
 }

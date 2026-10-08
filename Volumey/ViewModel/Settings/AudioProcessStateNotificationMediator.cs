@@ -1,7 +1,7 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Threading;
-using Volumey.Helper;
 using Volumey.Model;
+using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -9,11 +9,18 @@ namespace Volumey.ViewModel.Settings
 	{
 		private static Dispatcher UiDispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
+		private readonly INotificationService notifications;
+
+		public AudioProcessStateNotificationMediator(INotificationService notifications)
+		{
+			this.notifications = notifications;
+		}
+
 		public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
 		{
 			UiDispatcher.InvokeAsync(() =>
 			{
-				NotificationManagerHelper.ShowNotification(sender);
+				this.notifications.ShowNotification(sender);
 			});
 		}
 
@@ -21,7 +28,7 @@ namespace Volumey.ViewModel.Settings
 		{
 			UiDispatcher.InvokeAsync(() =>
 			{
-				NotificationManagerHelper.CloseNotification(sender);
+				this.notifications.CloseNotification(sender);
 			});
 		}
 	}

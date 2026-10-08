@@ -24,7 +24,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			var device = CreateDevice("1", "Speakers", out var masterVolume, volume: 50);
 			SetDefaultDevice(device);
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object) { VolumeUp = Up, VolumeDown = Down };
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUp = Up, VolumeDown = Down };
 
 			vm.VolumeHotkeysRegistered = true;
 
@@ -36,7 +36,7 @@ namespace Volumey.Tests.ViewModels
 			this.HotkeyManager.Verify(m => m.RegisterHotkey(Down), Times.Once);
 
 			PressHotkey(Up);
-			VerifyVolumeWritten(masterVolume, 50 + HotkeysControl.VolumeStep, Times.Once());
+			VerifyVolumeWritten(masterVolume, 50 + this.Hotkeys.VolumeStep, Times.Once());
 		}
 
 		[TestMethod]
@@ -44,7 +44,7 @@ namespace Volumey.Tests.ViewModels
 		{
 			ActivateHotkeys();
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object) { VolumeUp = Up, VolumeDown = Up };
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUp = Up, VolumeDown = Up };
 
 			vm.VolumeHotkeysRegistered = true;
 
@@ -60,7 +60,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			this.Settings.Hotkeys.OpenMixer = Up;
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object) { VolumeUp = Up, VolumeDown = Down };
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUp = Up, VolumeDown = Down };
 
 			vm.VolumeHotkeysRegistered = true;
 
@@ -73,7 +73,7 @@ namespace Volumey.Tests.ViewModels
 		{
 			ActivateHotkeys();
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
 
 			vm.VolumeHotkeysRegistered = false;
 
@@ -89,7 +89,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			var device = CreateDevice("1", "Speakers", out var masterVolume);
 			SetDefaultDevice(device);
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object) { MuteKey = Mute };
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { MuteKey = Mute };
 
 			vm.MuteHotkeyRegistered = true;
 
@@ -110,7 +110,7 @@ namespace Volumey.Tests.ViewModels
 			this.Settings.Hotkeys.DeviceVolumeDown = Down;
 			this.Settings.Hotkeys.DeviceMute = Mute;
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object);
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object);
 			Assert.IsTrue(vm.VolumeHotkeysRegistered);
 			Assert.IsTrue(vm.MuteHotkeyRegistered);
 
@@ -128,12 +128,12 @@ namespace Volumey.Tests.ViewModels
 			var oldDevice = CreateDevice("1", "Speakers", out var oldVolume, volume: 50);
 			var newDevice = CreateDevice("2", "Headphones", out var newVolume, volume: 30);
 			SetDefaultDevice(oldDevice);
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
 
 			ChangeDefaultDevice(newDevice);
 			PressHotkey(Down);
 
-			VerifyVolumeWritten(newVolume, 30 - HotkeysControl.VolumeStep, Times.Once());
+			VerifyVolumeWritten(newVolume, 30 - this.Hotkeys.VolumeStep, Times.Once());
 			oldVolume.Verify(m => m.SetVolume(It.IsAny<int>(), ref It.Ref<Guid>.IsAny), Times.Never);
 		}
 
@@ -141,7 +141,7 @@ namespace Volumey.Tests.ViewModels
 		public void TogglingNotificationsWithoutADeviceDoesNotThrow()
 		{
 			ActivateHotkeys();
-			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object);
+			var vm = new DeviceVolumeHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object);
 
 			this.Settings.Notifications.Enabled = !this.Settings.Notifications.Enabled;
 			this.Settings.Notifications.Enabled = !this.Settings.Notifications.Enabled;
@@ -151,9 +151,9 @@ namespace Volumey.Tests.ViewModels
 		public void OpenMixerHotkeyIsRegisteredSavedAndRaised()
 		{
 			ActivateHotkeys();
-			var vm = new OpenHotkeyViewModel { Hotkey = Mute };
+			var vm = new OpenHotkeyViewModel(this.Hotkeys) { Hotkey = Mute };
 			int opened = 0;
-			HotkeysControl.OpenHotkeyPressed += () => opened++;
+			this.Hotkeys.OpenHotkeyPressed += () => opened++;
 
 			vm.IsOn = true;
 			PressHotkey(Mute);
@@ -172,7 +172,7 @@ namespace Volumey.Tests.ViewModels
 		public void BareF12IsRejectedForTheOpenMixerHotkey()
 		{
 			ActivateHotkeys();
-			var vm = new OpenHotkeyViewModel { Hotkey = new HotKey(Key.F12) };
+			var vm = new OpenHotkeyViewModel(this.Hotkeys) { Hotkey = new HotKey(Key.F12) };
 
 			vm.IsOn = true;
 
@@ -184,7 +184,7 @@ namespace Volumey.Tests.ViewModels
 		public void SavedOpenMixerHotkeyIsRegisteredWhenHotkeysActivate()
 		{
 			this.Settings.Hotkeys.OpenMixer = Mute;
-			var vm = new OpenHotkeyViewModel();
+			var vm = new OpenHotkeyViewModel(this.Hotkeys);
 			Assert.IsTrue(vm.IsOn);
 
 			ActivateHotkeys();

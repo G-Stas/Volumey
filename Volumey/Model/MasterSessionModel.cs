@@ -132,6 +132,7 @@ namespace Volumey.Model
         
         public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
 
+        private readonly IHotkeyService hotkeys;
         private IAudioSessionVolume masterVolume { get; }
         private IMasterVolumeNotificationHandler notificationHandler { get; }
         private static ILog logger;
@@ -139,8 +140,9 @@ namespace Volumey.Model
         
         public MasterSessionModel(string friendlyName, string desc, 
             int volume, bool muteState, string id, Icon icon,
-            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler)
+            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler, IHotkeyService hotkeys)
         {
+            this.hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
             this._volume = volume;
             this._isMuted = muteState;
             this._id = id;
@@ -160,11 +162,11 @@ namespace Volumey.Model
         {
             try
             {
-                if(volUp != null && volDown != null && HotkeysControl.RegisterHotkeysPair(volUp, volDown))
+                if(volUp != null && volDown != null && this.hotkeys.RegisterHotkeysPair(volUp, volDown))
                 {
                     this.volumeUp = volUp;
                     this.volumeDown = volDown;
-                    HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+                    this.hotkeys.HotkeyPressed += OnHotkeyPressed;
                     this.volumeHotkeysRegistered = true;
                     return true;
                 }
@@ -188,9 +190,9 @@ namespace Volumey.Model
         public void ResetVolumeHotkeys()
         {
             if(this.volumeUp != null && this.volumeDown != null)
-                HotkeysControl.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
+                this.hotkeys.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
             if(!this.muteHotkeyRegistered)
-                HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+                this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
             this.volumeHotkeysRegistered = false;
             this.volumeUp = this.volumeDown = null;
         }
@@ -199,10 +201,10 @@ namespace Volumey.Model
         {
             try
             {
-                if(key != null && HotkeysControl.RegisterHotkey(key))
+                if(key != null && this.hotkeys.RegisterHotkey(key))
                 {
                     this.muteKey = key;
-                    HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+                    this.hotkeys.HotkeyPressed += OnHotkeyPressed;
                     this.muteHotkeyRegistered = true;
                     return true;
                 }
@@ -214,9 +216,9 @@ namespace Volumey.Model
         public void ResetMuteHotkey()
         {
             if(this.muteKey != null)
-                HotkeysControl.UnregisterHotkey(this.muteKey);
+                this.hotkeys.UnregisterHotkey(this.muteKey);
             if(!this.volumeHotkeysRegistered)
-                HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+                this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
             this.muteHotkeyRegistered = false;
             this.muteKey = null;
         }
@@ -229,11 +231,11 @@ namespace Volumey.Model
                 {
                     if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && this.IsMuted)
                         this.SetMute(false, notify: false, ref GuidValue.Internal.Empty);
-                    this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify:true, ref GuidValue.Internal.Empty);
+                    this.SetVolume(this.Volume + this.hotkeys.VolumeStep, notify:true, ref GuidValue.Internal.Empty);
                 }
                 else if(hotkey.Equals(this.volumeDown))
                 {
-                    int newValue = this.Volume - HotkeysControl.VolumeStep;
+                    int newValue = this.Volume - this.hotkeys.VolumeStep;
                     if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
                     {
                         this.SetMute(true, notify: true, ref GuidValue.Internal.Empty);

@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Helper;
+using Volumey.Services;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel
@@ -47,18 +48,25 @@ namespace Volumey.ViewModel
                 OnPropertyChanged();
             }
         }
-        public SettingsViewModel()
+        private readonly IHotkeyService hotkeys;
+
+        public SettingsViewModel() : this(AppServices.Current) { }
+
+        internal SettingsViewModel(AppServices services)
         {
+            this.hotkeys = services.Hotkeys;
+            var devices = services.Devices;
+            var notifications = services.Notifications;
             this.LangSettings = new LangSettings();
-            this.HotkeysViewModel = new AppsHotkeysViewModel();
-            this.DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel();
-            this.OpenHotkeyViewModel = new OpenHotkeyViewModel();
-            this.VolumeLimitViewModel = new VolumeLimitViewModel();
-            this.AppVolumeSyncViewModel = new AppVolumeSyncViewModel();
-            this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel();
-            this.ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel();
-            this.NotificationsViewModel = new NotificationViewModel();
-            this.SystemHotkeysViewModel = new SystemHotkeysViewModel();
+            this.HotkeysViewModel = new AppsHotkeysViewModel(devices, this.hotkeys, notifications);
+            this.DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel(devices, this.hotkeys, notifications);
+            this.OpenHotkeyViewModel = new OpenHotkeyViewModel(this.hotkeys);
+            this.VolumeLimitViewModel = new VolumeLimitViewModel(devices);
+            this.AppVolumeSyncViewModel = new AppVolumeSyncViewModel(devices);
+            this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel(devices, this.hotkeys);
+            this.ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, this.hotkeys, notifications);
+            this.NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
+            this.SystemHotkeysViewModel = new SystemHotkeysViewModel(this.hotkeys);
             this.GitHubCommand = new ActionCommand(async () => await OpenWebPage("https://github.com/G-Stas/Volumey"));
             this.TipCommand = new ActionCommand(async (param) => await OpenWebPage(param as string));
 
@@ -108,7 +116,7 @@ namespace Volumey.ViewModel
                 this.HotkeyManagerMessageHandler = null;
                 manager = new SharpHookHotkeyManager();
             }
-            HotkeysControl.SetHotkeyManager(manager);
+            this.hotkeys.SetHotkeyManager(manager);
         }
         private async Task OpenWebPage(string url)
         {

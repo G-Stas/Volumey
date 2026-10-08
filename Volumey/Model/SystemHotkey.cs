@@ -24,14 +24,14 @@ namespace Volumey.Model
 			Replacement = replacement;
 		}
 
-		public void RegisterHotkeyHandler()
+		public void RegisterHotkeyHandler(IHotkeyService hotkeys)
 		{
-			HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+			hotkeys.HotkeyPressed += OnHotkeyPressed;
 		}
 
-		public void UnregisterHotkeyHandler()
+		public void UnregisterHotkeyHandler(IHotkeyService hotkeys)
 		{
-			HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+			hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		}
 
 		private void OnHotkeyPressed(HotKey pressed)

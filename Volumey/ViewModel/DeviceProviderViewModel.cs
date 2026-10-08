@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Model;
+using Volumey.Services;
 
 namespace Volumey.ViewModel
 {
@@ -36,17 +37,18 @@ namespace Volumey.ViewModel
 
         private Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
         
-        public DeviceProviderViewModel()
+        public DeviceProviderViewModel() : this(AppServices.Current.Devices, AppServices.Current.Shell) { }
+
+        internal DeviceProviderViewModel(IDeviceProvider deviceProvider, IAppShell shell)
         {
-            this.DeviceProvider = DataProvider.DeviceProvider.GetInstance();
+            this.DeviceProvider = deviceProvider;
             this.DeviceProvider.DeviceDisabled += OnDeviceDisabled;
             this.DeviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
             
             if(!this.DeviceProvider.NoOutputDevices)
                 this.SelectedDevice = this.DefaultDevice = this.DeviceProvider.DefaultDevice;
 
-            if(App.Current != null)
-                App.Current.Exit += (s, a) => this.DeviceProvider.Dispose();
+            shell.Exit += () => this.DeviceProvider.Dispose();
 
             this.SetDefaultDeviceCommand = new ActionCommand(() =>
             {

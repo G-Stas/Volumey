@@ -12,6 +12,7 @@ using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Localization;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -23,14 +24,14 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		private static ILog logger;
 		private static ILog Logger => logger ??= LogManager.GetLogger(typeof(AudioModelFactory));
 
-		internal static OutputDeviceModel CreateOutputDeviceModel(AudioDevice device, IDeviceStateNotificationHandler deviceStateNotificationHandler)
+		internal static OutputDeviceModel CreateOutputDeviceModel(AudioDevice device, IDeviceStateNotificationHandler deviceStateNotificationHandler, IHotkeyService hotkeys)
 		{
 			try
 			{
 				var sessionManager = device.Device.AudioSessionManager;
-				var processes = GetCurrentProcessList(sessionManager.Sessions);
-				var sessionProvider = new AudioSessionProvider(sessionManager);
-				var master = CreateMaster(device);
+				var processes = GetCurrentProcessList(sessionManager.Sessions, hotkeys);
+				var sessionProvider = new AudioSessionProvider(sessionManager, hotkeys);
+				var master = CreateMaster(device, hotkeys);
 
 				return new OutputDeviceModel(device, deviceStateNotificationHandler, sessionProvider, master, processes);
 			}
@@ -41,7 +42,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			}
 		}
 
-		private static MasterSessionModel CreateMaster(AudioDevice device)
+		private static MasterSessionModel CreateMaster(AudioDevice device, IHotkeyService hotkeys)
 		{
 			try
 			{
@@ -60,7 +61,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 				return new MasterSessionModel(deviceName, deviceDesc, Convert.ToInt32(volume * 100), muteState, id, icon,
 				                              masterVolume,
-				                              volumeHandler);
+				                              volumeHandler,
+				                              hotkeys);
 			}
 			catch(Exception e)
 			{
@@ -69,7 +71,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			}
 		}
 
-		private static List<AudioProcessModel> GetCurrentProcessList(SessionCollection sessions)
+		private static List<AudioProcessModel> GetCurrentProcessList(SessionCollection sessions, IHotkeyService hotkeys)
 		{
 			List<AudioProcessModel> processes = new List<AudioProcessModel>();
 
@@ -97,7 +99,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 					}
 					else
 					{
-						AudioProcessModel newProcess = CreateProcessModel(session, sessionControl, out bool isSystemSounds);
+						AudioProcessModel newProcess = CreateProcessModel(session, sessionControl, hotkeys, out bool isSystemSounds);
 
 						if(newProcess == null)
 							continue;
@@ -117,7 +119,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			return processes;
 		}
 
-		internal static AudioProcessModel CreateProcessModel(AudioSessionModel session, AudioSessionControl sControl, out bool isSystemSounds)
+		internal static AudioProcessModel CreateProcessModel(AudioSessionModel session, AudioSessionControl sControl, IHotkeyService hotkeys, out bool isSystemSounds)
 		{
 			Process proc = null;
 			isSystemSounds = false;
@@ -178,7 +180,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				Logger.Error($"Failed to create process model from session model, process: [{processName}]", e);
 				return null;
 			}
-			AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc);
+			AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc, hotkeys);
 			return model;
 		}
 
