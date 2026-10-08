@@ -18,7 +18,7 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
 - Validated on `release/2.0`: Release build, 152/152 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Next planned step:** tray icon on H.NotifyIcon.Wpf (item F). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
+- **Next planned step:** not decided yet (owner, 2026-10-09). The tray icon (item F) moves into the UI redesign (item C). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
 - Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ## Branching (decided 2026-10-08)
@@ -245,7 +245,7 @@ Each step should leave a working, shippable build.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
 5. ~~Hotkeys through a library, with a non-blocking mode (item D).~~ Done (2026-10-09).
-6. Tray icon on the current NotifyIcon library (item F).
+6. ~~Tray icon on the current NotifyIcon library (item F).~~ Deferred (owner, 2026-10-09): done together with the UI redesign (item C).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
 **Inserted 2026-10-09:** more tests (item G), layers 1–3 before item D, layer 4 (UI tests) before item C.
@@ -316,7 +316,7 @@ The tray icon uses a **vendored DLL** built from the owner's fork of Hardcodet (
 - Alternative: the official `Hardcodet.NotifyIcon.Wpf` 2.0.1 (Oct 2024), an almost drop-in replacement but much less active.
 - **Before switching**, diff the owner's fork against its upstream to find what the fork changed, and keep that behavior. Known areas: the Win11 tooltip workaround in `MainView.SetTrayIconTooltip` (plain text tooltip on Windows 11) and the tray context menu.
 - H.NotifyIcon by default derives the tray icon's ID from the exe path. For the Store build the path changes with every version, so Windows could forget "always show this icon" after updates. Check how it behaves with MSIX; the library supports a fixed ID.
-- This step is independent of the UI framework (iNKORE stays on WPF), so it can be done before item C. Afterwards, remove the vendored DLL and its `<Reference>`/`<EmbeddedResource>` entries from `Volumey.csproj`.
+- **Deferred (owner, 2026-10-09): do it together with the UI redesign (item C).** It doesn't depend on the UI framework (iNKORE stays on WPF), but the owner wants the tray reworked with the new UI. Afterwards, remove the vendored DLL and its `<Reference>`/`<EmbeddedResource>` entries from `Volumey.csproj`.
 
 ### G. More tests (owner's request, 2026-10-09)
 Coverage before: about 20% of the app's lines. The owner wants many more tests. Plan, one work branch per layer:
