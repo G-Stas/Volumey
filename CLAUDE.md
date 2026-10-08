@@ -16,9 +16,9 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
-- Validated on `release/2.0`: Release build, 74/74 tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
+- Validated on `release/2.0`: Release build, 109/109 tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Next planned step:** hotkeys through a library (item D) on a new work branch from `release/2.0`.
+- **Current work: more tests (item G, owner's request 2026-10-09)**, layers 1–3 before item D. Layer 1 (`test/unit-basics`) is done; next is layer 2 (ViewModel tests), then layer 3 (audio integration). After that: hotkeys through a library (item D).
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
@@ -86,9 +86,11 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 74 tests, all passing. `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 109 tests, all passing. Line coverage of the app is about 27% (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
+  - **Coverage** comes with MSTest.Sdk, no tool needed: `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x64 --coverage --coverage-output-format cobertura --coverage-output <file>`. Read the `Volumey` package's `line-rate`; the `Hardcodet.NotifyIcon.Wpf` package is the vendored tray DLL.
+  - Tests that drive the UI with the keyboard or mouse (layer 4 of item G, not written yet) must stay out of the normal run, e.g. in a separate category or project, and only run on demand.
   - `PlatformTarget` is always x64 and the `RuntimeIdentifier` is win-x64, because the app's `RuntimeIdentifier` is win-x64 on every platform.
 - `Volumey.Package.wapproj` (MSIX) does **not** build with `dotnet build`. It needs Visual Studio MSBuild with the "Windows application packaging" (DesktopBridge) targets and the Windows SDK (`TargetPlatformVersion` 10.0.26100.0, `TargetPlatformMinVersion` 10.0.18362.0). Use the VS menu *Project → Publish → Create App Packages* or the command above.
   - The `Store` configuration of the app is **self-contained**, so the MSIX carries the .NET 10 runtime (about 73 MB). Without that, packaging fails with NETSDK1112 (runtime pack not downloaded). `Debug`/`Release` are framework-dependent: the GitHub zip build needs the **.NET 10 Desktop Runtime** on the user's machine.
@@ -237,6 +239,8 @@ Each step should leave a working, shippable build.
 6. Tray icon on the current NotifyIcon library (item F).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
+**Inserted 2026-10-09:** more tests (item G), layers 1–3 before item D, layer 4 (UI tests) before item C.
+
 ### A. Replace the hand-written CoreAudio wrapper with NAudio
 **Done (2026-10-09)** with NAudio.Wasapi 3.1.0; see *Audio layer* for how it works. Decisions:
 - **NAudio 3.x, not 2.x:** current line, targets `net9.0`. In 3.x the raw COM interfaces are internal, so a separate interop path for session volume (to keep the event context) wasn't possible. Session echo suppression now compares states instead (`SessionEchoFilter`).
@@ -308,6 +312,13 @@ The tray icon uses a **vendored DLL** built from the owner's fork of Hardcodet (
 - H.NotifyIcon by default derives the tray icon's ID from the exe path. For the Store build the path changes with every version, so Windows could forget "always show this icon" after updates. Check how it behaves with MSIX; the library supports a fixed ID.
 - This step is independent of the UI framework (iNKORE stays on WPF), so it can be done before item C. Afterwards, remove the vendored DLL and its `<Reference>`/`<EmbeddedResource>` entries from `Volumey.csproj`.
 
+### G. More tests (owner's request, 2026-10-09)
+Coverage before: about 20% of the app's lines. The owner wants many more tests. Plan, one work branch per layer:
+1. **Plain unit tests** (no code changes). **Done** (`test/unit-basics`): converters, `HotKey`/`HotKeyBox`, `SystemHotkey`, localization, settings loading (`SettingsProvider.LoadSettings(dir)`: first launch, legacy import, reload). Found and fixed: a saved Ukrainian language ("uk-UA" vs "uk-ua") and system languages such as "uk" or "zh-Hans" fell back to English on start.
+   - Not tested here, because they need the app's resources (`App.Current.FindResource`): the tray icon providers and `ButtonIconThemeConverter`.
+2. **ViewModel tests.** The settings VMs call `DeviceProvider.GetInstance()` in their constructors and some use `App.Current.Dispatcher` directly. Add `internal` constructors that take `IDeviceProvider` (the public ones stay for XAML) and use the `App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher` fallback. Then test hotkey registration (fake `IHotkeyManager`), settings writes, and reactions to default-device changes. Start with the known `AppVolumeSyncViewModel` bug (see *Known issues*).
+3. **Audio integration tests** against real Windows audio: the test process plays silence through NAudio to get its own session, then checks `DeviceEnumerator`/`AudioModelFactory`, session events and `SessionEchoFilter` end to end. They only change the test's own session volume. Put them in an `Integration` category and skip them when there is no output device (CI runners have none).
+4. **UI tests (later, before item C)** with FlaUI against the dev build in an isolated data folder. They use the keyboard and mouse, so they stay out of the normal test run (owner's decision) and run on demand only.
 ## Machine setup
 The owner installs tooling **manually**. Don't run installers (winget, the VS installer) yourself; report what's missing instead.
 

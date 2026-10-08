@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Resources;
 using Volumey.DataProvider;
 
@@ -89,8 +91,12 @@ namespace Volumey.Localization
 
 		internal static void SetLanguage(CultureInfo ci)
 		{
-			if(CultureDictionary.ContainsValue(ci.Name)) 
-				Instance.CurrentCulture = ci;
+			//the saved name differs in case from the supported one ("uk-UA" / "uk-ua"),
+			//and a system language may only match by language ("uk", "zh-Hans")
+			string culture = CultureDictionary.Values.FirstOrDefault(c => string.Equals(c, ci.Name, StringComparison.OrdinalIgnoreCase))
+			                 ?? CultureDictionary.Values.FirstOrDefault(c => new CultureInfo(c).TwoLetterISOLanguageName == ci.TwoLetterISOLanguageName);
+			if(culture != null)
+				Instance.CurrentCulture = new CultureInfo(culture);
 			else
 				SetDefaultLanguage();
 		}
