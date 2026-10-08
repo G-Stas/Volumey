@@ -10,6 +10,7 @@ using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
@@ -73,7 +74,7 @@ namespace Volumey.ViewModel.Settings
 
 					//set new value in AppSettings but save it in App.Exit event handler
 					//or when other parameters will be saved
-					SettingsProvider.Settings.VolumeStep = value;
+					SettingsProvider.Settings.General.VolumeStep = value;
 					HotkeysControl.SetVolumeStep(value);
 				}
 			}
@@ -115,8 +116,8 @@ namespace Volumey.ViewModel.Settings
 		
 		public AppsHotkeysViewModel()
 		{
-			this.AddAppCommand = new ActionCommand(async () => await AddApp());
-			this.RemoveAppCommand = new ActionCommand(async () => await RemoveApp());
+			this.AddAppCommand = new ActionCommand(AddApp);
+			this.RemoveAppCommand = new ActionCommand(RemoveApp);
 
 			var dProvider = DeviceProvider.GetInstance();
 			dProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
@@ -124,8 +125,8 @@ namespace Volumey.ViewModel.Settings
 
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
-			this.VolumeStep = SettingsProvider.Settings.VolumeStep;
-			this.RegisteredProcesses = SettingsProvider.HotkeysSettings.GetRegisteredProcesses();
+			this.VolumeStep = SettingsProvider.Settings.General.VolumeStep;
+			this.RegisteredProcesses = LoadRegisteredProcesses();
 			if(this.RegisteredProcesses.Keys.Count > 0)
 			{
 				if(HotkeysControl.IsActive)
@@ -133,7 +134,7 @@ namespace Volumey.ViewModel.Settings
 				else
 					HotkeysControl.Activated += this.RegisterLoadedHotkeys;
 			}
-			SettingsProvider.NotificationsSettings.PropertyChanged += OnSettingsPropertyChanged;
+			SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
 		}
 
 		/// <summary>
@@ -188,13 +189,13 @@ namespace Volumey.ViewModel.Settings
 					process.SetVolumeHotkeys(hotkeys.VolumeUp, hotkeys.VolumeDown);
 					process.Exited += OnProcessExited;
 					this.LaunchedProcesses.Add(process);
-					if(SettingsProvider.NotificationsSettings.Enabled && process.StateNotificationMediator == null)
+					if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
 						process.SetStateMediator(this.ProcessStateMediator);
 				}
 			}
 		}
 
-		private async Task AddApp()
+		private void AddApp()
 		{
 			var process = this.SelectedProcess;
 			if(this.RegisteredProcesses.ContainsKey(process.Name))
@@ -214,7 +215,7 @@ namespace Volumey.ViewModel.Settings
 			
 			process.Exited += OnProcessExited;
 			
-			if(SettingsProvider.NotificationsSettings.Enabled && process.StateNotificationMediator == null)
+			if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
 				process.SetStateMediator(this.ProcessStateMediator);
 			this.SetErrorMessage(ErrorMessageType.None);
 
@@ -233,13 +234,12 @@ namespace Volumey.ViewModel.Settings
 			
 			try
 			{
-				SettingsProvider.HotkeysSettings.AddRegisteredProcess(process.Name, hotkeys);
-				await SettingsProvider.SaveSettings().ConfigureAwait(false);
+				this.SaveRegisteredProcesses();
 			}
 			catch { }
 		}
 
-		private async Task RemoveApp()
+		private void RemoveApp()
 		{
 			if(this.SelectedRegApp == null)
 				return;
@@ -263,17 +263,35 @@ namespace Volumey.ViewModel.Settings
 				this.DefaultDevice.ProcessCreated -= OnProcessStarted;
 			try
 			{
-				SettingsProvider.HotkeysSettings.RemoveRegisteredSession(processName);
-				await SettingsProvider.SaveSettings().ConfigureAwait(false);
+				this.SaveRegisteredProcesses();
 			}
 			catch { }
 		}
 		
-		private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+		private static ObservableConcurrentDictionary<string, VolumeHotkeysPair> LoadRegisteredProcesses()
 		{
-			if(e.PropertyName.Equals(nameof(SettingsProvider.NotificationsSettings.Enabled)))
+			var processes = new ObservableConcurrentDictionary<string, VolumeHotkeysPair>();
+			foreach(var app in SettingsProvider.Settings.Hotkeys.Apps)
 			{
-				if(SettingsProvider.NotificationsSettings.Enabled)
+				if(app.ProcessName != null && app.VolumeUp != null && app.VolumeDown != null)
+					processes.Add(app.ProcessName, new VolumeHotkeysPair(app.VolumeUp, app.VolumeDown));
+			}
+			return processes;
+		}
+
+		private void SaveRegisteredProcesses()
+		{
+			var apps = this.RegisteredProcesses
+			               .Select(p => new AppHotkeysEntry { ProcessName = p.Key, VolumeUp = p.Value.VolumeUp, VolumeDown = p.Value.VolumeDown })
+			               .ToArray();
+			SettingsProvider.Settings.Hotkeys.Apps = apps;
+		}
+
+		private void OnNotificationSettingsChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if(e.PropertyName == nameof(NotificationSettings.Enabled))
+			{
+				if(SettingsProvider.Settings.Notifications.Enabled)
 					SetVolumeStateMediatorForActiveProcesses();
 				else
 					ResetVolumeStateMediatorForActiveProcesses();
@@ -307,7 +325,7 @@ namespace Volumey.ViewModel.Settings
 				process.SetVolumeHotkeys(volUp: hotkeys.VolumeUp, volDown: hotkeys.VolumeDown);
 				process.Exited += OnProcessExited;
 				this.LaunchedProcesses.Add(process);
-				if(SettingsProvider.NotificationsSettings.Enabled)
+				if(SettingsProvider.Settings.Notifications.Enabled)
 					process.SetStateMediator(this.ProcessStateMediator);
 			}
 		}

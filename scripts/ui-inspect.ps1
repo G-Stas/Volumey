@@ -1,0 +1,121 @@
+<#
+.SYNOPSIS
+    Inspects and drives the running dev build of Volumey through UI Automation, without a mouse.
+
+.EXAMPLE
+    ./scripts/ui-inspect.ps1 -Show                          # bring the window up (like a second app launch would)
+    ./scripts/ui-inspect.ps1 -Screenshot $env:TEMP\v.png    # capture the app's windows into one image
+    ./scripts/ui-inspect.ps1 -Tree -Depth 8                 # dump controls: type, name, automation id, state
+    ./scripts/ui-inspect.ps1 -Click 'Settings'              # invoke/toggle/select the first control with that name or id
+    ./scripts/ui-inspect.ps1 -Click SettingsItem -Mouse     # real mouse click, for controls that only react to clicks
+#>
+param(
+    # defaults to the running Debug build of this repo
+    [int]$ProcessId,
+    [switch]$Show,
+    [string]$Screenshot,
+    [switch]$Tree,
+    [int]$Depth = 6,
+    [string]$Click,
+    # click with the real mouse at the control center (moves the cursor) instead of UI Automation patterns;
+    # needed where the app reacts to clicks, not to selection (e.g. NavigationView items)
+    [switch]$Mouse
+)
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Drawing, System.Windows.Forms
+Add-Type -Namespace Native -Name Win32 -MemberDefinition @'
+[DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern uint RegisterWindowMessage(string lpString);
+[DllImport("user32.dll")] public static extern bool PostMessage(System.IntPtr hWnd, uint msg, System.IntPtr wParam, System.IntPtr lParam);
+[DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+[DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, System.UIntPtr extra);
+'@ -ErrorAction SilentlyContinue
+
+$repo = Split-Path $PSScriptRoot -Parent
+$exe = Join-Path $repo 'Volumey\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64\Volumey.exe'
+if (-not $ProcessId) {
+    $process = Get-Process Volumey -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe } | Select-Object -First 1
+    if (-not $process) { throw 'The dev build is not running. Start it with scripts/run-dev.ps1.' }
+    $ProcessId = $process.Id
+}
+
+if ($Show) {
+    # same message a second Debug instance broadcasts (Startup.WM_SHOWME with the "-dev" suffix)
+    $msg = [Native.Win32]::RegisterWindowMessage('WM_SHOWME-dev')
+    [void][Native.Win32]::PostMessage([IntPtr]0xffff, $msg, [IntPtr]::Zero, [IntPtr]::Zero)
+    Start-Sleep -Milliseconds 700
+}
+
+$ae = [System.Windows.Automation.AutomationElement]
+$condition = New-Object System.Windows.Automation.PropertyCondition($ae::ProcessIdProperty, $ProcessId)
+$windows = @($ae::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, $condition))
+foreach ($w in $windows) {
+    $r = $w.Current.BoundingRectangle
+    "window '{0}' at {1},{2} size {3}x{4} offscreen={5}" -f $w.Current.Name, $r.X, $r.Y, $r.Width, $r.Height, $w.Current.IsOffscreen
+}
+
+function Get-State($element) {
+    $states = @()
+    foreach ($p in $element.GetSupportedPatterns()) {
+        $pattern = $element.GetCurrentPattern($p)
+        switch ($p.ProgrammaticName) {
+            'TogglePatternIdentifiers.Pattern'        { $states += "toggle=$($pattern.Current.ToggleState)" }
+            'ValuePatternIdentifiers.Pattern'         { $states += "value='$($pattern.Current.Value)'" }
+            'RangeValuePatternIdentifiers.Pattern'    { $states += "range=$($pattern.Current.Value)" }
+            'SelectionItemPatternIdentifiers.Pattern' { $states += "selected=$($pattern.Current.IsSelected)" }
+        }
+    }
+    if (-not $element.Current.IsEnabled) { $states += 'disabled' }
+    $states -join ' '
+}
+
+function Write-Tree($element, $level) {
+    if ($level -gt $Depth) { return }
+    $c = $element.Current
+    $type = $c.ControlType.ProgrammaticName -replace '^ControlType\.', ''
+    if ($c.Name -or $c.AutomationId -or $level -le 1) {
+        '{0}{1} "{2}" id={3} {4}' -f ('  ' * $level), $type, $c.Name, $c.AutomationId, (Get-State $element)
+    }
+    $walker = [System.Windows.Automation.TreeWalker]::ControlViewWalker
+    $child = $walker.GetFirstChild($element)
+    while ($child) { Write-Tree $child ($level + 1); $child = $walker.GetNextSibling($child) }
+}
+
+if ($Tree) { foreach ($w in $windows) { Write-Tree $w 0 } }
+
+if ($Click) {
+    $nameCondition = New-Object System.Windows.Automation.OrCondition(
+        (New-Object System.Windows.Automation.PropertyCondition($ae::NameProperty, $Click)),
+        (New-Object System.Windows.Automation.PropertyCondition($ae::AutomationIdProperty, $Click)))
+    $target = $null
+    foreach ($w in $windows) { $target = $w.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $nameCondition); if ($target) { break } }
+    if (-not $target) { throw "No control named '$Click'" }
+    $pattern = $null
+    if ($Mouse) {
+        $r = $target.Current.BoundingRectangle
+        [void][Native.Win32]::SetCursorPos([int]($r.X + $r.Width / 2), [int]($r.Y + $r.Height / 2))
+        [Native.Win32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero) # left down
+        [Native.Win32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero) # left up
+    }
+    elseif ($target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
+    elseif ($target.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$pattern)) { $pattern.Toggle() }
+    elseif ($target.TryGetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern, [ref]$pattern)) { $pattern.Select() }
+    elseif ($target.TryGetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern, [ref]$pattern)) { $pattern.Expand() }
+    else { throw "'$Click' supports no invoke/toggle/select/expand pattern" }
+    "clicked '$Click' ($($target.Current.ControlType.ProgrammaticName))"
+    Start-Sleep -Milliseconds 500
+}
+
+if ($Screenshot) {
+    $visible = $windows | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Width -gt 0 }
+    if (-not $visible) { throw 'No visible window to capture (use -Show)' }
+    $rects = $visible | ForEach-Object { $_.Current.BoundingRectangle }
+    $left = [int]($rects | Measure-Object X -Minimum).Minimum
+    $top = [int]($rects | Measure-Object Y -Minimum).Minimum
+    $right = [int]($rects | ForEach-Object { $_.X + $_.Width } | Measure-Object -Maximum).Maximum
+    $bottom = [int]($rects | ForEach-Object { $_.Y + $_.Height } | Measure-Object -Maximum).Maximum
+    $bmp = New-Object System.Drawing.Bitmap ($right - $left), ($bottom - $top)
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $g.CopyFromScreen($left, $top, 0, 0, $bmp.Size)
+    $bmp.Save($Screenshot, [System.Drawing.Imaging.ImageFormat]::Png)
+    "screenshot: $Screenshot"
+}

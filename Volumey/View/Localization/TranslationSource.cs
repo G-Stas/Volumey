@@ -84,11 +84,7 @@ namespace Volumey.Localization
 			else 
 				SetDefaultLanguage();
             
-			if(SettingsProvider.Settings.AppLanguage != Instance.currentCulture.Name)
-			{
-				SettingsProvider.Settings.AppLanguage = Instance.currentCulture.Name;
-				SettingsProvider.SaveSettings().GetAwaiter().GetResult();
-			}
+			SettingsProvider.Settings.General.Language = Instance.currentCulture.Name;
 		}
 
 		internal static void SetLanguage(CultureInfo ci)

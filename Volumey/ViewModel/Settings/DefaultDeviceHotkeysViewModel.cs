@@ -8,6 +8,7 @@ using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
@@ -66,7 +67,7 @@ namespace Volumey.ViewModel.Settings
             this.AddDeviceCommand = new ActionCommand(AddDevice);
             this.RemoveDeviceCommand = new ActionCommand(RemoveDevice);
 
-            this.RegisteredDevices = SettingsProvider.HotkeysSettings.GetRegisteredDevices();
+            this.RegisteredDevices = LoadRegisteredDevices();
             if(this.RegisteredDevices.Keys.Count > 0)
             {
                 if(HotkeysControl.IsActive)
@@ -110,9 +111,7 @@ namespace Volumey.ViewModel.Settings
                                 DeviceInfo deviceInfo = new DeviceInfo(activeDevice.Id, actualFriendlyName);
                                 HotKey hotkey = registeredDevice.Key;
                                 this.RegisteredDevices[hotkey] = deviceInfo;
-                                SettingsProvider.HotkeysSettings.RemoveRegisteredDevice(hotkey);
-                                SettingsProvider.HotkeysSettings.AddRegisteredDevice(hotkey, deviceInfo);
-                                _ = SettingsProvider.SaveSettings();
+                                this.SaveRegisteredDevices();
                             }
                         }
                     }
@@ -160,8 +159,7 @@ namespace Volumey.ViewModel.Settings
                 try
                 {
                     this.Logger.Info($"Registered default device hotkey: {hotkey.ToString()}, count: {this.RegisteredDevices.Keys.Count.ToString()}");
-                    SettingsProvider.HotkeysSettings.AddRegisteredDevice(hotkey, deviceInfo);
-                    _ = SettingsProvider.SaveSettings();
+                    this.SaveRegisteredDevices();
                 }
                 catch { }
             });
@@ -186,10 +184,28 @@ namespace Volumey.ViewModel.Settings
 
             try
             {
-                SettingsProvider.HotkeysSettings.RemoveRegisteredDevice(hotkey);
-                _ = SettingsProvider.SaveSettings();
+                this.SaveRegisteredDevices();
             }
             catch { }
+        }
+
+        private static ObservableConcurrentDictionary<HotKey, DeviceInfo> LoadRegisteredDevices()
+        {
+            var devices = new ObservableConcurrentDictionary<HotKey, DeviceInfo>();
+            foreach(var entry in SettingsProvider.Settings.Hotkeys.DefaultDevices)
+            {
+                if(entry.Hotkey != null)
+                    devices[entry.Hotkey] = new DeviceInfo(entry.DeviceId, entry.DeviceName);
+            }
+            return devices;
+        }
+
+        private void SaveRegisteredDevices()
+        {
+            var entries = this.RegisteredDevices
+                              .Select(d => new DeviceHotkeyEntry { Hotkey = d.Key, DeviceId = d.Value.ID, DeviceName = d.Value.Name })
+                              .ToArray();
+            SettingsProvider.Settings.Hotkeys.DefaultDevices = entries;
         }
 
         private void OnHotkeyPressed(HotKey pressedHotkey)

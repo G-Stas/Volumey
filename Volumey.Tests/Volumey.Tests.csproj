@@ -14,9 +14,6 @@
     <RootNamespace>Volumey.Tests</RootNamespace>
 
     <Configurations>Debug;Release;Store</Configurations>
-
-    <!-- SettingsProvider still uses BinaryFormatter -->
-    <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +22,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Volumey\Volumey.csproj" />
+    <!-- Vendored by the app; needed for NotificationPosition -->
+    <Reference Include="Notification.Wpf">
+      <HintPath>..\Volumey\Resources\Notification.Wpf.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestData\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

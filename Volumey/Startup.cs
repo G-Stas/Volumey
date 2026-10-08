@@ -6,6 +6,8 @@ using System.Windows;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using log4net;
+using log4net.Appender;
+using log4net.Layout;
 using log4net.Config;
 using Volumey.Helper;
 
@@ -13,10 +15,17 @@ namespace Volumey
 {
 	static class Startup
 	{
-		private static Mutex mutex = new Mutex(true, "2A777FD7-2EB6-4D0B-8523-87F23462918B");
+		#if(DEBUG)
+		//a separate single-instance scope so a debug build can run next to an installed release build
+		private const string InstanceSuffix = "-dev";
+		#else
+		private const string InstanceSuffix = "";
+		#endif
+
+		private static Mutex mutex = new Mutex(true, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
 
 		private const int HWND_BROADCAST = 0xffff;
-		public static readonly int WM_SHOWME = NativeMethods.RegisterWindowMessage("WM_SHOWME");
+		public static readonly int WM_SHOWME = NativeMethods.RegisterWindowMessage("WM_SHOWME" + InstanceSuffix);
 
 		internal static string MinimizedArg { get; } = "-minimized";
 		internal static string RestartArg { get; } = "-restart";
@@ -105,6 +114,8 @@ namespace Volumey
 		
 		#if(DEBUG)
 		private const string PathToDebugLogConfig = @"";
+		/// <summary>Path of a plain-text log file for debug builds, e.g. set by scripts/run-dev.ps1</summary>
+		private const string DebugLogFileVariable = "VOLUMEY_LOG_FILE";
 		#endif
 
 		private static void InitializeLoggerConfig()
@@ -141,6 +152,21 @@ namespace Volumey
 				var file = new FileInfo(PathToDebugLogConfig);
 				var repo = LogManager.GetRepository(Assembly.GetExecutingAssembly());
 				XmlConfigurator.Configure(repo, file);
+			}
+			else if(Environment.GetEnvironmentVariable(DebugLogFileVariable) is string logFile && logFile.Length > 0)
+			{
+				var appender = new FileAppender
+				{
+					File = logFile,
+					AppendToFile = true,
+					Layout = new PatternLayout("%date{HH:mm:ss.fff} [%thread] %-5level %logger - %message%newline%exception")
+				};
+				appender.ActivateOptions();
+				BasicConfigurator.Configure(LogManager.GetRepository(Assembly.GetExecutingAssembly()), appender);
+				//log crashes before the process goes down, so they can be read without a debugger
+				AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+					LogManager.GetLogger(typeof(Startup)).Fatal("Unhandled exception", e.ExceptionObject as Exception);
+				LogManager.GetLogger(typeof(Startup)).Info($"Debug build started, pid {Environment.ProcessId}");
 			}
 			#endif
 		}

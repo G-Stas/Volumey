@@ -76,8 +76,7 @@ namespace Volumey.ViewModel
 		        this.DisplayMinimalistic = value;
 		        this.displayedAsPopup = value;
 
-		        SettingsProvider.Settings.PopupEnabled = value;
-		        _ = SettingsProvider.SaveSettings();
+		        SettingsProvider.Settings.Window.PopupMode = value;
 		        
 		        OnPropertyChanged();
 	        }
@@ -91,8 +90,7 @@ namespace Volumey.ViewModel
 	        {
 		        this.alwaysOnTop = value;
 		        
-		        SettingsProvider.Settings.AlwaysOnTop = value;
-		        _ = SettingsProvider.SaveSettings();
+		        SettingsProvider.Settings.Window.AlwaysOnTop = value;
 		        
 		        OnPropertyChanged();
 	        }
@@ -106,8 +104,7 @@ namespace Volumey.ViewModel
 	        {
 		        this.deviceViewAtTheBottom = value;
 
-		        SettingsProvider.Settings.DeviceViewAtTheBottom = value;
-		        _ = SettingsProvider.SaveSettings();
+		        SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
 		        
 		        OnPropertyChanged();
 	        }
@@ -121,8 +118,7 @@ namespace Volumey.ViewModel
 	        {
 		        this.displayDeviceIconAtTray = value;
 
-		        SettingsProvider.Settings.DisplayDeviceIconAtTray = value;
-		        _ = SettingsProvider.SaveSettings();
+		        SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
 		        
 		        OnPropertyChanged();
 	        }
@@ -179,7 +175,6 @@ namespace Volumey.ViewModel
 	        set
 	        {
 		        windowLeft = value;
-		        SettingsProvider.Settings.WindowLeft = value;
 		        OnPropertyChanged();
 	        }
         }
@@ -191,7 +186,6 @@ namespace Volumey.ViewModel
 	        set
 	        {
 		        windowTop = value;
-		        SettingsProvider.Settings.WindowTop = value;
 		        OnPropertyChanged();
 	        }
         }
@@ -205,12 +199,7 @@ namespace Volumey.ViewModel
 		        selectedScreen = value;
 		        OnPropertyChanged();
 		        
-		        int index = AllScreens.IndexOf(value);
-		        if(SettingsProvider.Settings.SelectedScreenIndex != index)
-		        {
-			        SettingsProvider.Settings.SelectedScreenIndex = index;
-			        _ = SettingsProvider.SaveSettings();
-		        }
+		        SettingsProvider.Settings.Window.ScreenIndex = AllScreens.IndexOf(value);
 	        }
         }
 
@@ -271,13 +260,13 @@ namespace Volumey.ViewModel
 			this.trayBlockTimer.AutoReset = false;
 			this.trayBlockTimer.Elapsed += OnBlockTrayTimerElapsed;
 
-			this.popupEnabled = SettingsProvider.Settings.PopupEnabled;
-			this.alwaysOnTop = SettingsProvider.Settings.AlwaysOnTop;
-			this.deviceViewAtTheBottom = SettingsProvider.Settings.DeviceViewAtTheBottom;
-			this.displayDeviceIconAtTray = SettingsProvider.Settings.DisplayDeviceIconAtTray;
+			this.popupEnabled = SettingsProvider.Settings.Window.PopupMode;
+			this.alwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
+			this.deviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
+			this.displayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
-			this.windowLeft = SettingsProvider.Settings.WindowLeft;
-			this.windowTop = SettingsProvider.Settings.WindowTop;
+			this.windowLeft = SettingsProvider.Settings.Window.Left;
+			this.windowTop = SettingsProvider.Settings.Window.Top;
 			
 			this.LoadedCommand = new ActionCommand(this.CheckIfSelectedScreenIsAvailable);
 
@@ -311,7 +300,7 @@ namespace Volumey.ViewModel
 			foreach(var screen in screenInfoProvider.GetAllScreensInfo())
 				AllScreens.Add(screen);
 
-			int selectedScreenIndex = SettingsProvider.Settings.SelectedScreenIndex;
+			int selectedScreenIndex = SettingsProvider.Settings.Window.ScreenIndex;
 			if(AllScreens.Count - 1 < selectedScreenIndex || selectedScreenIndex < 0)
 				SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
 			else
@@ -379,9 +368,10 @@ namespace Volumey.ViewModel
 			App.Current.Dispatcher.Invoke(OnExit);
 		}
 		
-		private async void OnExit()
+		private void OnExit()
 		{
-			await SettingsProvider.SaveSettings().ConfigureAwait(true);
+			SettingsProvider.Settings.Window.Left = this.windowLeft;
+			SettingsProvider.Settings.Window.Top = this.windowTop;
 			LogManager.Shutdown();
 			HotkeysControl.Dispose();
 			App.Current.Shutdown();

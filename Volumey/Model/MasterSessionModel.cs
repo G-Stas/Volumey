@@ -180,7 +180,7 @@ namespace Volumey.Model
 
         public void ResetStateMediator(bool force = false)
         {
-            if(!force && SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+            if(!force && SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
                 return;
             StateNotificationMediator = null;
         }
@@ -227,14 +227,14 @@ namespace Volumey.Model
             {
                 if(hotkey.Equals(this.volumeUp))
                 {
-                    if(SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance && this.IsMuted)
+                    if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && this.IsMuted)
                         this.SetMute(false, notify: false, ref GuidValue.Internal.Empty);
                     this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify:true, ref GuidValue.Internal.Empty);
                 }
                 else if(hotkey.Equals(this.volumeDown))
                 {
                     int newValue = this.Volume - HotkeysControl.VolumeStep;
-                    if(SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance && newValue <= 0)
+                    if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
                     {
                         this.SetMute(true, notify: true, ref GuidValue.Internal.Empty);
                     }
@@ -302,7 +302,7 @@ namespace Volumey.Model
 
         private void OnVolumeChanged(VolumeChangedEventArgs e)
         {
-            if(SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges)
+            if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
             {
                 if(this.Volume != e.NewVolume || this.IsMuted != e.IsMuted)
                     this.StateNotificationMediator?.NotifyAudioStateChange(this);

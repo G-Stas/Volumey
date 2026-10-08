@@ -163,17 +163,17 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 					isSystemSounds = true;
 					//check if the system language was changed to get a new localized name for the system sounds session
 					var systemLanguage = TranslationSource.GetSystemLanguage();
-					if(SettingsProvider.Settings.SystemSoundsName == null ||
-					   SettingsProvider.Settings.SystemLanguage != systemLanguage)
+					var settings = SettingsProvider.Settings;
+					string systemSoundsName = settings.General.SystemSoundsName;
+					if(systemSoundsName == null || settings.General.SystemSoundsLanguage != systemLanguage)
 					{
 						//returns resources "DllPath,index"
 						processName = sControl.GetSystemSoundsName();
-						SettingsProvider.Settings.SystemLanguage = systemLanguage;
-						SettingsProvider.Settings.SystemSoundsName = processName;
-						SettingsProvider.SaveSettings().GetAwaiter().GetResult();
+						settings.General.SystemSoundsLanguage = systemLanguage;
+						settings.General.SystemSoundsName = processName;
 					}
 					else
-						processName = SettingsProvider.Settings.SystemSoundsName;
+						processName = systemSoundsName;
 
 					try
 					{

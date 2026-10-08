@@ -76,7 +76,7 @@ namespace Volumey.ViewModel.Settings
 			_defaultDevice = deviceProvider.DefaultDevice;
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 
-			if(SettingsProvider.HotkeysSettings.ForegroundVolumeUp is HotKey volumeUp && SettingsProvider.HotkeysSettings.ForegroundVolumeDown is HotKey volumeDown)
+			if(SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp is HotKey volumeUp && SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown is HotKey volumeDown)
 			{
 				this._hotkeysRegistered = true;
 				this.VolumeUpHotkey = volumeUp;
@@ -110,13 +110,12 @@ namespace Volumey.ViewModel.Settings
 			{
 				if(HotkeysControl.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
 				{
-					SettingsProvider.HotkeysSettings.ForegroundVolumeUp = this._volumeUpHotkey;
-					SettingsProvider.HotkeysSettings.ForegroundVolumeDown = this._volumeDownHotkey;
+					SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = this._volumeUpHotkey;
+					SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = this._volumeDownHotkey;
 					HotkeysControl.HotkeyPressed += OnHotkeyPressed;
 					Task.Run(() =>
 					{
 						Logger.Info($"Registered foreground hotkeys: [{this._volumeUpHotkey}] [{this._volumeDownHotkey}]");
-						_ = SettingsProvider.SaveSettings();
 					});	
 					return true;
 				}
@@ -140,10 +139,9 @@ namespace Volumey.ViewModel.Settings
 			}
 			catch { }
 			this.SetErrorMessage(ErrorMessageType.None);
-			SettingsProvider.HotkeysSettings.ForegroundVolumeUp = null;
-			SettingsProvider.HotkeysSettings.ForegroundVolumeDown = null;
+			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = null;
+			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = null;
 			HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
-			_ = SettingsProvider.SaveSettings();
 		}
 
 		private async Task<(bool succeed, AudioProcessModel? foundProcess)> TryGetForegroundAudioProcess()

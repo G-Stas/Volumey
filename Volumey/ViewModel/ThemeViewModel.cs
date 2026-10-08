@@ -54,7 +54,7 @@ namespace Volumey.ViewModel
 		public ThemeViewModel()
 		{
 			this.WindowsTheme = SystemColorHelper.WindowsTheme;
-			this.SelectedTheme = SettingsProvider.Settings.CurrentAppTheme;
+			this.SelectedTheme = SettingsProvider.Settings.General.Theme;
 			SystemColorHelper.WindowsThemeChanged += WindowsThemeChanged;
 		}
 
@@ -83,10 +83,9 @@ namespace Volumey.ViewModel
 			
 			Task.Run(() =>
 			{
-				if(SettingsProvider.Settings.CurrentAppTheme != this.selectedTheme)
+				if(SettingsProvider.Settings.General.Theme != this.selectedTheme)
 				{
-					SettingsProvider.Settings.CurrentAppTheme = this.selectedTheme;
-					_ = SettingsProvider.SaveSettings();
+					SettingsProvider.Settings.General.Theme = this.selectedTheme;
 				}
 			});
 		}

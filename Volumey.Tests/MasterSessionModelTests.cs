@@ -204,7 +204,7 @@ namespace Volumey.Tests
 		[TestMethod]
 		public void StateMediatorMustReset()
 		{
-			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = false;
+			SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = false;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.model.SetStateMediator(stateMediatorMock.Object);
 			
@@ -218,7 +218,7 @@ namespace Volumey.Tests
 		[TestMethod]
 		public void StateMediatorMustNotReset_IfReactingToAnyVolumeChangesEnabled()
 		{
-			SettingsProvider.NotificationsSettings.ReactToAllVolumeChanges = true;
+			SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = true;
 			var stateMediatorMock = new Mock<IAudioProcessStateMediator>();
 			this.model.SetStateMediator(stateMediatorMock.Object);
 			
@@ -233,7 +233,7 @@ namespace Volumey.Tests
 		public void SessionMustMuteToPreventResettingVolumeBalance_IfEnabled()
 		{
 			//arrange
-			SettingsProvider.HotkeysSettings.PreventResettingVolumeBalance = true;
+			SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance = true;
 			this.model.Volume = 1;
 			var hManagerMock = new Mock<IHotkeyManager>();
 			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
@@ -248,7 +248,7 @@ namespace Volumey.Tests
 			hManagerMock.Raise(m => m.HotkeyPressed += null, downHotkey);
 
 			//assert
-			this.sessionVolumeMock.Verify(m => m.SetVolume(volume - SettingsProvider.Settings.VolumeStep, ref GuidValue.Internal.VolumeGUID), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(volume - SettingsProvider.Settings.General.VolumeStep, ref GuidValue.Internal.VolumeGUID), Times.Never);
 			this.sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Once);
 
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(volume, !muteState));
