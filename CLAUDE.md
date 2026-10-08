@@ -187,7 +187,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 | Package | Purpose | Notes |
 |---|---|---|
 | ModernWpfUI 0.9.4 | UI controls/theme | Frozen 0.9.x line; to be replaced by iNKORE.UI.WPF.Modern (item C) |
-| Hardcodet.NotifyIcon.Wpf (**vendored DLL**, author's fork `G-Stas/wpf-notifyicon`) | tray icon | `Resources/` binary, not NuGet |
+| Hardcodet.NotifyIcon.Wpf (**vendored DLL**, author's fork `G-Stas/wpf-notifyicon`) | tray icon | `Resources/` binary, not NuGet. To be replaced by `H.NotifyIcon.Wpf` (item F) |
 | Notification.Wpf (**vendored DLL**, fork `G-Stas/Notification.Wpf`) | OSD popups | `Resources/` binary, not NuGet |
 | Autoupdater.NET.Official 1.8.2 | non-Store updates | 1.9.x is available; works on .NET 10 (update dialog verified) |
 | log4net-loggly 9.0.0 | remote logging to Loggly | **Loggly input key is committed in `log4net.config`** |
@@ -224,8 +224,9 @@ Each step should leave a working, shippable build.
    - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. Audio layer → NAudio (item A).
-5. Non-blocking hook hotkeys (item D).
-6. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
+5. Hotkeys through a library, with a non-blocking mode (item D).
+6. Tray icon on the current NotifyIcon library (item F).
+7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
 ### A. Replace the hand-written CoreAudio wrapper with NAudio
 Use `NAudio.Wasapi` / `NAudio.CoreAudioApi`.
@@ -260,32 +261,47 @@ Candidates (state as of Oct 2026):
 - **Avalonia + FluentAvalonia**: cross-platform, which this app doesn't need. Lowest priority.
 
 For any choice:
-- Re-evaluate the OSD (the `Notification.Wpf` fork) and the tray icon (the `Hardcodet` fork). Ideally the vendored DLLs go away.
+- Re-evaluate the OSD (the `Notification.Wpf` fork); ideally that vendored DLL goes away too. The tray icon is handled separately in item F.
 - Prototype the main mixer flyout plus one settings page before migrating.
 - Keep ViewModels framework-agnostic.
 
-### D. Hotkeys without blocking them in Windows (keyboard hook)
-`HotkeyManager` uses `RegisterHotKey`, which takes the key combo away from every other app. The planned option listens with a low-level hook instead, so keys still reach other apps.
+### D. Hotkeys through a library, including non-blocking ones
+`HotkeyManager` uses `RegisterHotKey`, which takes the key combo away from every other app. The owner wants a **non-blocking mode** (a low-level hook that only listens, so keys still reach other apps), and wants **hotkeys handled by a library instead of the app's own code**, at least for the non-blocking mode. Decided 2026-10-08.
 
-Most of the code already exists:
-- `Helper/HotkeyHookManager.cs` (`WH_KEYBOARD_LL`) implements `IHotkeyManager`.
-- The toggle code (`BlockHotkeysInSystem`, `AllowDuplicateHotkeys`) is commented out in `ViewModel/SettingsViewModel.cs`.
-- `ConvertHotkeysToNewManager` is commented out in `HotkeysControl`.
+Candidates (state as of Oct 2026):
+- **SharpHook** (`SharpHook` 8.0.0, Aug 2026, MIT, actively maintained): the preferred option for non-blocking hotkeys.
+  - Global keyboard **and mouse** hooks, built on the native libuiohook. Mouse buttons and the wheel are covered too, which fits issues #31 (mouse buttons as hotkeys) and #70/#93 (mouse wheel).
+  - `EventLoopGlobalHook` runs the handlers on its own thread and queues events, so slow handlers don't get the hook removed by Windows. Run it with `RunAsync()`. Only one global hook should exist per process.
+  - It can also suppress events on Windows (`SuppressEvent`, only synchronously with `SimpleGlobalHook`). That's not the same as `RegisterHotKey`, so evaluate it before using it for blocking mode.
+  - It ships a native `uiohook.dll`, which has to end up in the MSIX and the zip.
+- **NHotkey.Wpf** (4.0.0, Jan 2026): a small wrapper around `RegisterHotKey`. It's a candidate for the **blocking** mode if the own `HotkeyManager` should go too; otherwise keep `HotkeyManager` for blocking mode.
+- Not recommended: H.Hooks (last release Dec 2024), MouseKeyHook (Apr 2023), GlobalHotKeys (2017).
+
+Plan:
+- Put the library behind `IHotkeyManager`, so `HotkeysControl` and the models stay unchanged. Then replace `Helper/HotkeyHookManager.cs` (the app's own `WH_KEYBOARD_LL` code, currently unused) with the library-based manager.
+- Re-enable the mode switch: the `BlockHotkeysInSystem`/`AllowDuplicateHotkeys` code is commented out in `ViewModel/SettingsViewModel.cs`, and `ConvertHotkeysToNewManager` in `HotkeysControl`. Store the choice in the settings, e.g. `Hotkeys.BlockInSystem`.
+- The `HotKey` model (`Key` + `ModifierKeys`) is WPF-based. Map the library's key codes to it in one place, and handle left/right modifier variants and auto-repeat.
 
 Things to get right:
-- **Callback speed:** return from the hook callback fast. Windows silently removes hooks that exceed `LowLevelHooksTimeout` (about 1 s). Dispatch work asynchronously and never make COM audio calls inside the callback.
-- **Message loop:** the thread that installs the hook must pump messages.
-- **Key handling:** handle auto-repeat and left/right modifier variants.
-- **Elevated windows:** the hook can't see input sent to elevated windows. Fixing that needs `uiAccess=true`, which Store apps can't use. Tell users about this limitation.
-- **Duplicates:** combos used by more than one feature become possible, so define what `AllowDuplicates` means.
+- **Callback speed:** Windows silently removes low-level hooks that respond too slowly (`LowLevelHooksTimeout`, about 1 s). Never make COM audio calls on the hook thread; dispatch the work.
+- **Elevated windows:** a hook can't see input sent to elevated windows (UIPI). Fixing that needs `uiAccess=true`, which Store apps can't use. `RegisterHotKey` doesn't have this problem, which is one more reason to keep blocking mode. Tell users about this limitation.
+- **Duplicates:** combos used by more than one feature become possible in non-blocking mode, so define what `AllowDuplicates` means.
 - **Switching managers at runtime:** move every registered hotkey, keeping the ref counts in `HotkeysControl`.
-- **Security software:** some anti-cheat and security tools flag global keyboard hooks.
+- **Security software:** some anti-cheat and security tools flag global hooks. This may matter for the game-related issues #46, #58 and #63.
 
 ### E. Tests that don't depend on Visual Studio
 Tests must run the same way from the CLI, CI, Rider and VS.
 - **Done (2026-10-08):** the owner chose **MSTest**. The tests are on MSTest.Sdk 4.5.1 with the Microsoft.Testing.Platform runner (selected in `global.json`) on .NET 10. See *Build, run, test*.
 - Put interfaces in front of the statics and singletons (`SettingsProvider`, `DeviceProvider.GetInstance()`, `HotkeysControl`, `App.Current.Dispatcher`) so the models become testable.
 - GitHub Actions workflow: `.github/workflows/build.yml` exists but is inactive, because the work isn't pushed.
+
+### F. Tray icon: switch to the current NotifyIcon library
+The tray icon uses a **vendored DLL** built from the owner's fork of Hardcodet (`G-Stas/wpf-notifyicon`, `Volumey/Resources/Hardcodet.NotifyIcon.Wpf.dll`). The owner wants the current library from NuGet instead. Decided 2026-10-08.
+- **Preferred: `H.NotifyIcon.Wpf`** (2.4.1, Dec 2025, MIT). It's the maintained continuation of Hardcodet.NotifyIcon.Wpf and keeps its API: `TaskbarIcon`, `TrayToolTip`, `TrayPopup`, `ContextMenu`, commands. On top of that it has native context menus with dark/light theming, Windows 11 Efficiency Mode, icons generated from text, and NativeAOT/trimming support. There's also a WinUI package, should the UI ever move there.
+- Alternative: the official `Hardcodet.NotifyIcon.Wpf` 2.0.1 (Oct 2024), an almost drop-in replacement but much less active.
+- **Before switching**, diff the owner's fork against its upstream to find what the fork changed, and keep that behavior. Known areas: the Win11 tooltip workaround in `MainView.SetTrayIconTooltip` (plain text tooltip on Windows 11) and the tray context menu.
+- H.NotifyIcon by default derives the tray icon's ID from the exe path. For the Store build the path changes with every version, so Windows could forget "always show this icon" after updates. Check how it behaves with MSIX; the library supports a fixed ID.
+- This step is independent of the UI framework (iNKORE stays on WPF), so it can be done before item C. Afterwards, remove the vendored DLL and its `<Reference>`/`<EmbeddedResource>` entries from `Volumey.csproj`.
 
 ## Machine setup
 The owner installs tooling **manually**. Don't run installers (winget, the VS installer) yourself; report what's missing instead.
