@@ -6,18 +6,36 @@ Volumey is a Windows tray volume mixer (WPF). It sets up global hotkeys for per-
 
 The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June 2023 (Ukrainian localization).
 
-**Git remotes:** `origin` → `G-Stas/Volumey` (the real repo; push and open PRs here). `colin` → `colinfindlay-nz/Volumey`, the fork this clone was first made from, which is stale and only kept for reference. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into `main`.
+**Git remotes:** `origin` → `G-Stas/Volumey` (the real repo). `colin` → `colinfindlay-nz/Volumey`, the fork this clone was first made from, which is stale and only kept for reference. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into `main`.
+
+## Current state (2026-10-08)
+- **All 2.0 work is local and unpushed** (owner's decision). Don't push and don't suggest pushing, PRs or CI runs unless the owner asks; validate everything locally (see *Validating a step*).
+- Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian) and `release/2.0`. No work branch is open.
+- `release/2.0` = `main` plus, in this order:
+  1. MSTest instead of xUnit, and .NET 10 (app, tests, Store package).
+  2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
+  3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
+- Validated on `release/2.0`: Release build, 65/65 tests, the Store MSIX build, and dev runs (mixer, settings pages, settings saved through the UI, app and device hotkey lists).
+- **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
+- **Next planned step:** NAudio (item A) on a new `feature/naudio` branch from `release/2.0`.
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
-- **`release/2.0`**: integration branch for the next major update (2.0). It starts from `upgrade/dotnet10-mstest` (.NET 10 + MSTest) and collects all modernization work: JSON settings, NAudio, hook hotkeys, the new UI, and GitHub issue fixes.
-- **Work branches**: branch off `release/2.0` with a descriptive name (e.g. `feature/json-settings`, `fix/app-volume-sync-device-switch`). Merge them back into `release/2.0`, through a PR against `release/2.0` once the branches are on GitHub. Never commit feature work directly to `main`.
+- **`release/2.0`**: integration branch for the next major update (2.0). It collects all modernization work: NAudio, hook hotkeys, the new UI, and GitHub issue fixes.
+- **Work branches**: branch off `release/2.0` with a descriptive name (e.g. `feature/naudio`, `fix/app-volume-sync-device-switch`). Merge them back locally with `git merge --no-ff`. Never commit feature work directly to `main`.
 - **Before starting a new step, validate the branch state (owner's rule):**
   1. Check that the previous work branch is finished and merged into `release/2.0`; if not, validate it (build + `dotnet test`) and merge it first (`git merge --no-ff`).
   2. Create the new work branch from the current `release/2.0`, never stack it on an unmerged work branch.
   3. Delete merged work branches.
 - Keep `release/2.0` buildable and green (`dotnet test`). If a hotfix lands on `main`, merge `main` into `release/2.0`.
 - When 2.0 ships: bump the version (see *Release checklist*), merge `release/2.0` into `main`, and tag `v2.0.0.0`.
+
+### Validating a step (before merging into `release/2.0`)
+1. `dotnet build Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64 --no-incremental`: no errors, and no warnings except the known log4net NU1902.
+2. `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64`: all tests pass.
+3. **Build the Store MSIX** with VS MSBuild (command under *Build, run, test*) whenever project files, packages or the manifest change. A plain `dotnet build` doesn't cover the packaging project, and that's how a broken package build once went unnoticed.
+4. Smoke-test the changed area in a dev run (`scripts/run-dev.ps1`, `scripts/ui-inspect.ps1`).
+5. Update this file, commit, merge with `--no-ff`, and delete the work branch.
 
 ## Repo layout
 
@@ -66,7 +84,7 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 65 tests, all passing. CI (`.github/workflows/build.yml`, `windows-latest`) runs them on pushes to `main`/`release/**` and on pull requests; the Store package isn't built there because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 65 tests, all passing. `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
   - `PlatformTarget` is always x64 and the `RuntimeIdentifier` is win-x64, because the app's `RuntimeIdentifier` is win-x64 on every platform.
@@ -180,6 +198,16 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 
 WinRT APIs (`StoreContext`, `AppInstance`, `Package`) come from the `-windows10.0.19041.0` TFM; the `Microsoft.Windows.SDK.Contracts` package is gone. `System.Drawing` comes from the Windows Desktop framework. Code analyzers come with the SDK, so there's no NetAnalyzers package.
 
+## GitHub issues (checked 2026-10-08)
+42 issues are open. The owner wants to finish the modernization before working through them. Only #18, #47 and #75 were read in full; for the rest, only the titles are known, so **read the issue before assuming its cause**. Titles can be misleading:
+- **#18** ("device hotkeys not visible after restart"): the hotkeys are saved and work. The *Change default device by hotkey* page just hides them in a collapsed combo box with no selection, while the hotkey box shows the default F4. This is a UI problem, reproduced in a dev run; fix it with the new UI or with a quick pre-selection.
+- **#47 / #75** ("save settings across reboots" / "settings suddenly resets"): these are about **app volumes** that apps or Windows reset (e.g. Discord back to 100%), not about Volumey's settings. Volumey never stored app volumes. This is a possible new feature: remember and restore app volumes, together with the presets request #84.
+- Grouped by title:
+  - **Crashes** when an audio device is removed (#71, #73), after sleep (#57), in games (#58) or with many apps (#66); the app stops randomly (#88); a memory leak (#87).
+  - **OSD position and multi-monitor:** #65, #76, #91, #92.
+  - **Hotkeys in games:** #46, #63; these may benefit from item D.
+  - **Feature requests:** per-app mute hotkeys (#59, #64, #86), hiding apps or System Sounds (#67, #89), non-default devices (#17, #77), per-app output device (#14), mouse wheel and tray (#70, #93), and more.
+
 ## Known issues / gotchas found during analysis
 - **Dev builds use the real settings** unless `VOLUMEY_SETTINGS_DIR` is set. After the first 2.0 start, later changes made in 1.x aren't imported again; delete `settings.json` to re-import.
 - `AppVolumeSyncViewModel` subscribes to `defaultDevice.Master.PropertyChanged` when it's switched on, but never unsubscribes: not when it's switched off, and not when the default device changes. `OnDefaultDeviceChanged` also never subscribes to the new device's master. After a device switch, changing the *old* device's volume syncs the *new* device's apps, and the new device's master volume is ignored. Turning it off and on again adds a duplicate handler.
@@ -190,9 +218,10 @@ The owner is coming back to the project to work through the GitHub issues and mo
 
 ### Suggested order
 Each step should leave a working, shippable build.
-1. ~~Universal tests + green baseline (item E).~~ Done: MSTest, 54/54 passing.
-2. ~~Retarget to **.NET 10**~~. Done (2026-10-08): the app and tests are on `net10.0-windows10.0.19041.0`, and the Store MSIX builds. .NET 10 is LTS, supported until Nov 2028. Don't target .NET 11 until it ships as stable, and only move to it if the owner asks. BinaryFormatter is kept alive temporarily, see Settings persistence.
+1. ~~Universal tests + green baseline (item E).~~ Done: MSTest (65 tests now).
+2. ~~Retarget to **.NET 10**~~. Done (2026-10-08): the app and tests are on `net10.0-windows10.0.19041.0`, and the Store MSIX builds. .NET 10 is LTS, supported until Nov 2028. Don't target .NET 11 until it ships as stable, and only move to it if the owner asks.
    - **Verified (2026-10-08, Debug build):** startup, mixer, settings pages, theme, update check, and settings save through the UI. **Still to verify:** hotkeys, OSD popups, autostart, the tray menu, and the installed MSIX. The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET.
+   - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. Audio layer → NAudio (item A).
 5. Non-blocking hook hotkeys (item D).
@@ -254,9 +283,9 @@ Things to get right:
 
 ### E. Tests that don't depend on Visual Studio
 Tests must run the same way from the CLI, CI, Rider and VS.
-- **Done (2026-10-08):** the owner chose **MSTest**. The tests are on MSTest.Sdk 4.5.1 with the Microsoft.Testing.Platform runner (selected in `global.json`) on .NET 10, with all 54 passing. See *Build, run, test*.
+- **Done (2026-10-08):** the owner chose **MSTest**. The tests are on MSTest.Sdk 4.5.1 with the Microsoft.Testing.Platform runner (selected in `global.json`) on .NET 10. See *Build, run, test*.
 - Put interfaces in front of the statics and singletons (`SettingsProvider`, `DeviceProvider.GetInstance()`, `HotkeysControl`, `App.Current.Dispatcher`) so the models become testable.
-- ~~Add a GitHub Actions workflow~~ Done: `.github/workflows/build.yml` (not yet run on GitHub until the branches are pushed).
+- GitHub Actions workflow: `.github/workflows/build.yml` exists but is inactive, because the work isn't pushed.
 
 ## Machine setup
 The owner installs tooling **manually**. Don't run installers (winget, the VS installer) yourself; report what's missing instead.
