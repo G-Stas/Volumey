@@ -10,7 +10,9 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     /// Provides notifications when an audio endpoint device is added or removed,
     /// when the state or properties of an endpoint device change,
     /// or when there is a change in the default role assigned to an endpoint device.
-    /// NAudio raises the notifications on COM threads.
+    /// NAudio raises the notifications on COM threads. They are passed to the UI thread without waiting:
+    /// a waiting callback thread deadlocks with the UI thread when that releases a device's COM objects,
+    /// because the release waits for running callbacks to return.
     /// </summary>
     public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHandler
     {
@@ -44,7 +46,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         {
             if(e.Flow == DataFlow.Render && e.Role == Role.Console)
             {
-                this.DefaultDeviceChanged?.Invoke(e.DeviceId);
+                Post(() => this.DefaultDeviceChanged?.Invoke(e.DeviceId));
             }
         }
 
@@ -53,7 +55,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         /// </summary>
         private void OnDeviceAdded(object sender, DeviceNotificationEventArgs e)
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Post(() =>
             {
                 try
                 {
@@ -71,7 +73,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         /// </summary>
         private void OnDeviceStateChanged(object sender, DeviceStateChangedEventArgs e)
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Post(() =>
             {
                 try
                 {
@@ -105,11 +107,30 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         {
             var key = e.PropertyKey;
             if(IsKey(key, PropertyKeys.PKEY_Device_FriendlyName) || IsKey(key, PropertyKeys.PKEY_Device_DeviceDesc))
-                this.NameChanged?.Invoke(e.DeviceId);
+                Post(() => this.NameChanged?.Invoke(e.DeviceId));
             else if(IsKey(key, PropertyKeys.PKEY_Device_IconPath))
-                this.IconPathChanged?.Invoke(e.DeviceId);
+                Post(() => this.IconPathChanged?.Invoke(e.DeviceId));
             else if(IsKey(key, PropertyKeys.PKEY_AudioEngine_DeviceFormat))
-                this.FormatChanged?.Invoke(e.DeviceId);
+                Post(() => this.FormatChanged?.Invoke(e.DeviceId));
+        }
+
+        /// <summary>
+        /// Runs the action on the UI thread without blocking the calling COM thread. The dispatcher keeps the order of the notifications.
+        /// </summary>
+        private void Post(Action action)
+        {
+            try
+            {
+                App.Current?.Dispatcher.InvokeAsync(() =>
+                {
+                    try { action(); }
+                    catch(Exception e) { Logger.Error("Failed to handle a device notification", e); }
+                });
+            }
+            catch(Exception e)
+            {
+                Logger.Error("Failed to dispatch a device notification", e);
+            }
         }
 
         private static bool IsKey(PropertyKey key, PropertyKey expected)

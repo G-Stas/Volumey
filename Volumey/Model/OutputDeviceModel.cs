@@ -300,7 +300,10 @@ namespace Volumey.Model
 			}
 			
 			this._processesSemaphore.Dispose();
-			this.device.Dispose();
+			//Release the device's COM objects on the thread pool: a release waits for running audio callbacks,
+			//and those may wait for the UI thread
+			var disposedDevice = this.device;
+			_ = Task.Run(() => disposedDevice.Dispose());
 			this._disabled = null;
 			this.ProcessCreated = null;
 		}
