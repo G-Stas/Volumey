@@ -17,9 +17,9 @@ namespace Volumey
 	{
 		#if(DEBUG)
 		//a separate single-instance scope so a debug build can run next to an installed release build
-		private const string InstanceSuffix = "-dev";
+		internal const string InstanceSuffix = "-dev";
 		#else
-		private const string InstanceSuffix = "";
+		internal const string InstanceSuffix = "";
 		#endif
 
 		private static Mutex mutex = new Mutex(true, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
