@@ -17,34 +17,28 @@ namespace Volumey.ViewModel.Settings
 			get => isOn;
 			set
 			{
+				if(isOn == value)
+					return;
 				isOn = value;
 				if(isOn)
 				{
 					this.deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
-					this.defaultDevice = deviceProvider.DefaultDevice;
-					if(this.defaultDevice != null)
-					{
-                        this.MasterVolume = this.defaultDevice.Master.Volume;
-                        this.defaultDevice.ProcessCreated += OnProcessCreated;
-						this.defaultDevice.Master.PropertyChanged += OnMasterPropertyChanged;
-					}
+					this.SetDevice(this.deviceProvider.DefaultDevice);
 				}
 				else
 				{
 					this.deviceProvider.DefaultDeviceChanged -= OnDefaultDeviceChanged;
-					if(this.defaultDevice != null)
-					{
-						this.defaultDevice.ProcessCreated -= OnProcessCreated;
-					}
-					this.defaultDevice = null;
+					this.SetDevice(null);
 				}
-				if(SettingsProvider.Settings.General.AppVolumeSyncEnabled != value)
+				//take the settings now: they may be replaced before the task runs
+				var general = SettingsProvider.Settings.General;
+				if(general.AppVolumeSyncEnabled != value)
 				{
 					Task.Run(() =>
 					{
-						if(isOn)
+						if(value)
 							Logger.Info("Synchronising app volume to master volume on change.");
-						SettingsProvider.Settings.General.AppVolumeSyncEnabled = value;
+						general.AppVolumeSyncEnabled = value;
 					});
 				}
 				OnPropertyChanged();
@@ -57,17 +51,38 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppVolumeSyncViewModel));
 
-		public AppVolumeSyncViewModel()
+		public AppVolumeSyncViewModel() : this(DeviceProvider.GetInstance()) { }
+
+		internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider)
 		{
-			this.deviceProvider = DeviceProvider.GetInstance();
+			this.deviceProvider = deviceProvider;
 			this.IsOn = SettingsProvider.Settings.General.AppVolumeSyncEnabled;
 		}
 
-        private async Task SyncSessionVolume()
-        {
-			if(this.IsOn)
+		/// <summary>
+		/// Follows the volume and the new processes of the device, and stops following the previous one.
+		/// </summary>
+		private void SetDevice(OutputDeviceModel device)
+		{
+			if(this.defaultDevice != null)
 			{
-				foreach (var process in await this.defaultDevice.GetImmutableProcessesAsync())
+				this.defaultDevice.ProcessCreated -= OnProcessCreated;
+				this.defaultDevice.Master.PropertyChanged -= OnMasterPropertyChanged;
+			}
+			this.defaultDevice = device;
+			if(device != null)
+			{
+				this.MasterVolume = device.Master.Volume;
+				device.ProcessCreated += OnProcessCreated;
+				device.Master.PropertyChanged += OnMasterPropertyChanged;
+			}
+		}
+
+		private async Task SyncSessionVolume()
+		{
+			if(this.IsOn && this.defaultDevice is OutputDeviceModel device)
+			{
+				foreach (var process in await device.GetImmutableProcessesAsync())
 				{
 					if(process.Volume != this.MasterVolume)
 					{
@@ -75,19 +90,13 @@ namespace Volumey.ViewModel.Settings
 					}
 				}
 			}
-        }
+		}
 
-        private async void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+		private async void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
-			if(this.defaultDevice != null)
-				this.defaultDevice.ProcessCreated -= OnProcessCreated;
-			this.defaultDevice = newDevice;
-			if(this.IsOn && newDevice != null)
-			{
-				newDevice.ProcessCreated += OnProcessCreated;
-				MasterVolume = newDevice.Master.Volume;
+			this.SetDevice(newDevice);
+			if(newDevice != null)
 				await SyncSessionVolume();
-			}
 		}
 
 		private void OnProcessCreated(AudioProcessModel newProcess)
