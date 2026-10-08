@@ -22,7 +22,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			var spotify = CreateProcess("Spotify", 50);
 			SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
+			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
 
 			vm.AddAppCommand.Execute(null);
 
@@ -35,7 +35,7 @@ namespace Volumey.Tests.ViewModels
 			Assert.IsNull(vm.VolumeUp);
 
 			PressHotkey(Up);
-			Assert.AreEqual(50 + HotkeysControl.VolumeStep, spotify.Volume);
+			Assert.AreEqual(50 + this.Hotkeys.VolumeStep, spotify.Volume);
 		}
 
 		[TestMethod]
@@ -44,7 +44,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			var spotify = CreateProcess("Spotify");
 			SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = null };
+			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = null };
 
 			vm.AddAppCommand.Execute(null);
 
@@ -59,7 +59,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			var spotify = CreateProcess("Spotify");
 			SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
+			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
 			vm.AddAppCommand.Execute(null);
 
 			vm.SelectedRegApp = vm.RegisteredProcesses.Single();
@@ -79,7 +79,7 @@ namespace Volumey.Tests.ViewModels
 			var other = CreateProcess("Chrome");
 			var device = CreateDevice("1", "Speakers", running, other);
 			SetDefaultDevice(device);
-			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object);
+			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object);
 
 			ActivateHotkeys();
 			Assert.IsTrue(running.AnyHotkeyRegistered);
@@ -98,7 +98,7 @@ namespace Volumey.Tests.ViewModels
 			var onOld = CreateProcess("Spotify");
 			var onNew = CreateProcess("Spotify");
 			SetDefaultDevice(CreateDevice("1", "Speakers", onOld));
-			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object);
+			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object);
 			Assert.IsTrue(onOld.AnyHotkeyRegistered);
 
 			ChangeDefaultDevice(CreateDevice("2", "Headphones", onNew));
@@ -111,12 +111,12 @@ namespace Volumey.Tests.ViewModels
 		public void VolumeStepIsSavedAndUsedByHotkeys()
 		{
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
-			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object);
+			var vm = new AppsHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object);
 
 			vm.VolumeStep = 5;
 
 			Assert.AreEqual(5, this.Settings.General.VolumeStep);
-			Assert.AreEqual(5, HotkeysControl.VolumeStep);
+			Assert.AreEqual(5, this.Hotkeys.VolumeStep);
 		}
 
 		[TestMethod]
@@ -126,7 +126,7 @@ namespace Volumey.Tests.ViewModels
 			var headphones = CreateDevice("2", "Headphones");
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
 			this.ActiveDevices.Add(headphones);
-			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object) { SelectedDevice = headphones, HotKey = Switch };
+			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
 
 			vm.AddDeviceCommand.Execute(null);
 			PressHotkey(Switch);
@@ -147,7 +147,7 @@ namespace Volumey.Tests.ViewModels
 			var headphones = CreateDevice("2", "Headphones");
 			SetDefaultDevice(speakers);
 			this.ActiveDevices.Add(headphones);
-			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object) { SelectedDevice = headphones, HotKey = Switch };
+			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
 			vm.AddDeviceCommand.Execute(null);
 
 			vm.SelectedDevice = speakers;
@@ -167,7 +167,7 @@ namespace Volumey.Tests.ViewModels
 			ActivateHotkeys();
 			var headphones = CreateDevice("2", "Headphones");
 			SetDefaultDevice(headphones);
-			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object) { SelectedDevice = headphones, HotKey = Switch };
+			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
 			vm.AddDeviceCommand.Execute(null);
 
 			vm.SelectedRegDev = vm.RegisteredDevices.Single();
@@ -193,7 +193,7 @@ namespace Volumey.Tests.ViewModels
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
 			this.ActiveDevices.Add(CreateDevice("2", "Headphones"));
 
-			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object);
+			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys);
 
 			Assert.AreEqual("Speakers", vm.RegisteredDevices[Switch].Name);
 			Assert.AreEqual("2", vm.RegisteredDevices[Up].ID);
@@ -210,7 +210,7 @@ namespace Volumey.Tests.ViewModels
 		public void SystemHotkeyMovesBetweenTheListsAndIsSaved()
 		{
 			ActivateHotkeys();
-			var vm = new SystemHotkeysViewModel();
+			var vm = new SystemHotkeysViewModel(this.Hotkeys);
 			Assert.HasCount(4, vm.Hotkeys);
 			var playPause = vm.Hotkeys.Single(h => h.SystemKey == Key.MediaPlayPause);
 
@@ -240,7 +240,7 @@ namespace Volumey.Tests.ViewModels
 		{
 			this.Settings.Hotkeys.System = new[] { new SystemHotkeyEntry { SystemKey = Key.MediaNextTrack, Replacement = Switch } };
 
-			var vm = new SystemHotkeysViewModel();
+			var vm = new SystemHotkeysViewModel(this.Hotkeys);
 			ActivateHotkeys();
 
 			Assert.HasCount(3, vm.Hotkeys);
@@ -253,7 +253,7 @@ namespace Volumey.Tests.ViewModels
 		{
 			ActivateHotkeys();
 			SetDefaultDevice(CreateDevice("1", "Speakers"));
-			var vm = new ForegroundWindowVolumeViewModel(this.DeviceProvider.Object) { VolumeUpHotkey = Up, VolumeDownHotkey = Down };
+			var vm = new ForegroundWindowVolumeViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUpHotkey = Up, VolumeDownHotkey = Down };
 
 			vm.HotkeysRegistered = true;
 			Assert.IsTrue(vm.HotkeysRegistered);
@@ -270,7 +270,7 @@ namespace Volumey.Tests.ViewModels
 		public void ForegroundHotkeysMustDiffer()
 		{
 			ActivateHotkeys();
-			var vm = new ForegroundWindowVolumeViewModel(this.DeviceProvider.Object) { VolumeUpHotkey = Up, VolumeDownHotkey = Up };
+			var vm = new ForegroundWindowVolumeViewModel(this.DeviceProvider.Object, this.Hotkeys, this.Notifications.Object) { VolumeUpHotkey = Up, VolumeDownHotkey = Up };
 
 			vm.HotkeysRegistered = true;
 

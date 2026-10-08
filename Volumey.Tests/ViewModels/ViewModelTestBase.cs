@@ -11,42 +11,43 @@ using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
 using Volumey.Helper;
 using Volumey.Model;
+using Volumey.Services;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests.ViewModels
 {
 	/// <summary>
-	/// Fresh settings, hotkey state and a fake device provider for every test.
+	/// Fresh settings, a fresh hotkey service with a fake hotkey manager, and fake device provider and notifications for every test.
 	/// </summary>
 	public abstract class ViewModelTestBase
 	{
 		protected VolumeySettings Settings { get; private set; }
+		protected HotkeyService Hotkeys { get; private set; }
 		protected Mock<IHotkeyManager> HotkeyManager { get; private set; }
+		protected Mock<INotificationService> Notifications { get; private set; }
 		protected Mock<IDeviceProvider> DeviceProvider { get; private set; }
 		protected ObservableCollection<OutputDeviceModel> ActiveDevices { get; private set; }
 
 		[TestInitialize]
 		public void InitializeBase()
 		{
-			HotkeysControl.Reset();
 			this.Settings = new VolumeySettings();
 			SettingsProvider.UseSettings(this.Settings);
 			ErrorDictionary.UpdateErrorDictionary();
 
+			this.Hotkeys = new HotkeyService();
 			this.HotkeyManager = new Mock<IHotkeyManager>();
+			this.Notifications = new Mock<INotificationService>();
 			this.ActiveDevices = new ObservableCollection<OutputDeviceModel>();
 			this.DeviceProvider = new Mock<IDeviceProvider>();
 			this.DeviceProvider.SetupProperty(m => m.DefaultDevice);
 			this.DeviceProvider.Setup(m => m.ActiveDevices).Returns(this.ActiveDevices);
 		}
 
-		[TestCleanup]
-		public void CleanupBase() => HotkeysControl.Reset();
-
 		/// <summary>
 		/// Sets the hotkey manager, like the main window does on startup.
 		/// </summary>
-		protected void ActivateHotkeys() => HotkeysControl.SetHotkeyManager(this.HotkeyManager.Object);
+		protected void ActivateHotkeys() => this.Hotkeys.SetHotkeyManager(this.HotkeyManager.Object);
 
 		protected void PressHotkey(Controls.HotKey hotkey)
 			=> this.HotkeyManager.Raise(m => m.HotkeyPressed += null, hotkey);
@@ -54,22 +55,22 @@ namespace Volumey.Tests.ViewModels
 		/// <summary>
 		/// A device whose master volume writes go to <paramref name="masterVolume"/>.
 		/// </summary>
-		protected static OutputDeviceModel CreateDevice(string id, string name, out Mock<IAudioSessionVolume> masterVolume, int volume = 70,
+		protected OutputDeviceModel CreateDevice(string id, string name, out Mock<IAudioSessionVolume> masterVolume, int volume = 70,
 			params AudioProcessModel[] processes)
 		{
 			masterVolume = new Mock<IAudioSessionVolume>();
-			var master = new MasterSessionModel(name, name, volume, false, id, null, masterVolume.Object, new Mock<IMasterVolumeNotificationHandler>().Object);
+			var master = new MasterSessionModel(name, name, volume, false, id, null, masterVolume.Object, new Mock<IMasterVolumeNotificationHandler>().Object, this.Hotkeys);
 			var device = new Mock<IDevice>();
 			device.Setup(m => m.GetId()).Returns(id);
 			return new OutputDeviceModel(device.Object, new Mock<IDeviceStateNotificationHandler>().Object, new Mock<ISessionProvider>().Object,
 			                             master, processes.ToList());
 		}
 
-		protected static OutputDeviceModel CreateDevice(string id, string name, params AudioProcessModel[] processes)
+		protected OutputDeviceModel CreateDevice(string id, string name, params AudioProcessModel[] processes)
 			=> CreateDevice(id, name, out _, 70, processes);
 
-		protected static AudioProcessModel CreateProcess(string name, int volume = 50)
-			=> AudioProcessModelTests.GetProcessMock(name, volume, false);
+		protected AudioProcessModel CreateProcess(string name, int volume = 50)
+			=> AudioProcessModelTests.GetProcessMock(name, volume, false, this.Hotkeys);
 
 		protected void SetDefaultDevice(OutputDeviceModel device)
 		{

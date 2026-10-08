@@ -9,6 +9,7 @@ using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
+using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -61,17 +62,20 @@ namespace Volumey.ViewModel.Settings
 		}
 
 		private AudioProcessStateNotificationMediator _mediator;
-		private AudioProcessStateNotificationMediator StateMediator => _mediator ??= new AudioProcessStateNotificationMediator();
+		private AudioProcessStateNotificationMediator StateMediator => _mediator ??= new AudioProcessStateNotificationMediator(this.notifications);
 
 		private OutputDeviceModel _defaultDevice;
 
 		private ILog _logger;
 		private ILog Logger => _logger ??=LogManager.GetLogger(typeof(ForegroundWindowVolumeViewModel));
 
-		internal ForegroundWindowVolumeViewModel() : this(DeviceProvider.GetInstance()) { }
+		private readonly IHotkeyService hotkeys;
+		private readonly INotificationService notifications;
 
-		internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider)
+		internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
 		{
+			this.hotkeys = hotkeys;
+			this.notifications = notifications;
 			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			_defaultDevice = deviceProvider.DefaultDevice;
@@ -82,10 +86,10 @@ namespace Volumey.ViewModel.Settings
 				this._hotkeysRegistered = true;
 				this.VolumeUpHotkey = volumeUp;
 				this.VolumeDownHotkey = volumeDown;
-				if(HotkeysControl.IsActive)
+				if(this.hotkeys.IsActive)
 					RegisterLoadedHotkeys();
 				else
-					HotkeysControl.Activated += RegisterLoadedHotkeys;
+					this.hotkeys.Activated += RegisterLoadedHotkeys;
 			}
 		}
 
@@ -93,15 +97,15 @@ namespace Volumey.ViewModel.Settings
 		{
 			try
 			{
-				HotkeysControl.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey);
-				HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+				this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey);
+				this.hotkeys.HotkeyPressed += OnHotkeyPressed;
 			}
 			catch { }
 		}
 
 		private bool SaveHotkeys()
 		{
-			if(HotkeysControl.HotkeysAreValid(this._volumeUpHotkey, this._volumeDownHotkey) is var error && error != ErrorMessageType.None)
+			if(this.hotkeys.HotkeysAreValid(this._volumeUpHotkey, this._volumeDownHotkey) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
 				return false;
@@ -109,11 +113,11 @@ namespace Volumey.ViewModel.Settings
 			this.SetErrorMessage(ErrorMessageType.None);
 			try
 			{
-				if(HotkeysControl.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
+				if(this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
 				{
 					SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = this._volumeUpHotkey;
 					SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = this._volumeDownHotkey;
-					HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+					this.hotkeys.HotkeyPressed += OnHotkeyPressed;
 					Task.Run(() =>
 					{
 						Logger.Info($"Registered foreground hotkeys: [{this._volumeUpHotkey}] [{this._volumeDownHotkey}]");
@@ -136,13 +140,13 @@ namespace Volumey.ViewModel.Settings
 		{
 			try
 			{
-				HotkeysControl.UnregisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey);
+				this.hotkeys.UnregisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey);
 			}
 			catch { }
 			this.SetErrorMessage(ErrorMessageType.None);
 			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = null;
 			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = null;
-			HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+			this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		}
 
 		private async Task<(bool succeed, AudioProcessModel foundProcess)> TryGetForegroundAudioProcess()
@@ -206,7 +210,7 @@ namespace Volumey.ViewModel.Settings
 				{
 					if(foundProcess.StateNotificationMediator == null)
 						foundProcess.SetStateMediator(this.StateMediator);
-					foundProcess.SetVolume(foundProcess.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+					foundProcess.SetVolume(foundProcess.Volume + this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 				}
 			}
 			else if(hotkey.Equals(this._volumeDownHotkey))
@@ -215,7 +219,7 @@ namespace Volumey.ViewModel.Settings
 				{
 					if(foundProcess.StateNotificationMediator == null)
 						foundProcess.SetStateMediator(this.StateMediator);
-					foundProcess.SetVolume(foundProcess.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+					foundProcess.SetVolume(foundProcess.Volume - this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 				}
 			}
 		}

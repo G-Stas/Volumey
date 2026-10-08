@@ -16,9 +16,9 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
-- Validated on `release/2.0`: Release build, 152/152 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
+- Validated on `release/2.0`: Release build, 168/168 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Next planned step:** not decided yet (owner, 2026-10-09). The tray icon (item F) moves into the UI redesign (item C). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
+- **Current work (owner, 2026-10-09):** item E (fewer statics) is done; next is checking the parts not yet verified at runtime on 2.0 (OSD popups, tray menu, autostart, installed MSIX). The tray icon (item F) moves into the UI redesign (item C). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
 - Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ## Branching (decided 2026-10-08)
@@ -35,7 +35,7 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 ### Validating a step (before merging into `release/2.0`)
 1. `dotnet build Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64 --no-incremental`: no errors, and no warnings except the known log4net NU1902.
 2. `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64`: all tests pass. When the audio layer or models change, also run the audio integration tests: `dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -c Release -p:Platform=x64` (needs an output device; they only change their own session's volume).
-3. **Build the Store MSIX** with VS MSBuild (command under *Build, run, test*) whenever project files, packages or the manifest change. A plain `dotnet build` doesn't cover the packaging project, and that's how a broken package build once went unnoticed.
+3. **Build the Store MSIX** with VS MSBuild (command under *Build, run, test*) whenever project files, packages or the manifest change. A plain `dotnet build` doesn't cover the packaging project, and that's how a broken package build once went unnoticed. It's also the only build that compiles the `#if STORE` code, so run it when code used by both builds changes (item E once broke only the Store build).
 4. Smoke-test the changed area in a dev run (`scripts/run-dev.ps1`, `scripts/ui-inspect.ps1`).
 5. Update this file, commit, merge with `--no-ff`, and delete the work branch.
 
@@ -51,12 +51,13 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
     Wrapper/             wrapper over NAudio: DeviceEnumerator, AudioDevice (IDevice), AudioModelFactory (builds models),
                          AudioSessionProvider, *Notifications/*Handler (NAudio events -> C# events), SessionEchoFilter,
                          DeviceFormat, PolicyClient, GuidValue
+  Services/              AppServices (composition root) + IAppShell, INotificationService, ISystemIntegration and their app implementations
   DataProvider/          DeviceProvider (singleton, active/default devices), SettingsProvider (settings store access),
                          Settings/ (settings.json via Nucs.JsonSettings: VolumeySettings + sections, legacy 1.x importer),
                          ScreenInfoProvider
   Model/                 OutputDeviceModel, MasterSessionModel, AudioProcessModel, AudioSessionModel, SystemHotkey, ScreenInfo
   ViewModel/             AppBehaviorViewModel, DeviceProviderViewModel, SettingsViewModel, ThemeViewModel
-    Settings/            one VM per settings feature + HotkeysControl (static hotkey hub) + notification mediator
+    Settings/            one VM per settings feature + HotkeyService (IHotkeyService, the hotkey hub) + notification mediator
   View/                  MainView (window + tray), MixerView/MasterView/SessionsListView, SettingsView + SettingsPage/*,
                          Controls/ (HotkeyBox, VolumeSlider...), Converters/, Styles/, Localization/
   Helper/                NativeMethods (P/Invoke), HotkeyManager / SharpHookHotkeyManager, NotificationManagerHelper,
@@ -89,7 +90,7 @@ dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 152 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 168 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - **Audio integration tests** (`Volumey.IntegrationTests`, category `Integration`, 8 tests): a separate project because they run a real WPF `Application` on its own UI thread (`AudioTestEnvironment`), as the app does, so model callbacks marshal to a real dispatcher; that would change how the unit tests behave. The test process plays silence (`TestAudioSession`, NAudio `WasapiPlayer`) to get its own session and uses that session's volume as "the Windows mixer". Device volumes are only read. Without an output device the tests are inconclusive; CI runs only `Volumey.Tests`. Windows remembers the test executable's session volume and mute between runs, so `TestAudioSession` resets them.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
@@ -132,8 +133,10 @@ Bump the version in **3 places**: `Volumey/Volumey.csproj` (`Version`, `Assembly
 ## Architecture / runtime flow
 
 1. `Startup.Main`: a named mutex enforces a single instance. A second instance broadcasts the registered `WM_SHOWME` message and exits. The `-restart` arg waits up to 5s for the mutex, and `-minimized` starts the app in the tray. Then it runs `App.Main()`.
-2. `App.xaml` creates the root VMs as **XAML resources**: `AppBehaviorViewModel`, `SettingsViewModel`, `DeviceProviderViewModel`, `ThemeViewModel`. There is no DI container. Singletons and statics are used throughout: `DeviceProvider.GetInstance()`, the static `SettingsProvider`, the static `HotkeysControl`, `TranslationSource.Instance`.
-3. The `MainView` ctor force-creates the HWND, because the window starts hidden. It hooks `WndProc` (WM_HOTKEY, WM_SHOWME, …), calls `RegisterApplicationRestart`, and gives the HWND to `SettingsViewModel` → `HotkeysControl.SetHotkeyManager(new HotkeyManager(hwnd))`. That fires `HotkeysControl.Activated`, and each settings VM then registers its saved hotkeys.
+2. `App.xaml` creates the root VMs as **XAML resources**: `AppBehaviorViewModel`, `SettingsViewModel`, `DeviceProviderViewModel`, `ThemeViewModel`. There is no DI container; the composition root is `Services/AppServices` (`AppServices.Current`, each service created on first use): `IHotkeyService` (`HotkeyService`), `IDeviceProvider` (`DeviceProvider.Create`), `INotificationService` (OSD, over the static `NotificationManagerHelper`), `IScreenInfoProvider`, `IAppShell` (the WPF `Application`: dispatcher, `SessionEnding`/`Exit`, shutdown, restart) and `ISystemIntegration` (autostart and Start Menu of the non-Store build).
+   - **Only the parameterless constructors of the root VMs (XAML needs them) and controls (`HotKeyBox`, the example OSD) read `AppServices.Current`.** Everything else gets its services through `internal` constructors: `SettingsViewModel` passes them to the settings VMs, `DeviceEnumerator` passes the hotkey service to the models it creates (`AudioModelFactory`, `MasterSessionModel`, `AudioProcessModel`). Keep it that way in new code, so tests can pass fakes.
+   - Still static on purpose: `SettingsProvider.Settings` (tests swap it with `UseSettings`), `TranslationSource.Instance`, and the theme code (`ThemeViewModel`, `SystemColorHelper`, converters that read app resources), which the UI redesign replaces.
+3. The `MainView` ctor force-creates the HWND, because the window starts hidden. It hooks `WndProc` (WM_HOTKEY, WM_SHOWME, …), calls `RegisterApplicationRestart`, and gives the HWND to `SettingsViewModel`, which sets the hotkey manager (`IHotkeyService.SetHotkeyManager`, blocking or non-blocking, see *Hotkeys*). The first manager fires `IHotkeyService.Activated`, and each settings VM then registers its saved hotkeys.
 4. The tray icon is `Hardcodet.NotifyIcon.Wpf` (`MainView.Tray`). Win11 uses a plain text tooltip because custom tooltips break there.
 
 ### Audio layer
@@ -151,14 +154,14 @@ Built on **NAudio.Wasapi 3.x** (`NAudio.CoreAudioApi`). NAudio 3 uses source-gen
 - Wrapper interfaces (`IDevice`, `IAudioSessionVolume`, `IAudioSessionStateNotifications`, `ISessionProvider`, `IDeviceStateNotificationHandler`, `IMasterVolumeNotificationHandler`, `IDeviceEnumerator`) exist so the tests can mock the audio layer with Moq.
 
 ### Hotkeys
-- `HotkeysControl` (static) holds the one `IHotkeyManager`. It ref-counts hotkeys (`HotkeysUserCount`) so that several features can share a combo, raises `HotkeyPressed`, and validates hotkeys (no bare F12, no duplicates via `SettingsProvider.HotkeyExists`).
+- `HotkeyService` (`IHotkeyService`, one instance in `AppServices`) holds the one `IHotkeyManager`. It ref-counts hotkeys (`HotkeysUserCount`) so that several features can share a combo, raises `HotkeyPressed`, and validates hotkeys (no bare F12, no duplicates via `SettingsProvider.HotkeyExists`).
 - Two hotkey managers behind `IHotkeyManager`; the setting `Hotkeys.BlockInSystem` (default `true`, toggle "Block registered hotkeys in the OS" on the Misc settings page, `SettingsViewModel.BlockHotkeysInSystem`) picks one:
   - **Blocking** (`HotkeyManager`, the app's own code): `RegisterHotKey`/WM_HOTKEY. Other apps don't get the combo; registering fails if another app owns it. Works with elevated windows in front.
   - **Non-blocking** (`SharpHookHotkeyManager`, SharpHook `EventLoopGlobalHook`, keyboard only): only listens, so other apps still get the keys. Registering never fails (a hook can't detect conflicts). It **doesn't see keys while an elevated (administrator) window is in focus** (the settings page says so). Key events arrive on the hook's event-loop thread; the manager only matches them there (`ToHotkey`: raw code = virtual-key code, `EventMask` → `ModifierKeys`, left/right modifiers alike, modifier keys alone ignored) and raises `HotkeyPressed` on the UI thread. Auto-repeat fires repeatedly, like `RegisterHotKey`.
-  - Switching at runtime: `HotkeysControl.SetHotkeyManager` moves the registered hotkeys to the new manager (a combo that fails to register there is logged and skipped), disposes the old one, keeps the user counts, and doesn't raise `Activated` again.
-  - `HotkeysControl.IsEditingHotkey` (set by `HotKeyBox` while it has focus) ignores hotkeys, so typing a registered combo into a hotkey box doesn't trigger it in non-blocking mode.
+  - Switching at runtime: `IHotkeyService.SetHotkeyManager` moves the registered hotkeys to the new manager (a combo that fails to register there is logged and skipped), disposes the old one, keeps the user counts, and doesn't raise `Activated` again.
+  - `IHotkeyService.IsEditingHotkey` (set by `HotKeyBox` while it has focus) ignores hotkeys, so typing a registered combo into a hotkey box doesn't trigger it in non-blocking mode.
   - Duplicates are rejected in both modes, as before. SharpHook brings the native `uiohook.dll` (copied next to the exe and into the MSIX).
-- Models subscribe to `HotkeysControl.HotkeyPressed` and handle their own up/down/mute hotkeys (`SetVolumeHotkeys`, `SetMuteHotkey`). App hotkeys are stored by **process name** (`VolumeHotkeysPair`) and get applied when a matching process shows up. Default-device hotkeys are stored as a `DeviceInfo` (ID + name), and an active device matches if its ID **or** its name matches, after which the stored info is refreshed.
+- Models subscribe to `IHotkeyService.HotkeyPressed` and handle their own up/down/mute hotkeys (`SetVolumeHotkeys`, `SetMuteHotkey`). App hotkeys are stored by **process name** (`VolumeHotkeysPair`) and get applied when a matching process shows up. Default-device hotkeys are stored as a `DeviceInfo` (ID + name), and an active device matches if its ID **or** its name matches, after which the stored info is refreshed.
 
 ### Settings persistence
 Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Settings/`). They're composed of sections.
@@ -260,7 +263,7 @@ Each step should leave a working, shippable build.
 ### B. New settings format
 **Done (2026-10-08).** The owner chose a plain JSON file with a ready-made library (Nucs.JsonSettings) and a composed settings object (root + sections). A LiteDB key-value store was tried first and dropped. See *Settings persistence*.
 
-Possible follow-up: inject `VolumeySettings` (or its sections) into the ViewModels and models instead of the static `SettingsProvider.Settings`, as part of the general "fewer statics" work in item E.
+Possible follow-up: inject `VolumeySettings` (or its sections) instead of the static `SettingsProvider.Settings`. Skipped in item E (2026-10-09): tests already swap it, and touching ~100 call sites gains nothing before the UI redesign rewrites the VMs.
 
 ### C. Explore UI frameworks that look closer to native Windows 11
 The app uses ModernWpfUI 0.9.4. That version line is frozen, unsupported, and imitates the Windows 10 Fluent style.
@@ -301,13 +304,13 @@ Things to get right:
 - **Callback speed:** Windows silently removes low-level hooks that respond too slowly (`LowLevelHooksTimeout`, about 1 s). Never make COM audio calls on the hook thread; dispatch the work.
 - **Elevated windows:** a hook can't see input sent to elevated windows (UIPI). Fixing that needs `uiAccess=true`, which Store apps can't use. `RegisterHotKey` doesn't have this problem, which is one more reason to keep blocking mode. Tell users about this limitation.
 - **Duplicates:** combos used by more than one feature become possible in non-blocking mode, so define what `AllowDuplicates` means.
-- **Switching managers at runtime:** move every registered hotkey, keeping the ref counts in `HotkeysControl`.
+- **Switching managers at runtime:** move every registered hotkey, keeping the ref counts in `HotkeyService`.
 - **Security software:** some anti-cheat and security tools flag global hooks. This may matter for the game-related issues #46, #58 and #63.
 
 ### E. Tests that don't depend on Visual Studio
 Tests must run the same way from the CLI, CI, Rider and VS.
 - **Done (2026-10-08):** the owner chose **MSTest**. The tests are on MSTest.Sdk 4.5.1 with the Microsoft.Testing.Platform runner (selected in `global.json`) on .NET 10. See *Build, run, test*.
-- Put interfaces in front of the statics and singletons (`SettingsProvider`, `DeviceProvider.GetInstance()`, `HotkeysControl`, `App.Current.Dispatcher`) so the models become testable.
+- **Done (2026-10-09, `refactor/fewer-statics`):** composition root `AppServices` and constructor injection (see *Architecture / runtime flow*). `HotkeysControl` became the `HotkeyService` instance, so tests no longer share hotkey state; the `DeviceProvider` singleton became `DeviceProvider.Create`; `App.Current`, the OSD helper and autostart are behind `IAppShell`, `INotificationService` and `ISystemIntegration`. That made `NotificationViewModel`, `AppBehaviorViewModel` and `DeviceProviderViewModel` testable (16 new tests). `SettingsProvider` stays static (see item B).
 - GitHub Actions workflow: `.github/workflows/build.yml` exists but is inactive, because the work isn't pushed.
 
 ### F. Tray icon: switch to the current NotifyIcon library
@@ -322,9 +325,9 @@ The tray icon uses a **vendored DLL** built from the owner's fork of Hardcodet (
 Coverage before: about 20% of the app's lines. The owner wants many more tests. Plan, one work branch per layer:
 1. **Plain unit tests** (no code changes). **Done** (`test/unit-basics`): converters, `HotKey`/`HotKeyBox`, `SystemHotkey`, localization, settings loading (`SettingsProvider.LoadSettings(dir)`: first launch, legacy import, reload). Found and fixed: a saved Ukrainian language ("uk-UA" vs "uk-ua") and system languages such as "uk" or "zh-Hans" fell back to English on start.
    - Not tested here, because they need the app's resources (`App.Current.FindResource`): the tray icon providers and `ButtonIconThemeConverter`.
-2. **ViewModel tests.** **Done** (`test/viewmodels`). The settings VMs that use devices got `internal` constructors taking `IDeviceProvider` (the public ones stay for XAML). Tests derive from `Volumey.Tests/ViewModels/ViewModelTestBase`, which gives each test fresh settings, a reset `HotkeysControl` (`HotkeysControl.Reset()`, tests only), a fake `IHotkeyManager` and a fake `IDeviceProvider`. Covered: app volume sync, volume limit, device/app/default-device/system/foreground/open-mixer hotkeys (register, save, reject invalid, move to the new default device, load from settings).
+2. **ViewModel tests.** **Done** (`test/viewmodels`). The settings VMs that use devices got `internal` constructors taking `IDeviceProvider` (the public ones stay for XAML). Tests derive from `Volumey.Tests/ViewModels/ViewModelTestBase`, which gives each test fresh settings, a fresh `HotkeyService` with a fake `IHotkeyManager`, and fake `IDeviceProvider` and `INotificationService`. Covered: app volume sync, volume limit, device/app/default-device/system/foreground/open-mixer hotkeys (register, save, reject invalid, move to the new default device, load from settings).
    - Found and fixed: app volume sync stayed on the old device after a default device switch (the old known issue); turning volume limit or sync on twice subscribed twice; toggling notifications without an output device threw `NullReferenceException` in `DeviceVolumeHotkeysViewModel`; some VMs wrote settings from `Task.Run` through `SettingsProvider.Settings` read late (now taken before the task starts).
-   - Not covered yet (need more seams): `NotificationViewModel` (static `NotificationManagerHelper`, real screens), `AppBehaviorViewModel` and `ThemeViewModel` (`App.Current`), `LangSettings`, `SettingsViewModel`.
+   - After item E also covered: `NotificationViewModel`, `AppBehaviorViewModel`, `DeviceProviderViewModel`. Not covered: `ThemeViewModel` (theme statics, replaced by the redesign), `LangSettings`, `SettingsViewModel`.
 3. **Audio integration tests.** **Done** (`test/audio-integration`, project `Volumey.IntegrationTests`, see *Build, run, test*): existing and new sessions are listed, volume and mute go both ways, fast slider changes end on the last value, two model sets of the same session don't fight, the device is described (name, ID, format, master volume; read only). Found and fixed: repeated session events defeated the session echo filter (see *Audio layer*).
 4. **UI tests (later, before item C)** with FlaUI against the dev build in an isolated data folder. They use the keyboard and mouse, so they stay out of the normal test run (owner's decision) and run on demand only.
 ## Machine setup

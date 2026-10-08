@@ -17,6 +17,7 @@ namespace Volumey.Tests
 	[TestClass]
 	public class MasterSessionModelTests
 	{
+		private readonly HotkeyService hotkeys = new HotkeyService();
 		private MasterSessionModel model;
 		private Mock<IMasterVolumeNotificationHandler> mVolumeNotifMock;
 		
@@ -31,7 +32,7 @@ namespace Volumey.Tests
 			this.sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			
 			this.model = new MasterSessionModel("speakers", "speakers", 70, 
-				false, "id", null, this.sessionVolumeMock.Object, mVolumeNotifMock.Object);
+				false, "id", null, this.sessionVolumeMock.Object, mVolumeNotifMock.Object, this.hotkeys);
 
 			this.deviceStateMock = new Mock<IDeviceStateNotificationHandler>();
 			this.iDeviceMock = new Mock<IDevice>();
@@ -94,11 +95,11 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
 			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
-			var newVolume = this.model.Volume + HotkeysControl.VolumeStep;
+			var newVolume = this.model.Volume + this.hotkeys.VolumeStep;
 			
 			//act
 			hManagerMock.Raise(m => m.HotkeyPressed += null, upHotkey);
@@ -116,11 +117,11 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
 			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
-			var newVolume = this.model.Volume - HotkeysControl.VolumeStep;
+			var newVolume = this.model.Volume - this.hotkeys.VolumeStep;
 			
 			//act
 			hManagerMock.Raise(m => m.HotkeyPressed += null, downHotkey);
@@ -138,7 +139,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			HotKey muteKey = new HotKey(Key.F4);
 			this.model.SetMuteHotkey(muteKey);
 			bool muteState = this.model.IsMuted;
@@ -156,7 +157,7 @@ namespace Volumey.Tests
 		public void RandomHotkeyMustNotMuteVolume()
 		{
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			HotKey muteKey = new HotKey(Key.F4);
 			this.model.SetMuteHotkey(muteKey);
 			bool muteState = this.model.IsMuted;
@@ -174,7 +175,7 @@ namespace Volumey.Tests
 			var hManagerMock = new Mock<IHotkeyManager>();
 			HotKey muteKey = new HotKey(Key.F4);
 			hManagerMock.Setup(hm => hm.RegisterHotkey(muteKey)).Throws(new COMException());
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			
 			//act
 			var result = this.model.SetMuteHotkey(muteKey);
@@ -192,7 +193,7 @@ namespace Volumey.Tests
 			HotKey down = new HotKey(Key.B);
 			hManagerMock.Setup(hm => hm.RegisterHotkey(up)).Throws(new COMException());
 			hManagerMock.Setup(hm => hm.RegisterHotkey(down)).Throws(new COMException());
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			
 			//act
 			var result = this.model.SetVolumeHotkeys(up, down);
@@ -236,7 +237,7 @@ namespace Volumey.Tests
 			SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance = true;
 			this.model.Volume = 1;
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
 			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
@@ -260,7 +261,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			var upHotkey = new HotKey(Key.A);
 			var downHotkey = new HotKey(Key.B);
 			this.model.SetVolumeHotkeys(upHotkey, downHotkey);
@@ -270,8 +271,8 @@ namespace Volumey.Tests
 			
 			//assert
 			//verify increment/decrement volume calls to external API are not made
-			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume + HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
-			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - HotkeysControl.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume + this.hotkeys.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - this.hotkeys.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
 		}
 
 		[TestMethod]
@@ -279,7 +280,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			HotKey upHotkey = new HotKey(Key.A);
 			HotKey downHotkey = new HotKey(Key.B);
 
@@ -308,7 +309,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			HotKey muteKey = new HotKey(Key.F1);
 
 			FieldInfo muteKeyField = typeof(MasterSessionModel).GetField("muteKey", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -331,7 +332,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			HotKey muteKey = new HotKey(Key.F2);
 			this.model.SetMuteHotkey(muteKey);
 			FieldInfo muteKeyField = typeof(MasterSessionModel).GetField("muteKey", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -354,7 +355,7 @@ namespace Volumey.Tests
 		{
 			//arrange
 			var hManagerMock = new Mock<IHotkeyManager>();
-			HotkeysControl.SetHotkeyManager(hManagerMock.Object);
+			this.hotkeys.SetHotkeyManager(hManagerMock.Object);
 			HotKey upHotkey = new HotKey(Key.Z);
 			HotKey downHotkey = new HotKey(Key.X);
 
@@ -391,14 +392,14 @@ namespace Volumey.Tests
 			Assert.AreEqual(!muteState, this.model.IsMuted);
 		}
 
-		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, Icon icon)
+		internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, Icon icon, IHotkeyService hotkeys = null)
 		{
 			var sessionVolumeMock = new Mock<IAudioSessionVolume>();
 			var masterVolumeHandler = new Mock<IMasterVolumeNotificationHandler>();
 
 			return new MasterSessionModel
 			(name, name, volume, muteState, id,
-				icon, sessionVolumeMock.Object, masterVolumeHandler.Object);
+				icon, sessionVolumeMock.Object, masterVolumeHandler.Object, hotkeys ?? new HotkeyService());
 		}
 	}
 }

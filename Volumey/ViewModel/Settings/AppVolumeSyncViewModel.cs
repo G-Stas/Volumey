@@ -51,8 +51,6 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppVolumeSyncViewModel));
 
-		public AppVolumeSyncViewModel() : this(DeviceProvider.GetInstance()) { }
-
 		internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider)
 		{
 			this.deviceProvider = deviceProvider;

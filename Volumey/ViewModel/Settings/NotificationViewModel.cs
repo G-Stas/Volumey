@@ -13,6 +13,7 @@ using Notification.Wpf.Controls;
 using Volumey.Helper;
 using Volumey.DataProvider;
 using Volumey.Model;
+using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings
 {
@@ -41,14 +42,15 @@ namespace Volumey.ViewModel.Settings
 				NotificationsPositionIsCentered = value == NotificationPosition.TopCenter || value == NotificationPosition.BottomCenter;
 				OnPropertyChanged(nameof(NotificationsPositionIsCentered));
 				
-				NotificationManagerHelper.ChangePosition(value);
+				this._notifications.ChangePosition(value);
 				OnPropertyChanged();
 				
 				if(SettingsProvider.Settings.Notifications.Position == value)
 					return;
+				var notificationSettings = SettingsProvider.Settings.Notifications;
 				Task.Run(() =>
 				{
-					SettingsProvider.Settings.Notifications.Position = value;
+					notificationSettings.Position = value;
 				});
 			}
 		}
@@ -66,9 +68,10 @@ namespace Volumey.ViewModel.Settings
 				
 				if(SettingsProvider.Settings.Notifications.Enabled == value)
 					return;
+				var notificationSettings = SettingsProvider.Settings.Notifications;
 				Task.Run(() =>
 				{
-					SettingsProvider.Settings.Notifications.Enabled = value;
+					notificationSettings.Enabled = value;
 				});
 			}
 		}
@@ -86,12 +89,7 @@ namespace Volumey.ViewModel.Settings
 				OnPropertyChanged();
 
 				if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges != value)
-				{
 					SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = value;
-					Task.Run(async () =>
-					{
-					});
-				}
 
 				Task.Run(async () =>
 				{
@@ -115,9 +113,9 @@ namespace Volumey.ViewModel.Settings
 			{
 				this._previewIsOn = value;
 				if(value)
-					NotificationManagerHelper.ShowNotificationExample();
+					this._notifications.ShowNotificationExample();
 				else
-					NotificationManagerHelper.CloseNotificationExample();
+					this._notifications.CloseNotificationExample();
 				OnPropertyChanged();
 			}
 		}
@@ -136,7 +134,7 @@ namespace Volumey.ViewModel.Settings
 				}
 				this._verticalIndent = value;
 				SettingsProvider.Settings.Notifications.VerticalIndent = value;
-				NotificationManagerHelper.SetVerticalIndent(value);
+				this._notifications.SetVerticalIndent(value);
 				OnPropertyChanged();
 			}
 		}
@@ -155,7 +153,7 @@ namespace Volumey.ViewModel.Settings
 				}
 				this._horizontalIndent = value;
 				SettingsProvider.Settings.Notifications.HorizontalIndent = value;
-				NotificationManagerHelper.SetHorizontalIndent(value);
+				this._notifications.SetHorizontalIndent(value);
 				OnPropertyChanged();
 			}
 		}
@@ -171,7 +169,7 @@ namespace Volumey.ViewModel.Settings
 				else
 					this._displayTime = value;
 				SettingsProvider.Settings.Notifications.DisplayTimeSeconds = this._displayTime;
-				NotificationManagerHelper.SetNotificationDisplayTime(this._displayTime);
+				this._notifications.SetNotificationDisplayTime(this._displayTime);
 				OnPropertyChanged();
 			}
 		}
@@ -194,7 +192,7 @@ namespace Volumey.ViewModel.Settings
 				selectedScreen = value;
 				OnPropertyChanged();
 				
-				NotificationManagerHelper.SetWindowWorkArea(value.WorkingAreaLeft, value.WorkingAreaTop, value.Width / value.ScaleFactor, value.Height / value.ScaleFactor);
+				this._notifications.SetWindowWorkArea(value.WorkingAreaLeft, value.WorkingAreaTop, value.Width / value.ScaleFactor, value.Height / value.ScaleFactor);
 		        
 				int index = AllScreens.IndexOf(value);
 				if(SettingsProvider.Settings.Notifications.ScreenIndex != index)
@@ -206,16 +204,21 @@ namespace Volumey.ViewModel.Settings
 
 		public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
 
-		private IScreenInfoProvider _screenInfoProvider = new ScreenInfoProvider();
-		private IDeviceProvider _deviceProvider;
+		private readonly IScreenInfoProvider _screenInfoProvider;
+		private readonly IDeviceProvider _deviceProvider;
+		private readonly INotificationService _notifications;
 		private OutputDeviceModel _currentDefaultDevice;
-		private AudioProcessStateNotificationMediator StateMediator = new AudioProcessStateNotificationMediator();
+		private readonly AudioProcessStateNotificationMediator StateMediator;
 
 		private static ILog _logger;
 		private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationViewModel));
 
-		public NotificationViewModel()
+		internal NotificationViewModel(IDeviceProvider deviceProvider, INotificationService notifications, IScreenInfoProvider screenInfoProvider)
 		{
+			this._deviceProvider = deviceProvider;
+			this._notifications = notifications;
+			this._screenInfoProvider = screenInfoProvider;
+			this.StateMediator = new AudioProcessStateNotificationMediator(notifications);
 			this.NotificationsEnabled = SettingsProvider.Settings.Notifications.Enabled;
 			this.HorizontalIndent = SettingsProvider.Settings.Notifications.HorizontalIndent;
 			this.VerticalIndent = SettingsProvider.Settings.Notifications.VerticalIndent;
@@ -285,8 +288,6 @@ namespace Volumey.ViewModel.Settings
 
 		private async Task SetStateMediatorForDefaultDeviceProcesses()
 		{
-			if(_deviceProvider == null)
-				_deviceProvider = DeviceProvider.GetInstance();
 			
 			_deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 
@@ -303,8 +304,6 @@ namespace Volumey.ViewModel.Settings
 
 		private async Task ResetStateMediatorForDefaultDeviceProcesses()
 		{
-			if(_deviceProvider == null)
-				_deviceProvider = DeviceProvider.GetInstance();
 
 			_deviceProvider.DefaultDeviceChanged -= OnDefaultDeviceChanged;
 

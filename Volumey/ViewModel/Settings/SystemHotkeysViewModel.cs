@@ -50,16 +50,19 @@ namespace Volumey.ViewModel.Settings
 		public ICommand AddHotkeyCommand { get; set; }
 		public ICommand RemoveHotkeyCommand { get; set; }
 
-		public SystemHotkeysViewModel()
+		private readonly IHotkeyService hotkeys;
+
+		internal SystemHotkeysViewModel(IHotkeyService hotkeys)
 		{
-			var hotkeys = GetMediaHotkeys();
+			this.hotkeys = hotkeys;
+			var mediaHotkeys = GetMediaHotkeys();
 
 			AddHotkeyCommand = new ActionCommand(AddHotkey);
 			RemoveHotkeyCommand = new ActionCommand(RemoveHotkey);
 
 			RegisteredHotkeys = new ObservableCollection<SystemHotkey>(SettingsProvider.Settings.Hotkeys.System.Select(h => new SystemHotkey(h.SystemKey, h.Replacement)));
 
-			foreach(var hotkey in hotkeys)
+			foreach(var hotkey in mediaHotkeys)
 			{
 				if(!RegisteredHotkeys.Contains(hotkey))
 					Hotkeys.Add(hotkey);
@@ -67,10 +70,10 @@ namespace Volumey.ViewModel.Settings
 
 			if(RegisteredHotkeys.Count > 0)
 			{
-				if(HotkeysControl.IsActive)
+				if(this.hotkeys.IsActive)
 					this.RegisterHotkeys();
 				else
-					HotkeysControl.Activated += this.RegisterHotkeys;
+					this.hotkeys.Activated += this.RegisterHotkeys;
 			}
 		}
 
@@ -78,8 +81,8 @@ namespace Volumey.ViewModel.Settings
 		{
 			foreach(var hotkey in RegisteredHotkeys)
 			{
-				HotkeysControl.RegisterHotkey(hotkey.Replacement);
-				hotkey.RegisterHotkeyHandler();
+				this.hotkeys.RegisterHotkey(hotkey.Replacement);
+				hotkey.RegisterHotkeyHandler(this.hotkeys);
 			}
 		}
 
@@ -88,13 +91,13 @@ namespace Volumey.ViewModel.Settings
 			if(_selectedHotkey == null || _replacementHotkey == null)
 				return;
 
-			if(HotkeysControl.HotkeyIsValid(_replacementHotkey) is var error && error != ErrorMessageType.None)
+			if(this.hotkeys.HotkeyIsValid(_replacementHotkey) is var error && error != ErrorMessageType.None)
 			{
 				this.SetErrorMessage(error);
 				return;
 			}
 			
-			if(!HotkeysControl.RegisterHotkey(_replacementHotkey))
+			if(!this.hotkeys.RegisterHotkey(_replacementHotkey))
 			{
 				this.SetErrorMessage(ErrorMessageType.VolumeReg);
 				return;
@@ -103,7 +106,7 @@ namespace Volumey.ViewModel.Settings
 			this.SetErrorMessage(ErrorMessageType.None);
 			
 			_selectedHotkey.Replacement = _replacementHotkey;
-			_selectedHotkey.RegisterHotkeyHandler();
+			_selectedHotkey.RegisterHotkeyHandler(this.hotkeys);
 			
 			RegisteredHotkeys.Add(_selectedHotkey);
 			
@@ -123,11 +126,11 @@ namespace Volumey.ViewModel.Settings
 
 			var hotkey = _selectedRegisteredHotkey;
 			
-			HotkeysControl.UnregisterHotkey(hotkey.Replacement);
+			this.hotkeys.UnregisterHotkey(hotkey.Replacement);
 			RegisteredHotkeys.Remove(hotkey);
 			SaveRegisteredHotkeys();
 			
-			hotkey.UnregisterHotkeyHandler();
+			hotkey.UnregisterHotkeyHandler(this.hotkeys);
 
 			hotkey.Replacement = null;
 			Hotkeys.Add(hotkey);

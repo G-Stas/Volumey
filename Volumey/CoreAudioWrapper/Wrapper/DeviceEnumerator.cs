@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using log4net;
 using NAudio.CoreAudioApi;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -13,7 +14,16 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 		internal MMDeviceEnumerator Enumerator { get; }
 
-		public DeviceEnumerator() => this.Enumerator = new MMDeviceEnumerator();
+		/// <summary>
+		/// Given to the models it creates
+		/// </summary>
+		internal IHotkeyService Hotkeys { get; }
+
+		public DeviceEnumerator(IHotkeyService hotkeys)
+		{
+			this.Hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
+			this.Enumerator = new MMDeviceEnumerator();
+		}
 
 		public uint GetDeviceCount()
 		{
@@ -73,7 +83,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 					try
 					{
 						var device = new AudioDevice(activeDevices[i]);
-						var deviceModel = AudioModelFactory.CreateOutputDeviceModel(device, dsn);
+						var deviceModel = AudioModelFactory.CreateOutputDeviceModel(device, dsn, this.Hotkeys);
 						if(deviceModel != null)
 							devices.Add(deviceModel);
 						else

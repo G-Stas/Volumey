@@ -69,8 +69,6 @@ namespace Volumey.ViewModel.Settings
 		private ILog _logger;
 		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(VolumeLimitViewModel));
 
-		public VolumeLimitViewModel() : this(DeviceProvider.GetInstance()) { }
-
 		internal VolumeLimitViewModel(IDeviceProvider deviceProvider)
 		{
 			this.deviceProvider = deviceProvider;

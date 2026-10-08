@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using log4net;
 using NAudio.CoreAudioApi;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -24,6 +25,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public event Action<OutputDeviceModel> ActiveDeviceAdded;
 
         private readonly MMDeviceEnumerator deviceEnumerator;
+        private readonly IHotkeyService hotkeys;
         private readonly MMDeviceNotificationClient notificationClient;
 
         private ILog logger;
@@ -32,6 +34,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public DeviceStateNotificationsHandler(DeviceEnumerator enumerator)
         {
             this.deviceEnumerator = enumerator.Enumerator;
+            this.hotkeys = enumerator.Hotkeys;
             this.notificationClient = this.deviceEnumerator.CreateNotificationClient(useSynchronizationContext: false);
             this.notificationClient.DefaultDeviceChanged += OnDefaultDeviceChanged;
             this.notificationClient.DeviceAdded += OnDeviceAdded;
@@ -95,7 +98,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             var device = new AudioDevice(this.deviceEnumerator.GetDevice(deviceId));
             OutputDeviceModel model = null;
             if(device.GetDataFlow() == DataFlow.Render && device.GetState() == DeviceState.Active)
-                model = AudioModelFactory.CreateOutputDeviceModel(device, this);
+                model = AudioModelFactory.CreateOutputDeviceModel(device, this, this.hotkeys);
 
             if(model != null)
                 this.ActiveDeviceAdded?.Invoke(model);

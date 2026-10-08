@@ -124,8 +124,11 @@ namespace Volumey.Model
 		
 		private static Dispatcher _dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, IAudioProcessStateMediator stateNotificationMediator = null)
+		private readonly IHotkeyService _hotkeys;
+
+		public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, IHotkeyService hotkeys, IAudioProcessStateMediator stateNotificationMediator = null)
 		{
+			_hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
 			_volume = volume;
 			_isMuted = isMuted;
 			_icon = icon;
@@ -209,11 +212,11 @@ namespace Volumey.Model
 		{
 			try
 			{
-				if(volUp != null && volDown != null && HotkeysControl.RegisterHotkeysPair(volUp, volDown))
+				if(volUp != null && volDown != null && _hotkeys.RegisterHotkeysPair(volUp, volDown))
 				{
 					this._volumeUp = volUp;
 					this._volumeDown = volDown;
-					HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+					_hotkeys.HotkeyPressed += OnHotkeyPressed;
 					AnyHotkeyRegistered = true;
 					return true;
 				}
@@ -231,10 +234,10 @@ namespace Volumey.Model
 		{
 			// try
 			// {
-			// 	if(hotkey != null && HotkeysControl.RegisterHotkey(hotkey))
+			// 	if(hotkey != null && _hotkeys.RegisterHotkey(hotkey))
 			// 	{
 			// 		this._muteKey = hotkey;
-			// 		HotkeysControl.HotkeyPressed += OnHotkeyPressed;
+			// 		_hotkeys.HotkeyPressed += OnHotkeyPressed;
 			// 		this._muteKeyRegistered = true;
 			// 		HotkeysRegistered = true;
 			// 		return true;
@@ -247,9 +250,9 @@ namespace Volumey.Model
 		public void ResetMuteHotkey()
 		{
 			// if(this._muteKey != null)
-			// 	HotkeysControl.UnregisterHotkey(this._muteKey);
+			// 	_hotkeys.UnregisterHotkey(this._muteKey);
 			// if(!this._muteKeyRegistered)
-			// 	HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+			// 	_hotkeys.HotkeyPressed -= OnHotkeyPressed;
 			// this._muteKeyRegistered = false;
 			// this._muteKey = null;
 		}
@@ -260,11 +263,11 @@ namespace Volumey.Model
 			{
 				try
 				{
-					HotkeysControl.UnregisterHotkeysPair(this._volumeUp, this._volumeDown);
+					_hotkeys.UnregisterHotkeysPair(this._volumeUp, this._volumeDown);
 				}
 				catch { }
 			}
-			HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
+			_hotkeys.HotkeyPressed -= OnHotkeyPressed;
 			AnyHotkeyRegistered = false;
 			this._volumeUp = this._volumeDown = null;
 		}
@@ -298,9 +301,9 @@ namespace Volumey.Model
 		private void OnHotkeyPressed(HotKey hotkey)
 		{
 			if(hotkey.Equals(this._volumeUp))
-				this.SetVolume(this.Volume + HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+				this.SetVolume(this.Volume + _hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 			else if(hotkey.Equals(this._volumeDown))
-				this.SetVolume(this.Volume - HotkeysControl.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+				this.SetVolume(this.Volume - _hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
 		}
 
 		private bool _exitedInvoked;

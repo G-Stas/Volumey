@@ -6,6 +6,7 @@ using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.View.Controls;
 using Brush = System.Windows.Media.Brush;
+using Volumey.Services;
 
 namespace Volumey.Helper
 {
@@ -66,7 +67,7 @@ namespace Volumey.Helper
 		{
 			try
 			{
-				IManagedMasterAudioSession dummy = new AudioProcessModel(50, false, "Application", default, string.Empty, IconHelper.GenericExeIcon, null);
+				IManagedMasterAudioSession dummy = new AudioProcessModel(50, false, "Application", default, string.Empty, IconHelper.GenericExeIcon, null, AppServices.Current.Hotkeys);
 				var content = new VolumeNotificationContent(dummy);
 				_notificationManager.ShowNotification(content, _exampleNotificationId, false, TimeSpan.MaxValue);
 			}

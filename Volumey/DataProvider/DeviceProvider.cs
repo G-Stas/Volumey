@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using log4net;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.DataProvider
 {
@@ -45,14 +46,13 @@ namespace Volumey.DataProvider
 			}
 		}
 		
-		private static IDeviceProvider instance;
 		private readonly IDeviceStateNotificationHandler deviceStateNotificationHandler;
 		private static ILog logger;
 		private static ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceProvider));
 
 		private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-		private DeviceProvider(IDeviceEnumerator deviceEnumerator, IDeviceStateNotificationHandler deviceStateHandler)
+		internal DeviceProvider(IDeviceEnumerator deviceEnumerator, IDeviceStateNotificationHandler deviceStateHandler)
 		{
 			this.deviceStateNotificationHandler = deviceStateHandler;
 			this.deviceStateNotificationHandler.DefaultDeviceChanged += OnDefaultDeviceChanged;
@@ -85,26 +85,23 @@ namespace Volumey.DataProvider
 
 		private DeviceProvider() => this.NoOutputDevices = true;
 
-		public static IDeviceProvider GetInstance()
+		/// <summary>
+		/// Creates the provider of the app's audio devices. If Windows audio can't be reached, the provider has no devices.
+		/// </summary>
+		internal static IDeviceProvider Create(IHotkeyService hotkeys)
 		{
-			if(instance == null)
+			try
 			{
-				try
-				{
-					var devEnum = new DeviceEnumerator();
-					return instance = new DeviceProvider(devEnum, new DeviceStateNotificationsHandler(devEnum));
-				}
-				catch(Exception e)
-				{
-					//create empty DeviceProvider object which is going to indicate that there are no output devices available
-					//since everything depends on this object and there was an error while trying to get it from WinApi
-					Logger.Fatal("Failed to get device provider object", e);
-					return instance = new DeviceProvider();
-				}
+				var devEnum = new DeviceEnumerator(hotkeys);
+				return new DeviceProvider(devEnum, new DeviceStateNotificationsHandler(devEnum));
 			}
-			return instance;
+			catch(Exception e)
+			{
+				//everything depends on this object, so create an empty one which shows that there are no output devices
+				Logger.Fatal("Failed to get device provider object", e);
+				return new DeviceProvider();
+			}
 		}
-
 		public void SetDefaultDevice(string id)
 		{
 			try

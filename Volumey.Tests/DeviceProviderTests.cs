@@ -103,20 +103,14 @@ namespace Volumey.Tests
 			IDeviceEnumMock.Setup(m => m.GetCurrentActiveDevices(deviceStateNotificationMock.Object)).Returns(devices);
 			IDeviceEnumMock.Setup(m => m.GetDefaultDeviceId()).Returns(String.Empty);
 			
-			var model = (DeviceProvider) Activator.CreateInstance(typeof(DeviceProvider),
-				BindingFlags.NonPublic | BindingFlags.Instance, null,
-				new object[] {IDeviceEnumMock.Object, deviceStateNotificationMock.Object}, CultureInfo.InvariantCulture,
-				null);
+			var model = new DeviceProvider(IDeviceEnumMock.Object, deviceStateNotificationMock.Object);
 			
 			Assert.IsNotNull(model.DefaultDevice);
 		}
 
 		public static DeviceProvider GetDeviceProviderMock(IDeviceEnumerator deviceEnum, IDeviceStateNotificationHandler deviceState)
 		{
-			return (DeviceProvider) Activator.CreateInstance(typeof(DeviceProvider),
-				BindingFlags.NonPublic | BindingFlags.Instance, null,
-				new object[] {deviceEnum, deviceState}, CultureInfo.InvariantCulture,
-				null);
+			return new DeviceProvider(deviceEnum, deviceState);
 		}
 		
 	}
