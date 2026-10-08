@@ -41,6 +41,7 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
 Volumey.Tests/           MSTest + Moq tests for models / DeviceProvider / hotkey validation
 Volumey.Package/         Windows Application Packaging project (.wapproj): MSIX for the Store
 LatestUpdateInfo.xml     AutoUpdater.NET feed for the non-Store build (read from raw.githubusercontent main)
+scripts/                 run-dev.ps1 (isolated debug run), ui-inspect.ps1 (UI Automation: screenshot, tree, click)
 global.json              pins SDK 10.0.100+ (latestFeature) and selects the Microsoft.Testing.Platform runner for `dotnet test`
 ```
 
@@ -60,7 +61,7 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
   /p:UapAppxPackageBuildMode=StoreUpload /p:AppxPackageSigningEnabled=false
 ```
 
-- **Running a dev build while your installed Volumey is running does nothing.** Both use the same single-instance mutex, so the dev build just signals the installed one and exits. Quit the installed app first.
+- **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
 - Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 62 tests, all passing. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
@@ -69,7 +70,25 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
   - The `Store` configuration of the app is **self-contained**, so the MSIX carries the .NET 10 runtime (about 73 MB). Without that, packaging fails with NETSDK1112 (runtime pack not downloaded). `Debug`/`Release` are framework-dependent: the GitHub zip build needs the **.NET 10 Desktop Runtime** on the user's machine.
   - The wapproj's `PublishTrimmed=true` has no effect: the package isn't trimmed, which is good because WPF doesn't support trimming. Remove it when you next touch the wapproj.
 - Signing: the wapproj references the cert thumbprint `4C35C87C…3F96` (`Volumey.Package_TemporaryKey.pfx`, subject = the Store publisher ID). That cert **expired 2023-12-13**. For a Store upload, re-associate the project with the Store app in VS. VS then makes a fresh temporary cert, and the Store re-signs the package anyway.
-- Debug builds wire up **no logging**. `Startup.PathToDebugLogConfig` is empty, and the try/catch around `App.Main` is compiled out, so exceptions crash into the debugger.
+- Debug builds wire up **no logging** by default (`Startup.PathToDebugLogConfig` is empty), and the try/catch around `App.Main` is compiled out, so exceptions crash into the debugger. Set `VOLUMEY_LOG_FILE` (done by `scripts/run-dev.ps1`) to log to a file.
+
+### Running and inspecting the app (for agents too)
+Use the scripts in `scripts/` to run and look at the app without the owner's help:
+- **`./scripts/run-dev.ps1 [-Reset] [-ImportRealSettings] [-NoBuild] [-Minimized]`** builds and starts the Debug build. It prints the PID and the paths of the settings and log files.
+  - **Isolated from the installed app:** Debug builds use their own single-instance mutex and `WM_SHOWME` message (suffix `-dev`, see `Startup.InstanceSuffix`), so they run next to an installed release build.
+  - **Hotkey clash:** a hotkey can be registered by only one of the two apps at a time.
+  - **Settings:** they go to `-DataDir` (default `%TEMP%\Volumey-dev`) through `VOLUMEY_SETTINGS_DIR`, never the real `%LOCALAPPDATA%\Volumey`.
+  - **Importing:** `-ImportRealSettings` copies the real 1.x `appconfig` into the data folder (read-only) so the importer runs on real data.
+  - **Logging:** goes to `<DataDir>\volumey.log` through `VOLUMEY_LOG_FILE`, including unhandled exceptions (Debug builds otherwise have no logging and crash on errors).
+  - **Restarting:** a running dev instance is stopped first, because it locks the exe.
+- **`./scripts/ui-inspect.ps1`** drives the running dev build through Windows UI Automation:
+  - `-Show` brings the window up.
+  - `-Screenshot <png>` captures the app's windows; read the PNG to look at the UI.
+  - `-Tree [-Depth n]` dumps controls with their name, automation ID and state (toggle, value, selected).
+  - `-Click <name|automationId>` invokes, toggles or selects a control.
+  - **Add `-Mouse`** where the app reacts to real clicks, not to selection. That includes the ModernWpf NavigationView items, e.g. `-Click SettingsItem -Mouse`, and the settings page links. `-Mouse` moves the owner's cursor.
+- **Checking a change:** change it through the UI, then read `settings.json` in the data folder. Look for errors in `volumey.log`, and in the Windows Application event log (`.NET Runtime`) after a crash.
+- **Don't simulate volume hotkeys** unless the owner agrees: they change real app and device volumes.
 
 ### Conditional compilation
 - `STORE` (Store config): the app checks the StartupTask activation kind to start minimized, checks for updates with `Windows.Services.Store.StoreContext` and shows `UpdateDialog`, reads the version from `Package.Current`, and handles autostart through the manifest `windows.startupTask` instead of the registry.
@@ -169,7 +188,7 @@ The owner is coming back to the project to work through the GitHub issues and mo
 Each step should leave a working, shippable build.
 1. ~~Universal tests + green baseline (item E).~~ Done: MSTest, 54/54 passing.
 2. ~~Retarget to **.NET 10**~~. Done (2026-10-08): the app and tests are on `net10.0-windows10.0.19041.0`, and the Store MSIX builds. .NET 10 is LTS, supported until Nov 2028. Don't target .NET 11 until it ships as stable, and only move to it if the owner asks. BinaryFormatter is kept alive temporarily, see Settings persistence.
-   - **Still to verify by hand:** launch the app and the installed MSIX and smoke-test them (tray, mixer, hotkeys, OSD, settings save, theme, autostart). The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET, so check them at runtime.
+   - **Verified (2026-10-08, Debug build):** startup, mixer, settings pages, theme, update check, and settings save through the UI. **Still to verify:** hotkeys, OSD popups, autostart, the tray menu, and the installed MSIX. The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. Audio layer → NAudio (item A).
 5. Non-blocking hook hotkeys (item D).
