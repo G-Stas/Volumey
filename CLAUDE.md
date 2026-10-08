@@ -6,7 +6,7 @@ Volumey is a Windows tray volume mixer (WPF). It sets up global hotkeys for per-
 
 The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June 2023 (Ukrainian localization).
 
-**Git remotes (as of 2026-10-08):** this clone was originally made from Colin Findlay's fork, so `origin` → `colinfindlay-nz/Volumey` (stale: its `main` stops at Dec 2022), and **`upstream` → `G-Stas/Volumey`, the real repo**. Base work on `upstream/main`, and push to and open PRs against `G-Stas/Volumey`. The owner may rename the remotes (`origin` = G-Stas). Check with `git remote -v` and update this note. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into the real `main`; the fork's `feature/synchroniseAppVolumes` branch is obsolete.
+**Git remotes:** `origin` → `G-Stas/Volumey` (the real repo; push and open PRs here). `colin` → `colinfindlay-nz/Volumey`, the fork this clone was first made from, which is stale and only kept for reference. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into `main`.
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
