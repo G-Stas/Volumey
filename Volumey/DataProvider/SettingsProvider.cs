@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -43,7 +43,7 @@ namespace Volumey.DataProvider
                 if(Volatile.Read(ref settings) is VolumeySettings s)
                     return s;
                 lock(SettingsLock)
-                    return settings ??= LoadSettings();
+                    return settings ??= LoadSettings(SettingsDir);
             }
         }
 
@@ -56,12 +56,15 @@ namespace Volumey.DataProvider
                 settings = volumeySettings;
         }
 
-        private static VolumeySettings LoadSettings()
+        /// <summary>
+        /// Loads settings.json from the folder (creating it, and importing 1.x settings on the first launch) and turns on autosave.
+        /// </summary>
+        internal static VolumeySettings LoadSettings(string settingsDir)
         {
-            string path = Path.Combine(SettingsDir, SettingsFileName);
+            string path = Path.Combine(settingsDir, SettingsFileName);
             try
             {
-                Directory.CreateDirectory(SettingsDir);
+                Directory.CreateDirectory(settingsDir);
                 bool firstLaunch = !File.Exists(path);
 
                 //a corrupted file is renamed to settings.<n>.json and defaults are loaded
@@ -69,7 +72,7 @@ namespace Volumey.DataProvider
                                          .WithRecovery(RecoveryAction.RenameAndLoadDefault)
                                          .LoadNow();
                 if(firstLaunch)
-                    ImportLegacySettings(loaded);
+                    ImportLegacySettings(settingsDir, loaded);
                 Migrate(loaded);
                 loaded.Save();
                 return loaded.EnableAutosave();
@@ -89,9 +92,9 @@ namespace Volumey.DataProvider
             volumeySettings.Version = VolumeySettings.CurrentVersion;
         }
 
-        private static void ImportLegacySettings(VolumeySettings volumeySettings)
+        private static void ImportLegacySettings(string settingsDir, VolumeySettings volumeySettings)
         {
-            string legacyPath = Path.Combine(SettingsDir, LegacySettingsFileName);
+            string legacyPath = Path.Combine(settingsDir, LegacySettingsFileName);
             if(!File.Exists(legacyPath))
                 return;
             try
