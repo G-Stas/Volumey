@@ -5,6 +5,8 @@ Volumey/bin/
 Volumey/obj/
 Volumey.Tests/bin/
 Volumey.Tests/obj/
+Volumey.IntegrationTests/bin/
+Volumey.IntegrationTests/obj/
 Volumey.Package/bin/
 Volumey.Package/obj/
 Volumey.Package/AppPackages/

@@ -9,6 +9,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     /// NAudio writes session volume with an empty event context and doesn't pass the context to session events,
     /// so instead of comparing the context the filter remembers the state each own write leads to
     /// and treats a callback that reports one of these states as an echo.
+    /// A state stays an echo for <see cref="EchoWindowMs"/>, because Windows can repeat a session event
+    /// (seen when several session controls of the same session were created in a process).
     /// </summary>
     internal sealed class SessionEchoFilter
     {
@@ -59,8 +61,9 @@ namespace Volumey.CoreAudioWrapper.Wrapper
                 int index = this.pending.FindIndex(p => p.Volume == newVolume && p.Mute == newMute);
                 if(index >= 0)
                 {
-                    //callbacks arrive in the order of the writes, so the earlier writes won't be reported anymore
-                    this.pending.RemoveRange(0, index + 1);
+                    //callbacks arrive in the order of the writes, so the earlier writes won't be reported anymore.
+                    //The matched write stays: Windows may deliver the same event several times to one handler
+                    this.pending.RemoveRange(0, index);
                     return true;
                 }
 

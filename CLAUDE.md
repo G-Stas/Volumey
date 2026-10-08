@@ -16,9 +16,9 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
-- Validated on `release/2.0`: Release build, 143/143 tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
+- Validated on `release/2.0`: Release build, 144/144 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
 - **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Current work: more tests (item G, owner's request 2026-10-09)**, layers 1–3 before item D. Layers 1 (`test/unit-basics`) and 2 (`test/viewmodels`) are done; next is layer 3 (audio integration). After that: hotkeys through a library (item D).
+- **Next planned step:** hotkeys through a library (item D). Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C.
 
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
@@ -33,7 +33,7 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 
 ### Validating a step (before merging into `release/2.0`)
 1. `dotnet build Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64 --no-incremental`: no errors, and no warnings except the known log4net NU1902.
-2. `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64`: all tests pass.
+2. `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Release -p:Platform=x64`: all tests pass. When the audio layer or models change, also run the audio integration tests: `dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -c Release -p:Platform=x64` (needs an output device; they only change their own session's volume).
 3. **Build the Store MSIX** with VS MSBuild (command under *Build, run, test*) whenever project files, packages or the manifest change. A plain `dotnet build` doesn't cover the packaging project, and that's how a broken package build once went unnoticed.
 4. Smoke-test the changed area in a dev run (`scripts/run-dev.ps1`, `scripts/ui-inspect.ps1`).
 5. Update this file, commit, merge with `--no-ff`, and delete the work branch.
@@ -62,7 +62,8 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
                          SystemIntegrationHelper (autostart/start menu), UpdateHelper, IconHelper...
   Resources/             Resources*.resx (localization), icons, and 2 vendored DLLs (see Dependencies)
   log4net.config         Loggly appender (Release/Store only)
-Volumey.Tests/           MSTest + Moq tests for models / DeviceProvider / hotkey validation
+Volumey.Tests/           MSTest + Moq unit tests: models, ViewModels (ViewModels/ViewModelTestBase), converters, settings, localization
+Volumey.IntegrationTests/ MSTest tests against real Windows audio (own session playing silence through NAudio)
 Volumey.Package/         Windows Application Packaging project (.wapproj): MSIX for the Store
 LatestUpdateInfo.xml     AutoUpdater.NET feed for the non-Store build (read from raw.githubusercontent main)
 scripts/                 run-dev.ps1 (isolated debug run), ui-inspect.ps1 (UI Automation: screenshot, tree, click)
@@ -78,6 +79,7 @@ Configurations: `Debug`, `Release`, `Store`. The only platform is `x64`, with no
 dotnet build Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x64
 dotnet run --project Volumey\Volumey.csproj -c Debug -p:Platform=x64
 dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x64   # SDK 10 + MTP syntax: --project is required
+dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -c Debug -p:Platform=x64   # needs an output device
 
 # Store MSIX (needs VS MSBuild, not dotnet build). Drop the signing override once a valid cert is set up.
 & "$(& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath)\MSBuild\Current\Bin\amd64\MSBuild.exe" `
@@ -86,7 +88,8 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 143 tests, all passing. Line coverage of the app is about 43% (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 144 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+  - **Audio integration tests** (`Volumey.IntegrationTests`, category `Integration`, 8 tests): a separate project because they run a real WPF `Application` on its own UI thread (`AudioTestEnvironment`), as the app does, so model callbacks marshal to a real dispatcher; that would change how the unit tests behave. The test process plays silence (`TestAudioSession`, NAudio `WasapiPlayer`) to get its own session and uses that session's volume as "the Windows mixer". Device volumes are only read. Without an output device the tests are inconclusive; CI runs only `Volumey.Tests`. Windows remembers the test executable's session volume and mute between runs, so `TestAudioSession` resets them.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
   - **Coverage** comes with MSTest.Sdk, no tool needed: `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x64 --coverage --coverage-output-format cobertura --coverage-output <file>`. Read the `Volumey` package's `line-rate`; the `Hardcodet.NotifyIcon.Wpf` package is the vendored tray DLL.
@@ -141,7 +144,7 @@ Built on **NAudio.Wasapi 3.x** (`NAudio.CoreAudioApi`). NAudio 3 uses source-gen
 - `AudioProcessModel` groups one or more `AudioSessionModel`s that share a PID. A session is NAudio's `AudioSessionControl` + `SimpleAudioVolume` + an `IAudioSessionEventsHandler` (`AudioSessionStateNotifications`, which owns and disposes the session control). `AudioSessionProvider` (`AudioSessionManager.OnSessionCreated`, on a COM thread) adds sessions as they are created (`SessionCreatedEventArgs.CreateProcessModel`). Sessions are grouped into processes by PID and also by the session's grouping parameter. Outside `OutputDeviceModel`, read the processes through `GetImmutableProcessesAsync()`, not the live collection.
 - **Echo suppression** (skipping callbacks caused by the app's own writes). Keep it in any rewrite.
   - **Master:** writes pass an event context through `AudioEndpointVolume.NotificationGuid`: `GuidValue.Internal.VolumeGUID` for UI changes (the callback skips them), `GuidValue.Internal.Empty` for hotkey changes so that notifications still show.
-  - **Sessions:** NAudio writes session volume with an empty context and drops the context from session events. `SessionEchoFilter` remembers the state (volume + mute) each own write leads to, for 1 s, and the session callback skips a matching report. The `ref Guid context` of `AudioSessionVolume.SetVolume` is ignored.
+  - **Sessions:** NAudio writes session volume with an empty context and drops the context from session events. `SessionEchoFilter` remembers the state (volume + mute) each own write leads to, for 1 s, and the session callback skips a matching report. A matched state stays an echo for the whole second, because **Windows can deliver the same session event several times** to one handler (found by the integration tests: removing a match after the first copy let a repeated volume echo un-mute the app). The `ref Guid context` of `AudioSessionVolume.SetVolume` is ignored.
   - Both callbacks also skip reports that don't match the current system state (outdated callbacks).
 - `PolicyClient` sets the default device through the **undocumented** `IPolicyConfig` COM interface (classic `[ComImport]` interop in `CoreAudioWrapper/CoreAudio/`, not in NAudio), for all three roles (Console, Multimedia, Communications).
 - Wrapper interfaces (`IDevice`, `IAudioSessionVolume`, `IAudioSessionStateNotifications`, `ISessionProvider`, `IDeviceStateNotificationHandler`, `IMasterVolumeNotificationHandler`, `IDeviceEnumerator`) exist so the tests can mock the audio layer with Moq.
@@ -160,7 +163,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
   - Access them through `SettingsProvider.Settings`, e.g. `SettingsProvider.Settings.General.VolumeStep = 5`. There is no Save call.
 - **How saving works:**
   - The `[Autosave]`/`[NotifyChanges]` attributes are woven into the setters **at build time** (AspectInjector, via the `Nucs.JsonSettings.Autosave`/`.NotifyChanges` packages).
-    - **The weaving build step is inherited by every project that references the app** (the packages use `buildTransitive`). `Volumey.Tests` and `Volumey.Package` therefore set `<AspectInjector_Enabled>false</AspectInjector_Enabled>`. Without it, the Release test build fails while reading PDBs, and the MSIX build fails trying to weave the package project. Do the same in any new project that references `Volumey`. The packaged `Volumey.dll` must still be woven; it contains the marker `__a$_instance`.
+    - **The weaving build step is inherited by every project that references the app** (the packages use `buildTransitive`). `Volumey.Tests`, `Volumey.IntegrationTests` and `Volumey.Package` therefore set `<AspectInjector_Enabled>false</AspectInjector_Enabled>`. Without it, the Release test build fails while reading PDBs, and the MSIX build fails trying to weave the package project. Do the same in any new project that references `Volumey`. The packaged `Volumey.dll` must still be woven; it contains the marker `__a$_instance`.
   - The library's `NotificationBinder` listens to each section's `PropertyChanged` and saves the whole file.
   - `[NotifyChanges]` only raises `PropertyChanged` when the value actually changes, and it is **not inherited**, so put it on every new section class.
   - **Items inside lists are not watched:** always assign a new list (`Hotkeys.Apps = newList`). Never mutate the list you got.
@@ -318,7 +321,7 @@ Coverage before: about 20% of the app's lines. The owner wants many more tests. 
 2. **ViewModel tests.** **Done** (`test/viewmodels`). The settings VMs that use devices got `internal` constructors taking `IDeviceProvider` (the public ones stay for XAML). Tests derive from `Volumey.Tests/ViewModels/ViewModelTestBase`, which gives each test fresh settings, a reset `HotkeysControl` (`HotkeysControl.Reset()`, tests only), a fake `IHotkeyManager` and a fake `IDeviceProvider`. Covered: app volume sync, volume limit, device/app/default-device/system/foreground/open-mixer hotkeys (register, save, reject invalid, move to the new default device, load from settings).
    - Found and fixed: app volume sync stayed on the old device after a default device switch (the old known issue); turning volume limit or sync on twice subscribed twice; toggling notifications without an output device threw `NullReferenceException` in `DeviceVolumeHotkeysViewModel`; some VMs wrote settings from `Task.Run` through `SettingsProvider.Settings` read late (now taken before the task starts).
    - Not covered yet (need more seams): `NotificationViewModel` (static `NotificationManagerHelper`, real screens), `AppBehaviorViewModel` and `ThemeViewModel` (`App.Current`), `LangSettings`, `SettingsViewModel`.
-3. **Audio integration tests** against real Windows audio: the test process plays silence through NAudio to get its own session, then checks `DeviceEnumerator`/`AudioModelFactory`, session events and `SessionEchoFilter` end to end. They only change the test's own session volume. Put them in an `Integration` category and skip them when there is no output device (CI runners have none).
+3. **Audio integration tests.** **Done** (`test/audio-integration`, project `Volumey.IntegrationTests`, see *Build, run, test*): existing and new sessions are listed, volume and mute go both ways, fast slider changes end on the last value, two model sets of the same session don't fight, the device is described (name, ID, format, master volume; read only). Found and fixed: repeated session events defeated the session echo filter (see *Audio layer*).
 4. **UI tests (later, before item C)** with FlaUI against the dev build in an isolated data folder. They use the keyboard and mouse, so they stay out of the normal test run (owner's decision) and run on demand only.
 ## Machine setup
 The owner installs tooling **manually**. Don't run installers (winget, the VS installer) yourself; report what's missing instead.
