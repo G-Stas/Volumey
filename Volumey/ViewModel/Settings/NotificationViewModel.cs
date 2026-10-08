@@ -232,7 +232,7 @@ namespace Volumey.ViewModel.Settings
 			SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
 		}
 
-		private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+		private void OnDisplaySettingsChanged(object sender, EventArgs e)
 		{
 			CheckIfSelectedScreenIsAvailable();
 		}

@@ -8,7 +8,9 @@
     ./scripts/ui-inspect.ps1 -Tree -Depth 8                 # dump controls: type, name, automation id, state
     ./scripts/ui-inspect.ps1 -Click 'Settings'              # invoke/toggle/select the first control with that name or id
     ./scripts/ui-inspect.ps1 -Click SettingsItem -Mouse     # real mouse click, for controls that only react to clicks
+    ./scripts/ui-inspect.ps1 -At 290,268                    # real click at a window-relative position (unnamed controls)
 #>
+[CmdletBinding()]
 param(
     # defaults to the running Debug build of this repo
     [int]$ProcessId,
@@ -19,7 +21,10 @@ param(
     [string]$Click,
     # click with the real mouse at the control center (moves the cursor) instead of UI Automation patterns;
     # needed where the app reacts to clicks, not to selection (e.g. NavigationView items)
-    [switch]$Mouse
+    [switch]$Mouse,
+    # real mouse click at "x,y" relative to the app window's top-left corner (for controls without a name,
+    # e.g. combo boxes; take a -Screenshot first to find the position). Refuses to click if the window isn't visible.
+    [int[]]$At
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Drawing, System.Windows.Forms
@@ -103,6 +108,22 @@ if ($Click) {
     else { throw "'$Click' supports no invoke/toggle/select/expand pattern" }
     "clicked '$Click' ($($target.Current.ControlType.ProgrammaticName))"
     Start-Sleep -Milliseconds 500
+}
+
+if ($At) {
+    # the main window is the largest one; popups (drop-downs, tooltips) are separate windows of the process
+    $window = $windows | Where-Object { -not $_.Current.IsOffscreen -and $_.Current.BoundingRectangle.Width -gt 0 } |
+        Sort-Object { $_.Current.BoundingRectangle.Width * $_.Current.BoundingRectangle.Height } -Descending | Select-Object -First 1
+    if (-not $window) { throw 'No visible window to click into (use -Show)' }
+    if ($At.Count -ne 2) { throw "-At takes two numbers: x,y" }
+    $x, $y = $At
+    $r = $window.Current.BoundingRectangle
+    if ($x -lt 0 -or $y -lt 0 -or $x -ge $r.Width -or $y -ge $r.Height) { throw "$x,$y is outside the window ($($r.Width)x$($r.Height))" }
+    [void][Native.Win32]::SetCursorPos([int]($r.X + $x), [int]($r.Y + $y))
+    [Native.Win32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
+    [Native.Win32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+    "clicked at $x,$y"
+    Start-Sleep -Milliseconds 700
 }
 
 if ($Screenshot) {

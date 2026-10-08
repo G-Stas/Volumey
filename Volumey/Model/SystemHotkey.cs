@@ -53,11 +53,14 @@ namespace Volumey.Model
 			return sb.ToString();
 		}
 
-		public override bool Equals(object? obj)
+		public override bool Equals(object obj)
 		{
 			if(obj is SystemHotkey other)
 				return other.SystemKey == this.SystemKey;
 			return this == obj;
 		}
+
+		//equality is defined by the system key only, see Equals
+		public override int GetHashCode() => this.SystemKey.GetHashCode();
 	}
 }

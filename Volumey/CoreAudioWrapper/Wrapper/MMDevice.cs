@@ -96,7 +96,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			try
 			{
 				var guid = new Guid(GuidValue.External.IMMEndpoint);
-				Marshal.QueryInterface(Marshal.GetIUnknownForObject(this.device), ref guid, out IntPtr endpointPtr);
+				Marshal.QueryInterface(Marshal.GetIUnknownForObject(this.device), in guid, out IntPtr endpointPtr);
 				IMMEndpoint endpoint = (IMMEndpoint) Marshal.GetObjectForIUnknown(endpointPtr);
 				endpoint.GetDataFlow(out flow);
 			}
