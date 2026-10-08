@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using log4net;
 using Volumey.Controls;
 using Volumey.Helper;
 using Volumey.DataProvider;
@@ -12,6 +13,9 @@ namespace Volumey.ViewModel.Settings
 		/// <summary>
 		/// Invokes when a hotkey manager is set and is ready to register hotkeys
 		/// </summary>
+		private static ILog logger;
+		private static ILog Logger => logger ??= LogManager.GetLogger(typeof(HotkeysControl));
+
 		internal static event Action Activated;
 
 		private static Action<HotKey> _hotkeyPressed;
@@ -200,40 +204,48 @@ namespace Volumey.ViewModel.Settings
 			VolumeStep = newValue;
 		}
 
+		/// <summary>
+		/// Sets the hotkey manager. On a later call the registered hotkeys move from the previous manager to the new one,
+		/// which is then the only one, and the previous manager is disposed. The user counts stay as they are.
+		/// </summary>
 		public static void SetHotkeyManager(IHotkeyManager hm)
 		{
 			if(hotkeyManager == hm)
 				return;
-			// var prevManager = hotkeyManager;
+			var previous = hotkeyManager;
 			hotkeyManager = hm;
 			hotkeyManager.HotkeyPressed += OnHotkeyPressed;
-			// if(prevManager == null)
-			// {
-			IsActive = true;
-			Activated?.Invoke();
-			// }
-			// else
-			// {
-			// 	prevManager.HotkeyPressed -= OnHotkeyPressed;
-			// 	ConvertHotkeysToNewManager(prevManager: prevManager, newManager: hm);
-			// 	prevManager.Dispose();
-			// }
+			if(previous == null)
+			{
+				IsActive = true;
+				Activated?.Invoke();
+				return;
+			}
+
+			previous.HotkeyPressed -= OnHotkeyPressed;
+			foreach(var hotkey in previous.GetRegisteredHotkeys() ?? Array.Empty<HotKey>())
+			{
+				try { previous.UnregisterHotkey(hotkey); }
+				catch { }
+				try { hm.RegisterHotkey(hotkey); }
+				catch(Exception e)
+				{
+					//e.g. another app uses the combination when moving to the blocking manager
+					Logger.Error($"Failed to move hotkey [{hotkey}] to the new hotkey manager", e);
+				}
+			}
+			previous.Dispose();
 		}
 
-		// private static void ConvertHotkeysToNewManager(IHotkeyManager prevManager, IHotkeyManager newManager)
-		// {
-		// 	var hotkeysCount = prevManager.RegisteredHotkeysCount;
-		// 	var hotkeysList = prevManager.GetRegisteredHotkeys();
-		// 	for(int i = hotkeysCount - 1; i >= 0; i--)
-		// 	{
-		// 		var hotkey = hotkeysList[i];
-		// 		prevManager.UnregisterHotkey(hotkey);
-		// 		newManager.RegisterHotkey(hotkey);
-		// 	}
-		// }
-
+		/// <summary>
+		/// Set while the user types a hotkey into a hotkey box, so the typed combination doesn't trigger a registered hotkey.
+		/// The blocking manager doesn't need it (the box swallows WM_HOTKEY), the non-blocking one does.
+		/// </summary>
+		internal static bool IsEditingHotkey { get; set; }
 		private static void OnHotkeyPressed(HotKey hotkey)
 		{
+			if(IsEditingHotkey)
+				return;
 			if(openMixer != null && hotkey.Equals(openMixer))
 				OpenHotkeyPressed?.Invoke();
 			_hotkeyPressed?.Invoke(hotkey);
@@ -254,6 +266,7 @@ namespace Volumey.ViewModel.Settings
 			Activated = null;
 			_hotkeyPressed = null;
 			OpenHotkeyPressed = null;
+			IsEditingHotkey = false;
 		}
 
 		public static void Dispose()

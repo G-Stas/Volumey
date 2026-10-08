@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Bloquear la entrada de teclas de acceso rápido registradas</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Si está desactivado, las teclas de un atajo también llegan a otras aplicaciones, pero los atajos no funcionan mientras esté activa una aplicación ejecutada como administrador.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Permitir teclas de acceso rápido duplicadas</value>
   </data>

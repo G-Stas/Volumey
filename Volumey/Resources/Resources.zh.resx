@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>阻止系统中的快捷键</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>关闭时，热键的按键也会传给其他应用，但当以管理员身份运行的应用处于活动状态时，热键不起作用。</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>允许重复快捷键</value>
   </data>

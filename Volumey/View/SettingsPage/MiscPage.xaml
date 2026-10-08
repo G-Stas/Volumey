@@ -60,6 +60,14 @@
 					  ValueChanged="NumberBox_OnValueChanged"
 					  Width="{StaticResource InputBoxWidth}"
 					  HorizontalAlignment="Left"/>
+		<TextBlock Text="{lc:Localization Settings_BlockHotkeys}"/>
+		<ui:ToggleSwitch IsOn="{Binding BlockHotkeysInSystem}"
+						 AutomationProperties.AutomationId="BlockHotkeysToggle"/>
+		<TextBlock Text="{lc:Localization Settings_BlockHotkeysHint}"
+				   TextWrapping="Wrap"
+				   FontSize="12"
+				   Opacity="0.7"
+				   Margin="0 0 0 5"/>
 
 		<StackPanel DataContext="{Binding RelativeSource={RelativeSource FindAncestor, 
 									AncestorType={x:Type Window}},

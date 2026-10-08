@@ -172,6 +172,9 @@
     <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Блокувати зареєстровані гарячі клавіші у системі</value>
   </data>
+    <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+      <value>Якщо вимкнено, натискання гарячих клавіш доходять і до інших застосунків, але гарячі клавіші не працюють, поки активний застосунок, запущений від імені адміністратора.</value>
+  </data>
     <data name="Settings_Duplicates" xml:space="preserve">
     <value>Дозволити дублікати гарячих клавіш</value>
   </data>

@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Блокировать зарегистрированные хоткеи в системе</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Если выключено, нажатия горячих клавиш доходят и до других приложений, но горячие клавиши не работают, пока активно приложение, запущенное от имени администратора.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Разрешить дубликаты хоткеев</value>
   </data>

@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Blocca tasti scelta rapida registrati</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Se disattivato, i tasti di una scorciatoia arrivano anche alle altre app, ma le scorciatoie non funzionano mentre è attiva un&apos;app eseguita come amministratore.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Abilita tasti scelta rapida duplicati</value>
   </data>

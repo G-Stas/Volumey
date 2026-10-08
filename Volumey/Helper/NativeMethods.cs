@@ -326,39 +326,9 @@ namespace Volumey.Helper
     }
 
 
-        /// <summary>
-        /// Installs an application-defined hook procedure into a hook chain.
-        /// </summary>
-        /// <param name="id">The type of hook procedure to be installed.</param>
-        /// <param name="callback">A pointer to the hook procedure.</param>
-        /// <param name="dllHwnd">A handle to the DLL containing the hook procedure.</param>
-        /// <param name="threadId">The identifier of the thread with which the hook procedure is to be associated.</param>
-        /// <returns>Handle to the hook procedure.</returns>
-        [DllImport("User32.dll")][PreserveSig]
-        public static extern IntPtr SetWindowsHookExA(int id, HotkeyHookManager.WinHookCallback callback, IntPtr dllHwnd, int threadId);
-        
         [DllImport("user32.dll", SetLastError = true)]
         internal static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, SetWindowPosFlags uFlags);
 
-        /// <summary>
-        /// Removes a hook procedure installed in a hook chain by the <see cref="SetWindowsHookExA"/> function.
-        /// </summary>
-        /// <param name="hookPtr">A handle to the hook to be removed.</param>
-        /// <returns>If the function succeeds, the return value is nonzero.</returns>
-        [DllImport("User32.dll")][PreserveSig]
-        public static extern bool UnhookWindowsHookEx(IntPtr hookPtr);
-
-        /// <summary>
-        /// Passes the hook information to the next hook procedure in the current hook chain.
-        /// </summary>
-        /// <param name="hook">This parameter is ignored.</param>
-        /// <param name="nCode">The hook code passed to the current hook procedure.</param>
-        /// <param name="wParam">The wParam value passed to the current hook procedure. </param>
-        /// <param name="lParam">The lParam value passed to the current hook procedure.</param>
-        /// <returns></returns>
-        [DllImport("User32.dll")][PreserveSig]
-        public static extern IntPtr CallNextHookEx(IntPtr hook, int nCode, IntPtr wParam, ref IntPtr lParam);
-        
         /// <summary>
         /// Retrieves a handle to the foreground window (the window with which the user is currently working).
         /// </summary>

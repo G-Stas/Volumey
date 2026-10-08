@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Bloquear entrada de teclas de atalho registradas</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Se desativado, as teclas de um atalho também chegam a outros aplicativos, mas os atalhos não funcionam enquanto um aplicativo executado como administrador estiver ativo.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Permitir teclas de atalho duplicadas</value>
   </data>

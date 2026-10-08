@@ -231,6 +231,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Block registered hotkeys in the OS</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>When off, the keys of a hotkey still reach other apps, but hotkeys don&apos;t work while an app running as administrator is active.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Allow duplicate hotkeys</value>
   </data>

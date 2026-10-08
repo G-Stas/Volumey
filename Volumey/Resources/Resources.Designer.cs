@@ -279,6 +279,15 @@ namespace Volumey.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string Settings_BlockHotkeysHint {
+            get {
+                return ResourceManager.GetString("Settings_BlockHotkeysHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string Settings_DecreaseDevice {
             get {
                 return ResourceManager.GetString("Settings_DecreaseDevice", resourceCulture);

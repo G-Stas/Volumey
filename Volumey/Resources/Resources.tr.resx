@@ -172,6 +172,9 @@
   <data name="Settings_BlockHotkeys" xml:space="preserve">
     <value>Kayıtlı kısayol tuşlarının girişini engelle</value>
   </data>
+  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
+    <value>Kapalıyken kısayol tuşları diğer uygulamalara da ulaşır, ancak yönetici olarak çalışan bir uygulama etkinken kısayollar çalışmaz.</value>
+  </data>
   <data name="Settings_Duplicates" xml:space="preserve">
     <value>Yinelenen kısayol tuşlarına izin ver</value>
   </data>
