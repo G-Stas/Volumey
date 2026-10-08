@@ -12,6 +12,7 @@
     ./scripts/run-dev.ps1                         # build + start with the settings kept in -DataDir
     ./scripts/run-dev.ps1 -Reset -ImportRealSettings   # fresh start that imports a copy of the real 1.x settings
 #>
+[CmdletBinding()]
 param(
     [string]$DataDir = (Join-Path $env:TEMP 'Volumey-dev'),
     [switch]$NoBuild,

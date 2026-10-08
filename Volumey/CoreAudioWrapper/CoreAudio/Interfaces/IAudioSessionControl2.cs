@@ -20,7 +20,7 @@ namespace Volumey.CoreAudioWrapper.CoreAudio.Interfaces
         /// <summary>
         /// Not implemented
         /// </summary>
-        new int GetGroupingParam();
+        int GetGroupingParam();
         /// <summary>
         /// Not implemented
         /// </summary>

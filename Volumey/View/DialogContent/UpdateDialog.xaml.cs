@@ -28,10 +28,7 @@ namespace Volumey.View.DialogContent
 				if(param.Equals("Y"))
 					await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-windows-store://pdp/?productid=9MZCQ03MX0S3"));
 
-				Task.Run(() =>
-				{
-					Logger.Info($"Displaying an update request. Result: [{param}]");
-				});
+				Logger.Info($"Displaying an update request. Result: [{param}]");
 			}
 			catch(Exception exc) { Logger.Error("An exception occurred during update dialog result processing", exc); }
 		}

@@ -305,7 +305,7 @@ namespace Volumey.Model
 
 		private bool _exitedInvoked;
 
-		private void OnProcessExited(object? sender, EventArgs e)
+		private void OnProcessExited(object sender, EventArgs e)
 		{
 			if(sender is Process process)
 				process.Exited -= OnProcessExited;

@@ -144,7 +144,7 @@ namespace Volumey.ViewModel.Settings
 			HotkeysControl.HotkeyPressed -= OnHotkeyPressed;
 		}
 
-		private async Task<(bool succeed, AudioProcessModel? foundProcess)> TryGetForegroundAudioProcess()
+		private async Task<(bool succeed, AudioProcessModel foundProcess)> TryGetForegroundAudioProcess()
 		{
 			if(_defaultDevice == null)
 			{

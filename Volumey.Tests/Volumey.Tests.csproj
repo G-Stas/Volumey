@@ -14,6 +14,9 @@
     <RootNamespace>Volumey.Tests</RootNamespace>
 
     <Configurations>Debug;Release;Store</Configurations>
+
+    <!-- No settings classes here: don't run the settings library's build-time weaving inherited from the app's packages -->
+    <AspectInjector_Enabled>false</AspectInjector_Enabled>
   </PropertyGroup>
 
   <ItemGroup>

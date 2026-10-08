@@ -12,6 +12,10 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
 - **`release/2.0`**: integration branch for the next major update (2.0). It starts from `upgrade/dotnet10-mstest` (.NET 10 + MSTest) and collects all modernization work: JSON settings, NAudio, hook hotkeys, the new UI, and GitHub issue fixes.
 - **Work branches**: branch off `release/2.0` with a descriptive name (e.g. `feature/json-settings`, `fix/app-volume-sync-device-switch`). Merge them back into `release/2.0`, through a PR against `release/2.0` once the branches are on GitHub. Never commit feature work directly to `main`.
+- **Before starting a new step, validate the branch state (owner's rule):**
+  1. Check that the previous work branch is finished and merged into `release/2.0`; if not, validate it (build + `dotnet test`) and merge it first (`git merge --no-ff`).
+  2. Create the new work branch from the current `release/2.0`, never stack it on an unmerged work branch.
+  3. Delete merged work branches.
 - Keep `release/2.0` buildable and green (`dotnet test`). If a hotfix lands on `main`, merge `main` into `release/2.0`.
 - When 2.0 ships: bump the version (see *Release checklist*), merge `release/2.0` into `main`, and tag `v2.0.0.0`.
 
@@ -62,13 +66,13 @@ dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x6
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 62 tests, all passing. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The suite has 65 tests, all passing. CI (`.github/workflows/build.yml`, `windows-latest`) runs them on pushes to `main`/`release/**` and on pull requests; the Store package isn't built there because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
   - `PlatformTarget` is always x64 and the `RuntimeIdentifier` is win-x64, because the app's `RuntimeIdentifier` is win-x64 on every platform.
 - `Volumey.Package.wapproj` (MSIX) does **not** build with `dotnet build`. It needs Visual Studio MSBuild with the "Windows application packaging" (DesktopBridge) targets and the Windows SDK (`TargetPlatformVersion` 10.0.26100.0, `TargetPlatformMinVersion` 10.0.18362.0). Use the VS menu *Project → Publish → Create App Packages* or the command above.
   - The `Store` configuration of the app is **self-contained**, so the MSIX carries the .NET 10 runtime (about 73 MB). Without that, packaging fails with NETSDK1112 (runtime pack not downloaded). `Debug`/`Release` are framework-dependent: the GitHub zip build needs the **.NET 10 Desktop Runtime** on the user's machine.
-  - The wapproj's `PublishTrimmed=true` has no effect: the package isn't trimmed, which is good because WPF doesn't support trimming. Remove it when you next touch the wapproj.
+  - The source `Package.appxmanifest` lists 10.0.18362 / 10.0.26100 as min/tested versions, but the build overwrites them anyway with the wapproj's `TargetPlatformMinVersion`/`TargetPlatformVersion`. The package isn't trimmed (WPF doesn't support trimming).
 - Signing: the wapproj references the cert thumbprint `4C35C87C…3F96` (`Volumey.Package_TemporaryKey.pfx`, subject = the Store publisher ID). That cert **expired 2023-12-13**. For a Store upload, re-associate the project with the Store app in VS. VS then makes a fresh temporary cert, and the Store re-signs the package anyway.
 - Debug builds wire up **no logging** by default (`Startup.PathToDebugLogConfig` is empty), and the try/catch around `App.Main` is compiled out, so exceptions crash into the debugger. Set `VOLUMEY_LOG_FILE` (done by `scripts/run-dev.ps1`) to log to a file.
 
@@ -87,6 +91,7 @@ Use the scripts in `scripts/` to run and look at the app without the owner's hel
   - `-Tree [-Depth n]` dumps controls with their name, automation ID and state (toggle, value, selected).
   - `-Click <name|automationId>` invokes, toggles or selects a control.
   - **Add `-Mouse`** where the app reacts to real clicks, not to selection. That includes the ModernWpf NavigationView items, e.g. `-Click SettingsItem -Mouse`, and the settings page links. `-Mouse` moves the owner's cursor.
+  - `-At x,y` clicks with the real mouse at a position relative to the main window (for unnamed controls such as combo boxes; find the position on a `-Screenshot` first). It refuses to click when no window is visible. Combo box drop-downs are separate popup windows; `-Screenshot` includes them. **Never click at raw screen coordinates**: if the window has hidden itself, the click lands on another app. The Escape key and losing focus can hide the window; bring it back with `-Show`.
 - **Checking a change:** change it through the UI, then read `settings.json` in the data folder. Look for errors in `volumey.log`, and in the Windows Application event log (`.NET Runtime`) after a crash.
 - **Don't simulate volume hotkeys** unless the owner agrees: they change real app and device volumes.
 
@@ -127,6 +132,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
   - Access them through `SettingsProvider.Settings`, e.g. `SettingsProvider.Settings.General.VolumeStep = 5`. There is no Save call.
 - **How saving works:**
   - The `[Autosave]`/`[NotifyChanges]` attributes are woven into the setters **at build time** (AspectInjector, via the `Nucs.JsonSettings.Autosave`/`.NotifyChanges` packages).
+    - **The weaving build step is inherited by every project that references the app** (the packages use `buildTransitive`). `Volumey.Tests` and `Volumey.Package` therefore set `<AspectInjector_Enabled>false</AspectInjector_Enabled>`. Without it, the Release test build fails while reading PDBs, and the MSIX build fails trying to weave the package project. Do the same in any new project that references `Volumey`. The packaged `Volumey.dll` must still be woven; it contains the marker `__a$_instance`.
   - The library's `NotificationBinder` listens to each section's `PropertyChanged` and saves the whole file.
   - `[NotifyChanges]` only raises `PropertyChanged` when the value actually changes, and it is **not inherited**, so put it on every new section class.
   - **Items inside lists are not watched:** always assign a new list (`Hotkeys.Apps = newList`). Never mutate the list you got.
@@ -157,7 +163,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 - ModernWpfUI 0.9.4 (Fluent-ish controls, NavigationView, ContentDialog). The theme comes from `ThemeViewModel` plus the `Colors.Light/Dark.xaml` + `Brushes.xaml` theme dictionaries, with the Windows accent color from `SystemColorHelper`.
 - On-screen volume popups use the `Notification.Wpf` fork via `NotificationManagerHelper`. `AudioProcessStateNotificationMediator` lets models request a popup without referencing the UI.
 - Multi-monitor placement uses `WpfScreenHelper` (`ScreenInfoProvider`).
-- Localization: `Resources/Resources.<lang>.resx` + `TranslationSource` (live culture switching) + the `{loc:Localization Key}` markup extension. Languages: en, ru, de, it, fr, es, pt, ja, zh, hi, tr, uk-ua. `Resources.resx` (neutral) generates `Resources.Designer.cs`. When you add a string, add it to `Resources.resx` and to every `.<lang>.resx`. To add a language, add the resx file and add the culture to both lists in `TranslationSource`. Note: `tr` and `uk-ua` are missing from `Package.appxmanifest` `<Resources>`.
+- Localization: `Resources/Resources.<lang>.resx` + `TranslationSource` (live culture switching) + the `{loc:Localization Key}` markup extension. Languages: en, ru, de, it, fr, es, pt, ja, zh, hi, tr, uk-ua. `Resources.resx` (neutral) generates `Resources.Designer.cs`. When you add a string, add it to `Resources.resx` and to every `.<lang>.resx`. To add a language, add the resx file and add the culture to both lists in `TranslationSource`. Also add the language to `Package.appxmanifest` `<Resources>` (`uk-ua` is declared there as `uk`).
 
 ## Dependencies
 | Package | Purpose | Notes |
@@ -168,7 +174,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 | Autoupdater.NET.Official 1.8.2 | non-Store updates | 1.9.x is available; works on .NET 10 (update dialog verified) |
 | log4net-loggly 9.0.0 | remote logging to Loggly | **Loggly input key is committed in `log4net.config`** |
 | log4net 2.0.17, Newtonsoft.Json 13.0.4 (direct refs) | override the vulnerable transitive versions from log4net-loggly (2.0.8 / 10.0.3) | log4net 2.0.17 still has one moderate advisory (NU1902, GHSA-4f7c-pmjv-c25w). It's fixed in log4net 3.x, but log4net-loggly was built against 2.x, so test logging before bumping |
-| MSFT.ParallelExtensionsExtras 1.2.0 | `ObservableConcurrentDictionary` (built at runtime from settings) | .NET Framework-only package (NU1701 suppressed); worth replacing with a small in-repo class |
+| — | `ObservableConcurrentDictionary` | In-repo `Helper/ObservableConcurrentDictionary.cs` (WPF-bindable; raises a reset on the creating thread's context). Replaced the .NET Framework-only `MSFT.ParallelExtensionsExtras` package |
 | Nucs.JsonSettings 2.3.2 (+ .Autosave, .NotifyChanges) | settings.json, autosave, change notifications | MIT, active (Aug 2026). Build-time weaving via AspectInjector; built on Newtonsoft.Json (already referenced) |
 | Microsoft.Xaml.Behaviors.Wpf, WpfScreenHelper | misc | |
 
@@ -177,9 +183,7 @@ WinRT APIs (`StoreContext`, `AppInstance`, `Package`) come from the `-windows10.
 ## Known issues / gotchas found during analysis
 - **Dev builds use the real settings** unless `VOLUMEY_SETTINGS_DIR` is set. After the first 2.0 start, later changes made in 1.x aren't imported again; delete `settings.json` to re-import.
 - `AppVolumeSyncViewModel` subscribes to `defaultDevice.Master.PropertyChanged` when it's switched on, but never unsubscribes: not when it's switched off, and not when the default device changes. `OnDefaultDeviceChanged` also never subscribes to the new device's master. After a device switch, changing the *old* device's volume syncs the *new* device's apps, and the new device's master volume is ignored. Turning it off and on again adds a duplicate handler.
-- `SystemHotkey` overrides `Equals` without `GetHashCode` (CS0659). It is used in hash collections, so check this.
-- Several fire-and-forget `async` calls (CS4014) and `async void` handlers.
-- The appxmanifest `MaxVersionTested` is 10.0.14393.0, an old value. Bump it when you modernize.
+- Several `async void` handlers and `Task.Run` fire-and-forget calls (the build is warning-free, but exceptions there are lost or crash the app).
 
 ## Modernization plan (owner's intent)
 The owner is coming back to the project to work through the GitHub issues and modernize the app. Planned work items are below. **Constraints for all of them:** the Store package identity (`58593StasG.Volumey`), publisher, and StartupTask `TaskId` must stay the same, and existing users' settings must survive the upgrade.
@@ -252,7 +256,7 @@ Things to get right:
 Tests must run the same way from the CLI, CI, Rider and VS.
 - **Done (2026-10-08):** the owner chose **MSTest**. The tests are on MSTest.Sdk 4.5.1 with the Microsoft.Testing.Platform runner (selected in `global.json`) on .NET 10, with all 54 passing. See *Build, run, test*.
 - Put interfaces in front of the statics and singletons (`SettingsProvider`, `DeviceProvider.GetInstance()`, `HotkeysControl`, `App.Current.Dispatcher`) so the models become testable.
-- Add a GitHub Actions workflow (`windows-latest`) running `dotnet build` + `dotnet test`.
+- ~~Add a GitHub Actions workflow~~ Done: `.github/workflows/build.yml` (not yet run on GitHub until the branches are pushed).
 
 ## Machine setup
 The owner installs tooling **manually**. Don't run installers (winget, the VS installer) yourself; report what's missing instead.

@@ -19,8 +19,8 @@
     </Properties>
 
     <Dependencies>
-        <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0"/>
-        <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0"/>
+        <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.18362.0" MaxVersionTested="10.0.26100.0"/>
+        <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.18362.0" MaxVersionTested="10.0.26100.0"/>
     </Dependencies>
 
     <Resources>
@@ -34,6 +34,8 @@
         <Resource Language="ja"/>
         <Resource Language="zh-Hans"/>
         <Resource Language="hi"/>
+        <Resource Language="tr"/>
+        <Resource Language="uk"/>
     </Resources>
     <Applications>
         <Application Id="App"

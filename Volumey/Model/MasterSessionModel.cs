@@ -55,8 +55,8 @@ namespace Volumey.Model
         private readonly string _id;
         public string Id => this._id;
 
-        private readonly uint _processId;
-        public uint ProcessId => this._processId;
+        //the endpoint volume doesn't belong to a process
+        public uint ProcessId => 0;
 
         public Guid GroupingParam { get; } = Guid.Empty;
         

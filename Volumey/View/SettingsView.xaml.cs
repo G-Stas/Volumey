@@ -53,6 +53,10 @@ namespace Volumey.View
                 this.PageContentFrame.Navigate(this.SelectedNavLink.PageType, null, transition);
         }
 
+        //never raised, but implementing INotifyPropertyChanged keeps WPF from tracking the bound properties
+        //through PropertyDescriptor (which holds the view in memory)
+#pragma warning disable CS0067
         public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore CS0067
     }
 }

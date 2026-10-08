@@ -52,8 +52,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
-    <!-- .NET Framework-only package (NU1701), used for ObservableConcurrentDictionary -->
-    <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" NoWarn="NU1701" />
     <!-- Settings (settings.json): autosave and change notifications are woven into the settings classes at build time -->
     <PackageReference Include="Nucs.JsonSettings" Version="2.3.2" />
     <PackageReference Include="Nucs.JsonSettings.Autosave" Version="2.3.2" />
