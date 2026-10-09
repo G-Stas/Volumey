@@ -63,8 +63,7 @@ namespace Volumey.IntegrationTests
 		public void ExistingSessionIsListed()
 		{
 			using var session = new TestAudioSession();
-			session.Volume.Volume = 0.8f;
-			Thread.Sleep(200);
+			session.SetVolumeAndWait(0.8f);
 			using var devices = new LoadedDevices();
 
 			var process = WaitForOwnProcess(devices.Get(session.DeviceId));

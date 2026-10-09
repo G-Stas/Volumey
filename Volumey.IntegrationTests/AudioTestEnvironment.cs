@@ -86,8 +86,37 @@ namespace Volumey.IntegrationTests
 			this.player.Init(new SilenceProvider(this.player.DeviceMixFormat));
 			this.player.Play();
 			//Windows remembers the volume and mute of the test executable from earlier runs
-			this.Volume.Mute = false;
-			this.Volume.Volume = 1f;
+			SetVolumeAndWait(1f);
+		}
+
+		/// <summary>
+		/// Sets the session's volume and mute, as the Windows mixer would, and waits until Windows keeps them.
+		/// When a stream starts, Windows restores the volume it remembers for the executable asynchronously,
+		/// which can overwrite a value set right after the start (that made the tests flaky).
+		/// </summary>
+		public void SetVolumeAndWait(float volume, bool mute = false)
+		{
+			void Apply()
+			{
+				this.Volume.Mute = mute;
+				this.Volume.Volume = volume;
+			}
+
+			Apply();
+			var total = Stopwatch.StartNew();
+			var unchanged = Stopwatch.StartNew();
+			while(total.ElapsedMilliseconds < 3000)
+			{
+				Thread.Sleep(20);
+				if(Math.Abs(this.Volume.Volume - volume) > 0.005f || this.Volume.Mute != mute)
+				{
+					Apply();
+					unchanged.Restart();
+				}
+				else if(unchanged.ElapsedMilliseconds >= 400)
+					return;
+			}
+			throw new InvalidOperationException($"Windows didn't keep the test session's volume {volume} (mute {mute})");
 		}
 
 		public static uint ProcessId => (uint)Environment.ProcessId;

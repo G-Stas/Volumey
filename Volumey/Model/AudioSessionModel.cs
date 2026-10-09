@@ -128,8 +128,9 @@ namespace Volumey.Model
             this.IsMuted = e.IsMuted;
         }
 
+        //raised on a COM thread, which must not wait for the UI thread
         private void OnNameChanged(string newName)
-            => dispatcher.Invoke(() => { this.Name = newName; });
+            => dispatcher.InvokeAsync(() => { this.Name = newName; });
 
         /// <summary>
         /// True if Windows disconnected the session because the device's format changed (also when spatial sound is turned on or off):
