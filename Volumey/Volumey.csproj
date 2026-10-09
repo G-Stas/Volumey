@@ -6,6 +6,8 @@
     <!-- Lowest Windows version the app runs on (matches the Store package TargetPlatformMinVersion) -->
     <SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
+    <!-- CsWin32's generated declarations use pointers -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>x64</Platforms>
     <RootNamespace>Volumey</RootNamespace>
     <StartupObject>Volumey.Startup</StartupObject>
@@ -63,6 +65,8 @@
     <PackageReference Include="Nucs.JsonSettings.Autosave" Version="2.3.2" />
     <PackageReference Include="Nucs.JsonSettings.NotifyChanges" Version="2.3.2" />
     <PackageReference Include="WpfScreenHelper" Version="2.1.0" />
+    <!-- generates the Win32 declarations listed in NativeMethods.txt -->
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.360" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

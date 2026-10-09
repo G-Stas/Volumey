@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Volumey.Helper;
 
@@ -21,18 +23,19 @@ static class IconHelper
 		if(filePath == null)
 			return null;
 
-		IntPtr hIcon;
+		Span<HICON> extracted = stackalloc HICON[1];
 		if(largeIcon)
-			NativeMethods.ExtractIconEx(filePath, resourceId, out hIcon, IntPtr.Zero, 1);
+			PInvoke.ExtractIconEx(filePath, resourceId, extracted, default);
 		else
-			NativeMethods.ExtractIconEx(filePath, resourceId, IntPtr.Zero, out hIcon, 1);
+			PInvoke.ExtractIconEx(filePath, resourceId, default, extracted);
 
-		if(hIcon == IntPtr.Zero)
+		HICON hIcon = extracted[0];
+		if(hIcon.IsNull)
 			return null;
 		//Icon.FromHandle doesn't own the handle: keep an owned copy and free the extracted one
 		using var borrowed = Icon.FromHandle(hIcon);
 		var owned = (Icon)borrowed.Clone();
-		NativeMethods.DestroyIcon(hIcon);
+		PInvoke.DestroyIcon(hIcon);
 		return owned;
 	}
 

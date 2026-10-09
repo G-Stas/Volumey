@@ -11,6 +11,8 @@ using log4net.Layout;
 using Volumey.Helper;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace Volumey;
 
@@ -26,8 +28,7 @@ static class Startup
 	//not owned on creation: Main takes it with WaitOne, once (owning it here as well took it twice, so it was abandoned on every exit)
 	private static readonly Mutex mutex = new Mutex(false, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
 
-	private const int HWND_BROADCAST = 0xffff;
-	public static readonly int WM_SHOWME = NativeMethods.RegisterWindowMessage("WM_SHOWME" + InstanceSuffix);
+	public static readonly int WM_SHOWME = (int)PInvoke.RegisterWindowMessage("WM_SHOWME" + InstanceSuffix);
 
 	internal static string MinimizedArg { get; } = "-minimized";
 	internal static string RestartArg { get; } = "-restart";
@@ -109,8 +110,7 @@ static class Startup
 		}
 		else
 		{
-			NativeMethods.PostMessage((IntPtr)HWND_BROADCAST, WM_SHOWME, IntPtr.Zero,
-									  IntPtr.Zero);
+			PInvoke.PostMessage(HWND.HWND_BROADCAST, (uint)WM_SHOWME, default, default);
 		}
 	}
 

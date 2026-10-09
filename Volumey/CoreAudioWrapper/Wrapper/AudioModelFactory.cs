@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using log4net;
 using NAudio.CoreAudioApi;
@@ -13,6 +12,7 @@ using Volumey.Helper;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
+using Windows.Win32.Foundation;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
 
@@ -231,31 +231,16 @@ internal static class AudioModelFactory
 	private static Icon ExtractSessionIcon(Process proc, AudioSessionControl sc)
 	{
 		Icon icon = null;
-		IntPtr processHandle = IntPtr.Zero;
 		try
 		{
-			//open a handle to the process with the PROCESS_QUERY_LIMITED_INFORMATION flag
-			processHandle =
-				NativeMethods.OpenProcess(NativeMethods.ProcessAccessFlags.QueryLimitedInformation, false, proc.Id);
-
-			if(processHandle != IntPtr.Zero)
-			{
-				StringBuilder sb = new StringBuilder((int)NativeMethods.MAX_PATH);
-				uint pathSize = NativeMethods.MAX_PATH;
-
-				if(!NativeMethods.QueryFullProcessImageName(processHandle, 0, sb, ref pathSize))
-				{
-					int error = Marshal.GetLastWin32Error();
-					Logger.Error($"{nameof(NativeMethods.QueryFullProcessImageName)} failed with error code {error}");
-				}
-
-				icon = Icon.ExtractAssociatedIcon(sb.ToString());
-			}
+			string path = NativeMethods.GetProcessImagePath(proc.Id, out int error);
+			if(path != null)
+				icon = Icon.ExtractAssociatedIcon(path);
+			else if(error == (int)WIN32_ERROR.ERROR_ACCESS_DENIED)
+				//expected for elevated processes; the session's icon path is tried next
+				Logger.Info($"No access to the process [{proc.ProcessName}] to read its path");
 			else
-			{
-				int error = Marshal.GetLastWin32Error();
-				Logger.Error($"{nameof(NativeMethods.OpenProcess)} failed with error code {error}");
-			}
+				Logger.Error($"Failed to read the path of the process [{proc.ProcessName}], error code {error}");
 
 			icon ??= TryExtractIconAlternatively(proc, sc);
 		}
@@ -263,11 +248,6 @@ internal static class AudioModelFactory
 		{
 			Logger.Error($"Failed to extract icon from the process: [{proc?.ProcessName}]", e);
 			icon = TryExtractIconAlternatively(proc, sc);
-		}
-		finally
-		{
-			if(processHandle != IntPtr.Zero)
-				NativeMethods.CloseHandle(processHandle);
 		}
 		return icon ?? IconHelper.CreateGenericExeIcon();
 	}

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Volumey.Helper;
 
@@ -68,9 +71,9 @@ internal sealed class WindowUpdateFailureGuard
 			if(hwnd == IntPtr.Zero)
 				continue;
 			//a position "change" that changes nothing: WPF handles the resulting WM_WINDOWPOSCHANGED by updating the window's render target again
-			NativeMethods.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0,
-				NativeMethods.SetWindowPosFlags.NoMove | NativeMethods.SetWindowPosFlags.NoSize | NativeMethods.SetWindowPosFlags.NoZOrder |
-				NativeMethods.SetWindowPosFlags.NoActivate | NativeMethods.SetWindowPosFlags.FrameChanged);
+			PInvoke.SetWindowPos((HWND)hwnd, HWND.Null, 0, 0, 0, 0,
+				SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER |
+				SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE | SET_WINDOW_POS_FLAGS.SWP_FRAMECHANGED);
 		}
 	}
 }

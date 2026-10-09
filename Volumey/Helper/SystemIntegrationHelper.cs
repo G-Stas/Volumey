@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
@@ -7,6 +7,11 @@ using System.Windows;
 using System.Windows.Input;
 using log4net;
 using Microsoft.Win32;
+#if(!STORE)
+using Windows.Win32;
+using Windows.Win32.Storage.FileSystem;
+using Windows.Win32.UI.Shell;
+#endif
 
 namespace Volumey.Helper;
 
@@ -111,7 +116,7 @@ internal static class SystemIntegrationHelper
 	{
 		try
 		{
-			var link = (NativeMethods.IShellLink)new NativeMethods.ShellLink();
+			var link = (IShellLinkW)new ShellLink();
 
 			var exePath = Environment.ProcessPath;
 			if(string.IsNullOrEmpty(exePath))
@@ -159,15 +164,16 @@ internal static class SystemIntegrationHelper
 	{
 		try
 		{
-			var link = (NativeMethods.IShellLink)new NativeMethods.ShellLink();
+			var link = (IShellLinkW)new ShellLink();
 			IPersistFile file = (IPersistFile)link;
 
 			file.Load(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), (int)0x00000002L);
-			StringBuilder sb = new StringBuilder(260);
-			var data = new NativeMethods.WIN32_FIND_DATA();
-			link.GetPath(sb, sb.Capacity, out data, 0x1);
-
-			string existingShortcutExePath = sb.ToString();
+			//long enough for any path; flags 0: the full path (SLGP_SHORTPATH, used before, can give an 8.3 path that differs from the exe path)
+			var buffer = new char[32768];
+			var data = new WIN32_FIND_DATAW();
+			link.GetPath(buffer, ref data, 0).ThrowOnFailure();
+			int end = Array.IndexOf(buffer, '\0');
+			string existingShortcutExePath = new string(buffer, 0, end < 0 ? buffer.Length : end);
 			string exePath = Environment.ProcessPath;
 
 			if(!existingShortcutExePath.Equals(exePath))
