@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Windows.Threading;
 using log4net;
+using Volumey.Helper;
                              
 namespace Volumey
 {
@@ -22,18 +23,23 @@ namespace Volumey
             this.DispatcherUnhandledException += OnDispatcherUnhandledException;
         }
 
+        private readonly WindowUpdateFailureGuard windowUpdateFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
+
         /// <summary>
         /// Keeps the app alive on a known WPF failure: updating a window's render target can fail with
         /// "Not enough quota is available to process this command" (Win32 error 1816), e.g. under a fullscreen game
-        /// or while the window grows with many apps (GitHub issues #58, #66). WPF updates the window again on its next change.
+        /// or while the window grows with many apps (GitHub issues #58, #66). Only that one update is skipped;
+        /// <see cref="WindowUpdateFailureGuard"/> limits the logging and refreshes the windows afterwards.
         /// </summary>
         private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            if(IsWindowUpdateQuotaFailure(e.Exception))
-            {
-                Logger.Warn("Ignored a failed window update (not enough quota)", e.Exception);
-                e.Handled = true;
-            }
+            if(!IsWindowUpdateQuotaFailure(e.Exception))
+                return;
+            e.Handled = true;
+            int count = this.windowUpdateFailures.CountFailure();
+            if(count > 0)
+                Logger.Warn($"Ignored {count} failed window update(s) (not enough quota) since the last report", e.Exception);
+            this.windowUpdateFailures.ScheduleRefresh(this.Dispatcher);
         }
 
         internal static bool IsWindowUpdateQuotaFailure(Exception exception)
