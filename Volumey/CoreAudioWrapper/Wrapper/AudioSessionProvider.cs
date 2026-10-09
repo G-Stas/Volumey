@@ -11,6 +11,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     class AudioSessionProvider : ISessionProvider
     {
         public event Action<object, SessionCreatedEventArgs> SessionCreated;
+        public event Action DeviceInvalidated;
         private readonly AudioSessionManager sessionManager;
         private readonly IHotkeyService hotkeys;
 
@@ -29,6 +30,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
                 var session = AudioModelFactory.CreateSessionModel(sessionControl);
                 if(session != null)
                     this.SessionCreated?.Invoke(this, new SessionCreatedEventArgs(session, sessionControl, this.hotkeys));
+            }
+            catch(AudioDeviceDisconnectedException e)
+            {
+                LogManager.GetLogger(typeof(AudioSessionProvider)).Info("A new audio session can't be read, the device was reconfigured", e);
+                this.DeviceInvalidated?.Invoke();
             }
             catch(Exception e)
             {

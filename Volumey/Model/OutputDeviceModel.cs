@@ -43,7 +43,14 @@ namespace Volumey.Model
 			remove => this._disabled -= value;
 		}
 		internal event Action<AudioProcessModel> ProcessCreated;
-		internal event Action<OutputDeviceModel> FormatChanged;
+
+		/// <summary>
+		/// Windows reconfigured the device's audio engine: its format changed, or spatial sound was turned on or off (#82, #85).
+		/// It disconnects all sessions then, and the device's objects stop working (AUDCLNT_E_DEVICE_INVALIDATED),
+		/// so the model has to be replaced by a new one. Raised once, on any thread.
+		/// </summary>
+		internal event Action<OutputDeviceModel> Invalidated;
+		private int invalidated;
 		public string Id => this.Master.Id;
 		private readonly IDevice device;
 		private readonly ISessionProvider sessionProvider;
@@ -54,6 +61,9 @@ namespace Volumey.Model
 		private readonly SemaphoreSlim _processesSemaphore = new SemaphoreSlim(1, 1);
 
 		private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
+		private static log4net.ILog logger;
+		private static log4net.ILog Logger => logger ??= log4net.LogManager.GetLogger(typeof(OutputDeviceModel));
 
 		public OutputDeviceModel(IDevice device, IDeviceStateNotificationHandler deviceStateNotifications, ISessionProvider sessionProvider,
 			MasterSessionModel master, List<AudioProcessModel> processes)
@@ -68,6 +78,7 @@ namespace Volumey.Model
 			foreach(AudioProcessModel process in processes)
 			{
 				process.Exited += OnProcessExited;
+				process.DeviceReconfigured += OnProcessDeviceReconfigured;
 			}
 
 			this.currentStreamFormat = this.device.GetDeviceFormat();
@@ -79,6 +90,7 @@ namespace Volumey.Model
 			this.deviceStateEvents.FormatChanged += OnFormatChanged;
 			this.sessionProvider = sessionProvider;
 			this.sessionProvider.SessionCreated += OnSessionCreated;
+			this.sessionProvider.DeviceInvalidated += RaiseInvalidated;
 			
 			this.Processes.CollectionChanged += OnProcessesCollectionChanged;
 		}
@@ -181,23 +193,35 @@ namespace Volumey.Model
 			}
 		}
 
-		private async void OnFormatChanged(string deviceId)
+		//raised on the UI thread
+		private void OnFormatChanged(string deviceId)
 		{
-			if(this.CompareId(deviceId))
+			if(!this.CompareId(deviceId))
+				return;
+			try
 			{
-				try
+				var newFormat = this.device.GetDeviceFormat();
+				Logger.Info($"Device format notification: [{this.Master.DeviceFriendlyName}], {this.currentStreamFormat} -> {newFormat}");
+				if(newFormat.HasValue && newFormat != this.currentStreamFormat)
 				{
-					await dispatcher.InvokeAsync(() =>
-					{
-						var newFormat = this.device.GetDeviceFormat();
-						if(newFormat.HasValue && newFormat != this.currentStreamFormat)
-						{
-							currentStreamFormat = newFormat;
-							this.FormatChanged?.Invoke(this);
-						}
-					});
+					this.currentStreamFormat = newFormat;
+					RaiseInvalidated();
 				}
-				catch { }
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Failed to handle a device format notification", e);
+			}
+		}
+
+		private void OnProcessDeviceReconfigured(AudioProcessModel process) => RaiseInvalidated();
+
+		private void RaiseInvalidated()
+		{
+			if(Interlocked.Exchange(ref this.invalidated, 1) == 0)
+			{
+				Logger.Info($"Device reconfigured, its model will be replaced: [{this.Master.DeviceFriendlyName}]");
+				this.Invalidated?.Invoke(this);
 			}
 		}
 
@@ -257,6 +281,7 @@ namespace Volumey.Model
 					});
 					
 					newProcess.Exited += OnProcessExited;
+					newProcess.DeviceReconfigured += OnProcessDeviceReconfigured;
 					this.ProcessCreated?.Invoke(newProcess);
 				}
 			}
@@ -280,6 +305,7 @@ namespace Volumey.Model
 		public async void Dispose()
 		{
 			this.sessionProvider.SessionCreated -= OnSessionCreated;
+			this.sessionProvider.DeviceInvalidated -= RaiseInvalidated;
 			this.sessionProvider.Dispose();
 			this.deviceStateEvents.DeviceDisabled -= OnDeviceDisabled;
 			this.deviceStateEvents.NameChanged -= OnDeviceNameChanged;
@@ -306,6 +332,7 @@ namespace Volumey.Model
 			_ = Task.Run(() => disposedDevice.Dispose());
 			this._disabled = null;
 			this.ProcessCreated = null;
+			this.Invalidated = null;
 		}
 	}
 }

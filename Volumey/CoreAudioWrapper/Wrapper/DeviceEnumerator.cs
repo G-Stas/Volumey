@@ -97,5 +97,33 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			}
 			return devices;
 		}
+
+		public OutputDeviceModel CreateDeviceModel(string deviceId, IDeviceStateNotificationHandler dsn)
+		{
+			AudioDevice device = null;
+			try
+			{
+				device = new AudioDevice(this.Enumerator.GetDevice(deviceId));
+				OutputDeviceModel model = null;
+				if(device.GetDataFlow() == DataFlow.Render && device.GetState() == DeviceState.Active)
+					model = AudioModelFactory.CreateOutputDeviceModel(device, dsn, this.Hotkeys);
+				if(model == null)
+					ReleaseLater(device);
+				return model;
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Failed to create the model of an output device", e);
+				ReleaseLater(device);
+				return null;
+			}
+		}
+
+		//a COM release waits for running audio callbacks, which may wait for the UI thread
+		private static void ReleaseLater(AudioDevice device)
+		{
+			if(device != null)
+				_ = System.Threading.Tasks.Task.Run(device.Dispose);
+		}
 	}
 }

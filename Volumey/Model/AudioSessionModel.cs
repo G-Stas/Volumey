@@ -131,8 +131,18 @@ namespace Volumey.Model
         private void OnNameChanged(string newName)
             => dispatcher.Invoke(() => { this.Name = newName; });
 
+        /// <summary>
+        /// True if Windows disconnected the session because the device's format changed (also when spatial sound is turned on or off):
+        /// the device's objects don't work anymore then
+        /// </summary>
+        internal bool EndedByFormatChange { get; private set; }
+
         private void OnDisconnected(AudioSessionDisconnectReason reason)
-            => OnSessionEnded();
+        {
+            Logger.Info($"Audio session disconnected: [{this.Name}], reason: {reason}");
+            this.EndedByFormatChange = reason == AudioSessionDisconnectReason.FormatChanged;
+            OnSessionEnded();
+        }
         
         private void OnStateChanged(AudioSessionState newState)
             => this._state = newState;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -34,7 +34,7 @@ namespace Volumey.Tests.ViewModels
 			=> new NotificationViewModel(this.DeviceProvider.Object, this.Notifications.Object, this.screens.Object);
 
 		private AppBehaviorViewModel CreateAppBehavior(IHotkeyService hotkeys = null)
-			=> new AppBehaviorViewModel(hotkeys ?? this.Hotkeys, this.DeviceProvider.Object, this.screens.Object, this.shell.Object, this.systemIntegration.Object);
+			=> new AppBehaviorViewModel(hotkeys ?? this.Hotkeys, this.screens.Object, this.shell.Object, this.systemIntegration.Object);
 
 		[TestMethod]
 		public void SavedNotificationSettingsAreAppliedOnStart()
@@ -320,21 +320,6 @@ namespace Volumey.Tests.ViewModels
 			Assert.AreEqual(123, this.Settings.Window.Left);
 			Assert.AreEqual(45, this.Settings.Window.Top);
 			hotkeys.Verify(m => m.Dispose(), Times.Once);
-			this.shell.Verify(m => m.Shutdown(), Times.Once);
-		}
-
-		[TestMethod]
-		public void DeviceFormatChangeRestartsTheAppOnce()
-		{
-			this.shell.Setup(m => m.StartMinimized).Returns(true);
-			this.shell.Setup(m => m.Dispatcher).Returns(System.Windows.Threading.Dispatcher.CurrentDispatcher);
-			var vm = CreateAppBehavior(new Mock<IHotkeyService>().Object);
-			var device = CreateDevice("1", "Speakers");
-
-			this.DeviceProvider.Raise(m => m.DeviceFormatChanged += null, device);
-			this.DeviceProvider.Raise(m => m.DeviceFormatChanged += null, device);
-
-			this.shell.Verify(m => m.StartNewInstance(true), Times.Once);
 			this.shell.Verify(m => m.Shutdown(), Times.Once);
 		}
 

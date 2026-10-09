@@ -44,7 +44,8 @@ namespace Volumey.ViewModel
             this.DeviceProvider = deviceProvider;
             this.DeviceProvider.DeviceDisabled += OnDeviceDisabled;
             this.DeviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
-            
+            this.DeviceProvider.DeviceReplaced += OnDeviceReplaced;
+
             if(!this.DeviceProvider.NoOutputDevices)
                 this.SelectedDevice = this.DefaultDevice = this.DeviceProvider.DefaultDevice;
 
@@ -75,6 +76,16 @@ namespace Volumey.ViewModel
                     return;
                 }
                 this.DefaultDevice = newDevice;
+            });
+        }
+
+        private void OnDeviceReplaced(OutputDeviceModel oldDevice, OutputDeviceModel newDevice)
+        {
+            //the default device is handled by OnDefaultDeviceChanged, which comes first
+            dispatcher.Invoke(() =>
+            {
+                if(this.SelectedDevice == oldDevice)
+                    this.SelectedDevice = newDevice;
             });
         }
 

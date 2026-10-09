@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -29,11 +27,5 @@ namespace Volumey.Services
 		public event Action Exit;
 
 		public void Shutdown() => this.application.Shutdown();
-
-		public void StartNewInstance(bool minimized)
-		{
-			var pathToExe = Assembly.GetExecutingAssembly().Location.Replace(".dll", ".exe");
-			Process.Start(pathToExe, minimized ? $"{Startup.RestartArg} {Startup.MinimizedArg}" : Startup.RestartArg);
-		}
 	}
 }

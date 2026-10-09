@@ -12,9 +12,10 @@ namespace Volumey.DataProvider
 		event Action<OutputDeviceModel> DeviceDisabled;
 		event Action<OutputDeviceModel> DefaultDeviceChanged;
 		/// <summary>
-		/// Occurrs when stream format of any active device changes
+		/// The model of a device was replaced by a new one (old, new), because Windows reconfigured the device (see <see cref="OutputDeviceModel.Invalidated"/>).
+		/// If it's the default device, <see cref="DefaultDeviceChanged"/> is raised before this with the new model. The old model is disposed afterwards.
 		/// </summary>
-		event Action<OutputDeviceModel> DeviceFormatChanged;
+		event Action<OutputDeviceModel, OutputDeviceModel> DeviceReplaced;
 		
 		public bool NoOutputDevices { get; set; }
 
