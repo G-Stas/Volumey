@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -22,8 +22,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             /// <summary>
             /// Used to distinguish volume change sources between internal changes and external in volume change callbacks
             /// </summary>
-            public static Guid VolumeGUID = new Guid("1DD0B43C-EE90-47BE-8E12-DE3BB4CF92F0");
-            public static Guid Empty = Guid.Empty;
+            public static readonly Guid VolumeGUID = new Guid("1DD0B43C-EE90-47BE-8E12-DE3BB4CF92F0");
+            public static readonly Guid Empty = Guid.Empty;
         }
     }
 }

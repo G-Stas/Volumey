@@ -23,7 +23,8 @@ namespace Volumey
 		internal const string InstanceSuffix = "";
 		#endif
 
-		private static Mutex mutex = new Mutex(true, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
+		//not owned on creation: Main takes it with WaitOne, once (owning it here as well took it twice, so it was abandoned on every exit)
+		private static readonly Mutex mutex = new Mutex(false, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
 
 		private const int HWND_BROADCAST = 0xffff;
 		public static readonly int WM_SHOWME = NativeMethods.RegisterWindowMessage("WM_SHOWME" + InstanceSuffix);
@@ -42,16 +43,8 @@ namespace Volumey
 				if(!isRestarting && arg.Equals(RestartArg))
 				{
 					isRestarting = true;
-					try
-					{
-						//try acquiring a mutex with a bigger timeout if the app is restarting because the previous instance might take some time to close itself and release mutex
-						mutexAcquired = mutex.WaitOne(TimeSpan.FromSeconds(5), true);
-					}
-					catch(AbandonedMutexException)
-					{
-						//AbandonedMutexException is thrown when one thread acquires a Mutex object that another thread has abandoned by exiting without releasing it.
-						mutexAcquired = true;
-					}
+					//a bigger timeout when restarting: the previous instance might take some time to close itself and release the mutex
+					mutexAcquired = TryAcquireMutex(TimeSpan.FromSeconds(5));
 				}
 
 				if(!StartMinimized && arg.Equals(MinimizedArg))
@@ -60,7 +53,7 @@ namespace Volumey
 				}
 			}
 
-			if(isRestarting && mutexAcquired || mutex.WaitOne(TimeSpan.Zero, true))
+			if(isRestarting && mutexAcquired || TryAcquireMutex(TimeSpan.Zero))
 			{
 				App.InitializeExecutionTimer();
 				InitializeLoggerConfig();
@@ -110,6 +103,7 @@ namespace Volumey
 				#endif
 				#if(DEBUG)
 				App.Main();
+				mutex.ReleaseMutex();
 				#endif
 				
 			}
@@ -125,6 +119,20 @@ namespace Volumey
 		/// <summary>Path of a plain-text log file for debug builds, e.g. set by scripts/run-dev.ps1</summary>
 		private const string DebugLogFileVariable = "VOLUMEY_LOG_FILE";
 		#endif
+
+		private static bool TryAcquireMutex(TimeSpan timeout)
+		{
+			try
+			{
+				return mutex.WaitOne(timeout);
+			}
+			catch(AbandonedMutexException)
+			{
+				//the previous instance ended without releasing it (crashed or killed) while this one already had the mutex open;
+				//this thread owns it now
+				return true;
+			}
+		}
 
 		/// <summary>
 		/// Logs crashes on every thread in every build. App.Main's try/catch only sees the UI thread, so an exception on an audio (COM),

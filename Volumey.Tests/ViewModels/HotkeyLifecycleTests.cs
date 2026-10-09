@@ -25,10 +25,33 @@ namespace Volumey.Tests.ViewModels
 			device.Dispose();
 			PressHotkey(Up);
 
-			masterVolume.Verify(m => m.SetVolume(It.IsAny<int>(), ref It.Ref<Guid>.IsAny), Times.Never);
+			masterVolume.Verify(m => m.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
 			//the view models release the hotkeys after the disposal, as they do on a default device switch
 			device.ResetVolumeHotkeys();
 			this.HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
+		}
+
+		[TestMethod]
+		public void AnOutsideVolumeChangeShowsTheNewValueAndIsNotWrittenBack()
+		{
+			this.Settings.Notifications.ReactToAllVolumeChanges = true;
+			var sessionVolume = new Mock<IAudioSessionVolume>();
+			var sessionEvents = new Mock<IAudioSessionStateNotifications>();
+			var process = CreateProcess("Spotify", 50);
+			process.AddSession(new Volumey.Model.AudioSessionModel(false, 50, "1", default, default, default, Guid.Empty, sessionVolume.Object, sessionEvents.Object));
+			var shown = new System.Collections.Generic.List<int>();
+			var mediator = new Mock<IAudioProcessStateMediator>();
+			mediator.Setup(m => m.NotifyAudioStateChange(It.IsAny<Volumey.Model.IManagedMasterAudioSession>()))
+			        .Callback<Volumey.Model.IManagedMasterAudioSession>(s => shown.Add(s.Volume));
+			process.SetStateMediator(mediator.Object);
+
+			//the Windows mixer sets the app to 30
+			sessionEvents.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(30, false));
+
+			Assert.AreEqual(30, process.Volume);
+			CollectionAssert.AreEqual(new[] { 30 }, shown, "the OSD should show the new volume, once");
+			sessionVolume.Verify(m => m.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+			sessionVolume.Verify(m => m.SetMute(It.IsAny<bool>()), Times.Never);
 		}
 
 		[TestMethod]

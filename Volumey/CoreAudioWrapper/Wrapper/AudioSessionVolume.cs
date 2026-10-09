@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NAudio.CoreAudioApi;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
@@ -30,7 +30,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         /// Set the volume of the audio session.
         /// The context is ignored: session volume is always written with an empty event context (see <see cref="SessionEchoFilter"/>).
         /// </summary>
-        public void SetVolume(int newVolume, ref Guid context)
+        public void SetVolume(int newVolume, Guid context)
         {
             newVolume = ConstraintVolume(newVolume);
 

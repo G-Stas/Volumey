@@ -27,6 +27,14 @@ namespace Volumey
             Microsoft.Win32.SystemEvents.PowerModeChanged += (s, e) => Logger.Info($"Power mode changed: {e.Mode}");
         }
 
+        protected override void OnExit(System.Windows.ExitEventArgs e)
+        {
+            //raises Exit: its handlers release the devices and write pending settings
+            base.OnExit(e);
+            //last, so errors of those are still logged (Release builds send their last logs to Loggly here)
+            LogManager.Shutdown();
+        }
+
         private readonly WindowUpdateFailureGuard windowUpdateFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 
         /// <summary>

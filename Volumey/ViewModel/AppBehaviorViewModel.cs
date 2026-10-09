@@ -362,7 +362,7 @@ namespace Volumey.ViewModel
 		{
 			SettingsProvider.Settings.Window.Left = this.windowLeft;
 			SettingsProvider.Settings.Window.Top = this.windowTop;
-			LogManager.Shutdown();
+			//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
 			this.hotkeys.Dispose();
 			this.shell.Shutdown();
 		}

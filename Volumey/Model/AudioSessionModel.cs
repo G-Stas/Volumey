@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -60,19 +60,14 @@ namespace Volumey.Model
             get => _volume;
             set
             {
-                if(this._volume != value)
+                int clamped = Math.Clamp(value, 0, 100);
+                if(this._volume != clamped)
                 {
-                    if (value < 0)
-                        this._volume = 0;
-                    else if (value > 100)
-                        this._volume = 100;
-                    else
-                        this._volume = value;
-
-                    this.VolumeChanged?.Invoke(value, GuidValue.Internal.VolumeGUID);
-                    this.SetVolume(this._volume, ref GuidValue.Internal.VolumeGUID);
+                    this._volume = clamped;
+                    this.VolumeChanged?.Invoke(this._volume, GuidValue.Internal.VolumeGUID);
+                    this.SetVolume(this._volume, GuidValue.Internal.VolumeGUID);
+                    OnPropertyChanged();
                 }
-                OnPropertyChanged();
             }
         }
         
@@ -117,15 +112,26 @@ namespace Volumey.Model
         private void OnSessionEnded()
             => this.SessionEnded?.Invoke(this);
 
+        /// <summary>
+        /// A change made outside the app (the Windows mixer, the app itself). It's taken over without writing it back to Windows,
+        /// and the process hears about it once, with the new values. It used to hear the old values first (so the OSD showed them),
+        /// and the property setters then wrote the change back to Windows.
+        /// </summary>
         private void OnVolumeChanged(VolumeChangedEventArgs e)
         {
-            if(this.Volume != e.NewVolume)
-                this.VolumeChanged?.Invoke(this.Volume, Guid.Empty);
-            this.Volume = e.NewVolume;
-            
-            if(this.IsMuted != e.IsMuted)
-                this.MuteStateChanged?.Invoke(this.IsMuted, Guid.Empty);
-            this.IsMuted = e.IsMuted;
+            if(this._volume != e.NewVolume)
+            {
+                this._volume = e.NewVolume;
+                OnPropertyChanged(nameof(Volume));
+                this.VolumeChanged?.Invoke(this._volume, Guid.Empty);
+            }
+
+            if(this._isMuted != e.IsMuted)
+            {
+                this._isMuted = e.IsMuted;
+                OnPropertyChanged(nameof(IsMuted));
+                this.MuteStateChanged?.Invoke(this._isMuted, Guid.Empty);
+            }
         }
 
         //raised on a COM thread, which must not wait for the UI thread
@@ -148,11 +154,11 @@ namespace Volumey.Model
         private void OnStateChanged(AudioSessionState newState)
             => this._state = newState;
 
-        private void SetVolume(int newVol, ref Guid guid)
+        private void SetVolume(int newVol, Guid guid)
         {
             try
             {
-                this.sessionVolume?.SetVolume(newVol, ref guid);
+                this.sessionVolume?.SetVolume(newVol, guid);
             }
             catch(COMException com)
             {

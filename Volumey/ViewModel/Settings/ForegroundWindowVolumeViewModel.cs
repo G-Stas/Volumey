@@ -213,7 +213,7 @@ namespace Volumey.ViewModel.Settings
 			{
 				if(foundProcess.StateNotificationMediator == null)
 					foundProcess.SetStateMediator(this.StateMediator);
-				foundProcess.SetVolume(foundProcess.Volume + direction * this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+				foundProcess.SetVolume(foundProcess.Volume + direction * this.hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 				HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 			}
 		}
