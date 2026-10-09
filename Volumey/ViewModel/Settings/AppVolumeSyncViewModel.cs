@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using log4net;
 using Volumey.DataProvider;
 using Volumey.Helper;
@@ -8,7 +8,7 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
 
-public sealed class AppVolumeSyncViewModel : INotifyPropertyChanged
+public sealed class AppVolumeSyncViewModel : ObservableObject
 {
 	private int MasterVolume { get; set; } = 100;
 
@@ -107,11 +107,5 @@ public sealed class AppVolumeSyncViewModel : INotifyPropertyChanged
 			MasterVolume = masterSession.Volume;
 			SyncSessionVolume().Forget(Logger, "Failed to sync the app volumes with the device volume");
 		}
-	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }

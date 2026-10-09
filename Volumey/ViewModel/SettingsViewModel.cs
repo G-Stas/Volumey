@@ -1,9 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Microsoft.Xaml.Behaviors.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Services;
@@ -11,7 +9,7 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel;
 
-sealed class SettingsViewModel : INotifyPropertyChanged
+sealed partial class SettingsViewModel : ObservableObject
 {
 	public DeviceVolumeHotkeysViewModel DeviceVolumeHotkeysViewModel { get; }
 	public AppsHotkeysViewModel HotkeysViewModel { get; }
@@ -23,8 +21,6 @@ sealed class SettingsViewModel : INotifyPropertyChanged
 	public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
 	public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
 	public LangSettings LangSettings { get; }
-	public ICommand GitHubCommand { get; }
-	public ICommand TipCommand { get; }
 
 	public Tuple<string, string> TipSource { get; } = new Tuple<string, string>("Boosty", "https://boosty.to/stasg");
 
@@ -67,8 +63,6 @@ sealed class SettingsViewModel : INotifyPropertyChanged
 		ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, hotkeys, notifications);
 		NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
 		SystemHotkeysViewModel = new SystemHotkeysViewModel(hotkeys);
-		GitHubCommand = new ActionCommand(async () => await OpenWebPage("https://github.com/G-Stas/Volumey"));
-		TipCommand = new ActionCommand(async (param) => await OpenWebPage(param as string));
 
 		blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;
 	}
@@ -118,16 +112,19 @@ sealed class SettingsViewModel : INotifyPropertyChanged
 		}
 		hotkeys.SetHotkeyManager(manager);
 	}
-	private async Task OpenWebPage(string url)
+
+	[RelayCommand]
+	private Task GitHub() => OpenWebPage("https://github.com/G-Stas/Volumey");
+
+	/// <param name="param">The page's URL (<see cref="TipSource"/>)</param>
+	[RelayCommand]
+	private Task Tip(object param) => OpenWebPage(param as string);
+
+	private static async Task OpenWebPage(string url)
 	{
 		if(string.IsNullOrEmpty(url))
 			return;
 		try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
 		catch { }
 	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

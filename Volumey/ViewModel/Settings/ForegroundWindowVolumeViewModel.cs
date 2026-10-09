@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
@@ -12,29 +13,13 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public class ForegroundWindowVolumeViewModel : HotkeyViewModel
+public partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 {
-	private HotKey _volumeUpHotkey;
-	public HotKey VolumeUpHotkey
-	{
-		get => _volumeUpHotkey;
-		set
-		{
-			_volumeUpHotkey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey VolumeUpHotkey { get; set; }
 
-	private HotKey _volumeDownHotkey;
-	public HotKey VolumeDownHotkey
-	{
-		get => _volumeDownHotkey;
-		set
-		{
-			_volumeDownHotkey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey VolumeDownHotkey { get; set; }
 
 	private bool _hotkeysRegistered;
 	public bool HotkeysRegistered
@@ -85,7 +70,7 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	{
 		//a saved pair that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
 		//it stays saved and is tried again on the next start
-		if(hotkeys.RegisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey))
+		if(hotkeys.RegisterHotkeysPair(VolumeUpHotkey, VolumeDownHotkey))
 			hotkeys.HotkeyPressed += OnHotkeyPressed;
 		else
 			SetErrorMessage(ErrorMessageType.VolumeReg);
@@ -93,15 +78,15 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 
 	private bool SaveHotkeys()
 	{
-		if(!IsValid(hotkeys.HotkeysAreValid(_volumeUpHotkey, _volumeDownHotkey)))
+		if(!IsValid(hotkeys.HotkeysAreValid(VolumeUpHotkey, VolumeDownHotkey)))
 			return false;
 		SetErrorMessage(ErrorMessageType.None);
-		if(hotkeys.RegisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey))
+		if(hotkeys.RegisterHotkeysPair(VolumeUpHotkey, VolumeDownHotkey))
 		{
-			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = _volumeUpHotkey;
-			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = _volumeDownHotkey;
+			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = VolumeUpHotkey;
+			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = VolumeDownHotkey;
 			hotkeys.HotkeyPressed += OnHotkeyPressed;
-			Logger.Info($"Registered foreground hotkeys: [{_volumeUpHotkey}] [{_volumeDownHotkey}]");
+			Logger.Info($"Registered foreground hotkeys: [{VolumeUpHotkey}] [{VolumeDownHotkey}]");
 			return true;
 		}
 		//the hotkey service logs why
@@ -113,7 +98,7 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	{
 		try
 		{
-			hotkeys.UnregisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey);
+			hotkeys.UnregisterHotkeysPair(VolumeUpHotkey, VolumeDownHotkey);
 		}
 		catch { }
 		SetErrorMessage(ErrorMessageType.None);
@@ -187,7 +172,7 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		if(!_hotkeysRegistered || _defaultDevice == null)
 			return;
 
-		int direction = hotkey.Equals(_volumeUpHotkey) ? 1 : hotkey.Equals(_volumeDownHotkey) ? -1 : 0;
+		int direction = hotkey.Equals(VolumeUpHotkey) ? 1 : hotkey.Equals(VolumeDownHotkey) ? -1 : 0;
 		if(direction != 0)
 			ChangeForegroundVolumeAsync(hotkey, direction).Forget(Logger, "Failed to change the volume of the foreground app");
 	}

@@ -53,6 +53,7 @@
     <PackageReference Include="log4net" Version="2.0.17" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
     <!-- Core Audio (devices, endpoint volume, audio sessions) -->
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />

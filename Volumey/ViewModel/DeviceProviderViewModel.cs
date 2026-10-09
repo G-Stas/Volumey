@@ -1,37 +1,19 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.Xaml.Behaviors.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.Services;
 
 namespace Volumey.ViewModel;
 
-public class DeviceProviderViewModel : INotifyPropertyChanged
+public partial class DeviceProviderViewModel : ObservableObject
 {
-	private OutputDeviceModel selectedDevice;
-	public OutputDeviceModel SelectedDevice
-	{
-		get => selectedDevice;
-		set
-		{
-			selectedDevice = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial OutputDeviceModel SelectedDevice { get; set; }
 
-	private OutputDeviceModel defaultDevice;
-	public OutputDeviceModel DefaultDevice
-	{
-		get => defaultDevice;
-		set
-		{
-			defaultDevice = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial OutputDeviceModel DefaultDevice { get; set; }
 
 	public IDeviceProvider DeviceProvider { get; }
 
@@ -43,34 +25,21 @@ public class DeviceProviderViewModel : INotifyPropertyChanged
 	{
 		DeviceProvider = deviceProvider;
 		DeviceProvider.DeviceDisabled += OnDeviceDisabled;
-		DeviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
+		DeviceProvider.DefaultDeviceChanged += OnDefaultDeviceSwitched;
 		DeviceProvider.DeviceReplaced += OnDeviceReplaced;
 
 		if(!DeviceProvider.NoOutputDevices)
 			SelectedDevice = DefaultDevice = DeviceProvider.DefaultDevice;
 
 		shell.Exit += () => DeviceProvider.Dispose();
-
-		SetDefaultDeviceCommand = new ActionCommand(() =>
-		{
-			if(SelectedDevice == null)
-				return;
-			DeviceProvider.SetDefaultDevice(SelectedDevice.Id);
-		});
-
-		SetDefaultDeviceTrayCommand = new ActionCommand((param) =>
-		{
-			if(param is OutputDeviceModel model)
-				SetAsDefaultDevice(model.Id);
-		});
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceSwitched(OutputDeviceModel newDevice)
 	{
 		//update default device property and selected device property if default device was the selected device in app
 		dispatcher.Invoke(() =>
 		{
-			if(SelectedDevice == defaultDevice)
+			if(SelectedDevice == DefaultDevice)
 			{
 				SelectedDevice = DefaultDevice = newDevice;
 				return;
@@ -81,7 +50,7 @@ public class DeviceProviderViewModel : INotifyPropertyChanged
 
 	private void OnDeviceReplaced(OutputDeviceModel oldDevice, OutputDeviceModel newDevice)
 	{
-		//the default device is handled by OnDefaultDeviceChanged, which comes first
+		//the default device is handled by OnDefaultDeviceSwitched, which comes first
 		dispatcher.Invoke(() =>
 		{
 			if(SelectedDevice == oldDevice)
@@ -95,7 +64,7 @@ public class DeviceProviderViewModel : INotifyPropertyChanged
 		{
 			if(SelectedDevice == device)
 			{
-				if(device != defaultDevice)
+				if(device != DefaultDevice)
 					SelectedDevice = DefaultDevice;
 
 				//set both properties to null
@@ -107,8 +76,20 @@ public class DeviceProviderViewModel : INotifyPropertyChanged
 		});
 	}
 
-	public ICommand SetDefaultDeviceCommand { get; }
-	public ICommand SetDefaultDeviceTrayCommand { get; }
+	[RelayCommand]
+	private void SetDefaultDevice()
+	{
+		if(SelectedDevice == null)
+			return;
+		DeviceProvider.SetDefaultDevice(SelectedDevice.Id);
+	}
+
+	[RelayCommand]
+	private void SetDefaultDeviceTray(object param)
+	{
+		if(param is OutputDeviceModel model)
+			SetAsDefaultDevice(model.Id);
+	}
 
 	private void SetAsDefaultDevice(string deviceId)
 	{
@@ -119,12 +100,5 @@ public class DeviceProviderViewModel : INotifyPropertyChanged
 			return;
 
 		DeviceProvider.SetDefaultDevice(deviceId);
-	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string prop = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
 	}
 }

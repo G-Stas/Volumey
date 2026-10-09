@@ -1,24 +1,16 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using log4net;
 using Volumey.DataProvider;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
 
-public sealed class VolumeLimitViewModel : INotifyPropertyChanged
+public sealed partial class VolumeLimitViewModel : ObservableObject
 {
-	private int volumeLimit = 50;
-	public int VolumeLimit
-	{
-		get => volumeLimit;
-		set
-		{
-			volumeLimit = value;
-			SettingsProvider.Settings.General.VolumeLimit = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial int VolumeLimit { get; set; }
+
+	partial void OnVolumeLimitChanged(int value) => SettingsProvider.Settings.General.VolumeLimit = value;
 
 	private bool isOn;
 	public bool IsOn
@@ -86,11 +78,5 @@ public sealed class VolumeLimitViewModel : INotifyPropertyChanged
 	{
 		if(newProcess.Volume == 100)
 			newProcess.Volume = VolumeLimit;
-	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }

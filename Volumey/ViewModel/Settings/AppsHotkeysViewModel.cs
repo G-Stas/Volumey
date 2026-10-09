@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows.Input;
-using Microsoft.Xaml.Behaviors.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
@@ -12,51 +12,19 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public sealed class AppsHotkeysViewModel : HotkeyViewModel
+public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 {
-	private AudioProcessModel selectedProcess;
-	public AudioProcessModel SelectedProcess
-	{
-		get => selectedProcess;
-		set
-		{
-			selectedProcess = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial AudioProcessModel SelectedProcess { get; set; }
 
-	private HotKey volumeUp;
-	public HotKey VolumeUp
-	{
-		get => volumeUp;
-		set
-		{
-			volumeUp = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey VolumeUp { get; set; }
 
-	private HotKey volumeDown;
-	public HotKey VolumeDown
-	{
-		get => volumeDown;
-		set
-		{
-			volumeDown = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey VolumeDown { get; set; }
 
-	private KeyValuePair<string, VolumeHotkeysPair>? selectedRegApp;
-	public KeyValuePair<string, VolumeHotkeysPair>? SelectedRegApp
-	{
-		get => selectedRegApp;
-		set
-		{
-			selectedRegApp = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial KeyValuePair<string, VolumeHotkeysPair>? SelectedRegApp { get; set; }
 
 	private int volumeStep = 1;
 	public int VolumeStep
@@ -84,19 +52,8 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 	/// </summary>
 	private readonly List<AudioProcessModel> LaunchedProcesses = new List<AudioProcessModel>();
 
-	public ICommand AddAppCommand { get; }
-	public ICommand RemoveAppCommand { get; }
-
-	private OutputDeviceModel defaultDevice;
-	public OutputDeviceModel DefaultDevice
-	{
-		get => defaultDevice;
-		set
-		{
-			defaultDevice = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial OutputDeviceModel DefaultDevice { get; set; }
 
 	//shows the OSD when a hotkey changes a volume (the models' state mediator)
 	private readonly INotificationService notifications;
@@ -104,10 +61,8 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 	internal AppsHotkeysViewModel(IDeviceProvider dProvider, IHotkeyService hotkeys, INotificationService notifications) : base(hotkeys)
 	{
 		this.notifications = notifications;
-		AddAppCommand = new ActionCommand(AddApp);
-		RemoveAppCommand = new ActionCommand(RemoveApp);
 
-		dProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
+		dProvider.DefaultDeviceChanged += OnDefaultDeviceSwitched;
 		DefaultDevice = dProvider.DefaultDevice;
 
 
@@ -131,7 +86,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		FindAndSetupRegisteredHotkeys();
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceSwitched(OutputDeviceModel newDevice)
 	{
 		if(DefaultDevice != null)
 			DefaultDevice.ProcessCreated -= OnProcessStarted;
@@ -181,6 +136,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
+	[RelayCommand]
 	private void AddApp()
 	{
 		var process = SelectedProcess;
@@ -222,6 +178,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		catch { }
 	}
 
+	[RelayCommand]
 	private void RemoveApp()
 	{
 		if(SelectedRegApp == null)

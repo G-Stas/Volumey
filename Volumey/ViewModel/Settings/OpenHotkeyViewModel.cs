@@ -1,20 +1,13 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
 using Volumey.DataProvider;
 
 namespace Volumey.ViewModel.Settings;
 
-public class OpenHotkeyViewModel : HotkeyViewModel
+public partial class OpenHotkeyViewModel : HotkeyViewModel
 {
-	private HotKey hotkey;
-	public HotKey Hotkey
-	{
-		get => hotkey;
-		set
-		{
-			hotkey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey Hotkey { get; set; }
 
 	private bool isOn;
 	public bool IsOn
@@ -58,13 +51,13 @@ public class OpenHotkeyViewModel : HotkeyViewModel
 
 	private bool SaveHotkey()
 	{
-		if(!IsValid(hotkeys.HotkeyIsValid(hotkey)))
+		if(!IsValid(hotkeys.HotkeyIsValid(Hotkey)))
 			return false;
 		SetErrorMessage(ErrorMessageType.None);
-		if(hotkeys.RegisterOpenMixerHotkey(hotkey))
+		if(hotkeys.RegisterOpenMixerHotkey(Hotkey))
 		{
-			SettingsProvider.Settings.Hotkeys.OpenMixer = hotkey;
-			Logger.Info($"Registered open mixer hotkey: [{hotkey}]");
+			SettingsProvider.Settings.Hotkeys.OpenMixer = Hotkey;
+			Logger.Info($"Registered open mixer hotkey: [{Hotkey}]");
 			return true;
 		}
 		//the hotkey service logs why
@@ -77,7 +70,7 @@ public class OpenHotkeyViewModel : HotkeyViewModel
 		try
 		{
 			hotkeyRegistered = false;
-			hotkeys.UnregisterOpenMixerHotkey(hotkey);
+			hotkeys.UnregisterOpenMixerHotkey(Hotkey);
 		}
 		catch { }
 		SetErrorMessage(ErrorMessageType.None);
