@@ -1,4 +1,5 @@
-﻿using log4net;
+using log4net;
+using Volumey.Helper;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -16,21 +17,16 @@ namespace Volumey.View.DialogContent
 
 		public UpdateDialog()
 		{
-			this.PrimaryCommand = new ActionCommand(() => { OnReviewResult("Y"); });
-			this.CloseCommand = new ActionCommand(() => { OnReviewResult("L"); });
+			this.PrimaryCommand = new ActionCommand(() => OnReviewResult("Y").Forget(Logger, "Failed to process the update dialog result"));
+			this.CloseCommand = new ActionCommand(() => OnReviewResult("L").Forget(Logger, "Failed to process the update dialog result"));
 			InitializeComponent();
 		}
 
-		private async void OnReviewResult(string param)
+		private async Task OnReviewResult(string param)
 		{
-			try
-			{
-				if(param.Equals("Y"))
-					await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-windows-store://pdp/?productid=9MZCQ03MX0S3"));
-
-				Logger.Info($"Displaying an update request. Result: [{param}]");
-			}
-			catch(Exception exc) { Logger.Error("An exception occurred during update dialog result processing", exc); }
+			if(param.Equals("Y"))
+				await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-windows-store://pdp/?productid=9MZCQ03MX0S3"));
+			Logger.Info($"Displaying an update request. Result: [{param}]");
 		}
 	}
 }

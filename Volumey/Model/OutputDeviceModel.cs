@@ -234,64 +234,67 @@ namespace Volumey.Model
 				this._disabled?.Invoke(this);
 		}
 
-		private async void OnProcessExited(AudioProcessModel exitedProcess)
-		{
-			await OnProcessExitedAsync(exitedProcess);
-		}
+		private void OnProcessExited(AudioProcessModel exitedProcess)
+			=> OnProcessExitedAsync(exitedProcess).Forget(Logger, $"Failed to remove the exited app [{exitedProcess.Name}]");
 
 		private async Task OnProcessExitedAsync(AudioProcessModel exitedProcess)
 		{
+			exitedProcess.Exited -= OnProcessExited;
 			await _processesSemaphore.WaitAsync();
 			try
 			{
-				await dispatcher.InvokeAsync(() =>
-				{
-					this.Processes.Remove(exitedProcess);
-				});
+				await dispatcher.InvokeAsync(() => this.Processes.Remove(exitedProcess));
 			}
-			catch { }
 			finally
 			{
 				_processesSemaphore.Release();
 			}
-			exitedProcess.Exited -= OnProcessExited;
 			exitedProcess.Dispose();
 		}
 
-		private async void OnSessionCreated(object sender, SessionCreatedEventArgs e)
+		//raised on a COM thread
+		private void OnSessionCreated(object sender, SessionCreatedEventArgs e)
+			=> OnSessionCreatedAsync(e).Forget(Logger, "Failed to add a new audio session");
+
+		private async Task OnSessionCreatedAsync(SessionCreatedEventArgs e)
 		{
+			var session = e.SessionModel;
+			bool added = false;
 			await _processesSemaphore.WaitAsync();
 			try
 			{
-				if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(e.SessionModel.GroupingParam) ||
-											     p.FilePath.Equals(e.SessionModel.FilePath)) is AudioProcessModel
-				   process)
+				if(this.disposed)
+					return;
+
+				if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
 				{
 					await dispatcher.InvokeAsync(() =>
 					{
-						e.SessionModel.Name = process.Name;
-						process.AddSession(e.SessionModel);
+						session.Name = process.Name;
+						process.AddSession(session);
 					});
+					added = true;
 				}
-				else if(!this.disposed)
+				else if(e.CreateProcessModel() is AudioProcessModel newProcess)
 				{
-					AudioProcessModel newProcess = e.CreateProcessModel();
-					newProcess.AddSession(e.SessionModel);
-					
+					newProcess.AddSession(session);
+					newProcess.Exited += OnProcessExited;
+					newProcess.DeviceReconfigured += OnProcessDeviceReconfigured;
+					//listeners get the new process on the UI thread (after an await this method runs on the thread pool)
 					await dispatcher.InvokeAsync(() =>
 					{
 						this.Processes.Add(newProcess);
+						this.ProcessCreated?.Invoke(newProcess);
 					});
-					
-					newProcess.Exited += OnProcessExited;
-					newProcess.DeviceReconfigured += OnProcessDeviceReconfigured;
-					this.ProcessCreated?.Invoke(newProcess);
+					added = true;
 				}
 			}
-			catch { }
 			finally
 			{
 				_processesSemaphore.Release();
+				//a session nobody took (the device was disposed, or its app couldn't be read) would never be released
+				if(!added)
+					session.Dispose();
 			}
 		}
 
@@ -305,7 +308,11 @@ namespace Volumey.Model
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public async void Dispose()
+		/// <summary>
+		/// Stops all notifications right away; the apps and the device's COM objects are released afterwards
+		/// (the COM release on the thread pool: it waits for running audio callbacks, and those may wait for the UI thread).
+		/// </summary>
+		public void Dispose()
 		{
 			if(this.disposed)
 				return;
@@ -318,27 +325,28 @@ namespace Volumey.Model
 			this.deviceStateEvents.IconPathChanged -= OnIconPathChanged;
 			this.deviceStateEvents.FormatChanged -= OnFormatChanged;
 			this.Master.Dispose();
+			this._disabled = null;
+			this.ProcessCreated = null;
+			this.Invalidated = null;
+			ReleaseAsync().Forget(Logger, $"Failed to release the device [{this.Master.DeviceFriendlyName}]");
+		}
 
+		private async Task ReleaseAsync()
+		{
+			//waits for a session that is being added; the semaphore isn't disposed: it holds no OS handle here,
+			//and late callers (listeners, session events in flight) would throw
 			await _processesSemaphore.WaitAsync();
 			try
 			{
 				foreach(var process in this.Processes)
 					process.Dispose();
 			}
-			catch { }
 			finally
 			{
 				_processesSemaphore.Release();
 			}
-
-			//the semaphore isn't disposed: it holds no OS handle here, and late callers (listeners, session events in flight) would throw
-			//Release the device's COM objects on the thread pool: a release waits for running audio callbacks,
-			//and those may wait for the UI thread
 			var disposedDevice = this.device;
-			_ = Task.Run(() => disposedDevice.Dispose());
-			this._disabled = null;
-			this.ProcessCreated = null;
-			this.Invalidated = null;
+			await Task.Run(() => disposedDevice.Dispose());
 		}
 	}
 }

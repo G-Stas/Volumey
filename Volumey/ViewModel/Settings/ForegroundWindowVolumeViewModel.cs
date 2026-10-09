@@ -209,34 +209,25 @@ namespace Volumey.ViewModel.Settings
 			return uint.MinValue;
 		}
 
-		private async void OnHotkeyPressed(HotKey hotkey)
+		private void OnHotkeyPressed(HotKey hotkey)
 		{
-			if(!_hotkeysRegistered)
-				return;
-			if(_defaultDevice == null)
+			if(!_hotkeysRegistered || _defaultDevice == null)
 				return;
 
-			if(hotkey.Equals(this._volumeUpHotkey))
+			int direction = hotkey.Equals(this._volumeUpHotkey) ? 1 : hotkey.Equals(this._volumeDownHotkey) ? -1 : 0;
+			if(direction != 0)
+				ChangeForegroundVolumeAsync(hotkey, direction).Forget(Logger, "Failed to change the volume of the foreground app");
+		}
+
+		private async Task ChangeForegroundVolumeAsync(HotKey hotkey, int direction)
+		{
+			HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
+			if(await TryGetForegroundAudioProcess() is (true, AudioProcessModel foundProcess))
 			{
-				HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
-				if(await TryGetForegroundAudioProcess() is (bool succeed, AudioProcessModel foundProcess) && succeed)
-				{
-					if(foundProcess.StateNotificationMediator == null)
-						foundProcess.SetStateMediator(this.StateMediator);
-					foundProcess.SetVolume(foundProcess.Volume + this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
-					HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
-				}
-			}
-			else if(hotkey.Equals(this._volumeDownHotkey))
-			{
-				HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
-				if(await TryGetForegroundAudioProcess() is (bool succeed, AudioProcessModel foundProcess) && succeed)
-				{
-					if(foundProcess.StateNotificationMediator == null)
-						foundProcess.SetStateMediator(this.StateMediator);
-					foundProcess.SetVolume(foundProcess.Volume - this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
-					HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
-				}
+				if(foundProcess.StateNotificationMediator == null)
+					foundProcess.SetStateMediator(this.StateMediator);
+				foundProcess.SetVolume(foundProcess.Volume + direction * this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+				HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 			}
 		}
 
