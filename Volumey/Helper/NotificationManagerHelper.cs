@@ -19,8 +19,7 @@ internal static class NotificationManagerHelper
 	public const int MinIndent = 15;
 	public const int MaxIndent = 500;
 
-	private static ILog _logger;
-	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationManagerHelper));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(NotificationManagerHelper));
 
 	static NotificationManagerHelper()
 	{

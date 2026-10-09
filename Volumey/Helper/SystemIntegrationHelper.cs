@@ -17,7 +17,7 @@ namespace Volumey.Helper;
 
 internal static class SystemIntegrationHelper
 {
-	private static ILog _logger = LogManager.GetLogger(typeof(SystemIntegrationHelper));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(SystemIntegrationHelper));
 #if(!STORE)
 
 	private static readonly string StartupRegistryPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
@@ -31,7 +31,7 @@ internal static class SystemIntegrationHelper
 		string exePath = Environment.ProcessPath;
 		if(string.IsNullOrEmpty(exePath))
 		{
-			_logger.Error("Failed to retrieve .exe path.");
+			Logger.Error("Failed to retrieve .exe path.");
 			return;
 		}
 		//quoted: an unquoted path with spaces is ambiguous to Windows (it may run another program or nothing).
@@ -60,12 +60,12 @@ internal static class SystemIntegrationHelper
 		}
 		catch(SecurityException e)
 		{
-			_logger.Error("Failed to enable launch at startup", e);
+			Logger.Error("Failed to enable launch at startup", e);
 			MessageBox.Show(e.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
 		}
 		catch(Exception e)
 		{
-			_logger.Error("Failed to enable launch at startup", e);
+			Logger.Error("Failed to enable launch at startup", e);
 		}
 		return false;
 	}
@@ -82,7 +82,7 @@ internal static class SystemIntegrationHelper
 		}
 		catch(Exception e)
 		{
-			_logger.Error("Failed to disable launch at startup", e);
+			Logger.Error("Failed to disable launch at startup", e);
 		}
 	}
 
@@ -107,7 +107,7 @@ internal static class SystemIntegrationHelper
 		}
 		catch(Exception e)
 		{
-			_logger.Error("Failed to check for existing key", e);
+			Logger.Error("Failed to check for existing key", e);
 		}
 		return false;
 	}
@@ -129,7 +129,7 @@ internal static class SystemIntegrationHelper
 		}
 		catch(Exception e)
 		{
-			_logger.Error("Failed to add to Start Menu", e);
+			Logger.Error("Failed to add to Start Menu", e);
 		}
 		return false;
 	}
@@ -194,7 +194,7 @@ internal static class SystemIntegrationHelper
 		}
 		catch(Exception e)
 		{
-			_logger.Error($"Failed to simulate key press: {key.ToString()}", e);
+			Logger.Error($"Failed to simulate key press: {key.ToString()}", e);
 		}
 	}
 }

@@ -45,8 +45,7 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 	private readonly IDeviceProvider deviceProvider;
 	private OutputDeviceModel defaultDevice;
 
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppVolumeSyncViewModel));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppVolumeSyncViewModel));
 
 	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider)
 	{

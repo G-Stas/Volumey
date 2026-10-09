@@ -9,8 +9,7 @@ namespace Volumey.View.DialogContent;
 
 public partial class UpdateDialog
 {
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(UpdateDialog));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(UpdateDialog));
 
 	public ICommand PrimaryCommand { get; }
 	public ICommand CloseCommand { get; }

@@ -23,11 +23,11 @@ class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
 		if(data.EventContext.Equals(GuidValue.Internal.VolumeGUID))
 			return;
 
-		int newVolumeValue = Convert.ToInt32(data.MasterVolume * 100);
+		int newVolumeValue = VolumePercent.FromScalar(data.MasterVolume);
 
 		//prevent invoking event if new volume value is not the same as the actual device volume value
 		int actualVolumeValue;
-		try { actualVolumeValue = Convert.ToInt32(endpointVolume.MasterVolumeLevelScalar * 100); }
+		try { actualVolumeValue = VolumePercent.FromScalar(endpointVolume.MasterVolumeLevelScalar); }
 		catch { return; }
 		if(newVolumeValue != actualVolumeValue)
 			return;

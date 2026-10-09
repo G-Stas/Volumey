@@ -53,8 +53,7 @@ public sealed partial class VolumeLimitViewModel : ObservableObject
 	private readonly IDeviceProvider deviceProvider;
 	private OutputDeviceModel defaultDevice;
 
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(VolumeLimitViewModel));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(VolumeLimitViewModel));
 
 	internal VolumeLimitViewModel(IDeviceProvider deviceProvider)
 	{

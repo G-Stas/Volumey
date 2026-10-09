@@ -10,8 +10,7 @@ static class SystemColorHelper
 	internal static Action<AppTheme> WindowsThemeChanged;
 	internal static AppTheme WindowsTheme { get; private set; }
 
-	private static ILog _logger;
-	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(SystemColorHelper));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(SystemColorHelper));
 
 	static SystemColorHelper()
 	{
