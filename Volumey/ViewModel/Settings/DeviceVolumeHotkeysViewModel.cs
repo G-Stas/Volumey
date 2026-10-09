@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
@@ -7,42 +8,18 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
+public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 {
 	private OutputDeviceModel defaultDevice;
 
-	private HotKey volumeUp;
-	public HotKey VolumeUp
-	{
-		get => volumeUp;
-		set
-		{
-			volumeUp = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey VolumeUp { get; set; }
 
-	private HotKey volumeDown;
-	public HotKey VolumeDown
-	{
-		get => volumeDown;
-		set
-		{
-			volumeDown = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey VolumeDown { get; set; }
 
-	private HotKey muteKey;
-	public HotKey MuteKey
-	{
-		get => muteKey;
-		set
-		{
-			muteKey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey MuteKey { get; set; }
 
 	private bool volumeHotkeysRegistered;
 	public bool VolumeHotkeysRegistered
@@ -82,20 +59,11 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
-	private bool _preventResettingVolumeBalance;
-	public bool PreventResettingVolumeBalance
-	{
-		get => _preventResettingVolumeBalance;
-		set
-		{
-			_preventResettingVolumeBalance = value;
-			OnPropertyChanged();
-			if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance != value)
-			{
-				SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance = value;
-			}
-		}
-	}
+	[ObservableProperty]
+	public partial bool PreventResettingVolumeBalance { get; set; }
+
+	partial void OnPreventResettingVolumeBalanceChanged(bool value)
+		=> SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance = value;
 
 	//shows the OSD when a hotkey changes a volume (the models' state mediator)
 	private readonly INotificationService notifications;
@@ -123,7 +91,7 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		if(settings.Hotkeys.DeviceMute is HotKey mute)
 		{
 			anyHotkeysRegistered = true;
-			muteKey = mute;
+			MuteKey = mute;
 			muteHotkeyRegistered = true;
 		}
 
@@ -140,13 +108,13 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		{
 			if(muteHotkeyRegistered)
 			{
-				defaultDevice.SetMuteHotkey(muteKey);
+				defaultDevice.SetMuteHotkey(MuteKey);
 				if(SettingsProvider.Settings.Notifications.Enabled)
 					defaultDevice.SetStateNotificationMediator(notifications);
 			}
 			if(volumeHotkeysRegistered)
 			{
-				defaultDevice.SetVolumeHotkeys(volumeUp, volumeDown);
+				defaultDevice.SetVolumeHotkeys(VolumeUp, VolumeDown);
 				if(SettingsProvider.Settings.Notifications.Enabled)
 					defaultDevice.SetStateNotificationMediator(notifications);
 			}
@@ -201,7 +169,7 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 
 	private bool SaveMuteHotkey()
 	{
-		var key = muteKey;
+		var key = MuteKey;
 		if(!IsValid(hotkeys.HotkeyIsValid(key)))
 			return false;
 
@@ -277,13 +245,13 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		{
 			if(volumeHotkeysRegistered)
 			{
-				newDevice.SetVolumeHotkeys(volumeUp, volumeDown);
+				newDevice.SetVolumeHotkeys(VolumeUp, VolumeDown);
 				if(SettingsProvider.Settings.Notifications.Enabled)
 					newDevice.SetStateNotificationMediator(notifications);
 			}
 			if(muteHotkeyRegistered)
 			{
-				newDevice.SetMuteHotkey(muteKey);
+				newDevice.SetMuteHotkey(MuteKey);
 				if(SettingsProvider.Settings.Notifications.Enabled)
 					newDevice.SetStateNotificationMediator(notifications);
 			}

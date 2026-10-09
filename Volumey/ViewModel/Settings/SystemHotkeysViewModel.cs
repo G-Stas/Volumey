@@ -2,7 +2,8 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
-using Microsoft.Xaml.Behaviors.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
@@ -10,53 +11,23 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
 
-public class SystemHotkeysViewModel : HotkeyViewModel
+public partial class SystemHotkeysViewModel : HotkeyViewModel
 {
-	private SystemHotkey _selectedHotkey;
-	public SystemHotkey SelectedHotkey
-	{
-		get => _selectedHotkey;
-		set
-		{
-			_selectedHotkey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial SystemHotkey SelectedHotkey { get; set; }
 
-	private SystemHotkey _selectedRegisteredHotkey;
-	public SystemHotkey SelectedRegisteredHotkey
-	{
-		get => _selectedRegisteredHotkey;
-		set
-		{
-			_selectedRegisteredHotkey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial SystemHotkey SelectedRegisteredHotkey { get; set; }
 
-	private HotKey _replacementHotkey;
-	public HotKey ReplacementHotKey
-	{
-		get => _replacementHotkey;
-		set
-		{
-			_replacementHotkey = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial HotKey ReplacementHotKey { get; set; }
 
 	public ObservableCollection<SystemHotkey> Hotkeys { get; set; } = new ObservableCollection<SystemHotkey>();
 	public ObservableCollection<SystemHotkey> RegisteredHotkeys { get; set; }
 
-	public ICommand AddHotkeyCommand { get; set; }
-	public ICommand RemoveHotkeyCommand { get; set; }
-
 	internal SystemHotkeysViewModel(IHotkeyService hotkeys) : base(hotkeys)
 	{
 		var mediaHotkeys = GetMediaHotkeys();
-
-		AddHotkeyCommand = new ActionCommand(AddHotkey);
-		RemoveHotkeyCommand = new ActionCommand(RemoveHotkey);
 
 		RegisteredHotkeys = new ObservableCollection<SystemHotkey>(SettingsProvider.Settings.Hotkeys.System.Select(h => new SystemHotkey(h.SystemKey, h.Replacement)));
 
@@ -83,15 +54,19 @@ public class SystemHotkeysViewModel : HotkeyViewModel
 			SetErrorMessage(ErrorMessageType.OpenReg);
 	}
 
+	[RelayCommand]
 	private void AddHotkey()
 	{
-		if(_selectedHotkey == null || _replacementHotkey == null)
+		//the lists below are bound to the selection, so it's read once
+		var selected = SelectedHotkey;
+		var replacement = ReplacementHotKey;
+		if(selected == null || replacement == null)
 			return;
 
-		if(!IsValid(hotkeys.HotkeyIsValid(_replacementHotkey)))
+		if(!IsValid(hotkeys.HotkeyIsValid(replacement)))
 			return;
 
-		if(!hotkeys.RegisterHotkey(_replacementHotkey))
+		if(!hotkeys.RegisterHotkey(replacement))
 		{
 			SetErrorMessage(ErrorMessageType.VolumeReg);
 			return;
@@ -99,26 +74,27 @@ public class SystemHotkeysViewModel : HotkeyViewModel
 
 		SetErrorMessage(ErrorMessageType.None);
 
-		_selectedHotkey.Replacement = _replacementHotkey;
-		_selectedHotkey.RegisterHotkeyHandler(hotkeys);
+		selected.Replacement = replacement;
+		selected.RegisterHotkeyHandler(hotkeys);
 
-		RegisteredHotkeys.Add(_selectedHotkey);
+		RegisteredHotkeys.Add(selected);
 
 		SaveRegisteredHotkeys();
 
-		Hotkeys.Remove(_selectedHotkey);
+		Hotkeys.Remove(selected);
 
 		SelectedHotkey = null;
 		ReplacementHotKey = null;
 
 	}
 
+	[RelayCommand]
 	private void RemoveHotkey()
 	{
-		if(_selectedRegisteredHotkey == null)
+		if(SelectedRegisteredHotkey == null)
 			return;
 
-		var hotkey = _selectedRegisteredHotkey;
+		var hotkey = SelectedRegisteredHotkey;
 
 		hotkeys.UnregisterHotkey(hotkey.Replacement);
 		RegisteredHotkeys.Remove(hotkey);

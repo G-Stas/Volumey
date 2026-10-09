@@ -1,6 +1,5 @@
 using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 using log4net;
 
 namespace Volumey.ViewModel.Settings;
@@ -8,21 +7,12 @@ namespace Volumey.ViewModel.Settings;
 /// <summary>
 /// The plumbing shared by the hotkey settings pages: the hotkey service, the error message and the logger
 /// </summary>
-public abstract class HotkeyViewModel : INotifyPropertyChanged
+public abstract partial class HotkeyViewModel : ObservableObject
 {
-	private string errorMessage;
-	public string ErrorMessage
-	{
-		get => errorMessage;
-		private set
-		{
-			errorMessage = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial string ErrorMessage { get; private set; }
 
-	private ErrorMessageType currentErrType = ErrorMessageType.None;
-	protected ErrorMessageType CurrentErrorType => currentErrType;
+	protected ErrorMessageType CurrentErrorType { get; private set; } = ErrorMessageType.None;
 
 	protected readonly IHotkeyService hotkeys;
 
@@ -37,7 +27,7 @@ public abstract class HotkeyViewModel : INotifyPropertyChanged
 
 	protected void SetErrorMessage(ErrorMessageType type)
 	{
-		currentErrType = type;
+		CurrentErrorType = type;
 		ErrorMessage = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
 	}
 
@@ -62,11 +52,5 @@ public abstract class HotkeyViewModel : INotifyPropertyChanged
 			registerLoadedHotkeys();
 		else
 			hotkeys.Activated += registerLoadedHotkeys;
-	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-	protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }

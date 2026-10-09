@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Timers;
-using System.Windows.Input;
 using System.Windows.Interop;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using log4net;
 using Microsoft.Win32;
-using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
@@ -16,17 +15,8 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel;
 
-public sealed class AppBehaviorViewModel : INotifyPropertyChanged
+public sealed partial class AppBehaviorViewModel : ObservableObject
 {
-	public ICommand ClosingCommand { get; }
-	public ICommand LostFocusCommand { get; }
-	public ICommand TrayMixerCommand { get; }
-	public ICommand TraySettingsCommand { get; }
-	public ICommand TrayExitCommand { get; }
-	public ICommand TrayClickCommand { get; }
-	public ICommand SoundControlPanelCommand { get; }
-	public ICommand SoundSettingsCommand { get; }
-
 	private bool windowIsVisible;
 	public bool WindowIsVisible
 	{
@@ -79,47 +69,20 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		}
 	}
 
-	private bool alwaysOnTop;
-	public bool AlwaysOnTop
-	{
-		get => alwaysOnTop;
-		set
-		{
-			alwaysOnTop = value;
+	[ObservableProperty]
+	public partial bool AlwaysOnTop { get; set; }
 
-			SettingsProvider.Settings.Window.AlwaysOnTop = value;
+	partial void OnAlwaysOnTopChanged(bool value) => SettingsProvider.Settings.Window.AlwaysOnTop = value;
 
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial bool DeviceViewAtTheBottom { get; set; }
 
-	private bool deviceViewAtTheBottom;
-	public bool DeviceViewAtTheBottom
-	{
-		get => deviceViewAtTheBottom;
-		set
-		{
-			deviceViewAtTheBottom = value;
+	partial void OnDeviceViewAtTheBottomChanged(bool value) => SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
 
-			SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
+	[ObservableProperty]
+	public partial bool DisplayDeviceIconAtTray { get; set; }
 
-			OnPropertyChanged();
-		}
-	}
-
-	private bool displayDeviceIconAtTray;
-	public bool DisplayDeviceIconAtTray
-	{
-		get => displayDeviceIconAtTray;
-		set
-		{
-			displayDeviceIconAtTray = value;
-
-			SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
-
-			OnPropertyChanged();
-		}
-	}
+	partial void OnDisplayDeviceIconAtTrayChanged(bool value) => SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
 
 	private bool launchAtStartup;
 	public bool LaunchAtStartup
@@ -165,27 +128,12 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		}
 	}
 
-	private double windowLeft;
-	public double WindowLeft
-	{
-		get => windowLeft;
-		set
-		{
-			windowLeft = value;
-			OnPropertyChanged();
-		}
-	}
+	//saved on exit only: they change on every window move
+	[ObservableProperty]
+	public partial double WindowLeft { get; set; }
 
-	private double windowTop;
-	public double WindowTop
-	{
-		get => windowTop;
-		set
-		{
-			windowTop = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial double WindowTop { get; set; }
 
 	private readonly ScreenSelection screens;
 
@@ -225,8 +173,6 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 	/// </summary>
 	private const double trayBlockDelay = 300;
 
-	public ICommand LoadedCommand { get; set; }
-
 	private static ILog _logger;
 	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
@@ -244,20 +190,6 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		this.shell = shell;
 		this.systemIntegration = systemIntegration;
 		WindowIsVisible = !shell.StartMinimized;
-		ClosingCommand = new ActionCommand(OnWindowClosing);
-		TrayMixerCommand = new ActionCommand(() => OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false));
-		TraySettingsCommand = new ActionCommand(() => OpenCommand(isSettingsPage: true, displayAsPopup: false, reverseDisplaying: false));
-		TrayClickCommand = new ActionCommand(() =>
-		{
-			{
-				if(!trayBlocked)
-					OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
-			}
-		});
-		TrayExitCommand = new ActionCommand(OnExit);
-		SoundControlPanelCommand = new ActionCommand(SystemSoundUtilities.StartSoundControlPanel);
-		SoundSettingsCommand = new ActionCommand(SystemSoundUtilities.StartSoundSettings);
-		LostFocusCommand = new ActionCommand(OnLostFocus);
 		shell.SessionEnding += OnExit;
 
 		hotkeys.OpenHotkeyPressed += OnOpenHotkeyPressed;
@@ -268,14 +200,12 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		trayBlockTimer.Elapsed += OnBlockTrayTimerElapsed;
 
 		popupEnabled = SettingsProvider.Settings.Window.PopupMode;
-		alwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
-		deviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
-		displayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
+		AlwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
+		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
+		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
-		windowLeft = SettingsProvider.Settings.Window.Left;
-		windowTop = SettingsProvider.Settings.Window.Top;
-
-		LoadedCommand = new ActionCommand(screens.Refresh);
+		WindowLeft = SettingsProvider.Settings.Window.Left;
+		WindowTop = SettingsProvider.Settings.Window.Top;
 
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
@@ -303,8 +233,8 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 
 	private void OnExit()
 	{
-		SettingsProvider.Settings.Window.Left = windowLeft;
-		SettingsProvider.Settings.Window.Top = windowTop;
+		SettingsProvider.Settings.Window.Left = WindowLeft;
+		SettingsProvider.Settings.Window.Top = WindowTop;
 		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
 		hotkeys.Dispose();
 		shell.Shutdown();
@@ -379,7 +309,8 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		trayBlocked = false;
 	}
 
-	private void OnLostFocus()
+	[RelayCommand]
+	private void LostFocus()
 	{
 		if(popupEnabled && displayedAsPopup)
 		{
@@ -395,7 +326,8 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
 	}
 
-	private void OnWindowClosing(object e)
+	[RelayCommand]
+	private void Closing(object e)
 	{
 		if(e is CancelEventArgs args)
 		{
@@ -404,12 +336,30 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		}
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
+	[RelayCommand]
+	private void TrayMixer() => OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false);
 
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	[RelayCommand]
+	private void TraySettings() => OpenCommand(isSettingsPage: true, displayAsPopup: false, reverseDisplaying: false);
+
+	[RelayCommand]
+	private void TrayClick()
 	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		if(!trayBlocked)
+			OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
 	}
+
+	[RelayCommand]
+	private void TrayExit() => OnExit();
+
+	[RelayCommand]
+	private static void SoundControlPanel() => SystemSoundUtilities.StartSoundControlPanel();
+
+	[RelayCommand]
+	private static void SoundSettings() => SystemSoundUtilities.StartSoundSettings();
+
+	[RelayCommand]
+	private void Loaded() => screens.Refresh();
 
 	~AppBehaviorViewModel()
 	{

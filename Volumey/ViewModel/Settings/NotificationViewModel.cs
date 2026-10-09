@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using log4net;
 using Microsoft.Win32;
-using Microsoft.Xaml.Behaviors.Core;
 using Notification.Wpf.Controls;
 using Volumey.DataProvider;
 using Volumey.Helper;
@@ -15,7 +13,7 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public class NotificationViewModel : INotifyPropertyChanged
+public partial class NotificationViewModel : ObservableObject
 {
 	public NotificationPosition[] Positions { get; } =
 	{
@@ -50,19 +48,11 @@ public class NotificationViewModel : INotifyPropertyChanged
 
 	public bool NotificationsPositionIsCentered { get; set; }
 
-	private bool _notificationsEnabled;
-	public bool NotificationsEnabled
-	{
-		get => _notificationsEnabled;
-		set
-		{
-			_notificationsEnabled = value;
-			OnPropertyChanged();
+	[ObservableProperty]
+	public partial bool NotificationsEnabled { get; set; }
 
-			//on the UI thread: the hotkey view models react to it and change their lists of apps
-			SettingsProvider.Settings.Notifications.Enabled = value;
-		}
-	}
+	//on the UI thread: the hotkey view models react to it and change their lists of apps
+	partial void OnNotificationsEnabledChanged(bool value) => SettingsProvider.Settings.Notifications.Enabled = value;
 
 	private bool _reactToAllChanges;
 	public bool ReactToAllVolumeChanges
@@ -157,9 +147,6 @@ public class NotificationViewModel : INotifyPropertyChanged
 	public int MaxDisplayTime { get; } = 10;
 	public int MinDisplayTime { get; } = 1;
 
-	public ICommand UnloadedCommand { get; }
-	public ICommand LoadedCommand { get; }
-
 	public static int MinIndent => NotificationManagerHelper.MinIndent;
 	public static int MaxIndent => NotificationManagerHelper.MaxIndent;
 
@@ -209,9 +196,6 @@ public class NotificationViewModel : INotifyPropertyChanged
 		SelectedPosition = SettingsProvider.Settings.Notifications.Position;
 		ReactToAllVolumeChanges = SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges;
 
-		UnloadedCommand = new ActionCommand(() => PreviewIsOn = false);
-		LoadedCommand = new ActionCommand(screens.Refresh);
-
 		DisplayTime = SettingsProvider.Settings.Notifications.DisplayTimeSeconds;
 
 		screens.Load();
@@ -221,6 +205,12 @@ public class NotificationViewModel : INotifyPropertyChanged
 
 	//e.g. a game switching the resolution, or a monitor that turns on late (#92)
 	private void OnDisplaySettingsChanged(object sender, EventArgs e) => screens.Refresh();
+
+	[RelayCommand]
+	private void Loaded() => screens.Refresh();
+
+	[RelayCommand]
+	private void Unloaded() => PreviewIsOn = false;
 
 	private async Task SetStateMediatorForDefaultDeviceProcesses()
 	{
@@ -291,10 +281,6 @@ public class NotificationViewModel : INotifyPropertyChanged
 		newProcess.SetStateMediator(_notifications);
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	~NotificationViewModel()
 	{

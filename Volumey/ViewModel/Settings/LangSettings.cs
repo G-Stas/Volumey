@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.DataProvider;
 using Volumey.Localization;
 
 namespace Volumey.ViewModel.Settings;
 
-public class LangSettings : INotifyPropertyChanged
+public class LangSettings : ObservableObject
 {
 	public static List<string> Languages => TranslationSource.Languages;
 
@@ -35,9 +34,4 @@ public class LangSettings : INotifyPropertyChanged
 		catch { TranslationSource.SetDefaultLanguage(); }
 		finally { SelectedLanguage = TranslationSource.Instance.CurrentCulture.NativeName; }
 	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

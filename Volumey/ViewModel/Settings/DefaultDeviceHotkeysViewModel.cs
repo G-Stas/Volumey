@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
-using Microsoft.Xaml.Behaviors.Core;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
@@ -10,7 +10,7 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
 
-public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
+public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 {
 	private OutputDeviceModel _selected;
 	public OutputDeviceModel SelectedDevice
@@ -27,16 +27,8 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	//true while HotKey shows the registered hotkey of the selected device rather than one the user typed
 	private bool hotkeyShowsRegistration;
 
-	private KeyValuePair<HotKey, DeviceInfo>? _selectedRegDev;
-	public KeyValuePair<HotKey, DeviceInfo>? SelectedRegDev
-	{
-		get => _selectedRegDev;
-		set
-		{
-			_selectedRegDev = value;
-			OnPropertyChanged();
-		}
-	}
+	[ObservableProperty]
+	public partial KeyValuePair<HotKey, DeviceInfo>? SelectedRegDev { get; set; }
 
 	public ObservableConcurrentDictionary<HotKey, DeviceInfo> RegisteredDevices { get; }
 
@@ -52,17 +44,12 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
-	public ICommand AddDeviceCommand { get; }
-	public ICommand RemoveDeviceCommand { get; }
 
 	public IDeviceProvider DeviceProvider { get; }
 
 	internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys) : base(hotkeys)
 	{
 		DeviceProvider = deviceProvider;
-
-		AddDeviceCommand = new ActionCommand(AddDevice);
-		RemoveDeviceCommand = new ActionCommand(RemoveDevice);
 
 		RegisteredDevices = LoadRegisteredDevices();
 		if(RegisteredDevices.Keys.Count > 0)
@@ -150,6 +137,7 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		catch { }
 	}
 
+	[RelayCommand]
 	private void AddDevice()
 	{
 		if(RegisteredDevices.Values.Any(deviceInfo => deviceInfo.ID.Equals(SelectedDevice.Id)))
@@ -186,6 +174,7 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		SaveRegisteredDevices();
 	}
 
+	[RelayCommand]
 	private void RemoveDevice()
 	{
 		if(SelectedRegDev == null || !SelectedRegDev.HasValue)
