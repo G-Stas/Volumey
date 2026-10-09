@@ -16,7 +16,6 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     {
         public event Action SessionEnded;
         public event Action<VolumeChangedEventArgs> VolumeChanged;
-        public event Action<ImageSource> IconPathChanged;
         public event Action<string> NameChanged;
         public event Action<AudioSessionDisconnectReason> Disconnected;
         public event Action<AudioSessionState> StateChanged;
@@ -37,39 +36,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
         public void OnGroupingParamChanged(ref Guid groupingId) { }
 
-        //gets called when system process icon has changed
-        public void OnIconPathChanged(string newIconPath)
-        {
-            if(string.IsNullOrEmpty(newIconPath))
-                return;
-
-            ImageSource icon = null;
-            App.Current.Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    string[] iconPathId = newIconPath.Split(",");
-                    if(iconPathId.Length < 2)
-                        throw new Exception();
-                    string path = iconPathId[0];
-                    int id = int.Parse(iconPathId[1]);
-                    icon = IconHelper.GetFromDll(filePath: path, id).GetAsImageSource();
-                }
-                catch { }
-
-                if(icon == null)
-                {
-                    try
-                    {
-                        icon = IconHelper.GetFromFilePath(newIconPath).GetAsImageSource();
-                    }
-                    catch { }
-                }
-
-                if(icon != null)
-                    this.IconPathChanged?.Invoke(icon);
-            });
-        }
+        //a session's icon is read once when it's created; changes aren't shown
+        public void OnIconPathChanged(string newIconPath) { }
 
         public void OnSessionDisconnected(NAudioDisconnectReason disconnectReason)
             => this.Disconnected?.Invoke((AudioSessionDisconnectReason)disconnectReason);

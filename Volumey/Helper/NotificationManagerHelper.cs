@@ -67,7 +67,7 @@ namespace Volumey.Helper
 		{
 			try
 			{
-				IManagedMasterAudioSession dummy = new AudioProcessModel(50, false, "Application", default, string.Empty, IconHelper.GenericExeIcon, null, AppServices.Current.Hotkeys);
+				IManagedMasterAudioSession dummy = new AudioProcessModel(50, false, "Application", default, string.Empty, IconHelper.CreateGenericExeIcon(), null, AppServices.Current.Hotkeys);
 				var content = new VolumeNotificationContent(dummy);
 				_notificationManager.ShowNotification(content, _exampleNotificationId, false, TimeSpan.MaxValue);
 			}

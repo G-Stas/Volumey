@@ -171,15 +171,16 @@ namespace Volumey.Model
 				{
 					try
 					{
-						if(this.Master.Icon != null)
-						{
-							NativeMethods.DestroyIcon(this.Master.Icon.Handle);
-							this.Master.Icon.Dispose();
-						}
+						//switch to the new icon before releasing the old one, which the tray may still show
+						var oldIcon = this.Master.Icon;
 						this.Master.Icon = this.device.GetIcon();
-						this.Master.IconSource = this.Master.Icon.GetAsImageSource();
+						this.Master.IconSource = this.Master.Icon?.GetAsImageSource();
+						oldIcon?.Dispose();
 					}
-					catch { }
+					catch(Exception e)
+					{
+						Logger.Error("Failed to update the device icon", e);
+					}
 				});
 			}
 		}

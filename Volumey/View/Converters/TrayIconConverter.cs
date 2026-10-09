@@ -22,6 +22,9 @@ namespace Volumey.View.Converters
 		private IconType currentIconType = IconType.None;
 		private TrayIconProvider currentIconProvider;
 		private Icon curDeviceIcon;
+		//one provider per theme: a provider caches its icons, a new one on every theme switch leaked them
+		private LightIconProvider lightIconProvider;
+		private DarkIconProvider darkIconProvider;
 
 		public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 		{
@@ -39,17 +42,17 @@ namespace Volumey.View.Converters
 				bool newIconProvider = false;
 				if(theme is AppTheme.Dark)
 				{
-					if(!(currentIconProvider is LightIconProvider))
+					if(currentIconProvider is not LightIconProvider)
 					{
-						currentIconProvider = new LightIconProvider();
+						currentIconProvider = lightIconProvider ??= new LightIconProvider();
 						newIconProvider = true;
 					}
 				}
 				else
 				{
-					if(!(currentIconProvider is DarkIconProvider))
+					if(currentIconProvider is not DarkIconProvider)
 					{
-						currentIconProvider = new DarkIconProvider();
+						currentIconProvider = darkIconProvider ??= new DarkIconProvider();
 						newIconProvider = true;
 					}
 				}

@@ -159,11 +159,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 					try
 					{
-						App.Current.Dispatcher.Invoke(() =>
-						{
-							icon =
-								Icon.ExtractAssociatedIcon(Environment.ExpandEnvironmentVariables("%SystemRoot%\\System32\\AudioSrv.dll"));
-						});
+						icon = Icon.ExtractAssociatedIcon(Environment.ExpandEnvironmentVariables("%SystemRoot%\\System32\\AudioSrv.dll"));
 					}
 					catch(Exception e)
 					{
@@ -172,7 +168,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				}
 				else
 				{
-					App.Current.Dispatcher.Invoke(() => icon = ExtractSessionIcon(proc, sControl));
+					//on the calling (COM) thread: icon extraction doesn't need the UI thread, and a COM callback must not wait for it
+					icon = ExtractSessionIcon(proc, sControl);
 				}
 			}
 			catch(Exception e)
@@ -271,13 +268,11 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 				if(processHandle != IntPtr.Zero)
 					NativeMethods.CloseHandle(processHandle);
 			}
-			return icon ?? IconHelper.GenericExeIcon;
+			return icon ?? IconHelper.CreateGenericExeIcon();
 		}
 
 		private static Icon TryExtractIconAlternatively(Process proc, AudioSessionControl sc)
 		{
-			Icon icon = null;
-
 			//it's possible to get system process icon from its IAudioSessionControl interface
 			string iconPath = null;
 			try { iconPath = sc.IconPath; }
@@ -286,36 +281,19 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			{
 				//the icon path will be empty if the exe was launched with admin rights
 				//looks like its impossible to get an icon of an exe with admin rights so we return generic windows exe icon
-				return IconHelper.GenericExeIcon;
+				return IconHelper.CreateGenericExeIcon();
 			}
 
 			try
 			{
-				//"The format of an icon resource specifier is "executable-file-path,resource-identifier"
-				//where executable-file-path contains the fully qualified path of the file on a computer that contains the icon resource
-				//and resource-identifier specifies an integer that identifies the resource."
-				string[] resource = iconPath.Split(',');
-				if(resource.Length < 2)
-					throw new Exception();
-
-				//extract the icon from dll
-				icon = IconHelper.GetFromDll(filePath: resource[0],
-				                             resourceId: int.Parse(resource[1], CultureInfo.InvariantCulture));
+				//"executable-file-path,resource-identifier", or a plain file path
+				return IconHelper.GetFromResourcePath(iconPath);
 			}
-			catch { }
-
-			if(icon == null)
+			catch(Exception e)
 			{
-				try
-				{
-					icon = IconHelper.GetFromFilePath(iconPath);
-				}
-				catch(Exception e)
-				{
-					Logger.Error($"Failed to extract session icon from the file path, process: [{proc?.ProcessName}] file path: [{iconPath}]", e);
-				}
+				Logger.Error($"Failed to extract the session icon, process: [{proc?.ProcessName}] icon path: [{iconPath}]", e);
+				return null;
 			}
-			return icon;
 		}
 
 		private static string GetSystemSoundsName(AudioSessionControl sc)
