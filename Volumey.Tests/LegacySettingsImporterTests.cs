@@ -5,6 +5,7 @@ using Notification.Wpf.Controls;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
+using Volumey.Model;
 
 namespace Volumey.Tests
 {
@@ -18,9 +19,16 @@ namespace Volumey.Tests
 		{
 			var settings = new VolumeySettings();
 			using(var file = File.OpenRead(Path.Combine(System.AppContext.BaseDirectory, "TestData", fileName)))
-				LegacySettingsImporter.Import(file, settings);
+				LegacySettingsImporter.Import(file, settings, () => ThreeScreens);
 			return settings;
 		}
+
+		private static readonly ScreenInfo[] ThreeScreens =
+		{
+			new ScreenInfo(@"\\.\DISPLAY1", true, 1920, 1040, 1920, 1080, 0, 1920, 0, 1040, 1),
+			new ScreenInfo(@"\\.\DISPLAY2", false, 1920, 1040, 1920, 1080, 1920, 3840, 0, 1040, 1),
+			new ScreenInfo(@"\\.\DISPLAY3", false, 1920, 1040, 1920, 1080, 3840, 5760, 0, 1040, 1)
+		};
 
 		[TestMethod]
 		public void ShouldImportGeneralSettings()
@@ -41,9 +49,19 @@ namespace Volumey.Tests
 			Assert.IsTrue(settings.Window.DisplayDeviceIconAtTray);
 			Assert.AreEqual(100.5, settings.Window.Left);
 			Assert.AreEqual(200.25, settings.Window.Top);
-			//turned into a screen name by the settings migration (SettingsProviderTests)
-			Assert.AreEqual(1, settings.Window.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex));
-			Assert.AreEqual(1, settings.Version);
+			//the file stores screen index 1, the name of that screen now is kept
+			Assert.AreEqual(@"\\.\DISPLAY2", settings.Window.ScreenName);
+		}
+
+		[TestMethod]
+		public void ScreenIndexOfAMissingScreenMeansThePrimaryOne()
+		{
+			var settings = new VolumeySettings();
+			using(var file = File.OpenRead(Path.Combine(System.AppContext.BaseDirectory, "TestData", "legacy-appconfig-1.5.4")))
+				LegacySettingsImporter.Import(file, settings, () => new[] { ThreeScreens[0] });
+
+			Assert.IsNull(settings.Window.ScreenName);
+			Assert.IsNull(settings.Notifications.ScreenName);
 		}
 
 		[TestMethod]
@@ -57,7 +75,7 @@ namespace Volumey.Tests
 			Assert.AreEqual(NotificationPosition.BottomRight, settings.Notifications.Position);
 			Assert.AreEqual(5, settings.Notifications.DisplayTimeSeconds);
 			Assert.IsTrue(settings.Notifications.ReactToAllVolumeChanges);
-			Assert.AreEqual(2, settings.Notifications.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex));
+			Assert.AreEqual(@"\\.\DISPLAY3", settings.Notifications.ScreenName);
 		}
 
 		[TestMethod]

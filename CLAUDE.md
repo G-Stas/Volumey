@@ -25,7 +25,8 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   11. `feature/h-notifyicon`: the tray icon on H.NotifyIcon.Wpf 2.4.1 with the native text tooltip (item F, owner's call to do it before item C; fixes #91, #65).
   12. `fix/second-start-popup`: starting the exe again opens the popup in popup mode (#74).
   13. `fix/device-hotkeys-shown`: saved default-device hotkeys are visible on their settings page (#18).
-  14. `fix/screens-by-name`: screens remembered by device name, fallbacks not saved; settings version 2 (#92).
+  14. `fix/screens-by-name`: screens remembered by device name, fallbacks not saved (#92).
+  15. `refactor/no-settings-migration`: dropped the settings version 2 migration from step 14 (nothing is released, owner's call); the 1.x importer converts screen indexes itself.
 - **Validated on `release/2.0`:** Release build without warnings (except NU1902), 177/177 unit tests, 8/8 audio integration tests, a Store MSIX build without compiler warnings (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`, `H.NotifyIcon*.dll`). The package project's restore prints one NU1701 per WPF package (it targets UAP); that is known noise.
 - **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner, and again after the H.NotifyIcon switch: icon, device icon, native tooltip text, left click, menu commands, icon removed on exit); OSD popup on an outside volume change; non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Not tested: the startup task launching the app at sign-in, and a 1.x Store install upgrading (see *Settings persistence*).
 - Item G layer 4 (UI tests) comes before item C, later (owner's decision).
@@ -222,11 +223,9 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
   - `HotKey` is stored as `{ "Key": "F1", "ModifierKeys": "Control, Shift" }`; Json.NET deserializes it through its constructor.
   - `TypeNameHandling.None` means no .NET type names are written, so renaming or moving C# types is safe; renaming *properties* is not.
 - **Threading:** settings are also written from background threads. `VolumeySettings.Save` takes a lock so saves can't overlap. `PropertyChanged` fires on the writing thread.
-- **Versioning:** `VolumeySettings.Version` / `CurrentVersion` (currently **2**).
-  - Adding a property needs nothing, because missing values keep their defaults.
-  - Renaming, moving or retyping a property needs a bumped `CurrentVersion` and a step in `SettingsProvider.Migrate` (one `if(Version < n)` block per version).
-  - Values in the file that no property reads are kept in each section's `[JsonExtensionData]` store (`SettingsSection.otherValues`) and written back, so settings of a newer app version survive a downgrade. A migration step reads a removed value with `TakeOtherValue<T>(name)`, which also drops it from the file.
-  - Version 1 → 2: `ScreenIndex` (a position in the list of screens) became `ScreenName` (#92). The step turns the index into the name of the screen at that position now (`LoadSettings(dir, getScreens)`; the screens are only read when an old index is there), or null (primary) if there's no such screen.
+- **Versioning:** `VolumeySettings.Version` / `CurrentVersion` (1).
+  - **Until 2.0 ships, the JSON layout can change freely** (owner's decision, 2026-10-09): no user has a settings.json yet, so don't bump the version or write migration steps; only the 1.x import must keep working. Dev files with an old layout just lose the changed values.
+  - After the release: adding a property needs nothing, because missing values keep their defaults. Renaming, moving or retyping a property needs a bumped `CurrentVersion` and a step in `SettingsProvider.Migrate`; to read a removed or renamed value there, add a `[JsonExtensionData]` dictionary to the affected class.
   - The library's own versioning module only resets or renames the file on a mismatch, so it isn't used.
 - **Corrupt file:** `RecoveryAction.RenameAndLoadDefault` renames it to `settings.<n>.json` and loads defaults. If loading fails for another reason, the app logs it and runs on unsaved defaults.
 - **Window position:** `Window.Left`/`Top` are kept in `AppBehaviorViewModel` and only written in `OnExit`, because they change on every window move.
@@ -235,7 +234,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
   - It parses the file as plain data with **`System.Formats.Nrbf`**, which is part of .NET 10, so no old types and no BinaryFormatter are needed.
   - The member names in the importer are the old `AppSettings` field names (e.g. `currentAppTheme`, `serializableRegisteredSessions`, `<MusicAppName>k__BackingField`) and must stay as they are.
   - It also converts the oldest single-app hotkey format (`MusicAppName`).
-  - It writes the version 1 layout (`Version = 1`, the screen indexes as `ScreenIndex` in the sections' other values), and `Migrate` brings it up to date like an old settings.json.
+  - 1.x stored screens by index; the importer turns an index into the name of the screen at that position now (null = primary if there's none). The screens are only read when the file has an index (`LoadSettings(dir, getScreens)`, passed through to `LegacySettingsImporter.Import`); if reading them fails, the rest is still imported.
   - **`appconfig` is never modified or renamed**, so a downgrade to 1.x keeps its settings.
   - Not imported, because nothing read them: `userHasRated`, `firstLaunchDate`, `launchCount`, `rememberLastPosition`.
 - **Tests:**
