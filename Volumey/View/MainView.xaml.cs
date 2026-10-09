@@ -18,6 +18,10 @@ using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.ViewModel;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.Recovery;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Volumey.View;
 
@@ -26,12 +30,8 @@ public partial class MainView
 	private IntPtr Hwnd;
 
 	private const int WM_INITMENU = 0x0116;
-	private const int SC_MINIMIZE = 0xF020;
-	private const long MF_GRAYED = 0x00000001L;
-	private const long MF_BYCOMMAND = 0x00000000L;
 	private const int WM_CLOSE = 0x0010;
 	private const int WM_ACTIVATEAPP = 0x001C;
-	private const int RESTART_NO_REBOOT = 0x8;
 	private const int WM_HOTKEY = 0x0312;
 	private const int WM_ENTERSIZEMOVE = 0x0231;
 	private int prevMsg;
@@ -75,7 +75,7 @@ public partial class MainView
 		source?.AddHook(WndProc);
 
 		//register the app to restart it automatically in case it's going to be updated while running
-		NativeMethods.RegisterApplicationRestart(Startup.MinimizedArg, RESTART_NO_REBOOT);
+		PInvoke.RegisterApplicationRestart(Startup.MinimizedArg, REGISTER_APPLICATION_RESTART_FLAGS.RESTART_NO_REBOOT);
 
 		ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: Startup.StartMinimized && SettingsProvider.Settings.Window.PopupMode));
 		if(DataContext is AppBehaviorViewModel vm)
@@ -241,8 +241,8 @@ public partial class MainView
 	private void MoveTo(double left, double top)
 	{
 		//move only: WPF sizes the window (Height is NaN while it sizes to its content, and passing it resized the window on every move)
-		NativeMethods.SetWindowPos(Hwnd, (IntPtr)NativeMethods.SpecialWindowHandles.Top,
-					 (int)left, (int)top, 0, 0, NativeMethods.SetWindowPosFlags.ShowWindow | NativeMethods.SetWindowPosFlags.NoSize);
+		PInvoke.SetWindowPos((HWND)Hwnd, default /*HWND_TOP*/, (int)left, (int)top, 0, 0,
+			SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
 	}
 
 	private void LimitWindowHeightIfNecessary()
@@ -370,9 +370,10 @@ public partial class MainView
 			//Disable Minimize menu item in title bar's context menu every time it opens
 			case WM_INITMENU:
 				{
-					var menu = NativeMethods.GetSystemMenu(Hwnd, false);
-					NativeMethods.EnableMenuItem(menu, SC_MINIMIZE, MF_GRAYED | MF_BYCOMMAND);
-					NativeMethods.EnableMenuItem(menu, 0xF030, MF_GRAYED | MF_BYCOMMAND);
+					//the window's own menu: not destroyed
+					HMENU menu = PInvoke.GetSystemMenu((HWND)Hwnd, false);
+					PInvoke.EnableMenuItem(menu, PInvoke.SC_MINIMIZE, MENU_ITEM_FLAGS.MF_GRAYED | MENU_ITEM_FLAGS.MF_BYCOMMAND);
+					PInvoke.EnableMenuItem(menu, PInvoke.SC_MAXIMIZE, MENU_ITEM_FLAGS.MF_GRAYED | MENU_ITEM_FLAGS.MF_BYCOMMAND);
 					break;
 				}
 
@@ -386,7 +387,7 @@ public partial class MainView
 					//When the window is closed by "exit" menu item in the context menu i.e. normal way, the previous message is always WM_ACTIVATEAPP.
 					//It recieves other messages before WM_CLOSE when it's closed by update/crash
 					if(prevMsg == WM_ACTIVATEAPP)
-						NativeMethods.UnregisterApplicationRestart();
+						PInvoke.UnregisterApplicationRestart();
 					break;
 				}
 

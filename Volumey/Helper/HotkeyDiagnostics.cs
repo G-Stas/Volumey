@@ -1,11 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using log4net;
 using Volumey.Model;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
 
 namespace Volumey.Helper;
 
@@ -63,21 +65,21 @@ internal static class HotkeyDiagnostics
 	{
 		try
 		{
-			IntPtr hwnd = GetForegroundWindow();
-			if(hwnd == IntPtr.Zero)
+			HWND hwnd = PInvoke.GetForegroundWindow();
+			if(hwnd.IsNull)
 				return "none";
-			GetWindowThreadProcessId(hwnd, out uint pid);
-			var className = new StringBuilder(256);
-			GetClassName(hwnd, className, className.Capacity);
+			PInvoke.GetWindowThreadProcessId(hwnd, out uint pid);
+			Span<char> classBuffer = stackalloc char[256];
+			string className = classBuffer[..PInvoke.GetClassName(hwnd, classBuffer)].ToString();
 
 			string fullscreen = "?";
-			if(GetWindowRect(hwnd, out RECT window))
+			if(PInvoke.GetWindowRect(hwnd, out RECT window))
 			{
-				var monitor = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
-				if(GetMonitorInfo(MonitorFromWindow(hwnd, 2 /*MONITOR_DEFAULTTONEAREST*/), ref monitor))
+				var monitor = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+				if(PInvoke.GetMonitorInfo(PInvoke.MonitorFromWindow(hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST), ref monitor))
 				{
 					var m = monitor.rcMonitor;
-					fullscreen = window.Left <= m.Left && window.Top <= m.Top && window.Right >= m.Right && window.Bottom >= m.Bottom ? "yes" : "no";
+					fullscreen = window.left <= m.left && window.top <= m.top && window.right >= m.right && window.bottom >= m.bottom ? "yes" : "no";
 				}
 			}
 			return $"pid {pid}, class [{className}], covers its monitor: {fullscreen}";
@@ -88,17 +90,8 @@ internal static class HotkeyDiagnostics
 		}
 	}
 
-	[StructLayout(LayoutKind.Sequential)]
-	private struct RECT { public int Left, Top, Right, Bottom; }
-
-	[StructLayout(LayoutKind.Sequential)]
-	private struct MONITORINFO { public int cbSize; public RECT rcMonitor; public RECT rcWork; public uint dwFlags; }
-
-	[DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
-	[DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-	[DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hWnd, StringBuilder className, int maxCount);
-	[DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
-	[DllImport("user32.dll")] private static extern IntPtr MonitorFromWindow(IntPtr hWnd, uint flags);
-	[DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
-	[DllImport("user32.dll")] internal static extern int GetMessageTime();
+	/// <summary>
+	/// The time of the message being handled (GetMessageTime), for <see cref="WmHotkeyReceived"/>
+	/// </summary>
+	internal static int GetMessageTime() => PInvoke.GetMessageTime();
 }

@@ -23,7 +23,8 @@
 using System;
 using System.Text;
 using System.Windows.Input;
-using Volumey.Helper;
+using Windows.Win32;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace Volumey.Controls;
 
@@ -110,9 +111,7 @@ public class HotKey : IEquatable<HotKey>
 		// strip any modifier keys
 		long keyCode = key & 0xffff;
 
-		var sb = new StringBuilder(256);
-
-		long scanCode = NativeMethods.MapVirtualKey((uint)keyCode, NativeMethods.MapType.MAPVK_VK_TO_VSC);
+		long scanCode = PInvoke.MapVirtualKey((uint)keyCode, MAP_VIRTUAL_KEY_TYPE.MAPVK_VK_TO_VSC);
 
 		// shift the scancode to the high word
 		scanCode = (scanCode << 16);
@@ -125,7 +124,8 @@ public class HotKey : IEquatable<HotKey>
 			scanCode |= 0x1000000;
 		}
 
-		var resultLength = NativeMethods.GetKeyNameText((int)scanCode, sb, 256);
-		return resultLength > 0 ? sb.ToString() : null;
+		Span<char> name = stackalloc char[256];
+		int length = PInvoke.GetKeyNameText((int)scanCode, name);
+		return length > 0 ? name[..length].ToString() : null;
 	}
 }

@@ -7,6 +7,9 @@ using System.Threading;
 using System.Windows.Input;
 using log4net;
 using Volumey.Controls;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace Volumey.Helper;
 
@@ -96,7 +99,7 @@ internal class HotkeyManager : IHotkeyManager
 		bool result = false;
 		syncContext.Send((o) =>
 		{
-			result = NativeMethods.RegisterHotKey(handle, keyId, modifierKeys, virtualKey);
+			result = PInvoke.RegisterHotKey((HWND)handle, keyId, (HOT_KEY_MODIFIERS)modifierKeys, virtualKey);
 		}, null);
 		return result;
 	}
@@ -106,7 +109,7 @@ internal class HotkeyManager : IHotkeyManager
 		bool result = false;
 		syncContext.Send((o) =>
 		{
-			result = NativeMethods.UnregisterHotKey(handle, id);
+			result = PInvoke.UnregisterHotKey((HWND)handle, id);
 		}, null);
 		return result;
 	}
