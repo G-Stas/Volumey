@@ -431,7 +431,21 @@ namespace Volumey.ViewModel
 			//if it was minimized to tray
 
 			if(msg.message == Startup.WM_SHOWME)
-				this.OpenCommand(false, displayAsPopup: false, reverseDisplaying: false);
+				this.OnShowRequestedBySecondInstance();
+		}
+
+		/// <summary>
+		/// Starting the app again opens the running instance like a tray click: as a popup in popup mode (#74), otherwise as a normal window
+		/// </summary>
+		internal void OnShowRequestedBySecondInstance()
+		{
+			if(this.popupEnabled && !this.WindowIsVisible)
+				this.OpenCommand(isSettingsPage: false, displayAsPopup: true, reverseDisplaying: true);
+			else if(!this.popupEnabled)
+				this.OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false);
+			else
+				//already visible in popup mode: bring it to the front as it is
+				this.DisplayAppRequested?.Invoke(false, this.WindowIsVisible, this.displayedAsPopup);
 		}
 
 		private void OnBlockTrayTimerElapsed(object sender, ElapsedEventArgs e)

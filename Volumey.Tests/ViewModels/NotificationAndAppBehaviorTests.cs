@@ -197,6 +197,43 @@ namespace Volumey.Tests.ViewModels
 		}
 
 		[TestMethod]
+		public void StartingTheAppAgainOpensThePopupInPopupMode()
+		{
+			this.shell.Setup(m => m.StartMinimized).Returns(true);
+			var vm = CreateAppBehavior();
+			vm.PopupEnabled = true;
+			bool? openedAsPopup = null;
+			vm.DisplayAppRequested += (settingsPage, visible, popup) => openedAsPopup = popup;
+
+			vm.OnShowRequestedBySecondInstance();
+
+			Assert.IsTrue(vm.WindowIsVisible);
+			Assert.IsTrue(vm.DisplayMinimalistic);
+			Assert.AreEqual(true, openedAsPopup);
+
+			//a second request doesn't hide the popup like a tray click would
+			vm.OnShowRequestedBySecondInstance();
+			Assert.IsTrue(vm.WindowIsVisible);
+			Assert.AreEqual(true, openedAsPopup);
+		}
+
+		[TestMethod]
+		public void StartingTheAppAgainOpensTheWindowWithoutPopupMode()
+		{
+			this.shell.Setup(m => m.StartMinimized).Returns(true);
+			var vm = CreateAppBehavior();
+			bool? openedAsPopup = null;
+			vm.DisplayAppRequested += (settingsPage, visible, popup) => openedAsPopup = popup;
+
+			vm.OnShowRequestedBySecondInstance();
+			vm.OnShowRequestedBySecondInstance();
+
+			Assert.IsTrue(vm.WindowIsVisible);
+			Assert.IsFalse(vm.DisplayMinimalistic);
+			Assert.AreEqual(false, openedAsPopup);
+		}
+
+		[TestMethod]
 		public void ClosingTheWindowOnlyHidesIt()
 		{
 			var vm = CreateAppBehavior();
