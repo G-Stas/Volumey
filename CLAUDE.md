@@ -8,13 +8,13 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 
 **Git remotes:** `origin` → `G-Stas/Volumey` (the real repo). `colin` → `colinfindlay-nz/Volumey`, the fork this clone was first made from, which is stale and only kept for reference. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into `main`.
 
-## Current state (2026-10-09) — start here
-- **All 2.0 work is local and unpushed** (owner's decision). Don't push and don't suggest pushing, PRs or CI runs unless the owner asks; validate everything locally (see *Validating a step*).
+## Current state (2026-10-10) — start here
+- **Pushing:** on 2026-10-10 the owner asked to push `release/2.0` to GitHub (no PR). The push failed: Git has no valid GitHub credentials on this machine ("Invalid username or token"), and agents must not sign in. The owner pushes after signing in (`git push -u origin release/2.0`; Git Credential Manager or `gh auth login`). Check with `git ls-remote --heads origin release/2.0`. Push again only when the owner asks; don't open PRs unless asked. Once pushed, `.github/workflows/build.yml` runs on GitHub (build + unit tests). Validate everything locally anyway (see *Validating a step*).
 - Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian) and `release/2.0`. No work branch is open. The version is still 1.5.4.0 everywhere (bump it only when releasing, see *Release checklist*).
 - `release/2.0` = `main` plus, in this order (all merged with `--no-ff`):
   1. MSTest instead of xUnit, and .NET 10 (app, tests, Store package).
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
-  3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
+  3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (runs once the branch is on GitHub).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
   5. `test/unit-basics`, `test/viewmodels`, `test/audio-integration`: item G layers 1–3, plus the bugs they found.
   6. `feature/sharphook-hotkeys`: non-blocking hotkeys through SharpHook (item D).
@@ -41,23 +41,29 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   27. `fix/settings-ui-thread`: settings written on the UI thread, file writes debounced on a timer thread; ui-inspect refuses clicks on covered windows (item I, phase 1.6).
   28. `fix/small-bugs`: the rest of phase 1 (autostart path, mutex, OSD values, GUIDs, locks, HRESULTs, handles; item I, phase 1.7).
 - **Validated on `release/2.0`:** Release build without warnings (except NU1902), 205/205 unit tests, 8/8 audio integration tests, a Store MSIX build without compiler warnings (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`, `H.NotifyIcon*.dll`). The package project's restore prints one NU1701 per WPF package (it targets UAP); that is known noise.
-- **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner, and again after the H.NotifyIcon switch: icon, device icon, native tooltip text, left click, menu commands, icon removed on exit); OSD popup on an outside volume change; spatial sound on and off rebuilds the device without a restart (owner); non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Not tested: the startup task launching the app at sign-in, and a 1.x Store install upgrading (see *Settings persistence*).
+- **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner, and again after the H.NotifyIcon switch: icon, device icon, native tooltip text, left click, menu commands, icon removed on exit); OSD popup on an outside volume change; spatial sound on and off rebuilds the device without a restart (owner); non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Added 2026-10-09/10: a real S3 sleep and wake with the headset dropping out (#57, owner); the OSD on a 125% second monitor and switching screens at runtime (#76); the window on the second monitor after a restart (#92); a second start opening the popup (#74); saved default-device hotkeys shown (#18); foreground-app and per-app hotkeys in Timberborn and CS2, fullscreen, both hotkey modes (owner); hotkeys working after leaving a focused hotkey box (owner); a second instance handing over to the first, and a start after the first was killed; a settings change reaching settings.json shortly after; mixer icons after the icon ownership change. Not tested: the startup task launching the app at sign-in, a 1.x Store install upgrading (see *Settings persistence*), and the pending settings write on exit (`Flush` on `App.Exit`) at runtime.
 - Item G layer 4 (UI tests) comes before item C, later (owner's decision).
 
-### Open threads (where the last session stopped, 2026-10-09)
-The owner asked to work through the GitHub issues; the triage is in *GitHub issues*. The last session offered these next steps and was waiting for the owner:
+### Open threads (where the last session stopped, 2026-10-10)
+Item I phase 1 (the bugs from the code audit) is finished and merged. The last session offered phase 2 next and was waiting for the owner (and for the push):
+- **Next: item I phase 2** (style baseline: `.editorconfig` with tabs, file-scoped namespaces, no `this.`; then one mechanical reformat commit with no logic changes). It touches nearly every file, so do it when no other work branch is open, ideally right after the push. Then phase 3 (CommunityToolkit.Mvvm, CsWin32, shared hotkey VM plumbing, dead code).
+- GitHub issues: the triage is in *GitHub issues* (most fixed in 2.0, not yet released).
 - **Need the owner's machine or hands** (ask first; they change real audio settings or need games or hardware):
   - #63/#88: not reproduced in Timberborn and CS2; the late OSD is explained by exclusive fullscreen (left as is, owner's decision). Valorant (Vanguard) is the remaining candidate for the "volume doesn't change" part (see the #63/#88 entry in *GitHub issues*).
 - Feature requests are listed at the end of *GitHub issues*; the owner hasn't picked any yet. The owner added one of their own: a view of each device's supported features (item H in the plan, research first).
-- **In progress: item I (code quality and modernization)**: phase 1 (bugs) is done; next is phase 2 (style baseline), then phase 3. The audit findings and the owner's decisions are in item I.
 - Other open items: the UI redesign (item C, with UI tests first), logging cleanup (Loggly key committed in `log4net.config`, log4net NU1902), Autoupdater.NET 1.9.x, release prep (*Release checklist*, Store certificate expired).
 
-### State of the owner's machine (2026-10-09)
+### State of the owner's machine (2026-10-10)
 - **No Volumey installed** as a package (`Get-AppxPackage *Volumey*` is empty). The test MSIX was removed again. **Developer mode is on**, so `Add-AppxPackage -Register Volumey.Package\bin\x64\Store\AppxManifest.xml` installs the built layout unsigned. Ask the owner before installing.
 - The owner's **autostart entry (`HKCU\...\Run\Volumey`) and Start Menu shortcut (`Volumey.lnk`) were deleted** at their request (earlier dev runs had pointed them at the repo's Debug exe). Dev builds now use `Volumey-dev` names.
 - A **real `%LOCALAPPDATA%\Volumey\settings.json`** (2.0 format) exists next to the 1.x `appconfig`; some 2.0 run without `VOLUMEY_SETTINGS_DIR` created it. Dev runs through `scripts/run-dev.ps1` never touch it.
 - Store builds log to **Loggly** (remote); running a Release or Store build sends logs there.
-- The owner allowed changing **Steam's** app volume and the **"Наушники (Game)"** device volume/mute for tests in this session; that permission doesn't carry over. Ask again.
+- The owner allowed changing **Steam's** app volume and the **"Наушники (Game)"** device volume/mute for tests in an earlier session; that permission doesn't carry over. Ask again.
+- **Away Mode is off** (the owner turned it off on 2026-10-09 so Start → Power → Sleep really sleeps).
+- **DISPLAY2 is set to 125% scaling** (the owner changed it for the #76 test; DISPLAY1 is 2560x1440 at 100%, primary). Ask before assuming either.
+- The owner's headset (Audeze Maxwell) has two endpoints, "Наушники (Game)" and "Наушники (Chat)"; both drop out and come back on sleep/wake.
+- The real `settings.json` still has the old `ScreenIndex` keys (ignored by 2.0; the window/OSD use the primary screen until a screen is picked again).
+- **Other apps' windows can cover Volumey's window** (a chat window sat on top of it once): `ui-inspect.ps1` now refuses real clicks on a covered point; screenshots taken by window rectangle show whatever is on top.
 
 ### Testing toolbox (what worked)
 - **Dev run + UI Automation:** `scripts/run-dev.ps1` and `scripts/ui-inspect.ps1` (see *Running and inspecting the app*). Unnamed controls (most toggles) can be found by the text label before them in the UIA tree and flipped through `TogglePattern`; the ModernWpf navigation and the mute buttons need real mouse clicks (`-Mouse`, `-At`).
