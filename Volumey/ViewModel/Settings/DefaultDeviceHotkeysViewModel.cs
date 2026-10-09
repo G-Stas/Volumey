@@ -198,18 +198,8 @@ namespace Volumey.ViewModel.Settings
             this.SelectedDevice = null;
             this.HotKey = null;
             this.SelectedRegDev = new KeyValuePair<HotKey, DeviceInfo>(hotkey, deviceInfo);
-            //take the settings now: they may be replaced before the task runs
-            var hotkeySettings = SettingsProvider.Settings.Hotkeys;
-            Task.Run(() =>
-            {
-                try
-                {
-                    this.Logger.Info($"Registered default device hotkey: {hotkey.ToString()}, count: {this.RegisteredDevices.Keys.Count.ToString()}");
-                    this.SaveRegisteredDevices(hotkeySettings);
-                }
-                catch { }
-            });
-            
+            this.Logger.Info($"Registered default device hotkey: {hotkey}, count: {this.RegisteredDevices.Keys.Count}");
+            this.SaveRegisteredDevices();
         }
 
         private void RemoveDevice()

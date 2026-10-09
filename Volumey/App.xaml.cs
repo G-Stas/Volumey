@@ -21,6 +21,8 @@ namespace Volumey
         public App()
         {
             this.DispatcherUnhandledException += OnDispatcherUnhandledException;
+            //settings are saved shortly after a change; write a pending change before the process ends (also on logoff)
+            this.Exit += (s, e) => DataProvider.SettingsProvider.Settings.Flush();
             //sleep and wake drop and bring back audio devices (#57), so mark them in the log
             Microsoft.Win32.SystemEvents.PowerModeChanged += (s, e) => Logger.Info($"Power mode changed: {e.Mode}");
         }

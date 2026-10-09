@@ -43,6 +43,7 @@ namespace Volumey.Tests
 			settings.Notifications.Position = NotificationPosition.BottomRight;
 			settings.Hotkeys.OpenMixer = hotkey;
 			settings.Hotkeys.Apps = new List<AppHotkeysEntry> { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = hotkey } };
+			settings.Flush();
 
 			var reloaded = this.Load();
 			Assert.AreEqual(5, reloaded.General.VolumeStep);
@@ -61,12 +62,28 @@ namespace Volumey.Tests
 
 			settings.General.Theme = AppTheme.Dark;
 			settings.Hotkeys.DeviceMute = new HotKey(Key.M, ModifierKeys.Control);
+			settings.Flush();
 
 			string json = File.ReadAllText(this.file);
 			StringAssert.Contains(json, "\"Theme\": \"Dark\"");
 			StringAssert.Contains(json, "\"Key\": \"M\"");
 			StringAssert.Contains(json, "\"ModifierKeys\": \"Control\"");
 			Assert.IsFalse(json.Contains("$type"), "no .NET type names should be stored");
+		}
+
+		[TestMethod]
+		public void ABurstOfChangesIsSavedOnceAfterTheDelay()
+		{
+			var settings = this.Load().EnableAutosave();
+			var before = File.GetLastWriteTimeUtc(this.file);
+
+			for(int volume = 10; volume <= 60; volume++)
+				settings.General.VolumeLimit = volume;
+
+			//nothing is written while the burst goes on
+			Assert.AreEqual(before, File.GetLastWriteTimeUtc(this.file));
+			System.Threading.Thread.Sleep(VolumeySettings.SaveDelay * 4);
+			Assert.AreEqual(60, this.Load().General.VolumeLimit);
 		}
 
 		[TestMethod]

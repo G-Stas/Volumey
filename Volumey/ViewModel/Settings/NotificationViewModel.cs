@@ -45,13 +45,8 @@ namespace Volumey.ViewModel.Settings
 				this._notifications.ChangePosition(value);
 				OnPropertyChanged();
 				
-				if(SettingsProvider.Settings.Notifications.Position == value)
-					return;
-				var notificationSettings = SettingsProvider.Settings.Notifications;
-				Task.Run(() =>
-				{
-					notificationSettings.Position = value;
-				});
+				//on the UI thread, so the settings' listeners run there too; the file is written later on the thread pool
+				SettingsProvider.Settings.Notifications.Position = value;
 			}
 		}
 		
@@ -66,13 +61,8 @@ namespace Volumey.ViewModel.Settings
 				this._notificationsEnabled = value;
 				OnPropertyChanged();
 				
-				if(SettingsProvider.Settings.Notifications.Enabled == value)
-					return;
-				var notificationSettings = SettingsProvider.Settings.Notifications;
-				Task.Run(() =>
-				{
-					notificationSettings.Enabled = value;
-				});
+				//on the UI thread: the hotkey view models react to it and change their lists of apps
+				SettingsProvider.Settings.Notifications.Enabled = value;
 			}
 		}
 
@@ -91,17 +81,9 @@ namespace Volumey.ViewModel.Settings
 				if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges != value)
 					SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = value;
 
-				Task.Run(async () =>
-				{
-					if(value)
-						await SetStateMediatorForDefaultDeviceProcesses();
-					else 
-						await ResetStateMediatorForDefaultDeviceProcesses();
-				}).ContinueWith(task =>
-				{
-					Logger.Error("Failed to set/reset mediator for default device processes", task?.Exception?.Flatten());
-				}, TaskContinuationOptions.OnlyOnFaulted);
-				
+				//on the UI thread, like the default device changes it reacts to
+				(value ? SetStateMediatorForDefaultDeviceProcesses() : ResetStateMediatorForDefaultDeviceProcesses())
+					.Forget(Logger, "Failed to set/reset mediator for default device processes");
 			}
 		}
 

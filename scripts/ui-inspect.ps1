@@ -33,7 +33,26 @@ Add-Type -Namespace Native -Name Win32 -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool PostMessage(System.IntPtr hWnd, uint msg, System.IntPtr wParam, System.IntPtr lParam);
 [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
 [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint dx, uint dy, uint data, System.UIntPtr extra);
-'@ -ErrorAction SilentlyContinue
+[DllImport("user32.dll")] public static extern System.IntPtr WindowFromPoint(System.Drawing.Point point);
+[DllImport("user32.dll")] public static extern System.IntPtr GetAncestor(System.IntPtr hWnd, uint flags);
+[DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(System.IntPtr hWnd, out uint processId);
+'@ -ReferencedAssemblies System.Drawing.Primitives -ErrorAction SilentlyContinue
+
+# A real click at a screen point, only if the window there belongs to the dev build: another app's window can cover Volumey,
+# and the click would land in that app instead (it happened once with a chat window on top)
+function Invoke-MouseClick([int]$sx, [int]$sy) {
+    $hwnd = [Native.Win32]::WindowFromPoint([System.Drawing.Point]::new($sx, $sy))
+    $root = [Native.Win32]::GetAncestor($hwnd, 2) # GA_ROOT
+    [uint32]$owner = 0
+    [void][Native.Win32]::GetWindowThreadProcessId($root, [ref]$owner)
+    if ($owner -ne $ProcessId) {
+        $other = (Get-Process -Id $owner -ErrorAction SilentlyContinue).ProcessName
+        throw "Not clicking: the window at $sx,$sy belongs to '$other' (pid $owner), not the dev build. Bring Volumey to the front first."
+    }
+    [void][Native.Win32]::SetCursorPos($sx, $sy)
+    [Native.Win32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero) # left down
+    [Native.Win32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero) # left up
+}
 
 $repo = Split-Path $PSScriptRoot -Parent
 $exe = Join-Path $repo 'Volumey\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64\Volumey.exe'
@@ -97,9 +116,7 @@ if ($Click) {
     $pattern = $null
     if ($Mouse) {
         $r = $target.Current.BoundingRectangle
-        [void][Native.Win32]::SetCursorPos([int]($r.X + $r.Width / 2), [int]($r.Y + $r.Height / 2))
-        [Native.Win32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero) # left down
-        [Native.Win32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero) # left up
+        Invoke-MouseClick ([int]($r.X + $r.Width / 2)) ([int]($r.Y + $r.Height / 2))
     }
     elseif ($target.TryGetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern, [ref]$pattern)) { $pattern.Invoke() }
     elseif ($target.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$pattern)) { $pattern.Toggle() }
@@ -119,9 +136,7 @@ if ($At) {
     $x, $y = $At
     $r = $window.Current.BoundingRectangle
     if ($x -lt 0 -or $y -lt 0 -or $x -ge $r.Width -or $y -ge $r.Height) { throw "$x,$y is outside the window ($($r.Width)x$($r.Height))" }
-    [void][Native.Win32]::SetCursorPos([int]($r.X + $x), [int]($r.Y + $y))
-    [Native.Win32]::mouse_event(0x0002, 0, 0, 0, [UIntPtr]::Zero)
-    [Native.Win32]::mouse_event(0x0004, 0, 0, 0, [UIntPtr]::Zero)
+    Invoke-MouseClick ([int]($r.X + $x)) ([int]($r.Y + $y))
     "clicked at $x,$y"
     Start-Sleep -Milliseconds 700
 }

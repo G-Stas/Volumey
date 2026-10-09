@@ -48,16 +48,12 @@ namespace Volumey.ViewModel.Settings
 					}
 					this.defaultDevice = null;
 				}
-				//take the settings now: they may be replaced before the task runs
 				var general = SettingsProvider.Settings.General;
 				if(general.VolumeLimitEnabled != value)
 				{
-					Task.Run(() =>
-					{
-						if(value)
-							Logger.Info($"Volume limit enabled, vol: [{this.VolumeLimit}]");
-						general.VolumeLimitEnabled = value;
-					});
+					if(value)
+						Logger.Info($"Volume limit enabled, vol: [{this.VolumeLimit}]");
+					general.VolumeLimitEnabled = value;
 				}
 				OnPropertyChanged();
 			}
