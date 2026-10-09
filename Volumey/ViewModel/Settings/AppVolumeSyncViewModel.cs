@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using log4net;
 using Volumey.DataProvider;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings
@@ -90,11 +91,11 @@ namespace Volumey.ViewModel.Settings
 			}
 		}
 
-		private async void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
 		{
 			this.SetDevice(newDevice);
 			if(newDevice != null)
-				await SyncSessionVolume();
+				SyncSessionVolume().Forget(Logger, "Failed to sync the app volumes with the new default device");
 		}
 
 		private void OnProcessCreated(AudioProcessModel newProcess)
@@ -103,14 +104,14 @@ namespace Volumey.ViewModel.Settings
 				newProcess.Volume = this.MasterVolume;
 		}
 
-        private async void OnMasterPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
+		private void OnMasterPropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
 			if(sender is MasterSessionModel masterSession && e.PropertyName == nameof(MasterSessionModel.Volume))
 			{
 				this.MasterVolume = masterSession.Volume;
-				await SyncSessionVolume();
-            }
-        }
+				SyncSessionVolume().Forget(Logger, "Failed to sync the app volumes with the device volume");
+			}
+		}
 
         public event PropertyChangedEventHandler PropertyChanged;
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)

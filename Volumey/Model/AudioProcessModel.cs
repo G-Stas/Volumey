@@ -21,6 +21,8 @@ namespace Volumey.Model
 {
 	public class AudioProcessModel : IManagedMasterAudioSession
 	{
+		private static readonly log4net.ILog Logger = log4net.LogManager.GetLogger(typeof(AudioProcessModel));
+
 		public event Action<AudioProcessModel> Exited;
 
 		/// <summary>
@@ -320,10 +322,10 @@ namespace Volumey.Model
 			InvokeExited();
 		}
 
-		private async void OnSessionEnded(AudioSessionModel endedSession)
+		private void OnSessionEnded(AudioSessionModel endedSession)
 		{
 			if(endedSession != null)
-				await ProcessEndedSession(endedSession);
+				ProcessEndedSession(endedSession).Forget(Logger, $"Failed to remove an ended session of [{this.Name}]");
 		}
 
 		private async Task ProcessEndedSession(AudioSessionModel endedSession)

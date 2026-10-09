@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Threading;
 using log4net;
+using Volumey.Helper;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
@@ -212,26 +213,22 @@ namespace Volumey.DataProvider
 		/// Windows reconfigured the device (format or spatial sound changed, #82, #85): its sessions are gone and its objects stopped working,
 		/// so the model is built again from fresh objects and replaces the old one. Before 2.0 the whole app restarted instead.
 		/// </summary>
-		private async void OnDeviceInvalidated(OutputDeviceModel invalid)
+		private void OnDeviceInvalidated(OutputDeviceModel invalid)
+			=> RebuildAsync(invalid).Forget(Logger, "Failed to rebuild a reconfigured device");
+
+		private async System.Threading.Tasks.Task RebuildAsync(OutputDeviceModel invalid)
 		{
-			try
+			foreach(var delay in RebuildDelays)
 			{
-				foreach(var delay in RebuildDelays)
-				{
-					await System.Threading.Tasks.Task.Delay(delay).ConfigureAwait(false);
-					if(this.disposed)
-						return;
-					bool done = false;
-					dispatcher.Invoke(() => done = TryReplaceDevice(invalid));
-					if(done)
-						return;
-				}
-				Logger.Error($"Failed to rebuild the reconfigured device: [{invalid.Master.DeviceFriendlyName}]");
+				await System.Threading.Tasks.Task.Delay(delay).ConfigureAwait(false);
+				if(this.disposed)
+					return;
+				bool done = false;
+				dispatcher.Invoke(() => done = TryReplaceDevice(invalid));
+				if(done)
+					return;
 			}
-			catch(Exception e)
-			{
-				Logger.Error("Failed to rebuild a reconfigured device", e);
-			}
+			Logger.Error($"Failed to rebuild the reconfigured device: [{invalid.Master.DeviceFriendlyName}]");
 		}
 
 		/// <returns>False if the new model couldn't be built yet</returns>

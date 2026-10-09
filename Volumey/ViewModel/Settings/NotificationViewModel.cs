@@ -329,28 +329,30 @@ namespace Volumey.ViewModel.Settings
 			_currentDefaultDevice = null;
 		}
 
-		private async void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+		private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+			=> SwitchDefaultDeviceAsync(newDevice).Forget(Logger, "Failed to move the OSD notifications to the new default device");
+
+		private async Task SwitchDefaultDeviceAsync(OutputDeviceModel newDevice)
 		{
-			if(_currentDefaultDevice != null)
-			{
-				foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
-				{
-					proc.ResetStateMediator(force: true);
-				}
-
-				_currentDefaultDevice.ProcessCreated -= OnProcessCreated;
-				_currentDefaultDevice.ResetStateNotificationMediator(force: true);
-			}
-
+			//swap before the first await: another switch may come in while this one waits
+			var oldDevice = _currentDefaultDevice;
 			_currentDefaultDevice = newDevice;
 
-			if(_currentDefaultDevice == null)
+			if(oldDevice != null)
+			{
+				oldDevice.ProcessCreated -= OnProcessCreated;
+				oldDevice.ResetStateNotificationMediator(force: true);
+				//empty if the old device is already disposed (removed before the switch, e.g. on wake from sleep)
+				foreach(AudioProcessModel proc in await oldDevice.GetImmutableProcessesAsync())
+					proc.ResetStateMediator(force: true);
+			}
+
+			if(newDevice == null)
 				return;
-			
-			_currentDefaultDevice.ProcessCreated += OnProcessCreated;
-			_currentDefaultDevice.SetStateNotificationMediator(StateMediator);
-			
-			foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
+
+			newDevice.ProcessCreated += OnProcessCreated;
+			newDevice.SetStateNotificationMediator(StateMediator);
+			foreach(AudioProcessModel proc in await newDevice.GetImmutableProcessesAsync())
 				proc.SetStateMediator(StateMediator);
 		}
 

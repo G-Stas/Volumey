@@ -429,12 +429,12 @@ namespace Volumey.View
 	        }
         }
 
-        private async void OnDialogClosed(ContentDialog sender, ContentDialogClosedEventArgs args)
+        private void OnDialogClosed(ContentDialog sender, ContentDialogClosedEventArgs args)
         {
 	        sender.Closed -= OnDialogClosed;
 	        isDialogOpened = false;
 	        if(dialogQueue != null && dialogQueue.Count > 0)
-		        await DisplayContentDialog(dialogQueue.Dequeue());
+		        DisplayContentDialog(dialogQueue.Dequeue()).Forget(Logger, "Failed to show a queued dialog");
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
