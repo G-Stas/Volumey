@@ -7,6 +7,8 @@ Volumey.Tests/bin/
 Volumey.Tests/obj/
 Volumey.IntegrationTests/bin/
 Volumey.IntegrationTests/obj/
+scripts/test-audio-app/bin/
+scripts/test-audio-app/obj/
 Volumey.Package/bin/
 Volumey.Package/obj/
 Volumey.Package/AppPackages/
