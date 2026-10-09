@@ -8,19 +8,49 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
 
 **Git remotes:** `origin` → `G-Stas/Volumey` (the real repo). `colin` → `colinfindlay-nz/Volumey`, the fork this clone was first made from, which is stale and only kept for reference. Colin's "sync app volume to master volume" feature (`AppVolumeSyncViewModel`) is already merged into `main`.
 
-## Current state (2026-10-09)
+## Current state (2026-10-09) — start here
 - **All 2.0 work is local and unpushed** (owner's decision). Don't push and don't suggest pushing, PRs or CI runs unless the owner asks; validate everything locally (see *Validating a step*).
-- Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian) and `release/2.0`. No work branch is open.
-- `release/2.0` = `main` plus, in this order:
+- Local branches: `main` (= `origin/main`, released 1.5.4 + Ukrainian) and `release/2.0`. No work branch is open. The version is still 1.5.4.0 everywhere (bump it only when releasing, see *Release checklist*).
+- `release/2.0` = `main` plus, in this order (all merged with `--no-ff`):
   1. MSTest instead of xUnit, and .NET 10 (app, tests, Store package).
   2. `feature/json-settings`: settings.json via Nucs.JsonSettings with a one-time 1.x import, plus the isolated dev run and UI inspection scripts.
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
-- Validated on `release/2.0`: Release build, 168/168 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
-- **Verified at runtime on 2.0 (2026-10-09):** hotkeys in both modes and the tray icon and menu (owner), OSD popup on an external app volume change, non-Store autostart and Start Menu toggles (dev entries), starting minimized, and an installed MSIX (registered unsigned in developer mode, then removed): it starts, shows the mixer and settings, hides the registry autostart toggles, and its startup task is registered and enabled. Not tested: the startup task actually launching the app at sign-in.
-- **Next planned step:** not decided (owner). Item E and the 2.0 runtime checks are done. The tray icon (item F) moves into the UI redesign (item C). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
-- Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C, later (owner's decision).
+  5. `test/unit-basics`, `test/viewmodels`, `test/audio-integration`: item G layers 1–3, plus the bugs they found.
+  6. `feature/sharphook-hotkeys`: non-blocking hotkeys through SharpHook (item D).
+  7. `refactor/fewer-statics`: composition root `AppServices` and constructor injection (item E).
+  8. `fix/dev-autostart-isolation`: dev builds no longer take over the installed app's autostart entry and shortcut.
+  9. `fix/many-apps-crash`: survive the WPF "Not enough quota" window update failure (#58, #66); GitHub issue triage.
+  10. `chore/handoff-notes`: this section and the test-session helper (`scripts/test-sessions.ps1`).
+- **Validated on `release/2.0`:** Release build without warnings (except NU1902), 169/169 unit tests, 8/8 audio integration tests, a warning-free Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`).
+- **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner); OSD popup on an outside volume change; non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Not tested: the startup task launching the app at sign-in, and a 1.x Store install upgrading (see *Settings persistence*).
+- Item G layer 4 (UI tests) comes before item C, later (owner's decision). The tray icon (item F) is done together with item C.
 
+### Open threads (where the last session stopped, 2026-10-09)
+The owner asked to work through the GitHub issues; the triage is in *GitHub issues*. The last session offered these next steps and was waiting for the owner:
+- **Can be done without the owner:** the stuck tray tooltip on Windows 10 (#91, #65: use the plain-text tooltip everywhere, `MainView.SetTrayIconTooltip`), and remembering screens by device name instead of index (#92: `Window.ScreenIndex` and `Notifications.ScreenIndex`; needs a settings migration step, see *Versioning*).
+- **Need the owner's machine or hands** (ask first; they change real audio settings or need games or hardware):
+  - #82/#85: toggle spatial sound on the headphones while the dev build runs, to see what the device format change does (today it restarts the whole app; rebuilding just that device's model is the likely fix).
+  - #63/#88: a fullscreen game (the owner has Valorant, CS, Steam games) with the foreground-app hotkeys.
+  - #57: sleep and wake with the dev build running.
+  - #76/#92: a multi-monitor setup, ideally with different scaling; ask whether the owner has one.
+- Feature requests are listed at the end of *GitHub issues*; the owner hasn't picked any yet.
+- Other open items: the UI redesign (item C, with UI tests first), logging cleanup (Loggly key committed in `log4net.config`, log4net NU1902), Autoupdater.NET 1.9.x, `async void`/`Task.Run` error handling (*Known issues*), release prep (*Release checklist*, Store certificate expired).
+
+### State of the owner's machine (2026-10-09)
+- **No Volumey installed** as a package (`Get-AppxPackage *Volumey*` is empty). The test MSIX was removed again. **Developer mode is on**, so `Add-AppxPackage -Register Volumey.Package\bin\x64\Store\AppxManifest.xml` installs the built layout unsigned. Ask the owner before installing.
+- The owner's **autostart entry (`HKCU\...\Run\Volumey`) and Start Menu shortcut (`Volumey.lnk`) were deleted** at their request (earlier dev runs had pointed them at the repo's Debug exe). Dev builds now use `Volumey-dev` names.
+- A **real `%LOCALAPPDATA%\Volumey\settings.json`** (2.0 format) exists next to the 1.x `appconfig`; some 2.0 run without `VOLUMEY_SETTINGS_DIR` created it. Dev runs through `scripts/run-dev.ps1` never touch it.
+- Store builds log to **Loggly** (remote); running a Release or Store build sends logs there.
+- The owner allowed changing **Steam's** app volume and the **"Наушники (Game)"** device volume/mute for tests in this session; that permission doesn't carry over. Ask again.
+
+### Testing toolbox (what worked)
+- **Dev run + UI Automation:** `scripts/run-dev.ps1` and `scripts/ui-inspect.ps1` (see *Running and inspecting the app*). Unnamed controls (most toggles) can be found by the text label before them in the UIA tree and flipped through `TogglePattern`; the ModernWpf navigation and the mute buttons need real mouse clicks (`-Mouse`, `-At`).
+- **Own audio sessions:** `scripts/test-sessions.ps1 -Count 12` starts processes that play silence under different exe names (one mixer row each); `-Volume 0.35 -After 3` changes the session's own volume like the Windows mixer does, which shows an OSD when notifications and "react to all volume changes" are on. They never touch other apps or the device.
+- **Reading a session's volume from outside:** NAudio from PowerShell 7 (it runs on .NET 10): load `NAudio.Core.dll`/`NAudio.Wasapi.dll` (from the NuGet cache or a downloaded package) with `[Reflection.Assembly]::LoadFrom`, then `MMDeviceEnumerator` → `AudioSessionManager.Sessions`.
+- **Hung process:** a small ClrMD (`Microsoft.Diagnostics.Runtime`) console app attached with `DataTarget.AttachToProcess(pid, suspend: true)` printed every thread's managed stack. Pass the local DAC (`mscordaccore.dll` next to the runtime) to `CreateRuntime`, because the symbol server is blocked here. That's how the device-disable deadlock was found.
+- **Crashes:** `volumey.log` in the dev data folder and the Windows Application event log (`.NET Runtime`).
+- Don't trigger keyboard or volume hotkeys yourself (owner's rule); ask the owner to press them.
 ## Branching (decided 2026-10-08)
 - **`main`**: the released 1.5.x line. Only hotfixes for the current Store/GitHub release go here.
 - **`release/2.0`**: integration branch for the next major update (2.0). It collects all modernization work: NAudio, hook hotkeys, the new UI, and GitHub issue fixes.
@@ -68,7 +98,8 @@ Volumey.Tests/           MSTest + Moq unit tests: models, ViewModels (ViewModels
 Volumey.IntegrationTests/ MSTest tests against real Windows audio (own session playing silence through NAudio)
 Volumey.Package/         Windows Application Packaging project (.wapproj): MSIX for the Store
 LatestUpdateInfo.xml     AutoUpdater.NET feed for the non-Store build (read from raw.githubusercontent main)
-scripts/                 run-dev.ps1 (isolated debug run), ui-inspect.ps1 (UI Automation: screenshot, tree, click)
+scripts/                 run-dev.ps1 (isolated debug run), ui-inspect.ps1 (UI Automation: screenshot, tree, click),
+                         test-sessions.ps1 + test-audio-app/ (processes that play silence = test mixer rows)
 global.json              pins SDK 10.0.100+ (latestFeature) and selects the Microsoft.Testing.Platform runner for `dotnet test`
 ```
 
