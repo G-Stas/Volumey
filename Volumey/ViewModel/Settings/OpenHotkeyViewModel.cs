@@ -1,4 +1,3 @@
-using log4net;
 using Volumey.Controls;
 using Volumey.DataProvider;
 
@@ -40,23 +39,13 @@ public class OpenHotkeyViewModel : HotkeyViewModel
 
 	private bool hotkeyRegistered;
 
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(OpenHotkeyViewModel));
-
-	private readonly IHotkeyService hotkeys;
-
-	internal OpenHotkeyViewModel(IHotkeyService hotkeys)
+	internal OpenHotkeyViewModel(IHotkeyService hotkeys) : base(hotkeys)
 	{
-		this.hotkeys = hotkeys;
-
 		if(SettingsProvider.Settings.Hotkeys.OpenMixer is HotKey openHotkey)
 		{
 			hotkeyRegistered = isOn = true;
 			Hotkey = openHotkey;
-			if(this.hotkeys.IsActive)
-				RegisterLoadedHotkey();
-			else
-				this.hotkeys.Activated += RegisterLoadedHotkey;
+			RegisterWhenHotkeysActive(RegisterLoadedHotkey);
 		}
 	}
 
@@ -67,13 +56,10 @@ public class OpenHotkeyViewModel : HotkeyViewModel
 			SetErrorMessage(ErrorMessageType.OpenReg);
 	}
 
-	private bool SaveHotkey(object param = null)
+	private bool SaveHotkey()
 	{
-		if(hotkeys.HotkeyIsValid(hotkey) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(hotkeys.HotkeyIsValid(hotkey)))
 			return false;
-		}
 		SetErrorMessage(ErrorMessageType.None);
 		if(hotkeys.RegisterOpenMixerHotkey(hotkey))
 		{
@@ -86,7 +72,7 @@ public class OpenHotkeyViewModel : HotkeyViewModel
 		return false;
 	}
 
-	private void ResetHotkey(object param = null)
+	private void ResetHotkey()
 	{
 		try
 		{

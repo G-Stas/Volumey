@@ -1,4 +1,6 @@
-﻿using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Media;
+using System.Windows.Threading;
 using Notification.Wpf.Controls;
 using Volumey.Helper;
 using Volumey.Model;
@@ -10,6 +12,15 @@ namespace Volumey.Services;
 /// </summary>
 internal sealed class NotificationService : INotificationService
 {
+	private static Dispatcher UiDispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
+	//the models call these from audio callbacks, on any thread
+	public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
+		=> UiDispatcher.InvokeAsync(() => ShowNotification(sender));
+
+	public void NotifyOfDisposing(IManagedMasterAudioSession sender)
+		=> UiDispatcher.InvokeAsync(() => CloseNotification(sender));
+
 	public void ShowNotification(IManagedMasterAudioSession session) => NotificationManagerHelper.ShowNotification(session);
 
 	public void CloseNotification(IManagedMasterAudioSession session) => NotificationManagerHelper.CloseNotification(session);

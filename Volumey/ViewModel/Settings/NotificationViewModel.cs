@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -164,26 +163,19 @@ public class NotificationViewModel : INotifyPropertyChanged
 	public static int MinIndent => NotificationManagerHelper.MinIndent;
 	public static int MaxIndent => NotificationManagerHelper.MaxIndent;
 
-	private ScreenInfo selectedScreen;
-	public ScreenInfo SelectedScreen
-	{
-		get => selectedScreen;
-		set
-		{
-			//only a listed screen is the user's choice: the combo box writes back an empty value while the list is replaced
-			if(!AllScreens.Contains(value))
-				return;
-			ShowScreen(value);
-			SettingsProvider.Settings.Notifications.ScreenName = value.Name;
-		}
-	}
+	private readonly ScreenSelection screens;
 
 	/// <summary>
-	/// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
+	/// The screen the OSD is shown on
 	/// </summary>
-	private void ShowScreen(ScreenInfo screen)
+	public ScreenInfo SelectedScreen
 	{
-		selectedScreen = screen;
+		get => screens.Selected;
+		set => screens.Select(value);
+	}
+
+	private void OnScreenShown(ScreenInfo screen)
+	{
 		OnPropertyChanged(nameof(SelectedScreen));
 		//the OSD window takes device-independent units of the screen it's on: the screen's values are physical pixels,
 		//so all four are divided by its scale factor (only the size was before, which put the OSD off a scaled screen, #76)
@@ -191,13 +183,11 @@ public class NotificationViewModel : INotifyPropertyChanged
 		_notifications.SetWindowWorkArea(screen.WorkingAreaLeft / scale, screen.WorkingAreaTop / scale, screen.Width / scale, screen.Height / scale);
 	}
 
-	public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
+	public ObservableCollection<ScreenInfo> AllScreens => screens.All;
 
-	private readonly IScreenInfoProvider _screenInfoProvider;
 	private readonly IDeviceProvider _deviceProvider;
 	private readonly INotificationService _notifications;
 	private OutputDeviceModel _currentDefaultDevice;
-	private readonly AudioProcessStateNotificationMediator StateMediator;
 
 	private static ILog _logger;
 	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationViewModel));
@@ -206,8 +196,13 @@ public class NotificationViewModel : INotifyPropertyChanged
 	{
 		_deviceProvider = deviceProvider;
 		_notifications = notifications;
-		_screenInfoProvider = screenInfoProvider;
-		StateMediator = new AudioProcessStateNotificationMediator(notifications);
+		screens = new ScreenSelection(screenInfoProvider, () => SettingsProvider.Settings.Notifications.ScreenName,
+			name => SettingsProvider.Settings.Notifications.ScreenName = name, () => App.Current?.Dispatcher, OnScreenShown, Logger);
+		screens.ScreensChanging += () =>
+		{
+			if(PreviewIsOn)
+				PreviewIsOn = false;
+		};
 		NotificationsEnabled = SettingsProvider.Settings.Notifications.Enabled;
 		HorizontalIndent = SettingsProvider.Settings.Notifications.HorizontalIndent;
 		VerticalIndent = SettingsProvider.Settings.Notifications.VerticalIndent;
@@ -215,63 +210,17 @@ public class NotificationViewModel : INotifyPropertyChanged
 		ReactToAllVolumeChanges = SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges;
 
 		UnloadedCommand = new ActionCommand(() => PreviewIsOn = false);
-		LoadedCommand = new ActionCommand(CheckIfSelectedScreenIsAvailable);
+		LoadedCommand = new ActionCommand(screens.Refresh);
 
 		DisplayTime = SettingsProvider.Settings.Notifications.DisplayTimeSeconds;
 
-		SetSelectedScreen();
+		screens.Load();
 
 		SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
 	}
 
-	private void OnDisplaySettingsChanged(object sender, EventArgs e)
-	{
-		CheckIfSelectedScreenIsAvailable();
-	}
-
-	private void SetSelectedScreen()
-	{
-		foreach(var screen in _screenInfoProvider.GetAllScreensInfo())
-			AllScreens.Add(screen);
-
-		ShowScreen(ScreenInfo.Find(AllScreens, SettingsProvider.Settings.Notifications.ScreenName));
-	}
-
-	private void CheckIfSelectedScreenIsAvailable()
-	{
-		Task.Run(() =>
-		{
-			var screens = _screenInfoProvider.GetAllScreensInfo().ToList();
-
-			//on the UI thread: the OSD window belongs to it, and setting its area from another thread throws
-			//(it did on every display change, e.g. a game switching the resolution, so the OSD kept the old area)
-			void Apply()
-			{
-				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
-				{
-					if(PreviewIsOn)
-						PreviewIsOn = false;
-					AllScreens.Clear();
-					foreach(var screen in screens)
-						AllScreens.Add(screen);
-				}
-				//picks the remembered screen again once it's connected, and updates the selection in the UI, which is lost when AllScreens is replaced
-				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Notifications.ScreenName));
-			}
-
-			var dispatcher = App.Current?.Dispatcher;
-			if(dispatcher == null || dispatcher.CheckAccess())
-				Apply();
-			else
-				dispatcher.Invoke(Apply);
-		}).ContinueWith(task =>
-		{
-			if(task.Exception != null)
-			{
-				Logger.Error("Failed to check the screen for availability", task.Exception.Flatten());
-			}
-		}, TaskContinuationOptions.OnlyOnFaulted);
-	}
+	//e.g. a game switching the resolution, or a monitor that turns on late (#92)
+	private void OnDisplaySettingsChanged(object sender, EventArgs e) => screens.Refresh();
 
 	private async Task SetStateMediatorForDefaultDeviceProcesses()
 	{
@@ -283,10 +232,10 @@ public class NotificationViewModel : INotifyPropertyChanged
 			return;
 
 		_currentDefaultDevice.ProcessCreated += OnProcessCreated;
-		_currentDefaultDevice.SetStateNotificationMediator(StateMediator);
+		_currentDefaultDevice.SetStateNotificationMediator(_notifications);
 
 		foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
-			proc.SetStateMediator(StateMediator);
+			proc.SetStateMediator(_notifications);
 	}
 
 	private async Task ResetStateMediatorForDefaultDeviceProcesses()
@@ -332,14 +281,14 @@ public class NotificationViewModel : INotifyPropertyChanged
 			return;
 
 		newDevice.ProcessCreated += OnProcessCreated;
-		newDevice.SetStateNotificationMediator(StateMediator);
+		newDevice.SetStateNotificationMediator(_notifications);
 		foreach(AudioProcessModel proc in await newDevice.GetImmutableProcessesAsync())
-			proc.SetStateMediator(StateMediator);
+			proc.SetStateMediator(_notifications);
 	}
 
 	private void OnProcessCreated(AudioProcessModel newProcess)
 	{
-		newProcess.SetStateMediator(StateMediator);
+		newProcess.SetStateMediator(_notifications);
 	}
 
 	public event PropertyChangedEventHandler PropertyChanged;

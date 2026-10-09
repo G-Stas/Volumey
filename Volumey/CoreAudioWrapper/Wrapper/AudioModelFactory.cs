@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using log4net;
 using NAudio.CoreAudioApi;
 using Volumey.DataProvider;

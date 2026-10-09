@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -189,32 +187,19 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		}
 	}
 
-	private ScreenInfo selectedScreen;
-	public ScreenInfo SelectedScreen
-	{
-		get => selectedScreen;
-		set
-		{
-			//only a listed screen is the user's choice: the combo box writes back an empty value while the list is replaced
-			if(!AllScreens.Contains(value))
-				return;
-			ShowScreen(value);
-			SettingsProvider.Settings.Window.ScreenName = value.Name;
-		}
-	}
+	private readonly ScreenSelection screens;
 
 	/// <summary>
-	/// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
+	/// The screen the window is shown on
 	/// </summary>
-	private void ShowScreen(ScreenInfo screen)
+	public ScreenInfo SelectedScreen
 	{
-		selectedScreen = screen;
-		OnPropertyChanged(nameof(SelectedScreen));
+		get => screens.Selected;
+		set => screens.Select(value);
 	}
 
-	public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
+	public ObservableCollection<ScreenInfo> AllScreens => screens.All;
 
-	private readonly IScreenInfoProvider screenInfoProvider;
 	private readonly IHotkeyService hotkeys;
 	private readonly IAppShell shell;
 	private readonly ISystemIntegration systemIntegration;
@@ -253,7 +238,9 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		ISystemIntegration systemIntegration)
 	{
 		this.hotkeys = hotkeys;
-		this.screenInfoProvider = screenInfoProvider;
+		screens = new ScreenSelection(screenInfoProvider, () => SettingsProvider.Settings.Window.ScreenName,
+			name => SettingsProvider.Settings.Window.ScreenName = name, () => shell.Dispatcher,
+			_ => OnPropertyChanged(nameof(SelectedScreen)), Logger);
 		this.shell = shell;
 		this.systemIntegration = systemIntegration;
 		WindowIsVisible = !shell.StartMinimized;
@@ -288,7 +275,7 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		windowLeft = SettingsProvider.Settings.Window.Left;
 		windowTop = SettingsProvider.Settings.Window.Top;
 
-		LoadedCommand = new ActionCommand(CheckIfSelectedScreenIsAvailable);
+		LoadedCommand = new ActionCommand(screens.Refresh);
 
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
@@ -296,12 +283,12 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 
 		SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
 
-		SetSelectedScreen();
+		screens.Load();
 	}
 
 	private void OnSystemDisplaySettingsChanged(object sender, EventArgs e)
 	{
-		CheckIfSelectedScreenIsAvailable();
+		screens.Refresh();
 	}
 
 	/// <summary>
@@ -312,51 +299,6 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 		trayBlocked = true;
 		trayBlockTimer.Stop();
 		trayBlockTimer.Start();
-	}
-
-	private void SetSelectedScreen()
-	{
-		foreach(var screen in screenInfoProvider.GetAllScreensInfo())
-			AllScreens.Add(screen);
-
-		ShowScreen(ScreenInfo.Find(AllScreens, SettingsProvider.Settings.Window.ScreenName));
-	}
-
-	/// <summary>
-	/// Executes after the window was displayed and when the screens change: updates <see cref="AllScreens"/>
-	/// and picks the remembered screen again, or the primary one while it's not connected.
-	/// </summary>
-	private void CheckIfSelectedScreenIsAvailable()
-	{
-		Task.Run(() =>
-		{
-			var screens = screenInfoProvider.GetAllScreensInfo().ToList();
-
-			//on the UI thread, which owns the window that follows SelectedScreen
-			void Apply()
-			{
-				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
-				{
-					AllScreens.Clear();
-					foreach(var screen in screens)
-						AllScreens.Add(screen);
-				}
-				//also updates the selection in the UI, which is lost when AllScreens is replaced
-				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Window.ScreenName));
-			}
-
-			var dispatcher = shell.Dispatcher;
-			if(dispatcher == null || dispatcher.CheckAccess())
-				Apply();
-			else
-				dispatcher.Invoke(Apply);
-		}).ContinueWith(task =>
-		{
-			if(task.Exception != null)
-			{
-				Logger.Error("Failed to check the screen for availability", task.Exception.Flatten());
-			}
-		}, TaskContinuationOptions.OnlyOnFaulted);
 	}
 
 	private void OnExit()
@@ -386,7 +328,7 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 				//bring the window to the foreground and change page
 				DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, displayedAsPopup);
 				WindowIsVisible = true;
-				CheckIfSelectedScreenIsAvailable();
+				screens.Refresh();
 			}
 			else
 				WindowIsVisible = false;
@@ -399,7 +341,7 @@ public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 			if(!WindowIsVisible)
 			{
 				WindowIsVisible = true;
-				CheckIfSelectedScreenIsAvailable();
+				screens.Refresh();
 			}
 		}
 	}

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
-using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.DataProvider;
@@ -58,15 +57,8 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 
 	public IDeviceProvider DeviceProvider { get; }
 
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DefaultDeviceHotkeysViewModel));
-
-	private readonly IHotkeyService hotkeys;
-
-	internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys)
+	internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys) : base(hotkeys)
 	{
-		this.hotkeys = hotkeys;
-
 		DeviceProvider = deviceProvider;
 
 		AddDeviceCommand = new ActionCommand(AddDevice);
@@ -75,10 +67,7 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		RegisteredDevices = LoadRegisteredDevices();
 		if(RegisteredDevices.Keys.Count > 0)
 		{
-			if(this.hotkeys.IsActive)
-				RegisterLoadedHotkeys();
-			else
-				this.hotkeys.Activated += RegisterLoadedHotkeys;
+			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 
 			//Update registered devices names once on startup
 			UpdateNamesOrIDs();
@@ -172,11 +161,8 @@ public class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 			return;
 		}
 
-		if(hotkeys.HotkeyIsValid(HotKey) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(hotkeys.HotkeyIsValid(HotKey)))
 			return;
-		}
 
 		SetErrorMessage(ErrorMessageType.None);
 

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
-using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
 using Volumey.DataProvider;
@@ -99,25 +98,11 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
-	private AudioProcessStateNotificationMediator _sMediator;
-	private AudioProcessStateNotificationMediator ProcessStateMediator
-	{
-		get
-		{
-			_sMediator ??= new AudioProcessStateNotificationMediator(notifications);
-			return _sMediator;
-		}
-	}
-
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppsHotkeysViewModel));
-
-	private readonly IHotkeyService hotkeys;
+	//shows the OSD when a hotkey changes a volume (the models' state mediator)
 	private readonly INotificationService notifications;
 
-	internal AppsHotkeysViewModel(IDeviceProvider dProvider, IHotkeyService hotkeys, INotificationService notifications)
+	internal AppsHotkeysViewModel(IDeviceProvider dProvider, IHotkeyService hotkeys, INotificationService notifications) : base(hotkeys)
 	{
-		this.hotkeys = hotkeys;
 		this.notifications = notifications;
 		AddAppCommand = new ActionCommand(AddApp);
 		RemoveAppCommand = new ActionCommand(RemoveApp);
@@ -129,12 +114,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		VolumeStep = SettingsProvider.Settings.General.VolumeStep;
 		RegisteredProcesses = LoadRegisteredProcesses();
 		if(RegisteredProcesses.Keys.Count > 0)
-		{
-			if(this.hotkeys.IsActive)
-				RegisterLoadedHotkeys();
-			else
-				this.hotkeys.Activated += RegisterLoadedHotkeys;
-		}
+			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 		SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
 	}
 
@@ -196,7 +176,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 				process.Exited += OnProcessExited;
 				LaunchedProcesses.Add(process);
 				if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
-					process.SetStateMediator(ProcessStateMediator);
+					process.SetStateMediator(notifications);
 			}
 		}
 	}
@@ -207,11 +187,8 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		if(RegisteredProcesses.ContainsKey(process.Name))
 			return;
 
-		if(this.hotkeys.HotkeysAreValid(VolumeUp, VolumeDown) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(this.hotkeys.HotkeysAreValid(VolumeUp, VolumeDown)))
 			return;
-		}
 
 		if(!process.SetVolumeHotkeys(VolumeUp, VolumeDown))
 		{
@@ -222,7 +199,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 		process.Exited += OnProcessExited;
 
 		if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
-			process.SetStateMediator(ProcessStateMediator);
+			process.SetStateMediator(notifications);
 		SetErrorMessage(ErrorMessageType.None);
 
 		var hotkeys = new VolumeHotkeysPair(VolumeUp, VolumeDown);
@@ -307,7 +284,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 	private void SetVolumeStateMediatorForActiveProcesses()
 	{
 		foreach(var process in LaunchedProcesses)
-			process.SetStateMediator(ProcessStateMediator);
+			process.SetStateMediator(notifications);
 	}
 
 	private void ResetVolumeStateMediatorForActiveProcesses()
@@ -332,7 +309,7 @@ public sealed class AppsHotkeysViewModel : HotkeyViewModel
 			process.Exited += OnProcessExited;
 			LaunchedProcesses.Add(process);
 			if(SettingsProvider.Settings.Notifications.Enabled)
-				process.SetStateMediator(ProcessStateMediator);
+				process.SetStateMediator(notifications);
 		}
 	}
 }
