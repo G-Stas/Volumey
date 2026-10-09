@@ -38,7 +38,7 @@ The owner asked to work through the GitHub issues; the triage is in *GitHub issu
   - #63/#88: a fullscreen game (the owner has Valorant, CS, Steam games) with the foreground-app hotkeys.
   - #57: sleep and wake with the dev build running.
   - #76: the owner has two monitors (`\\.\DISPLAY1` 2560x1440 primary, `\\.\DISPLAY2` 1920x1080); ask whether their scaling differs, and check the OSD position on the second one.
-- Feature requests are listed at the end of *GitHub issues*; the owner hasn't picked any yet.
+- Feature requests are listed at the end of *GitHub issues*; the owner hasn't picked any yet. The owner added one of their own: a view of each device's supported features (item H in the plan, research first).
 - Other open items: the UI redesign (item C, with UI tests first), logging cleanup (Loggly key committed in `log4net.config`, log4net NU1902), Autoupdater.NET 1.9.x, `async void`/`Task.Run` error handling (*Known issues*), release prep (*Release checklist*, Store certificate expired).
 
 ### State of the owner's machine (2026-10-09)
@@ -388,6 +388,21 @@ Coverage before: about 20% of the app's lines. The owner wants many more tests. 
    - After item E also covered: `NotificationViewModel`, `AppBehaviorViewModel`, `DeviceProviderViewModel`. Not covered: `ThemeViewModel` (theme statics, replaced by the redesign), `LangSettings`, `SettingsViewModel`.
 3. **Audio integration tests.** **Done** (`test/audio-integration`, project `Volumey.IntegrationTests`, see *Build, run, test*): existing and new sessions are listed, volume and mute go both ways, fast slider changes end on the last value, two model sets of the same session don't fight, the device is described (name, ID, format, master volume; read only). Found and fixed: repeated session events defeated the session echo filter (see *Audio layer*).
 4. **UI tests (later, before item C)** with FlaUI against the dev build in an isolated data folder. They use the keyboard and mouse, so they stay out of the normal test run (owner's decision) and run on demand only.
+
+### H. Device features view (owner's request, 2026-10-09)
+Show, for each output device, **all the audio features it supports, discovered at runtime** (not a fixed list): spatial sound (Windows Sonic, Dolby Atmos, DTS:X… whatever formats are installed for that device), audio enhancements, the format (sample rate/bit depth), exclusive mode, and so on, ideally with their current state. Related: #85 asks for a spatial sound toggle in Volumey; the device rebuild from #82/#85 already handles the device being reconfigured when a feature changes.
+
+Not started; research first (nothing below is verified yet, check each item before planning the UI):
+- **What can be read with documented APIs:**
+  - Format: `PKEY_AudioEngine_DeviceFormat` (already read) and the formats the device accepts (`IAudioClient.IsFormatSupported`).
+  - Spatial sound: `ISpatialAudioClient` (via `IMMDevice.Activate`) tells whether spatial audio is active and its formats; the list of spatial formats installed for a device may need more.
+  - Enhancements: `PKEY_AudioEndpoint_Disable_SysFx` and the endpoint's audio effects (`IAudioEffectsManager`, Windows 11 only).
+  - Exclusive mode and other endpoint properties are in the property store; dump a device's whole property store on the owner's devices to see what's there.
+- **What can be changed:** the Windows sound settings use undocumented interfaces for spatial sound and enhancements (like `IPolicyConfig` for the default device and the format). Decide per feature whether to only show it or also toggle it, and whether an undocumented interface is acceptable (it can break with a Windows update, as `IPolicyConfig` could).
+- **Store build:** check that whatever is used works from the MSIX (no admin rights).
+- **UI:** where it lives (a device details page in settings, or a flyout from the mixer's device row); fits the redesign (item C), so build the data side first and the view with or after the redesign.
+- **Tests:** a reader behind an interface (like the other wrapper interfaces) so view models can be tested with fakes; an integration test that reads the features of the real default device.
+
 ## Machine setup
 The owner installs tooling **manually**. Don't run installers (winget, the VS installer) yourself; report what's missing instead.
 
