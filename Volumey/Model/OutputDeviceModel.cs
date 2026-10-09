@@ -51,6 +51,7 @@ namespace Volumey.Model
 		/// </summary>
 		internal event Action<OutputDeviceModel> Invalidated;
 		private int invalidated;
+		private volatile bool disposed;
 		public string Id => this.Master.Id;
 		private readonly IDevice device;
 		private readonly ISessionProvider sessionProvider;
@@ -112,11 +113,17 @@ namespace Volumey.Model
 		internal void ResetMuteHotkeys()
 			=> this.Master.ResetMuteHotkey();
 
+		/// <remarks>
+		/// Empty once the model is disposed: listeners still get the old default device after it was disabled and disposed
+		/// (e.g. a headset that drops out on sleep and wake, #57), and must not see its disposed processes.
+		/// </remarks>
 		internal async Task<IImmutableList<AudioProcessModel>> GetImmutableProcessesAsync()
 		{
+			if(this.disposed)
+				return ImmutableList<AudioProcessModel>.Empty;
 			if(_cachedImmutableProcesses != null)
 				return _cachedImmutableProcesses;
-			
+
 			await _processesSemaphore.WaitAsync();
 			try
 			{
@@ -130,6 +137,8 @@ namespace Volumey.Model
 
 		internal IImmutableList<AudioProcessModel> GetImmutableProcesses()
 		{
+			if(this.disposed)
+				return ImmutableList<AudioProcessModel>.Empty;
 			if(_cachedImmutableProcesses != null)
 				return _cachedImmutableProcesses;
 			
@@ -270,7 +279,7 @@ namespace Volumey.Model
 						process.AddSession(e.SessionModel);
 					});
 				}
-				else
+				else if(!this.disposed)
 				{
 					AudioProcessModel newProcess = e.CreateProcessModel();
 					newProcess.AddSession(e.SessionModel);
@@ -304,6 +313,9 @@ namespace Volumey.Model
 
 		public async void Dispose()
 		{
+			if(this.disposed)
+				return;
+			this.disposed = true;
 			this.sessionProvider.SessionCreated -= OnSessionCreated;
 			this.sessionProvider.DeviceInvalidated -= RaiseInvalidated;
 			this.sessionProvider.Dispose();
@@ -324,8 +336,8 @@ namespace Volumey.Model
 			{
 				_processesSemaphore.Release();
 			}
-			
-			this._processesSemaphore.Dispose();
+
+			//the semaphore isn't disposed: it holds no OS handle here, and late callers (listeners, session events in flight) would throw
 			//Release the device's COM objects on the thread pool: a release waits for running audio callbacks,
 			//and those may wait for the UI thread
 			var disposedDevice = this.device;

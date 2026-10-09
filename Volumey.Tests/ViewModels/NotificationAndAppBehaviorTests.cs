@@ -188,6 +188,23 @@ namespace Volumey.Tests.ViewModels
 		}
 
 		[TestMethod]
+		public void ADisposedOldDefaultDeviceDoesntBreakTheSwitch()
+		{
+			//#57: after sleep a headset is removed (its model disposed) before Windows switches the default device
+			var headset = CreateDevice("1", "Headset", CreateProcess("app"));
+			SetDefaultDevice(headset);
+			var vm = CreateNotifications();
+			vm.ReactToAllVolumeChanges = true;
+			WaitFor(() => headset.Master.StateNotificationMediator != null, "the headset didn't get the notification mediator");
+
+			headset.Dispose();
+			var speakers = CreateDevice("2", "Speakers", CreateProcess("other"));
+			ChangeDefaultDevice(speakers);
+
+			WaitFor(() => speakers.Master.StateNotificationMediator != null, "the new default device wasn't set up");
+		}
+
+		[TestMethod]
 		public void WindowStartsHiddenWhenStartedMinimized()
 		{
 			this.shell.Setup(m => m.StartMinimized).Returns(true);
