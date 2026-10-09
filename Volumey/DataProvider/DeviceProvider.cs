@@ -131,6 +131,7 @@ namespace Volumey.DataProvider
 
 		private void OnDeviceDisabled(OutputDeviceModel device)
 		{
+			Logger.Info($"Output device disabled: [{device.Master.DeviceFriendlyName}]");
 			dispatcher.Invoke(() =>
 			{
 				//display NoOutputDevice placeholder in mixer view before deleting the last element
@@ -148,6 +149,7 @@ namespace Volumey.DataProvider
 
 		private void OnActiveDeviceAdded(OutputDeviceModel newDevice)
 		{
+			Logger.Info($"Output device added: [{newDevice.Master.DeviceFriendlyName}]");
 			dispatcher.Invoke(() =>
 			{
 				newDevice.Disabled += OnDeviceDisabled;
@@ -198,6 +200,7 @@ namespace Volumey.DataProvider
 					Monitor.Exit(this.ActiveDevices);
 					if(newDefaultDevice != null && this.DefaultDevice != newDefaultDevice)
 					{
+						Logger.Info($"Default output device changed: [{newDefaultDevice.Master.DeviceFriendlyName}]");
 						this.DefaultDevice = newDefaultDevice;						
 						this.DefaultDeviceChanged?.Invoke(this.DefaultDevice);
 					}

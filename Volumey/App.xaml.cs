@@ -21,6 +21,8 @@ namespace Volumey
         public App()
         {
             this.DispatcherUnhandledException += OnDispatcherUnhandledException;
+            //sleep and wake drop and bring back audio devices (#57), so mark them in the log
+            Microsoft.Win32.SystemEvents.PowerModeChanged += (s, e) => Logger.Info($"Power mode changed: {e.Mode}");
         }
 
         private readonly WindowUpdateFailureGuard windowUpdateFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);

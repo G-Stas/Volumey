@@ -83,6 +83,20 @@ namespace Volumey.Tests
         }
 
         [TestMethod]
+        public async Task ADisposedModelIsSafeToUse()
+        {
+            //listeners get the old device after it was disposed (#57)
+            this.model.Dispose();
+            this.model.Dispose();
+
+            Assert.IsEmpty(await this.model.GetImmutableProcessesAsync());
+            Assert.IsEmpty(this.model.GetImmutableProcesses());
+            this.model.ResetVolumeHotkeys();
+            this.model.ResetMuteHotkeys();
+            this.model.ResetStateNotificationMediator(force: true);
+        }
+
+        [TestMethod]
         public void FormatChangeDisconnectsInvalidateTheDeviceOnce()
         {
             //#82, #85: turning spatial sound off disconnects all sessions without a format notification
