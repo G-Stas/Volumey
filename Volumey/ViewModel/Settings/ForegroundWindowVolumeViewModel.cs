@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using log4net;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
@@ -61,20 +60,13 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 	}
 
-	private AudioProcessStateNotificationMediator _mediator;
-	private AudioProcessStateNotificationMediator StateMediator => _mediator ??= new AudioProcessStateNotificationMediator(notifications);
-
 	private OutputDeviceModel _defaultDevice;
 
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(ForegroundWindowVolumeViewModel));
-
-	private readonly IHotkeyService hotkeys;
 	private readonly INotificationService notifications;
 
 	internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
+		: base(hotkeys)
 	{
-		this.hotkeys = hotkeys;
 		this.notifications = notifications;
 
 		_defaultDevice = deviceProvider.DefaultDevice;
@@ -85,10 +77,7 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 			_hotkeysRegistered = true;
 			VolumeUpHotkey = volumeUp;
 			VolumeDownHotkey = volumeDown;
-			if(this.hotkeys.IsActive)
-				RegisterLoadedHotkeys();
-			else
-				this.hotkeys.Activated += RegisterLoadedHotkeys;
+			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 		}
 	}
 
@@ -104,11 +93,8 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 
 	private bool SaveHotkeys()
 	{
-		if(hotkeys.HotkeysAreValid(_volumeUpHotkey, _volumeDownHotkey) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(hotkeys.HotkeysAreValid(_volumeUpHotkey, _volumeDownHotkey)))
 			return false;
-		}
 		SetErrorMessage(ErrorMessageType.None);
 		if(hotkeys.RegisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey))
 		{
@@ -212,7 +198,7 @@ public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		if(await TryGetForegroundAudioProcess() is (true, AudioProcessModel foundProcess))
 		{
 			if(foundProcess.StateNotificationMediator == null)
-				foundProcess.SetStateMediator(StateMediator);
+				foundProcess.SetStateMediator(notifications);
 			foundProcess.SetVolume(foundProcess.Volume + direction * hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 			HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 		}

@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using log4net;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
@@ -98,25 +97,12 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
-	private AudioProcessStateNotificationMediator _dMediator;
-	private AudioProcessStateNotificationMediator DeviceMediator
-	{
-		get
-		{
-			_dMediator ??= new AudioProcessStateNotificationMediator(notifications);
-			return _dMediator;
-		}
-	}
-
-	private ILog _logger;
-	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(DeviceVolumeHotkeysViewModel));
-
-	private readonly IHotkeyService hotkeys;
+	//shows the OSD when a hotkey changes a volume (the models' state mediator)
 	private readonly INotificationService notifications;
 
 	internal DeviceVolumeHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
+		: base(hotkeys)
 	{
-		this.hotkeys = hotkeys;
 		this.notifications = notifications;
 		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 		defaultDevice = deviceProvider.DefaultDevice;
@@ -143,12 +129,7 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 
 		//register hotkeys if there are any if the hotkey manager is set or wait for activation via event
 		if(anyHotkeysRegistered)
-		{
-			if(this.hotkeys.IsActive)
-				RegisterLoadedHotkeys();
-			else
-				this.hotkeys.Activated += RegisterLoadedHotkeys;
-		}
+			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 		SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
 	}
 
@@ -161,13 +142,13 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 			{
 				defaultDevice.SetMuteHotkey(muteKey);
 				if(SettingsProvider.Settings.Notifications.Enabled)
-					defaultDevice.SetStateNotificationMediator(DeviceMediator);
+					defaultDevice.SetStateNotificationMediator(notifications);
 			}
 			if(volumeHotkeysRegistered)
 			{
 				defaultDevice.SetVolumeHotkeys(volumeUp, volumeDown);
 				if(SettingsProvider.Settings.Notifications.Enabled)
-					defaultDevice.SetStateNotificationMediator(DeviceMediator);
+					defaultDevice.SetStateNotificationMediator(notifications);
 			}
 			defaultDevice.Disabled += OnDefaultDeviceDisabled;
 		}
@@ -178,18 +159,15 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		var up = VolumeUp;
 		var down = VolumeDown;
 
-		if(hotkeys.HotkeysAreValid(up, down) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(hotkeys.HotkeysAreValid(up, down)))
 			return false;
-		}
 
 		if(defaultDevice != null)
 		{
 			if(defaultDevice.SetVolumeHotkeys(up, down))
 			{
 				if(SettingsProvider.Settings.Notifications.Enabled)
-					defaultDevice.SetStateNotificationMediator(DeviceMediator);
+					defaultDevice.SetStateNotificationMediator(notifications);
 				defaultDevice.Disabled += OnDefaultDeviceDisabled;
 			}
 			else
@@ -224,11 +202,8 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 	private bool SaveMuteHotkey()
 	{
 		var key = muteKey;
-		if(hotkeys.HotkeyIsValid(key) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(hotkeys.HotkeyIsValid(key)))
 			return false;
-		}
 
 		if(defaultDevice != null)
 		{
@@ -236,7 +211,7 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 			{
 				defaultDevice.Disabled += OnDefaultDeviceDisabled;
 				if(SettingsProvider.Settings.Notifications.Enabled)
-					defaultDevice.SetStateNotificationMediator(DeviceMediator);
+					defaultDevice.SetStateNotificationMediator(notifications);
 			}
 			else
 			{
@@ -269,7 +244,7 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		if(e.PropertyName == nameof(NotificationSettings.Enabled) && defaultDevice != null)
 		{
 			if(SettingsProvider.Settings.Notifications.Enabled)
-				defaultDevice.SetStateNotificationMediator(DeviceMediator);
+				defaultDevice.SetStateNotificationMediator(notifications);
 			else
 				defaultDevice.ResetStateNotificationMediator();
 		}
@@ -304,13 +279,13 @@ public sealed class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 			{
 				newDevice.SetVolumeHotkeys(volumeUp, volumeDown);
 				if(SettingsProvider.Settings.Notifications.Enabled)
-					newDevice.SetStateNotificationMediator(DeviceMediator);
+					newDevice.SetStateNotificationMediator(notifications);
 			}
 			if(muteHotkeyRegistered)
 			{
 				newDevice.SetMuteHotkey(muteKey);
 				if(SettingsProvider.Settings.Notifications.Enabled)
-					newDevice.SetStateNotificationMediator(DeviceMediator);
+					newDevice.SetStateNotificationMediator(notifications);
 			}
 			newDevice.Disabled += OnDefaultDeviceDisabled;
 		}

@@ -51,11 +51,8 @@ public class SystemHotkeysViewModel : HotkeyViewModel
 	public ICommand AddHotkeyCommand { get; set; }
 	public ICommand RemoveHotkeyCommand { get; set; }
 
-	private readonly IHotkeyService hotkeys;
-
-	internal SystemHotkeysViewModel(IHotkeyService hotkeys)
+	internal SystemHotkeysViewModel(IHotkeyService hotkeys) : base(hotkeys)
 	{
-		this.hotkeys = hotkeys;
 		var mediaHotkeys = GetMediaHotkeys();
 
 		AddHotkeyCommand = new ActionCommand(AddHotkey);
@@ -70,12 +67,7 @@ public class SystemHotkeysViewModel : HotkeyViewModel
 		}
 
 		if(RegisteredHotkeys.Count > 0)
-		{
-			if(this.hotkeys.IsActive)
-				RegisterHotkeys();
-			else
-				this.hotkeys.Activated += RegisterHotkeys;
-		}
+			RegisterWhenHotkeysActive(RegisterHotkeys);
 	}
 
 	private void RegisterHotkeys()
@@ -96,11 +88,8 @@ public class SystemHotkeysViewModel : HotkeyViewModel
 		if(_selectedHotkey == null || _replacementHotkey == null)
 			return;
 
-		if(hotkeys.HotkeyIsValid(_replacementHotkey) is var error && error != ErrorMessageType.None)
-		{
-			SetErrorMessage(error);
+		if(!IsValid(hotkeys.HotkeyIsValid(_replacementHotkey)))
 			return;
-		}
 
 		if(!hotkeys.RegisterHotkey(_replacementHotkey))
 		{

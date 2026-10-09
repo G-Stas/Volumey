@@ -100,7 +100,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 
 	internal void ResetVolumeHotkeys() => Master.ResetVolumeHotkeys();
 
-	internal void SetStateNotificationMediator(AudioProcessStateNotificationMediator mediator)
+	internal void SetStateNotificationMediator(IAudioProcessStateMediator mediator)
 		=> Master.SetStateMediator(mediator);
 
 	internal void ResetStateNotificationMediator(bool force = false)

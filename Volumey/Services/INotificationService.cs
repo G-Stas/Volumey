@@ -1,13 +1,14 @@
 ﻿using System.Windows.Media;
 using Notification.Wpf.Controls;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.Services;
 
 /// <summary>
-/// The on-screen volume popups (OSD).
+/// The on-screen volume popups (OSD). As the models' <see cref="IAudioProcessStateMediator"/> it shows and closes them on the UI thread.
 /// </summary>
-public interface INotificationService
+public interface INotificationService : IAudioProcessStateMediator
 {
 	void ShowNotification(IManagedMasterAudioSession session);
 
