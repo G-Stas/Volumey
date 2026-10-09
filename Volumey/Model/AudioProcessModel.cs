@@ -23,6 +23,11 @@ namespace Volumey.Model
 	{
 		public event Action<AudioProcessModel> Exited;
 
+		/// <summary>
+		/// A session of the process was disconnected because the device's format changed, see <see cref="AudioSessionModel.EndedByFormatChange"/>
+		/// </summary>
+		internal event Action<AudioProcessModel> DeviceReconfigured;
+
 		public ObservableCollection<AudioSessionModel> Sessions { get; }
 
 		public readonly string RawProcessName = string.Empty;
@@ -324,6 +329,8 @@ namespace Volumey.Model
 		private async Task ProcessEndedSession(AudioSessionModel endedSession)
 		{
 			endedSession.SessionEnded -= OnSessionEnded;
+			if(endedSession.EndedByFormatChange)
+				this.DeviceReconfigured?.Invoke(this);
 			await _dispatcher.InvokeAsync(() =>
 			{
 				lock(_sessionsLock)
@@ -394,6 +401,7 @@ namespace Volumey.Model
 			}
 			
 			Exited = null;
+			DeviceReconfigured = null;
 		}
 	}
 }

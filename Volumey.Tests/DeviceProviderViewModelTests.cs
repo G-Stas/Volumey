@@ -52,5 +52,16 @@ namespace Volumey.Tests
 			
 			Assert.AreEqual(newDefaultDevice, this.model.SelectedDevice);
 		}
+
+		[TestMethod]
+		public void ReplacedSelectedDeviceIsSelectedAgain()
+		{
+			var oldDevice = this.model.SelectedDevice = this.deviceProviderMock.Object.ActiveDevices[1];
+			var newDevice = OutputDeviceModelTests.GetDeviceMock("2", "headphones", new Mock<IDeviceStateNotificationHandler>().Object);
+
+			this.deviceProviderMock.Raise(m => m.DeviceReplaced += null, oldDevice, newDevice);
+
+			Assert.AreEqual(newDevice, this.model.SelectedDevice);
+		}
 	}
 }

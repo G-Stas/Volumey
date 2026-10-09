@@ -108,6 +108,96 @@ namespace Volumey.Tests
 			Assert.IsNotNull(model.DefaultDevice);
 		}
 
+		[TestMethod]
+		public void ReconfiguredDefaultDeviceIsRebuilt()
+		{
+			//#82, #85: spatial sound on/off
+			var (provider, enumerator, sessions, handler) = CreateWithInvalidatableDefault();
+			var old = provider.DefaultDevice;
+			var fresh = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+			enumerator.Setup(m => m.CreateDeviceModel("111", handler.Object)).Returns(fresh);
+			OutputDeviceModel changedTo = null;
+			bool listedWhenChanged = false;
+			(OutputDeviceModel, OutputDeviceModel) replaced = default;
+			//both models are listed while the listeners switch: a combo box showing the old one loses its selection
+			//(and writes null back) if it's replaced in place
+			provider.DefaultDeviceChanged += d =>
+			{
+				changedTo = d;
+				listedWhenChanged = provider.ActiveDevices.Contains(d) && provider.ActiveDevices.Contains(old);
+			};
+			provider.DeviceReplaced += (o, n) => replaced = (o, n);
+
+			sessions.Raise(m => m.DeviceInvalidated += null);
+
+			WaitFor(() => provider.DefaultDevice == fresh, "the device wasn't rebuilt");
+			Assert.AreEqual(fresh, provider.ActiveDevices[0]);
+			Assert.HasCount(2, provider.ActiveDevices);
+			Assert.AreEqual(fresh, changedTo);
+			Assert.IsTrue(listedWhenChanged);
+			Assert.AreEqual((old, fresh), replaced);
+			Assert.DoesNotContain(old, provider.ActiveDevices);
+		}
+
+		[TestMethod]
+		public void ReconfiguredOtherDeviceIsRebuiltWithoutChangingTheDefault()
+		{
+			var handler = new Mock<IDeviceStateNotificationHandler>();
+			var enumerator = new Mock<IDeviceEnumerator>();
+			var sessions = new Mock<ISessionProvider>();
+			var speakers = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+			var headphones = OutputDeviceModelTests.GetDeviceMock("123", "headphones", handler.Object, sessions);
+			enumerator.Setup(m => m.GetCurrentActiveDevices(handler.Object)).Returns(new List<OutputDeviceModel> { speakers, headphones });
+			enumerator.Setup(m => m.GetDefaultDeviceId()).Returns("111");
+			var fresh = OutputDeviceModelTests.GetDeviceMock("123", "headphones", handler.Object);
+			enumerator.Setup(m => m.CreateDeviceModel("123", handler.Object)).Returns(fresh);
+			var provider = new DeviceProvider(enumerator.Object, handler.Object);
+			bool defaultChanged = false;
+			provider.DefaultDeviceChanged += d => defaultChanged = true;
+
+			sessions.Raise(m => m.DeviceInvalidated += null);
+
+			WaitFor(() => provider.ActiveDevices[1] == fresh, "the device wasn't rebuilt");
+			Assert.AreEqual(speakers, provider.DefaultDevice);
+			Assert.IsFalse(defaultChanged);
+		}
+
+		[TestMethod]
+		public void RebuildingIsRetriedWhileWindowsIsBusy()
+		{
+			var (provider, enumerator, sessions, handler) = CreateWithInvalidatableDefault();
+			var fresh = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+			enumerator.SetupSequence(m => m.CreateDeviceModel("111", handler.Object)).Returns((OutputDeviceModel)null).Returns(fresh);
+
+			sessions.Raise(m => m.DeviceInvalidated += null);
+
+			WaitFor(() => provider.DefaultDevice == fresh, "the device wasn't rebuilt on the second attempt", 5000);
+			enumerator.Verify(m => m.CreateDeviceModel("111", handler.Object), Times.Exactly(2));
+		}
+
+		private static (DeviceProvider, Mock<IDeviceEnumerator>, Mock<ISessionProvider>, Mock<IDeviceStateNotificationHandler>) CreateWithInvalidatableDefault()
+		{
+			var handler = new Mock<IDeviceStateNotificationHandler>();
+			var enumerator = new Mock<IDeviceEnumerator>();
+			var sessions = new Mock<ISessionProvider>();
+			var speakers = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object, sessions);
+			var headphones = OutputDeviceModelTests.GetDeviceMock("123", "headphones", handler.Object);
+			enumerator.Setup(m => m.GetCurrentActiveDevices(handler.Object)).Returns(new List<OutputDeviceModel> { speakers, headphones });
+			enumerator.Setup(m => m.GetDefaultDeviceId()).Returns("111");
+			return (new DeviceProvider(enumerator.Object, handler.Object), enumerator, sessions, handler);
+		}
+
+		private static void WaitFor(Func<bool> condition, string message, int timeoutMs = 3000)
+		{
+			var watch = System.Diagnostics.Stopwatch.StartNew();
+			while(!condition())
+			{
+				if(watch.ElapsedMilliseconds > timeoutMs)
+					Assert.Fail(message);
+				System.Threading.Thread.Sleep(20);
+			}
+		}
+
 		public static DeviceProvider GetDeviceProviderMock(IDeviceEnumerator deviceEnum, IDeviceStateNotificationHandler deviceState)
 		{
 			return new DeviceProvider(deviceEnum, deviceState);

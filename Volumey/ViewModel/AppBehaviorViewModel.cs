@@ -247,12 +247,10 @@ namespace Volumey.ViewModel
         private static ILog _logger;
         private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
-		private bool restartInvoked = false;
-
-		public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Devices, AppServices.Current.Screens,
+		public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Screens,
 			AppServices.Current.Shell, AppServices.Current.SystemIntegration) { }
 
-		internal AppBehaviorViewModel(IHotkeyService hotkeys, IDeviceProvider devices, IScreenInfoProvider screenInfoProvider, IAppShell shell,
+		internal AppBehaviorViewModel(IHotkeyService hotkeys, IScreenInfoProvider screenInfoProvider, IAppShell shell,
 			ISystemIntegration systemIntegration)
 		{
 			this.hotkeys = hotkeys;
@@ -276,7 +274,6 @@ namespace Volumey.ViewModel
 
 			hotkeys.OpenHotkeyPressed += OnOpenHotkeyPressed;
 			ComponentDispatcher.ThreadFilterMessage += OnThreadFilterMessage;
-			devices.DeviceFormatChanged += OnDeviceFormatChanged;
 
 			this.trayBlockTimer = new Timer(trayBlockDelay);
 			this.trayBlockTimer.AutoReset = false;
@@ -355,26 +352,6 @@ namespace Volumey.ViewModel
 			}, TaskContinuationOptions.OnlyOnFaulted);
 		}
 
-		private void OnDeviceFormatChanged(OutputDeviceModel sender)
-		{
-			//Prevent a situation when device format structure changes several times when its format is changed in system thus invoking several restarts
-			if(restartInvoked)
-				return;
-			//After the device format is changed every stream of its sessions become invalid and returns 0x88890004/AUDCLNT_E_DEVICE_INVALIDATED when used
-			//so you have to somehow update this data about sessions.
-			//The only working way of handling this event I have found is restarting the app.
-			//Releasing COM interfaces related to the device and retrieving them again to handle format change as recommended in documentation does nothing.
-			//TODO find a better way to handle device format change
-			restartInvoked = true;
-			RestartApp();	
-		}
-
-		private void RestartApp()
-		{
-			this.shell.StartNewInstance(minimized: !this.WindowIsVisible);
-			this.shell.Dispatcher.Invoke(OnExit);
-		}
-		
 		private void OnExit()
 		{
 			SettingsProvider.Settings.Window.Left = this.windowLeft;

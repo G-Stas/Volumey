@@ -26,10 +26,5 @@ namespace Volumey.Services
 		event Action Exit;
 
 		void Shutdown();
-
-		/// <summary>
-		/// Starts another instance of the app, which waits until this one has exited
-		/// </summary>
-		void StartNewInstance(bool minimized);
 	}
 }

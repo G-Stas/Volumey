@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Volumey.DataProvider
 		public ObservableCollection<OutputDeviceModel> ActiveDevices { get; } = new ObservableCollection<OutputDeviceModel>();
 		public event Action<OutputDeviceModel> DeviceDisabled;
 		public event Action<OutputDeviceModel> DefaultDeviceChanged; 
-		public event Action<OutputDeviceModel> DeviceFormatChanged;
+		public event Action<OutputDeviceModel, OutputDeviceModel> DeviceReplaced;
 
 		private OutputDeviceModel defaultDevice;
 		public OutputDeviceModel DefaultDevice
@@ -47,6 +47,12 @@ namespace Volumey.DataProvider
 		}
 		
 		private readonly IDeviceStateNotificationHandler deviceStateNotificationHandler;
+		private readonly IDeviceEnumerator deviceEnumerator;
+
+		/// <summary>Delays of the attempts to rebuild a reconfigured device: Windows may still be busy right after the notification</summary>
+		private static readonly TimeSpan[] RebuildDelays =
+			{ TimeSpan.FromMilliseconds(300), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4) };
+		private volatile bool disposed;
 		private static ILog logger;
 		private static ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceProvider));
 
@@ -55,6 +61,7 @@ namespace Volumey.DataProvider
 		internal DeviceProvider(IDeviceEnumerator deviceEnumerator, IDeviceStateNotificationHandler deviceStateHandler)
 		{
 			this.deviceStateNotificationHandler = deviceStateHandler;
+			this.deviceEnumerator = deviceEnumerator;
 			this.deviceStateNotificationHandler.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.deviceStateNotificationHandler.ActiveDeviceAdded += OnActiveDeviceAdded;
 
@@ -65,7 +72,7 @@ namespace Volumey.DataProvider
 				foreach(var device in devices)
 				{
 					device.Disabled += OnDeviceDisabled;
-					device.FormatChanged += OnDeviceFormatChanged;
+					device.Invalidated += OnDeviceInvalidated;
 					this.ActiveDevices.Add(device);
 
 					if(device.CompareId(defaultDeviceId))
@@ -132,7 +139,7 @@ namespace Volumey.DataProvider
 
 				this.DeviceDisabled?.Invoke(device);
 				device.Disabled -= OnDeviceDisabled;
-				device.FormatChanged -= OnDeviceFormatChanged;
+				device.Invalidated -= OnDeviceInvalidated;
 				this.ActiveDevices.Remove(device);
 
 				device.Dispose();
@@ -144,7 +151,7 @@ namespace Volumey.DataProvider
 			dispatcher.Invoke(() =>
 			{
 				newDevice.Disabled += OnDeviceDisabled;
-				newDevice.FormatChanged += OnDeviceFormatChanged;
+				newDevice.Invalidated += OnDeviceInvalidated;
 				this.ActiveDevices.Add(newDevice);
 				
 				if(NoOutputDevices)
@@ -198,11 +205,70 @@ namespace Volumey.DataProvider
 			});
 		}
 
-		private void OnDeviceFormatChanged(OutputDeviceModel sender)
-			=> this.DeviceFormatChanged?.Invoke(sender);
+		/// <summary>
+		/// Windows reconfigured the device (format or spatial sound changed, #82, #85): its sessions are gone and its objects stopped working,
+		/// so the model is built again from fresh objects and replaces the old one. Before 2.0 the whole app restarted instead.
+		/// </summary>
+		private async void OnDeviceInvalidated(OutputDeviceModel invalid)
+		{
+			try
+			{
+				foreach(var delay in RebuildDelays)
+				{
+					await System.Threading.Tasks.Task.Delay(delay).ConfigureAwait(false);
+					if(this.disposed)
+						return;
+					bool done = false;
+					dispatcher.Invoke(() => done = TryReplaceDevice(invalid));
+					if(done)
+						return;
+				}
+				Logger.Error($"Failed to rebuild the reconfigured device: [{invalid.Master.DeviceFriendlyName}]");
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Failed to rebuild a reconfigured device", e);
+			}
+		}
+
+		/// <returns>False if the new model couldn't be built yet</returns>
+		private bool TryReplaceDevice(OutputDeviceModel invalid)
+		{
+			int index = this.ActiveDevices.IndexOf(invalid);
+			//it was disabled in the meantime
+			if(index < 0)
+				return true;
+
+			var fresh = this.deviceEnumerator.CreateDeviceModel(invalid.Id, this.deviceStateNotificationHandler);
+			if(fresh == null)
+				return false;
+
+			invalid.Disabled -= OnDeviceDisabled;
+			invalid.Invalidated -= OnDeviceInvalidated;
+			fresh.Disabled += OnDeviceDisabled;
+			fresh.Invalidated += OnDeviceInvalidated;
+			//add the new model before the listeners switch to it, and remove the old one after that:
+			//replacing it in place makes a combo box that shows it lose its selection and write null back
+			this.ActiveDevices.Insert(index, fresh);
+
+			if(this.DefaultDevice == invalid)
+			{
+				this.DefaultDevice = fresh;
+				//listeners move hotkeys, notifications etc. from the old model to the new one
+				this.DefaultDeviceChanged?.Invoke(fresh);
+			}
+			this.DeviceReplaced?.Invoke(invalid, fresh);
+			this.ActiveDevices.Remove(invalid);
+			Logger.Info($"Rebuilt the reconfigured device: [{fresh.Master.DeviceFriendlyName}], {fresh.Processes.Count} apps");
+
+			invalid.Dispose();
+			return true;
+		}
 
 		public void Dispose()
 		{
+			//no rebuilds after the app has started to exit
+			this.disposed = true;
 			this.deviceStateNotificationHandler?.Dispose();
 			foreach(var device in this.ActiveDevices)
 				device.Dispose();
