@@ -43,13 +43,13 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 
 	public void OnVolumeChanged(float newVolume, bool newMuteState)
 	{
-		int newVolumeValue = AudioSessionVolume.ToPercent(newVolume);
+		int newVolumeValue = VolumePercent.FromScalar(newVolume);
 
 		//prevent invoking event if the new state is not the same as the actual session state (an outdated callback)
 		try
 		{
 			var simpleVolume = sessionControl.SimpleAudioVolume;
-			if(newVolumeValue != AudioSessionVolume.ToPercent(simpleVolume.Volume) || newMuteState != simpleVolume.Mute)
+			if(newVolumeValue != VolumePercent.FromScalar(simpleVolume.Volume) || newMuteState != simpleVolume.Mute)
 				return;
 		}
 		catch

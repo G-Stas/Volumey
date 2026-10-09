@@ -28,7 +28,7 @@ class MasterAudioSessionVolume : IAudioSessionVolume
 		volumeLevel = Math.Clamp(volumeLevel, 0, 100);
 
 		int sysVol = -1;
-		try { sysVol = AudioSessionVolume.ToPercent(GetVolume()); }
+		try { sysVol = VolumePercent.FromScalar(GetVolume()); }
 		catch { }
 
 		//prevent setting volume in system if the master session already has the same value
@@ -38,7 +38,7 @@ class MasterAudioSessionVolume : IAudioSessionVolume
 			lock(writeLock)
 			{
 				audioVolume.NotificationGuid = context;
-				audioVolume.MasterVolumeLevelScalar = volumeLevel / 100.0f;
+				audioVolume.MasterVolumeLevelScalar = VolumePercent.ToScalar(volumeLevel);
 			}
 		}
 	}

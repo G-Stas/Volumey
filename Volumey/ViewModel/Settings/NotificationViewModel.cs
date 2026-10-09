@@ -176,8 +176,7 @@ public partial class NotificationViewModel : ObservableObject
 	private readonly INotificationService _notifications;
 	private OutputDeviceModel _currentDefaultDevice;
 
-	private static ILog _logger;
-	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(NotificationViewModel));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(NotificationViewModel));
 
 	internal NotificationViewModel(IDeviceProvider deviceProvider, INotificationService notifications, IScreenInfoProvider screenInfoProvider)
 	{

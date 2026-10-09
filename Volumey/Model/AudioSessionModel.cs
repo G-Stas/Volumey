@@ -154,10 +154,6 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		{
 			sessionVolume?.SetVolume(newVol, guid);
 		}
-		catch(COMException com)
-		{
-			LogStateException(com);
-		}
 		catch(Exception e)
 		{
 			LogStateException(e);
@@ -167,24 +163,15 @@ public sealed class AudioSessionModel : IManagedAudioSession
 	private void SetMute(bool mute)
 	{
 		try { sessionVolume?.SetMute(mute); }
-		catch(COMException com)
-		{
-			LogStateException(com);
-		}
 		catch(Exception e)
 		{
 			LogStateException(e);
 		}
 	}
 
-	private void LogStateException(COMException com)
-	{
-		Logger.Info($"Failed to change state of the audio session. COM error message: [{com.ErrorCode.ToString(CultureInfo.InvariantCulture)}]", com);
-	}
-
 	private void LogStateException(Exception e)
 	{
-		Logger.Info("Failed to change state of the audio session", e);
+		Logger.Info($"Failed to change state of the audio session, HRESULT 0x{e.HResult:X8}", e);
 	}
 
 	public event PropertyChangedEventHandler PropertyChanged;

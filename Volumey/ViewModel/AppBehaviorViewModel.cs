@@ -173,8 +173,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	/// </summary>
 	private const double trayBlockDelay = 300;
 
-	private static ILog _logger;
-	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
 	public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Screens,
 		AppServices.Current.Shell, AppServices.Current.SystemIntegration)

@@ -18,7 +18,7 @@ public sealed class AudioSessionVolume : IAudioSessionVolume
 	internal AudioSessionVolume(SimpleAudioVolume simpleAudioVolume)
 	{
 		sAudioVol = simpleAudioVolume ?? throw new ArgumentNullException(nameof(simpleAudioVolume));
-		EchoFilter = new SessionEchoFilter(ToPercent(GetVolume()), GetMute());
+		EchoFilter = new SessionEchoFilter(VolumePercent.FromScalar(GetVolume()), GetMute());
 	}
 
 	/// <summary>
@@ -32,17 +32,17 @@ public sealed class AudioSessionVolume : IAudioSessionVolume
 	/// </summary>
 	public void SetVolume(int newVolume, Guid context)
 	{
-		newVolume = ConstraintVolume(newVolume);
+		newVolume = Math.Clamp(newVolume, 0, 100);
 
 		int systemSessionVolume = -1;
-		try { systemSessionVolume = ToPercent(GetVolume()); }
+		try { systemSessionVolume = VolumePercent.FromScalar(GetVolume()); }
 		catch { }
 
 		//prevent setting volume in system if the audio session already has the same value
 		if(systemSessionVolume != newVolume)
 		{
 			EchoFilter.OnVolumeWritten(newVolume);
-			sAudioVol.Volume = newVolume / 100.0f;
+			sAudioVol.Volume = VolumePercent.ToScalar(newVolume);
 		}
 	}
 
@@ -59,8 +59,4 @@ public sealed class AudioSessionVolume : IAudioSessionVolume
 		EchoFilter.OnMuteWritten(newState);
 		sAudioVol.Mute = newState;
 	}
-
-	internal static int ToPercent(float volume) => Convert.ToInt32(volume * 100);
-
-	private static int ConstraintVolume(int vol) => vol < 0 ? 0 : (vol > 100 ? 100 : vol);
 }

@@ -273,10 +273,6 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		{
 			masterVolume?.SetVolume(newVol, context);
 		}
-		catch(COMException com)
-		{
-			LogStateException(com);
-		}
 		catch(Exception e)
 		{
 			LogStateException(e);
@@ -288,10 +284,6 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		try
 		{
 			masterVolume?.SetMute(muteState);
-		}
-		catch(COMException com)
-		{
-			LogStateException(com);
 		}
 		catch(Exception e)
 		{
@@ -311,14 +303,9 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		IsMuted = e.IsMuted;
 	}
 
-	private void LogStateException(COMException com)
-	{
-		Logger.Info($"Failed to change state of the master session. COM error message: [{com.ErrorCode}]", com);
-	}
-
 	private void LogStateException(Exception e)
 	{
-		Logger.Info("Failed to change state of the master session", e);
+		Logger.Info($"Failed to change state of the master session, HRESULT 0x{e.HResult:X8}", e);
 	}
 
 	public event PropertyChangedEventHandler PropertyChanged;

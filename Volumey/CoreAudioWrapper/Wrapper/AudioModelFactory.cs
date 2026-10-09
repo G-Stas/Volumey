@@ -58,7 +58,7 @@ internal static class AudioModelFactory
 			string deviceDesc = device.GetDeviceDesc();
 			string id = device.GetId();
 
-			return new MasterSessionModel(deviceName, deviceDesc, Convert.ToInt32(volume * 100), muteState, id, icon,
+			return new MasterSessionModel(deviceName, deviceDesc, VolumePercent.FromScalar(volume), muteState, id, icon,
 										  masterVolume,
 										  volumeHandler,
 										  hotkeys);
@@ -212,7 +212,7 @@ internal static class AudioModelFactory
 			try { sessionStateNotifications.RegisterNotifications(); }
 			catch { }
 
-			AudioSessionModel session = new AudioSessionModel(muteState, AudioSessionVolume.ToPercent(volume), sessionId, processId,
+			AudioSessionModel session = new AudioSessionModel(muteState, VolumePercent.FromScalar(volume), sessionId, processId,
 															  name,
 															  filePath,
 															  groupingParam,
