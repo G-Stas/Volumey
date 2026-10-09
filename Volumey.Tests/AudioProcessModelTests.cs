@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -101,7 +101,7 @@ namespace Volumey.Tests
 			
 			//assert
 			//verify the call to external API is made
-			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.VolumeGUID), Times.AtLeastOnce);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, GuidValue.Internal.VolumeGUID), Times.AtLeastOnce);
 			//simualate callback from external API
 			this.trackedSessionStateNotif.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.proc.IsMuted));
 			Assert.AreEqual(newVolume, this.proc.Volume);
@@ -122,8 +122,8 @@ namespace Volumey.Tests
 			
 			//assert
 			//verify increment/decrement volume calls to external API are not made
-			this.sessionVolumeMock.Verify(m => m.SetVolume(this.proc.Volume + this.hotkeys.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
-			this.sessionVolumeMock.Verify(m => m.SetVolume(this.proc.Volume - this.hotkeys.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.proc.Volume + this.hotkeys.VolumeStep, GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.proc.Volume - this.hotkeys.VolumeStep, GuidValue.Internal.Empty), Times.Never);
 		}
 
 		[TestMethod]

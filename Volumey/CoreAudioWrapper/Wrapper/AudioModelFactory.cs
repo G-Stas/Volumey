@@ -193,7 +193,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
 			try
 			{
-				Process proc = Process.GetProcessById((int)processId);
+				//disposed: every new session opened a process handle that was never closed
+				using Process proc = Process.GetProcessById((int)processId);
 				name = proc.ProcessName;
 				filePath = proc.MainModule.FileName;
 			}

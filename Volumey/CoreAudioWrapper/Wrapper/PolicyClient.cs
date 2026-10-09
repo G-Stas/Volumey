@@ -11,11 +11,12 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 		
 		private IPolicyConfig instance = new PolicyClientCOM() as IPolicyConfig;
 
+		/// <exception cref="COMException">Windows refused the switch (it used to fail silently)</exception>
 		public void SetDefaultEndpointDevice(string deviceId)
 		{
-			this.instance.SetDefaultEndpoint(deviceId, ERole.Console);
-			this.instance.SetDefaultEndpoint(deviceId, ERole.Multimedia);
-			this.instance.SetDefaultEndpoint(deviceId, ERole.Communications);
+			Marshal.ThrowExceptionForHR(this.instance.SetDefaultEndpoint(deviceId, ERole.Console));
+			Marshal.ThrowExceptionForHR(this.instance.SetDefaultEndpoint(deviceId, ERole.Multimedia));
+			Marshal.ThrowExceptionForHR(this.instance.SetDefaultEndpoint(deviceId, ERole.Communications));
 		}
 	}
 }

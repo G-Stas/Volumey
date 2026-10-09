@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
@@ -24,16 +24,15 @@ namespace Volumey.Helper
 		
 		static SystemIntegrationHelper()
 		{
-			string exePath = null;
-			try
+			string exePath = Environment.ProcessPath;
+			if(string.IsNullOrEmpty(exePath))
 			{
-				exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
-				StartupRegistryValue = $"{exePath} {Startup.MinimizedArg}";
+				_logger.Error("Failed to retrieve .exe path.");
 				return;
 			}
-			catch { }
-			if(string.IsNullOrEmpty(exePath))
-				_logger.Error("Failed to retrieve .exe path.");
+			//quoted: an unquoted path with spaces is ambiguous to Windows (it may run another program or nothing).
+			//Older unquoted entries get rewritten by CheckIfStartupRegistryKeyExists on the next start
+			StartupRegistryValue = $"\"{exePath}\" {Startup.MinimizedArg}";
 		}
 		
 		private static readonly string StartMenuProgramsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
@@ -74,7 +73,7 @@ namespace Volumey.Helper
 				using(var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64))
 				using(var key = baseKey.OpenSubKey(StartupRegistryPath, true))
 				{
-					key?.DeleteValue(StartupRegistryKeyName);
+					key?.DeleteValue(StartupRegistryKeyName, throwOnMissingValue: false);
 				}
 			}
 			catch(Exception e)
@@ -93,7 +92,7 @@ namespace Volumey.Helper
 					var value = key?.GetValue(StartupRegistryKeyName);
 					if(!string.IsNullOrEmpty(value?.ToString()))
 					{
-						if(StartupRegistryValue.Equals(value))
+						if(StartupRegistryValue == null || StartupRegistryValue.Equals(value))
 							return true;
 						//Update registry startup path to the currently launched .exe if values are not equals
 						key.SetValue(StartupRegistryKeyName, StartupRegistryValue);
@@ -115,7 +114,7 @@ namespace Volumey.Helper
 			{
 				var link = (NativeMethods.IShellLink)new NativeMethods.ShellLink();
 				
-				var exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
+				var exePath = Environment.ProcessPath;
 				if(string.IsNullOrEmpty(exePath))
 					return false;
 
@@ -170,7 +169,7 @@ namespace Volumey.Helper
 				link.GetPath(sb, sb.Capacity, out data, 0x1);
 
 				string existingShortcutExePath = sb.ToString();
-				string exePath = Process.GetCurrentProcess()?.MainModule?.FileName;
+				string exePath = Environment.ProcessPath;
 
 				if(!existingShortcutExePath.Equals(exePath))
 				{

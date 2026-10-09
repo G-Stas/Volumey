@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -16,7 +16,7 @@ namespace Volumey.Tests.ViewModels
 		private static readonly HotKey Mute = new HotKey(Key.M, ModifierKeys.Control | ModifierKeys.Alt);
 
 		private static void VerifyVolumeWritten(Mock<IAudioSessionVolume> masterVolume, int volume, Times times)
-			=> masterVolume.Verify(m => m.SetVolume(volume, ref It.Ref<Guid>.IsAny), times);
+			=> masterVolume.Verify(m => m.SetVolume(volume, It.IsAny<Guid>()), times);
 
 		[TestMethod]
 		public void VolumeHotkeysAreRegisteredAndSaved()
@@ -134,7 +134,7 @@ namespace Volumey.Tests.ViewModels
 			PressHotkey(Down);
 
 			VerifyVolumeWritten(newVolume, 30 - this.Hotkeys.VolumeStep, Times.Once());
-			oldVolume.Verify(m => m.SetVolume(It.IsAny<int>(), ref It.Ref<Guid>.IsAny), Times.Never);
+			oldVolume.Verify(m => m.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
 		}
 
 		[TestMethod]

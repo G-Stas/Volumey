@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
 {
@@ -6,7 +6,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 	{
 		float GetVolume();
 
-		void SetVolume(int newVolume, ref Guid context);
+		void SetVolume(int newVolume, Guid context);
 
 		bool GetMute();
 

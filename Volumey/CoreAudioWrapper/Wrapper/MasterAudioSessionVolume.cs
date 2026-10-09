@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NAudio.CoreAudioApi;
 
 namespace Volumey.CoreAudioWrapper.Wrapper
@@ -9,6 +9,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
     class MasterAudioSessionVolume : IAudioSessionVolume
     {
         private readonly AudioEndpointVolume audioVolume;
+        //own lock object: locking the NAudio object could interfere with locks NAudio takes on it
+        private readonly System.Threading.Lock writeLock = new();
 
         public MasterAudioSessionVolume(AudioEndpointVolume aVol)
            => audioVolume = aVol;
@@ -21,22 +23,19 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         /// <summary>
         /// Sets the master volume level, using a uniform scaling factor.
         /// </summary>
-        public void SetVolume(int volumeLevel, ref Guid context)
+        public void SetVolume(int volumeLevel, Guid context)
         {
-            if(volumeLevel < 0)
-                volumeLevel = 0;
-            if(volumeLevel > 100)
-                volumeLevel = 100;
+            volumeLevel = Math.Clamp(volumeLevel, 0, 100);
 
             int sysVol = -1;
-            try { sysVol = Convert.ToInt32(this.GetVolume() * 100); }
+            try { sysVol = AudioSessionVolume.ToPercent(this.GetVolume()); }
             catch { }
 
             //prevent setting volume in system if the master session already has the same value
             if(sysVol != volumeLevel)
             {
                 //NAudio passes NotificationGuid as the event context of its writes
-                lock(this.audioVolume)
+                lock(this.writeLock)
                 {
                     this.audioVolume.NotificationGuid = context;
                     this.audioVolume.MasterVolumeLevelScalar = volumeLevel / 100.0f;
@@ -54,7 +53,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         /// </summary>
         public void SetMute(bool muteState)
         {
-            lock(this.audioVolume)
+            lock(this.writeLock)
             {
                 this.audioVolume.NotificationGuid = GuidValue.Internal.VolumeGUID;
                 this.audioVolume.Mute = muteState;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -279,14 +279,14 @@ namespace Volumey.Model
 			this._volumeUp = this._volumeDown = null;
 		}
 
-		public void SetVolume(int newValue, bool notify, ref Guid guid)
+		public void SetVolume(int newValue, bool notify, Guid guid)
 		{
 			this.Volume = newValue;
 			if(notify)
 				StateNotificationMediator?.NotifyAudioStateChange(this);
 		}
 
-		public void SetMute(bool newState, bool notify, ref Guid context)
+		public void SetMute(bool newState, bool notify, Guid context)
 		{
 			this.IsMuted = newState;
 			if(notify)
@@ -308,12 +308,12 @@ namespace Volumey.Model
 		private void OnHotkeyPressed(HotKey hotkey)
 		{
 			if(hotkey.Equals(this._volumeUp))
-				this.SetVolume(this.Volume + _hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+				this.SetVolume(this.Volume + _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 			else if(hotkey.Equals(this._volumeDown))
-				this.SetVolume(this.Volume - _hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+				this.SetVolume(this.Volume - _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 		}
 
-		private bool _exitedInvoked;
+		private int _exitedInvoked;
 
 		private void OnProcessExited(object sender, EventArgs e)
 		{
@@ -362,11 +362,11 @@ namespace Volumey.Model
 			});
 		}
 
+		//called from the thread pool (Process.Exited) and the UI thread (last session ended): raise Exited only once
 		private void InvokeExited()
 		{
-			if(_exitedInvoked)
+			if(System.Threading.Interlocked.Exchange(ref _exitedInvoked, 1) == 1)
 				return;
-			_exitedInvoked = true;
 			this.Exited?.Invoke(this);
 		}
 

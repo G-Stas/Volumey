@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -106,7 +106,7 @@ namespace Volumey.Tests
 			
 			//assert
 			//verify the call to external API is made
-			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.Empty), Times.AtLeastOnce);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, GuidValue.Internal.Empty), Times.AtLeastOnce);
 			//simualate callback from external API
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.model.IsMuted));
 			Assert.AreEqual(newVolume, this.model.Volume);
@@ -128,7 +128,7 @@ namespace Volumey.Tests
 			
 			//assert
 			//verify the call to external API is made
-			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, ref GuidValue.Internal.Empty), Times.AtLeastOnce);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(newVolume, GuidValue.Internal.Empty), Times.AtLeastOnce);
 			//simualate callback from external API
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, this.model.IsMuted));
 			Assert.AreEqual(newVolume, this.model.Volume);
@@ -249,7 +249,7 @@ namespace Volumey.Tests
 			hManagerMock.Raise(m => m.HotkeyPressed += null, downHotkey);
 
 			//assert
-			this.sessionVolumeMock.Verify(m => m.SetVolume(volume - SettingsProvider.Settings.General.VolumeStep, ref GuidValue.Internal.VolumeGUID), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(volume - SettingsProvider.Settings.General.VolumeStep, GuidValue.Internal.VolumeGUID), Times.Never);
 			this.sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Once);
 
 			this.mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(volume, !muteState));
@@ -271,8 +271,8 @@ namespace Volumey.Tests
 			
 			//assert
 			//verify increment/decrement volume calls to external API are not made
-			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume + this.hotkeys.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
-			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - this.hotkeys.VolumeStep, ref GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume + this.hotkeys.VolumeStep, GuidValue.Internal.Empty), Times.Never);
+			this.sessionVolumeMock.Verify(m => m.SetVolume(this.model.Volume - this.hotkeys.VolumeStep, GuidValue.Internal.Empty), Times.Never);
 		}
 
 		[TestMethod]

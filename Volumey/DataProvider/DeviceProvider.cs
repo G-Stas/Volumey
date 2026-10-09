@@ -178,33 +178,13 @@ namespace Volumey.DataProvider
 					return;
 				}
 
-				OutputDeviceModel newDefaultDevice = null;
-				try
+				//on the UI thread, the only one that changes ActiveDevices
+				var newDefaultDevice = this.ActiveDevices.FirstOrDefault(device => device.CompareId(deviceId));
+				if(newDefaultDevice != null && this.DefaultDevice != newDefaultDevice)
 				{
-					Monitor.Enter(this.ActiveDevices);
-					foreach(var device in this.ActiveDevices)
-					{
-						if(device.CompareId(deviceId))
-						{
-							newDefaultDevice = device;
-							break;
-						}
-					}
-				}
-				catch
-				{
-					if(this.ActiveDevices.Count > 0)
-						this.DefaultDevice = this.ActiveDevices[0];
-				}
-				finally
-				{
-					Monitor.Exit(this.ActiveDevices);
-					if(newDefaultDevice != null && this.DefaultDevice != newDefaultDevice)
-					{
-						Logger.Info($"Default output device changed: [{newDefaultDevice.Master.DeviceFriendlyName}]");
-						this.DefaultDevice = newDefaultDevice;						
-						this.DefaultDeviceChanged?.Invoke(this.DefaultDevice);
-					}
+					Logger.Info($"Default output device changed: [{newDefaultDevice.Master.DeviceFriendlyName}]");
+					this.DefaultDevice = newDefaultDevice;
+					this.DefaultDeviceChanged?.Invoke(this.DefaultDevice);
 				}
 			});
 		}

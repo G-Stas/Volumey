@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
@@ -76,7 +76,7 @@ namespace Volumey.Model
                         this._volume = 100;
                     else
                         this._volume = value;
-                    this.SetVolume(this._volume, ref GuidValue.Internal.VolumeGUID);
+                    this.SetVolume(this._volume, GuidValue.Internal.VolumeGUID);
                     OnPropertyChanged();
                 }
             }
@@ -230,35 +230,35 @@ namespace Volumey.Model
                 if(hotkey.Equals(this.volumeUp))
                 {
                     if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && this.IsMuted)
-                        this.SetMute(false, notify: false, ref GuidValue.Internal.Empty);
-                    this.SetVolume(this.Volume + this.hotkeys.VolumeStep, notify:true, ref GuidValue.Internal.Empty);
+                        this.SetMute(false, notify: false, GuidValue.Internal.Empty);
+                    this.SetVolume(this.Volume + this.hotkeys.VolumeStep, notify:true, GuidValue.Internal.Empty);
                 }
                 else if(hotkey.Equals(this.volumeDown))
                 {
                     int newValue = this.Volume - this.hotkeys.VolumeStep;
                     if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
                     {
-                        this.SetMute(true, notify: true, ref GuidValue.Internal.Empty);
+                        this.SetMute(true, notify: true, GuidValue.Internal.Empty);
                     }
                     else
-                        this.SetVolume(newValue, notify: true, ref GuidValue.Internal.Empty);
+                        this.SetVolume(newValue, notify: true, GuidValue.Internal.Empty);
                 }
             }
 
             if(this.muteHotkeyRegistered && hotkey.Equals(this.muteKey))
             {
-                this.SetMute(!this._isMuted, notify: true, ref GuidValue.Internal.Empty);
+                this.SetMute(!this._isMuted, notify: true, GuidValue.Internal.Empty);
             }
         }
 
-        public void SetVolume(int newVol, bool notify, ref Guid guid)
+        public void SetVolume(int newVol, bool notify, Guid guid)
         {
-            SetVolume(newVol, ref guid);
+            SetVolume(newVol, guid);
             if(notify)
                 this.StateNotificationMediator?.NotifyAudioStateChange(this);
         }
 
-        public void SetMute(bool muteState, bool notify, ref Guid context)
+        public void SetMute(bool muteState, bool notify, Guid context)
         {
             SetMute(muteState, context);
             if(notify)
@@ -266,13 +266,12 @@ namespace Volumey.Model
         }
         
         
-        private void SetVolume(int newVol, ref Guid context)
+        //only writes; the public overloads notify (when asked to). Notifying here as well showed the OSD twice for every hotkey press
+        private void SetVolume(int newVol, Guid context)
         {
             try
             {
-                this.masterVolume?.SetVolume(newVol, ref context);
-                if(!context.Equals(GuidValue.Internal.VolumeGUID))
-                    this.StateNotificationMediator?.NotifyAudioStateChange(this);
+                this.masterVolume?.SetVolume(newVol, context);
             }
             catch(COMException com)
             {
@@ -288,9 +287,7 @@ namespace Volumey.Model
         {
             try
             {
-                this.masterVolume?.SetMute(muteState); 
-                if(!context.Equals(GuidValue.Internal.VolumeGUID))
-                    this.StateNotificationMediator?.NotifyAudioStateChange(this);
+                this.masterVolume?.SetMute(muteState);
             }
             catch(COMException com)
             {
