@@ -17,8 +17,8 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   3. `chore/code-cleanup`: a warning-free build, the in-repo `ObservableConcurrentDictionary`, Store package build fixes, manifest languages, and a CI workflow file (inactive, since nothing is pushed).
   4. `feature/naudio`: the audio layer on NAudio.Wasapi 3.1.0 (item A), including a fix for a hang when a device is disabled.
 - Validated on `release/2.0`: Release build, 168/168 unit tests and 8/8 audio integration tests, the Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`), and dev runs: mixer, settings pages, settings saved through the UI, app and device hotkey lists; app and device volume and mute in both directions (app ↔ Windows) with fast slider sweeps (no jump back); disabling and re-enabling a device; device rename; switching the default device from the app and from Windows.
-- **Not yet verified at runtime on 2.0:** hotkeys, OSD popups, the tray menu, autostart, and an installed MSIX.
-- **Current work (owner, 2026-10-09):** item E (fewer statics) is done; next is checking the parts not yet verified at runtime on 2.0 (OSD popups, tray menu, autostart, installed MSIX). The tray icon (item F) moves into the UI redesign (item C). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
+- **Verified at runtime on 2.0 (2026-10-09):** hotkeys in both modes (owner), OSD popup on an external app volume change, non-Store autostart and Start Menu toggles (dev entries), starting minimized. **Not yet verified:** the tray menu (the icon sits in the hidden-icons overflow, which can't be opened safely by automation) and an installed MSIX (including the Store startup task); both need the owner.
+- **Current work (owner, 2026-10-09):** item E (fewer statics) is done; runtime checks of 2.0 are mostly done, the tray menu and an installed MSIX are left (see above). The tray icon (item F) moves into the UI redesign (item C). Item D (non-blocking hotkeys through SharpHook) is merged; the owner checked real hotkeys in both modes (keys reach other apps only when blocking is off) and switching modes with a hotkey registered.
 - Item G (more tests) layers 1–3 are done; layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ## Branching (decided 2026-10-08)
@@ -52,7 +52,7 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
                          AudioSessionProvider, *Notifications/*Handler (NAudio events -> C# events), SessionEchoFilter,
                          DeviceFormat, PolicyClient, GuidValue
   Services/              AppServices (composition root) + IAppShell, INotificationService, ISystemIntegration and their app implementations
-  DataProvider/          DeviceProvider (singleton, active/default devices), SettingsProvider (settings store access),
+  DataProvider/          DeviceProvider (active/default devices, created by AppServices), SettingsProvider (settings store access),
                          Settings/ (settings.json via Nucs.JsonSettings: VolumeySettings + sections, legacy 1.x importer),
                          ScreenInfoProvider
   Model/                 OutputDeviceModel, MasterSessionModel, AudioProcessModel, AudioSessionModel, SystemHotkey, ScreenInfo
@@ -244,7 +244,7 @@ The owner is coming back to the project to work through the GitHub issues and mo
 Each step should leave a working, shippable build.
 1. ~~Universal tests + green baseline (item E).~~ Done: MSTest.
 2. ~~Retarget to **.NET 10**~~. Done (2026-10-08): the app and tests are on `net10.0-windows10.0.19041.0`, and the Store MSIX builds. .NET 10 is LTS, supported until Nov 2028. Don't target .NET 11 until it ships as stable, and only move to it if the owner asks.
-   - **Verified (2026-10-08, Debug build):** startup, mixer, settings pages, theme, update check, and settings save through the UI. **Still to verify:** hotkeys, OSD popups, autostart, the tray menu, and the installed MSIX. The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET.
+   - **Verified (2026-10-08/09, Debug build):** startup, mixer, settings pages, theme, update check, settings save through the UI, hotkeys, OSD popups, non-Store autostart, starting minimized. **Still to verify:** the tray menu and the installed MSIX. The vendored DLLs and ModernWpfUI 0.9.4 were built for older .NET.
    - ~~Code cleanup~~ Done (2026-10-08): no compiler warnings, the .NET Framework-only package replaced, package build fixes, manifest languages.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
