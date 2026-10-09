@@ -10,7 +10,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Navigation;
-using Hardcodet.Wpf.TaskbarNotification;
+using H.NotifyIcon;
 using Volumey.Helper;
 using Volumey.ViewModel;
 using log4net;
@@ -47,6 +47,9 @@ namespace Volumey.View
 
         private ScreenInfo SelectedScreen => (ScreenInfo)GetValue(SelectedScreenProperty);
 
+        private static readonly DependencyProperty TrayIconImageProperty = DependencyProperty.Register("TrayIconImage", typeof(System.Drawing.Icon), typeof(MainView), new PropertyMetadata(OnTrayIconImageChanged));
+        private static readonly DependencyProperty TrayToolTipTextProperty = DependencyProperty.Register("TrayToolTipText", typeof(string), typeof(MainView), new PropertyMetadata(OnTrayToolTipTextChanged));
+
         private Action<int> HotkeyMessageHandler;
         private ILog logger;
         private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
@@ -79,7 +82,7 @@ namespace Volumey.View
             if(this.DataContext is AppBehaviorViewModel vm)
 	            vm.DisplayAppRequested += ActivateIfLoaded;
             
-            SetTrayIconTooltip();
+            SetUpTrayIcon();
             SetControlsNameScope();
             SetBindings();
 
@@ -108,8 +111,6 @@ namespace Volumey.View
 				NameScope.SetNameScope(this.Tray.ContextMenu, nameScope);
 			if(TryFindResource("TextControlContextMenu") is ContextMenu cm)
 				NameScope.SetNameScope(cm, nameScope);
-			if(this.Tray.TrayToolTip is ToolTip tooltip)
-				NameScope.SetNameScope(tooltip, nameScope);
 		}
 
 		private void SetBindings()
@@ -125,19 +126,46 @@ namespace Volumey.View
 			BindingOperations.SetBinding(this, SelectedScreenProperty, displayBinding);
 		}
 
-		private void SetTrayIconTooltip()
+		private void SetUpTrayIcon()
 		{
-			if(UpdateHelper.IsWindows11())
+			//The icon and the tooltip go straight to the shell icon instead of the TaskbarIcon properties:
+			//TaskbarIcon.Icon disposes the previous icon, but the icons come from a cache (or belong to the device model),
+			//and a failed shell call throws, which mustn't crash the app (e.g. while Explorer restarts).
+			//The tooltip is the native text tooltip on every Windows version (a custom WPF tooltip got stuck on Windows 10, #65, #91)
+			BindingOperations.SetBinding(this, TrayIconImageProperty, (MultiBinding)TryFindResource("TrayIconBinding"));
+			BindingOperations.SetBinding(this, TrayToolTipTextProperty, (MultiBinding)TryFindResource("TrayTextTooltip"));
+
+			//TaskbarIcon creates itself on Loaded, but the window starts hidden, so it may never load.
+			//Efficiency mode stays off: it would throttle hotkeys and audio callbacks
+			UpdateTrayIcon(tray => tray.ForceCreate(enablesEfficiencyMode: false), "create");
+		}
+
+		private static void OnTrayIconImageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			var icon = e.NewValue as System.Drawing.Icon;
+			((MainView)d).UpdateTrayIcon(tray =>
 			{
-				//Since custom tooltip style for TrayIcon isn't working on Windows 11
-				//We are using default tooltip style and bind its text property to current device data
-				var tooltipTextBinding = (MultiBinding)TryFindResource("TrayTextTooltip");
-				BindingOperations.SetBinding(this.Tray, TaskbarIcon.ToolTipTextProperty, tooltipTextBinding);
+				if(!tray.UpdateIcon(icon))
+					throw new InvalidOperationException("Shell_NotifyIcon failed");
+			}, "update the icon of");
+		}
+
+		private static void OnTrayToolTipTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			var text = e.NewValue as string ?? string.Empty;
+			((MainView)d).UpdateTrayIcon(tray => tray.TrayIcon.UpdateToolTip(text), "update the tooltip of");
+		}
+
+		private void UpdateTrayIcon(Action<TaskbarIcon> update, string action)
+		{
+			try
+			{
+				update(this.Tray);
 			}
-			else
-			{ 
-				var tooltip = (ToolTip)TryFindResource("TrayCustomTooltip");
-				this.Tray.TrayToolTip = tooltip;
+			catch(Exception e) when(e is InvalidOperationException or ObjectDisposedException or Win32Exception)
+			{
+				//the icon is created again with the last icon and tooltip when the taskbar comes back
+				Logger.Warn($"Failed to {action} the tray icon", e);
 			}
 		}
 

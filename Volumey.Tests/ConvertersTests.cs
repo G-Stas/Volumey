@@ -200,20 +200,6 @@ namespace Volumey.Tests
 		}
 
 		[TestMethod]
-		public void TrayTooltipPartsShowNameAndVolume()
-		{
-			var name = new TrayTooltipDeviceNameConverter();
-			var volume = new TrayTooltipDeviceVolumeConverter();
-			string muted = TranslationSource.Instance[TranslationSource.MutedCaptionKey];
-
-			Assert.AreEqual("Speakers: ", Convert(name, false, "Speakers"));
-			Assert.AreEqual(TranslationSource.Instance[TranslationSource.NoDeviceCaptionKey], Convert(name, true, "Speakers"));
-			Assert.AreEqual("42%", Convert(volume, false, CreateMaster("Speakers", 42, false)));
-			Assert.AreEqual(muted, Convert(volume, false, CreateMaster("Speakers", 42, true)));
-			Assert.AreEqual(string.Empty, Convert(volume, true, null));
-		}
-
-		[TestMethod]
 		public void TrayIconShowsTheDeviceIconWhenEnabled()
 		{
 			var converter = new TrayIconConverter();
