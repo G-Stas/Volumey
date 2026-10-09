@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using Volumey.Model;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public interface IDeviceEnumerator
 {
-	public interface IDeviceEnumerator
-	{
-		uint GetDeviceCount();
+	uint GetDeviceCount();
 
-		string GetDefaultDeviceId();
+	string GetDefaultDeviceId();
 
-		List<OutputDeviceModel> GetCurrentActiveDevices(IDeviceStateNotificationHandler dsn);
+	List<OutputDeviceModel> GetCurrentActiveDevices(IDeviceStateNotificationHandler dsn);
 
-		/// <summary>
-		/// Builds a new model of an active output device from fresh Windows objects. Null if it isn't an active output device or reading it failed.
-		/// </summary>
-		OutputDeviceModel CreateDeviceModel(string deviceId, IDeviceStateNotificationHandler dsn);
-	}
+	/// <summary>
+	/// Builds a new model of an active output device from fresh Windows objects. Null if it isn't an active output device or reading it failed.
+	/// </summary>
+	OutputDeviceModel CreateDeviceModel(string deviceId, IDeviceStateNotificationHandler dsn);
 }

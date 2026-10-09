@@ -2,20 +2,19 @@
 using System.Drawing;
 using System.Windows.Media;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public interface IDevice : IDisposable
 {
-	public interface IDevice : IDisposable
-	{
-		string GetId();
+	string GetId();
 
-		string GetFriendlyName();
+	string GetFriendlyName();
 
-		string GetDeviceDesc();
+	string GetDeviceDesc();
 
-		ImageSource GetIconSource();
+	ImageSource GetIconSource();
 
-		Icon GetIcon();
+	Icon GetIcon();
 
-		DeviceFormat? GetDeviceFormat();
-	}
+	DeviceFormat? GetDeviceFormat();
 }

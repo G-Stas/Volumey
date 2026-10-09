@@ -1,10 +1,9 @@
-﻿namespace Volumey.View.SettingsPage
+﻿namespace Volumey.View.SettingsPage;
+
+public partial class DeviceVolumeHotkeysPage
 {
-	public partial class DeviceVolumeHotkeysPage
+	public DeviceVolumeHotkeysPage()
 	{
-		public DeviceVolumeHotkeysPage()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

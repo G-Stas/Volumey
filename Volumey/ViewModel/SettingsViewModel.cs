@@ -9,126 +9,125 @@ using Volumey.Helper;
 using Volumey.Services;
 using Volumey.ViewModel.Settings;
 
-namespace Volumey.ViewModel
+namespace Volumey.ViewModel;
+
+sealed class SettingsViewModel : INotifyPropertyChanged
 {
-    sealed class SettingsViewModel : INotifyPropertyChanged
-    {
-        public DeviceVolumeHotkeysViewModel DeviceVolumeHotkeysViewModel { get; }
-        public AppsHotkeysViewModel HotkeysViewModel { get; }
-        public OpenHotkeyViewModel OpenHotkeyViewModel { get; }
-        public VolumeLimitViewModel VolumeLimitViewModel { get; }
-        public AppVolumeSyncViewModel AppVolumeSyncViewModel { get; }
-        public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
-        public NotificationViewModel NotificationsViewModel { get; }
-        public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
-        public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
-        public LangSettings LangSettings { get; }
-        public ICommand GitHubCommand { get; }
-        public ICommand TipCommand { get; }
+	public DeviceVolumeHotkeysViewModel DeviceVolumeHotkeysViewModel { get; }
+	public AppsHotkeysViewModel HotkeysViewModel { get; }
+	public OpenHotkeyViewModel OpenHotkeyViewModel { get; }
+	public VolumeLimitViewModel VolumeLimitViewModel { get; }
+	public AppVolumeSyncViewModel AppVolumeSyncViewModel { get; }
+	public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
+	public NotificationViewModel NotificationsViewModel { get; }
+	public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
+	public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
+	public LangSettings LangSettings { get; }
+	public ICommand GitHubCommand { get; }
+	public ICommand TipCommand { get; }
 
-        public Tuple<string, string> TipSource { get; } = new Tuple<string, string>("Boosty", "https://boosty.to/stasg");
+	public Tuple<string, string> TipSource { get; } = new Tuple<string, string>("Boosty", "https://boosty.to/stasg");
 
-        private IntPtr windowHandle;
-        
-        private bool blockHotkeysInSystem;
-        /// <summary>
-        /// True: hotkeys block their keys system-wide (RegisterHotKey). False: a keyboard hook only listens.
-        /// Changing it moves the registered hotkeys to the other hotkey manager.
-        /// </summary>
-        public bool BlockHotkeysInSystem
-        {
-            get => this.blockHotkeysInSystem;
-            set
-            {
-                if(this.blockHotkeysInSystem == value)
-                    return;
-                this.blockHotkeysInSystem = value;
-                SettingsProvider.Settings.Hotkeys.BlockInSystem = value;
-                SetupHotkeyManager();
-                OnPropertyChanged();
-            }
-        }
-        private readonly IHotkeyService hotkeys;
+	private IntPtr windowHandle;
 
-        public SettingsViewModel() : this(AppServices.Current) { }
+	private bool blockHotkeysInSystem;
+	/// <summary>
+	/// True: hotkeys block their keys system-wide (RegisterHotKey). False: a keyboard hook only listens.
+	/// Changing it moves the registered hotkeys to the other hotkey manager.
+	/// </summary>
+	public bool BlockHotkeysInSystem
+	{
+		get => blockHotkeysInSystem;
+		set
+		{
+			if(blockHotkeysInSystem == value)
+				return;
+			blockHotkeysInSystem = value;
+			SettingsProvider.Settings.Hotkeys.BlockInSystem = value;
+			SetupHotkeyManager();
+			OnPropertyChanged();
+		}
+	}
+	private readonly IHotkeyService hotkeys;
 
-        internal SettingsViewModel(AppServices services)
-        {
-            this.hotkeys = services.Hotkeys;
-            var devices = services.Devices;
-            var notifications = services.Notifications;
-            this.LangSettings = new LangSettings();
-            this.HotkeysViewModel = new AppsHotkeysViewModel(devices, this.hotkeys, notifications);
-            this.DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel(devices, this.hotkeys, notifications);
-            this.OpenHotkeyViewModel = new OpenHotkeyViewModel(this.hotkeys);
-            this.VolumeLimitViewModel = new VolumeLimitViewModel(devices);
-            this.AppVolumeSyncViewModel = new AppVolumeSyncViewModel(devices);
-            this.DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel(devices, this.hotkeys);
-            this.ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, this.hotkeys, notifications);
-            this.NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
-            this.SystemHotkeysViewModel = new SystemHotkeysViewModel(this.hotkeys);
-            this.GitHubCommand = new ActionCommand(async () => await OpenWebPage("https://github.com/G-Stas/Volumey"));
-            this.TipCommand = new ActionCommand(async (param) => await OpenWebPage(param as string));
+	public SettingsViewModel() : this(AppServices.Current) { }
 
-            this.blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;
-        }
+	internal SettingsViewModel(AppServices services)
+	{
+		hotkeys = services.Hotkeys;
+		var devices = services.Devices;
+		var notifications = services.Notifications;
+		LangSettings = new LangSettings();
+		HotkeysViewModel = new AppsHotkeysViewModel(devices, hotkeys, notifications);
+		DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel(devices, hotkeys, notifications);
+		OpenHotkeyViewModel = new OpenHotkeyViewModel(hotkeys);
+		VolumeLimitViewModel = new VolumeLimitViewModel(devices);
+		AppVolumeSyncViewModel = new AppVolumeSyncViewModel(devices);
+		DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel(devices, hotkeys);
+		ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, hotkeys, notifications);
+		NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
+		SystemHotkeysViewModel = new SystemHotkeysViewModel(hotkeys);
+		GitHubCommand = new ActionCommand(async () => await OpenWebPage("https://github.com/G-Stas/Volumey"));
+		TipCommand = new ActionCommand(async (param) => await OpenWebPage(param as string));
 
-        /// <summary>
-        /// Receives window handle from main view which is required for creating one of the hotkey managers.
-        /// </summary>
-        /// <param name="handle">Window handle</param>
-        public void SetWindowHandle(IntPtr handle)
-        {
-            if(this.windowHandle != IntPtr.Zero)
-                return;
-            this.windowHandle = handle;
-            SetupHotkeyManager();
-        }
+		blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;
+	}
 
-        private Action<int> HotkeyManagerMessageHandler;
+	/// <summary>
+	/// Receives window handle from main view which is required for creating one of the hotkey managers.
+	/// </summary>
+	/// <param name="handle">Window handle</param>
+	public void SetWindowHandle(IntPtr handle)
+	{
+		if(windowHandle != IntPtr.Zero)
+			return;
+		windowHandle = handle;
+		SetupHotkeyManager();
+	}
 
-        public Action<int> GetHotkeyMessageHandler()
-            => this.WindowsHotkeyMessageHandlerBridge;
+	private Action<int> HotkeyManagerMessageHandler;
 
-        /// <summary>
-        /// Passes window hotkey messages from main view to hotkey manager.
-        /// </summary>
-        /// <param name="lParam">Contains pressed hotkey data.</param>
-        private void WindowsHotkeyMessageHandlerBridge(int lParam)
-        {
-            this.HotkeyManagerMessageHandler?.Invoke(lParam);
-        }
+	public Action<int> GetHotkeyMessageHandler()
+		=> WindowsHotkeyMessageHandlerBridge;
 
-        private void SetupHotkeyManager()
-        {
-            //the blocking manager needs the window handle, which the main view passes on startup
-            if(this.windowHandle == IntPtr.Zero)
-                return;
-            IHotkeyManager manager;
-            if(this.blockHotkeysInSystem)
-            {
-                var hotkeyManager = new HotkeyManager(this.windowHandle);
-                this.HotkeyManagerMessageHandler = hotkeyManager.GetMessageHandler();
-                manager = hotkeyManager;
-            }
-            else
-            {
-                this.HotkeyManagerMessageHandler = null;
-                manager = new SharpHookHotkeyManager();
-            }
-            this.hotkeys.SetHotkeyManager(manager);
-        }
-        private async Task OpenWebPage(string url)
-        {
-            if(string.IsNullOrEmpty(url))
-                return;
-            try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
-            catch { }
-        }
+	/// <summary>
+	/// Passes window hotkey messages from main view to hotkey manager.
+	/// </summary>
+	/// <param name="lParam">Contains pressed hotkey data.</param>
+	private void WindowsHotkeyMessageHandlerBridge(int lParam)
+	{
+		HotkeyManagerMessageHandler?.Invoke(lParam);
+	}
 
-        public event PropertyChangedEventHandler PropertyChanged;
+	private void SetupHotkeyManager()
+	{
+		//the blocking manager needs the window handle, which the main view passes on startup
+		if(windowHandle == IntPtr.Zero)
+			return;
+		IHotkeyManager manager;
+		if(blockHotkeysInSystem)
+		{
+			var hotkeyManager = new HotkeyManager(windowHandle);
+			HotkeyManagerMessageHandler = hotkeyManager.GetMessageHandler();
+			manager = hotkeyManager;
+		}
+		else
+		{
+			HotkeyManagerMessageHandler = null;
+			manager = new SharpHookHotkeyManager();
+		}
+		hotkeys.SetHotkeyManager(manager);
+	}
+	private async Task OpenWebPage(string url)
+	{
+		if(string.IsNullOrEmpty(url))
+			return;
+		try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
+		catch { }
+	}
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

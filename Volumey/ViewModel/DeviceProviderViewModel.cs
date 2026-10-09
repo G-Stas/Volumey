@@ -7,125 +7,124 @@ using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.Services;
 
-namespace Volumey.ViewModel
+namespace Volumey.ViewModel;
+
+public class DeviceProviderViewModel : INotifyPropertyChanged
 {
-    public class DeviceProviderViewModel : INotifyPropertyChanged
-    {
-        private OutputDeviceModel selectedDevice;
-        public OutputDeviceModel SelectedDevice
-        {
-            get => selectedDevice;
-            set
-            {
-                selectedDevice = value;
-                OnPropertyChanged();
-            }
-        }
-        
-        private OutputDeviceModel defaultDevice;
-        public OutputDeviceModel DefaultDevice
-        {
-            get => defaultDevice;
-            set
-            {
-                defaultDevice = value;
-                OnPropertyChanged();
-            }
-        }
-        
-        public IDeviceProvider DeviceProvider { get; }
+	private OutputDeviceModel selectedDevice;
+	public OutputDeviceModel SelectedDevice
+	{
+		get => selectedDevice;
+		set
+		{
+			selectedDevice = value;
+			OnPropertyChanged();
+		}
+	}
 
-        private Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
-        
-        public DeviceProviderViewModel() : this(AppServices.Current.Devices, AppServices.Current.Shell) { }
+	private OutputDeviceModel defaultDevice;
+	public OutputDeviceModel DefaultDevice
+	{
+		get => defaultDevice;
+		set
+		{
+			defaultDevice = value;
+			OnPropertyChanged();
+		}
+	}
 
-        internal DeviceProviderViewModel(IDeviceProvider deviceProvider, IAppShell shell)
-        {
-            this.DeviceProvider = deviceProvider;
-            this.DeviceProvider.DeviceDisabled += OnDeviceDisabled;
-            this.DeviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
-            this.DeviceProvider.DeviceReplaced += OnDeviceReplaced;
+	public IDeviceProvider DeviceProvider { get; }
 
-            if(!this.DeviceProvider.NoOutputDevices)
-                this.SelectedDevice = this.DefaultDevice = this.DeviceProvider.DefaultDevice;
+	private Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-            shell.Exit += () => this.DeviceProvider.Dispose();
+	public DeviceProviderViewModel() : this(AppServices.Current.Devices, AppServices.Current.Shell) { }
 
-            this.SetDefaultDeviceCommand = new ActionCommand(() =>
-            {
-                if(this.SelectedDevice == null)
-                    return;
-                this.DeviceProvider.SetDefaultDevice(this.SelectedDevice.Id);
-            });
-            
-            this.SetDefaultDeviceTrayCommand = new ActionCommand((param) =>
-            {
-                if(param is OutputDeviceModel model)
-                    SetAsDefaultDevice(model.Id);
-            });
-        }
+	internal DeviceProviderViewModel(IDeviceProvider deviceProvider, IAppShell shell)
+	{
+		DeviceProvider = deviceProvider;
+		DeviceProvider.DeviceDisabled += OnDeviceDisabled;
+		DeviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
+		DeviceProvider.DeviceReplaced += OnDeviceReplaced;
 
-        private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
-        {
-            //update default device property and selected device property if default device was the selected device in app
-            dispatcher.Invoke(() =>
-            {
-                if(this.SelectedDevice == this.defaultDevice)
-                {
-                    this.SelectedDevice = this.DefaultDevice = newDevice;
-                    return;
-                }
-                this.DefaultDevice = newDevice;
-            });
-        }
+		if(!DeviceProvider.NoOutputDevices)
+			SelectedDevice = DefaultDevice = DeviceProvider.DefaultDevice;
 
-        private void OnDeviceReplaced(OutputDeviceModel oldDevice, OutputDeviceModel newDevice)
-        {
-            //the default device is handled by OnDefaultDeviceChanged, which comes first
-            dispatcher.Invoke(() =>
-            {
-                if(this.SelectedDevice == oldDevice)
-                    this.SelectedDevice = newDevice;
-            });
-        }
+		shell.Exit += () => DeviceProvider.Dispose();
 
-        private void OnDeviceDisabled(OutputDeviceModel device)
-        {
-            dispatcher.Invoke(() =>
-            {
-                if(this.SelectedDevice == device)
-                {
-                    if(device != defaultDevice)
-                        this.SelectedDevice = DefaultDevice;
-                    
-                    //set both properties to null
-                    //if defaultDevice was the selected device in application
-                    //and OnDeviceProviderPropertyChanged event handler will set reference of a new default device object to both properties
-                    else
-                        this.SelectedDevice = this.DefaultDevice = null;
-                }
-            });
-        }
+		SetDefaultDeviceCommand = new ActionCommand(() =>
+		{
+			if(SelectedDevice == null)
+				return;
+			DeviceProvider.SetDefaultDevice(SelectedDevice.Id);
+		});
 
-        public ICommand SetDefaultDeviceCommand { get; }
-        public ICommand SetDefaultDeviceTrayCommand { get; }
+		SetDefaultDeviceTrayCommand = new ActionCommand((param) =>
+		{
+			if(param is OutputDeviceModel model)
+				SetAsDefaultDevice(model.Id);
+		});
+	}
 
-        private void SetAsDefaultDevice(string deviceId)
-        {
-            if(string.IsNullOrEmpty(deviceId))
-                return;
+	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	{
+		//update default device property and selected device property if default device was the selected device in app
+		dispatcher.Invoke(() =>
+		{
+			if(SelectedDevice == defaultDevice)
+			{
+				SelectedDevice = DefaultDevice = newDevice;
+				return;
+			}
+			DefaultDevice = newDevice;
+		});
+	}
 
-            if(DeviceProvider.DefaultDevice != null && DeviceProvider.DefaultDevice.CompareId(deviceId))
-                return;
+	private void OnDeviceReplaced(OutputDeviceModel oldDevice, OutputDeviceModel newDevice)
+	{
+		//the default device is handled by OnDefaultDeviceChanged, which comes first
+		dispatcher.Invoke(() =>
+		{
+			if(SelectedDevice == oldDevice)
+				SelectedDevice = newDevice;
+		});
+	}
 
-            this.DeviceProvider.SetDefaultDevice(deviceId);
-        }
+	private void OnDeviceDisabled(OutputDeviceModel device)
+	{
+		dispatcher.Invoke(() =>
+		{
+			if(SelectedDevice == device)
+			{
+				if(device != defaultDevice)
+					SelectedDevice = DefaultDevice;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+				//set both properties to null
+				//if defaultDevice was the selected device in application
+				//and OnDeviceProviderPropertyChanged event handler will set reference of a new default device object to both properties
+				else
+					SelectedDevice = DefaultDevice = null;
+			}
+		});
+	}
 
-        private void OnPropertyChanged([CallerMemberName] string prop = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
-        }
-    }
+	public ICommand SetDefaultDeviceCommand { get; }
+	public ICommand SetDefaultDeviceTrayCommand { get; }
+
+	private void SetAsDefaultDevice(string deviceId)
+	{
+		if(string.IsNullOrEmpty(deviceId))
+			return;
+
+		if(DeviceProvider.DefaultDevice != null && DeviceProvider.DefaultDevice.CompareId(deviceId))
+			return;
+
+		DeviceProvider.SetDefaultDevice(deviceId);
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string prop = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+	}
 }

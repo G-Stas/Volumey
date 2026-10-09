@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public interface IMasterVolumeNotificationHandler : IDisposable
 {
-	public interface IMasterVolumeNotificationHandler : IDisposable
-	{
-		event Action<VolumeChangedEventArgs> VolumeChanged;
-	}
+	event Action<VolumeChangedEventArgs> VolumeChanged;
 }

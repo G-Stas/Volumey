@@ -1,10 +1,9 @@
-﻿namespace Volumey.View.SettingsPage
+﻿namespace Volumey.View.SettingsPage;
+
+public partial class MixerSettingsPage
 {
-	public partial class MixerSettingsPage
+	public MixerSettingsPage()
 	{
-		public MixerSettingsPage()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

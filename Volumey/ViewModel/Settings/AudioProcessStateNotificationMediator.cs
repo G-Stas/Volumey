@@ -3,33 +3,32 @@ using System.Windows.Threading;
 using Volumey.Model;
 using Volumey.Services;
 
-namespace Volumey.ViewModel.Settings
+namespace Volumey.ViewModel.Settings;
+
+public class AudioProcessStateNotificationMediator : IAudioProcessStateMediator
 {
-	public class AudioProcessStateNotificationMediator : IAudioProcessStateMediator
+	private static Dispatcher UiDispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
+	private readonly INotificationService notifications;
+
+	public AudioProcessStateNotificationMediator(INotificationService notifications)
 	{
-		private static Dispatcher UiDispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+		this.notifications = notifications;
+	}
 
-		private readonly INotificationService notifications;
-
-		public AudioProcessStateNotificationMediator(INotificationService notifications)
+	public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
+	{
+		UiDispatcher.InvokeAsync(() =>
 		{
-			this.notifications = notifications;
-		}
+			notifications.ShowNotification(sender);
+		});
+	}
 
-		public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
+	public void NotifyOfDisposing(IManagedMasterAudioSession sender)
+	{
+		UiDispatcher.InvokeAsync(() =>
 		{
-			UiDispatcher.InvokeAsync(() =>
-			{
-				this.notifications.ShowNotification(sender);
-			});
-		}
-
-		public void NotifyOfDisposing(IManagedMasterAudioSession sender)
-		{
-			UiDispatcher.InvokeAsync(() =>
-			{
-				this.notifications.CloseNotification(sender);
-			});
-		}
+			notifications.CloseNotification(sender);
+		});
 	}
 }

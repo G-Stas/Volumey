@@ -1,15 +1,14 @@
 using System;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public interface IAudioSessionVolume
 {
-	public interface IAudioSessionVolume
-	{
-		float GetVolume();
+	float GetVolume();
 
-		void SetVolume(int newVolume, Guid context);
+	void SetVolume(int newVolume, Guid context);
 
-		bool GetMute();
+	bool GetMute();
 
-		void SetMute(bool newState);
-	}
+	void SetMute(bool newState);
 }

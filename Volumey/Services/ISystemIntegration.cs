@@ -1,20 +1,19 @@
-﻿namespace Volumey.Services
+﻿namespace Volumey.Services;
+
+/// <summary>
+/// Autostart and the Start Menu shortcut of the non-Store build (the Store build uses the manifest's startup task).
+/// </summary>
+public interface ISystemIntegration
 {
-	/// <summary>
-	/// Autostart and the Start Menu shortcut of the non-Store build (the Store build uses the manifest's startup task).
-	/// </summary>
-	public interface ISystemIntegration
-	{
-		bool LaunchesAtStartup();
+	bool LaunchesAtStartup();
 
-		bool EnableLaunchAtStartup();
+	bool EnableLaunchAtStartup();
 
-		void DisableLaunchAtStartup();
+	void DisableLaunchAtStartup();
 
-		bool IsInStartMenu();
+	bool IsInStartMenu();
 
-		bool AddToStartMenu();
+	bool AddToStartMenu();
 
-		void RemoveFromStartMenu();
-	}
+	void RemoveFromStartMenu();
 }

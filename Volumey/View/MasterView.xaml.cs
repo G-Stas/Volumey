@@ -1,10 +1,9 @@
-﻿namespace Volumey.View
+﻿namespace Volumey.View;
+
+public partial class MasterView
 {
-	public partial class MasterView
+	public MasterView()
 	{
-		public MasterView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

@@ -1,10 +1,9 @@
-﻿namespace Volumey.View
+﻿namespace Volumey.View;
+
+public partial class SessionsListView
 {
-	public partial class SessionsListView
+	public SessionsListView()
 	{
-		public SessionsListView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

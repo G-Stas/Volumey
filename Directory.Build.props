@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Report the code style rules from .editorconfig (file-scoped namespaces, no this., usings outside the namespace) in the build -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>
