@@ -26,7 +26,6 @@ namespace Volumey.Tests.ViewModels
 		{
 			this.screens = new Mock<IScreenInfoProvider>();
 			this.screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary, Second });
-			this.screens.Setup(m => m.GetPrimaryScreenInfo()).Returns(Primary);
 			this.shell = new Mock<IAppShell>();
 			this.systemIntegration = new Mock<ISystemIntegration>();
 		}
@@ -44,7 +43,7 @@ namespace Volumey.Tests.ViewModels
 			this.Settings.Notifications.VerticalIndent = 40;
 			this.Settings.Notifications.HorizontalIndent = 30;
 			this.Settings.Notifications.DisplayTimeSeconds = 5;
-			this.Settings.Notifications.ScreenIndex = 1;
+			this.Settings.Notifications.ScreenName = Second.Name;
 
 			var vm = CreateNotifications();
 
@@ -59,14 +58,65 @@ namespace Volumey.Tests.ViewModels
 		}
 
 		[TestMethod]
-		public void UnknownScreenFallsBackToThePrimaryOne()
+		public void MissingScreenFallsBackToThePrimaryOneAndStaysRemembered()
 		{
-			this.Settings.Notifications.ScreenIndex = 7;
+			//#92: e.g. a monitor that turns on after the app has started
+			this.Settings.Notifications.ScreenName = @".//DISPLAY3";
+			this.Settings.Window.ScreenName = @".//DISPLAY3";
 
-			var vm = CreateNotifications();
+			var notifications = CreateNotifications();
+			var window = CreateAppBehavior();
 
+			Assert.AreEqual(Primary, notifications.SelectedScreen);
+			Assert.AreEqual(Primary, window.SelectedScreen);
+			Assert.AreEqual(@".//DISPLAY3", this.Settings.Notifications.ScreenName);
+			Assert.AreEqual(@".//DISPLAY3", this.Settings.Window.ScreenName);
+			this.Notifications.Verify(m => m.SetWindowWorkArea(Primary.WorkingAreaLeft, Primary.WorkingAreaTop, Primary.Width, Primary.Height));
+		}
+
+		[TestMethod]
+		public void TheWindowMovesToTheRememberedScreenWhenItConnects()
+		{
+			this.Settings.Window.ScreenName = Second.Name;
+			this.screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary });
+			this.shell.Setup(m => m.Dispatcher).Returns(StartDispatcherThread());
+			var vm = CreateAppBehavior();
 			Assert.AreEqual(Primary, vm.SelectedScreen);
-			Assert.AreEqual(0, this.Settings.Notifications.ScreenIndex);
+
+			this.screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary, Second });
+			vm.LoadedCommand.Execute(null);
+
+			WaitFor(() => vm.SelectedScreen.Equals(Second), "the window didn't move to the remembered screen");
+			Assert.HasCount(2, vm.AllScreens);
+		}
+
+		[TestMethod]
+		public void AnEmptyScreenFromTheComboBoxIsIgnored()
+		{
+			this.Settings.Window.ScreenName = Second.Name;
+			var vm = CreateAppBehavior();
+
+			//a combo box writes back an empty item while its list is replaced
+			vm.SelectedScreen = default;
+
+			Assert.AreEqual(Second, vm.SelectedScreen);
+			Assert.AreEqual(Second.Name, this.Settings.Window.ScreenName);
+		}
+
+		private static System.Windows.Threading.Dispatcher StartDispatcherThread()
+		{
+			System.Windows.Threading.Dispatcher dispatcher = null;
+			using var started = new System.Threading.ManualResetEventSlim();
+			var thread = new System.Threading.Thread(() =>
+			{
+				dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
+				started.Set();
+				System.Windows.Threading.Dispatcher.Run();
+			}) { IsBackground = true };
+			thread.SetApartmentState(System.Threading.ApartmentState.STA);
+			thread.Start();
+			started.Wait();
+			return dispatcher;
 		}
 
 		[TestMethod]
@@ -162,7 +212,7 @@ namespace Volumey.Tests.ViewModels
 			Assert.IsTrue(this.Settings.Window.AlwaysOnTop);
 			Assert.IsTrue(this.Settings.Window.DeviceViewAtTheBottom);
 			Assert.IsTrue(this.Settings.Window.DisplayDeviceIconAtTray);
-			Assert.AreEqual(1, this.Settings.Window.ScreenIndex);
+			Assert.AreEqual(Second.Name, this.Settings.Window.ScreenName);
 			Assert.IsTrue(vm.DisplayMinimalistic);
 		}
 

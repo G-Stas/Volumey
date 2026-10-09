@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Volumey.Model
 {
@@ -55,6 +57,24 @@ namespace Volumey.Model
 		public override string ToString()
 		{
 			return $"{Name} ({NativeWidth}x{NativeHeight})";
+		}
+
+		/// <summary>
+		/// The screen with the remembered device name, otherwise the primary screen (e.g. while the remembered one isn't connected yet, #92),
+		/// otherwise the first one. Returns the default value if there are no screens.
+		/// </summary>
+		internal static ScreenInfo Find(IReadOnlyCollection<ScreenInfo> screens, string name)
+		{
+			if(name != null)
+			{
+				foreach(var screen in screens)
+					if(screen.Name == name)
+						return screen;
+			}
+			foreach(var screen in screens)
+				if(screen.IsPrimary)
+					return screen;
+			return screens.FirstOrDefault();
 		}
 	}
 }

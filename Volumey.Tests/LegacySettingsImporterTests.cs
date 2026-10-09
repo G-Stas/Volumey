@@ -41,7 +41,9 @@ namespace Volumey.Tests
 			Assert.IsTrue(settings.Window.DisplayDeviceIconAtTray);
 			Assert.AreEqual(100.5, settings.Window.Left);
 			Assert.AreEqual(200.25, settings.Window.Top);
-			Assert.AreEqual(1, settings.Window.ScreenIndex);
+			//turned into a screen name by the settings migration (SettingsProviderTests)
+			Assert.AreEqual(1, settings.Window.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex));
+			Assert.AreEqual(1, settings.Version);
 		}
 
 		[TestMethod]
@@ -55,7 +57,7 @@ namespace Volumey.Tests
 			Assert.AreEqual(NotificationPosition.BottomRight, settings.Notifications.Position);
 			Assert.AreEqual(5, settings.Notifications.DisplayTimeSeconds);
 			Assert.IsTrue(settings.Notifications.ReactToAllVolumeChanges);
-			Assert.AreEqual(2, settings.Notifications.ScreenIndex);
+			Assert.AreEqual(2, settings.Notifications.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex));
 		}
 
 		[TestMethod]

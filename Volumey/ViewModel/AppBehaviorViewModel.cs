@@ -197,11 +197,21 @@ namespace Volumey.ViewModel
 	        get => selectedScreen;
 	        set
 	        {
-		        selectedScreen = value;
-		        OnPropertyChanged();
-		        
-		        SettingsProvider.Settings.Window.ScreenIndex = AllScreens.IndexOf(value);
+		        //only a listed screen is the user's choice: the combo box writes back an empty value while the list is replaced
+		        if(!AllScreens.Contains(value))
+			        return;
+		        ShowScreen(value);
+		        SettingsProvider.Settings.Window.ScreenName = value.Name;
 	        }
+        }
+
+        /// <summary>
+        /// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
+        /// </summary>
+        private void ShowScreen(ScreenInfo screen)
+        {
+	        this.selectedScreen = screen;
+	        OnPropertyChanged(nameof(SelectedScreen));
         }
 
         public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
@@ -311,17 +321,12 @@ namespace Volumey.ViewModel
 			foreach(var screen in screenInfoProvider.GetAllScreensInfo())
 				AllScreens.Add(screen);
 
-			int selectedScreenIndex = SettingsProvider.Settings.Window.ScreenIndex;
-			if(AllScreens.Count - 1 < selectedScreenIndex || selectedScreenIndex < 0)
-				SelectedScreen = screenInfoProvider.GetPrimaryScreenInfo();
-			else
-				SelectedScreen = AllScreens[selectedScreenIndex];
+			ShowScreen(ScreenInfo.Find(AllScreens, SettingsProvider.Settings.Window.ScreenName));
 		}
 
 		/// <summary>
-		/// Executes after the window was displayed to check if the selected screen is available.
-		/// If not, will reset the <see cref="SelectedScreen"/> to the primary screen.
-		/// Also will update <see cref="AllScreens"/> to actual data.
+		/// Executes after the window was displayed and when the screens change: updates <see cref="AllScreens"/>
+		/// and picks the remembered screen again, or the primary one while it's not connected.
 		/// </summary>
 		private void CheckIfSelectedScreenIsAvailable()
 		{
@@ -339,13 +344,8 @@ namespace Volumey.ViewModel
 					});
 				}
 
-				if(!screens.Contains(SelectedScreen))
-				{
-					SelectedScreen = AllScreens.FirstOrDefault(s => s.IsPrimary);
-				}
-				//Update the SelectedScreen property in the UI as it will be set to none if the AllScreens collection would change
-				else
-					OnPropertyChanged(nameof(SelectedScreen));
+				//also updates the selection in the UI, which is lost when AllScreens is replaced
+				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Window.ScreenName));
 			}).ContinueWith(task =>
 			{
 				if(task.Exception != null)

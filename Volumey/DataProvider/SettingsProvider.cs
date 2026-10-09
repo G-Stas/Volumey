@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -8,6 +9,7 @@ using Nucs.JsonSettings.Autosave;
 using Nucs.JsonSettings.Modulation.Recovery;
 using Volumey.Controls;
 using Volumey.DataProvider.Settings;
+using Volumey.Model;
 
 namespace Volumey.DataProvider
 {
@@ -60,6 +62,11 @@ namespace Volumey.DataProvider
         /// Loads settings.json from the folder (creating it, and importing 1.x settings on the first launch) and turns on autosave.
         /// </summary>
         internal static VolumeySettings LoadSettings(string settingsDir)
+            => LoadSettings(settingsDir, () => new ScreenInfoProvider().GetAllScreensInfo().ToList());
+
+        /// <param name="settingsDir"/>
+        /// <param name="getScreens">The current screens, read only when an old settings file stores screens by index</param>
+        internal static VolumeySettings LoadSettings(string settingsDir, Func<IReadOnlyList<ScreenInfo>> getScreens)
         {
             string path = Path.Combine(settingsDir, SettingsFileName);
             try
@@ -73,7 +80,7 @@ namespace Volumey.DataProvider
                                          .LoadNow();
                 if(firstLaunch)
                     ImportLegacySettings(settingsDir, loaded);
-                Migrate(loaded);
+                Migrate(loaded, getScreens);
                 loaded.Save();
                 return loaded.EnableAutosave();
             }
@@ -85,12 +92,41 @@ namespace Volumey.DataProvider
             }
         }
 
-        private static void Migrate(VolumeySettings volumeySettings)
+        private static void Migrate(VolumeySettings volumeySettings, Func<IReadOnlyList<ScreenInfo>> getScreens)
         {
-            //add migration steps here when the layout changes, e.g.:
-            //if(volumeySettings.Version < 2) { ...move values...; volumeySettings.Version = 2; }
+            //one step per version, each brings the layout to the next version
+            if(volumeySettings.Version < 2)
+            {
+                //screens were stored by their index in the list of screens, which changes order when a monitor is detected late (#92).
+                //The index meant the screens as they are now, so that's the best guess for the name
+                int? windowIndex = volumeySettings.Window.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex);
+                int? notificationsIndex = volumeySettings.Notifications.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex);
+                if(windowIndex != null || notificationsIndex != null)
+                {
+                    var screens = GetScreensForMigration(getScreens);
+                    volumeySettings.Window.ScreenName = ScreenNameAt(screens, windowIndex);
+                    volumeySettings.Notifications.ScreenName = ScreenNameAt(screens, notificationsIndex);
+                }
+            }
             volumeySettings.Version = VolumeySettings.CurrentVersion;
         }
+
+        private static IReadOnlyList<ScreenInfo> GetScreensForMigration(Func<IReadOnlyList<ScreenInfo>> getScreens)
+        {
+            try
+            {
+                return getScreens();
+            }
+            catch(Exception e)
+            {
+                //the primary screen is used then
+                Logger.Error("Failed to read the screens to migrate the settings", e);
+                return Array.Empty<ScreenInfo>();
+            }
+        }
+
+        private static string ScreenNameAt(IReadOnlyList<ScreenInfo> screens, int? index)
+            => index is int i && i >= 0 && i < screens.Count ? screens[i].Name : null;
 
         private static void ImportLegacySettings(string settingsDir, VolumeySettings volumeySettings)
         {

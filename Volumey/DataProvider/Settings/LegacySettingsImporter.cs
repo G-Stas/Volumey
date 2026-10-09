@@ -36,7 +36,8 @@ namespace Volumey.DataProvider.Settings
 			ReadBool(root, "displayDeviceIconAtTray", v => window.DisplayDeviceIconAtTray = v);
 			ReadDouble(root, "windowLeft", v => window.Left = v);
 			ReadDouble(root, "windowTop", v => window.Top = v);
-			ReadInt(root, "selectedScreenIndex", v => window.ScreenIndex = v);
+			//screens were stored by index, which only the migration to settings version 2 can turn into a name
+			ReadInt(root, "selectedScreenIndex", v => window.SetOtherValue(VolumeySettings.LegacyScreenIndex, v));
 
 			if(GetClass(root, "hotkeysSettings") is ClassRecord hotkeys)
 				ImportHotkeys(hotkeys, settings.Hotkeys);
@@ -50,8 +51,11 @@ namespace Volumey.DataProvider.Settings
 				ReadEnum(notifications, "position", v => n.Position = (NotificationPosition) v);
 				ReadInt(notifications, "displayTimeInSeconds", v => n.DisplayTimeSeconds = v);
 				ReadBool(notifications, "reactToAllVolumeChanges", v => n.ReactToAllVolumeChanges = v);
-				ReadInt(notifications, "selectedScreenIndex", v => n.ScreenIndex = v);
+				ReadInt(notifications, "selectedScreenIndex", v => n.SetOtherValue(VolumeySettings.LegacyScreenIndex, v));
 			}
+
+			//the imported values have the layout of settings version 1, the migration brings them up to date
+			settings.Version = 1;
 		}
 
 		private static void ImportHotkeys(ClassRecord record, HotkeySettings hotkeys)

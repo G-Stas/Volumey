@@ -189,17 +189,22 @@ namespace Volumey.ViewModel.Settings
 			get => selectedScreen;
 			set
 			{
-				selectedScreen = value;
-				OnPropertyChanged();
-				
-				this._notifications.SetWindowWorkArea(value.WorkingAreaLeft, value.WorkingAreaTop, value.Width / value.ScaleFactor, value.Height / value.ScaleFactor);
-		        
-				int index = AllScreens.IndexOf(value);
-				if(SettingsProvider.Settings.Notifications.ScreenIndex != index)
-				{
-					SettingsProvider.Settings.Notifications.ScreenIndex = index;
-				}
+				//only a listed screen is the user's choice: the combo box writes back an empty value while the list is replaced
+				if(!AllScreens.Contains(value))
+					return;
+				ShowScreen(value);
+				SettingsProvider.Settings.Notifications.ScreenName = value.Name;
 			}
+		}
+
+		/// <summary>
+		/// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
+		/// </summary>
+		private void ShowScreen(ScreenInfo screen)
+		{
+			this.selectedScreen = screen;
+			OnPropertyChanged(nameof(SelectedScreen));
+			this._notifications.SetWindowWorkArea(screen.WorkingAreaLeft, screen.WorkingAreaTop, screen.Width / screen.ScaleFactor, screen.Height / screen.ScaleFactor);
 		}
 
 		public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
@@ -245,11 +250,7 @@ namespace Volumey.ViewModel.Settings
 			foreach(var screen in _screenInfoProvider.GetAllScreensInfo())
 				AllScreens.Add(screen);
 
-			int selectedScreenIndex = SettingsProvider.Settings.Notifications.ScreenIndex;
-			if(AllScreens.Count - 1 < selectedScreenIndex || selectedScreenIndex < 0)
-				SelectedScreen = _screenInfoProvider.GetPrimaryScreenInfo();
-			else
-				SelectedScreen = AllScreens[selectedScreenIndex];
+			ShowScreen(ScreenInfo.Find(AllScreens, SettingsProvider.Settings.Notifications.ScreenName));
 		}
 		
 		private void CheckIfSelectedScreenIsAvailable()
@@ -270,13 +271,8 @@ namespace Volumey.ViewModel.Settings
 					});
 				}
 		
-				if(!screens.Contains(SelectedScreen))
-				{
-					SelectedScreen = AllScreens.FirstOrDefault(s => s.IsPrimary);
-				}
-				//Update the SelectedScreen property in the UI as it will be set to none if the AllScreens collection would change
-				else
-					OnPropertyChanged(nameof(SelectedScreen));
+				//picks the remembered screen again once it's connected, and updates the selection in the UI, which is lost when AllScreens is replaced
+				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Notifications.ScreenName));
 			}).ContinueWith(task =>
 			{
 				if(task.Exception != null)
