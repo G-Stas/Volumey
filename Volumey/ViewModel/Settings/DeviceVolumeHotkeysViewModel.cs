@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using log4net;
 using Volumey.Controls;
@@ -121,7 +121,6 @@ namespace Volumey.ViewModel.Settings
 			this.notifications = notifications;
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.defaultDevice = deviceProvider.DefaultDevice;
-			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			var settings = SettingsProvider.Settings;
 			PreventResettingVolumeBalance = settings.Hotkeys.PreventResettingVolumeBalance;

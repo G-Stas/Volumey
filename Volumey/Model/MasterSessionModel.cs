@@ -329,8 +329,16 @@ namespace Volumey.Model
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+        private bool disposed;
+
         public void Dispose()
         {
+            if(this.disposed)
+                return;
+            this.disposed = true;
+            //stop reacting to presses (and stop being kept alive by the hotkey service); the hotkeys themselves are released by
+            //the view models through ResetVolumeHotkeys/ResetMuteHotkey, often after this, so they aren't unregistered here
+            this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
             this.StateNotificationMediator?.NotifyOfDisposing(this);
             this.notificationHandler.VolumeChanged -= OnVolumeChanged;
             this.notificationHandler.Dispose();

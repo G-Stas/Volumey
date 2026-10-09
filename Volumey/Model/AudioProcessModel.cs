@@ -382,6 +382,8 @@ namespace Volumey.Model
 			if(_disposed)
 				return;
 			_disposed = true;
+			//stop reacting to presses; the hotkeys themselves are released by the view models (ResetVolumeHotkeys), not here
+			_hotkeys.HotkeyPressed -= OnHotkeyPressed;
 			this.StateNotificationMediator?.NotifyOfDisposing(this);
 			
 			//the model owns its icon (see IconHelper); Dispose frees the handle

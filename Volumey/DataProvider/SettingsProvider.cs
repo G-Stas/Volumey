@@ -132,7 +132,8 @@ namespace Volumey.DataProvider
         }
 
         /// <summary>
-        /// Checks if the hotkey is already used by the device, mixer or app volume hotkeys.
+        /// Checks if the hotkey is already used by any feature: device volume and mute, open mixer, app volume, default device,
+        /// foreground app volume and media key hotkeys.
         /// </summary>
         internal static bool HotkeyExists(HotKey hotkey) => HotkeysExist(hotkey, null);
 
@@ -145,8 +146,11 @@ namespace Volumey.DataProvider
                    Matches(hotkeys.DeviceVolumeDown) ||
                    Matches(hotkeys.OpenMixer) ||
                    Matches(hotkeys.DeviceMute) ||
+                   Matches(hotkeys.ForegroundVolumeUp) ||
+                   Matches(hotkeys.ForegroundVolumeDown) ||
                    hotkeys.Apps.Any(app => Matches(app.VolumeUp) || Matches(app.VolumeDown)) ||
-                   hotkeys.DefaultDevices.Any(device => Matches(device.Hotkey));
+                   hotkeys.DefaultDevices.Any(device => Matches(device.Hotkey)) ||
+                   hotkeys.System.Any(system => Matches(system.Replacement));
         }
     }
 }

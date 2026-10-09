@@ -76,101 +76,83 @@ namespace Volumey.ViewModel.Settings
 			lastUser = true;
 		}
 
+		/// <summary>
+		/// Registers both hotkeys, or neither: if the second one fails, the first is released again.
+		/// </summary>
 		public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
-			if(hotkeyManager == null)
-				throw new NullReferenceException("Hotkey manager is not set");
-			try
-			{
-				hotkeyManager.RegisterHotkey(hotkey1);
-				IncrementHotkeyUserCounter(hotkey1);
-				hotkeyManager.RegisterHotkey(hotkey2);
-				IncrementHotkeyUserCounter(hotkey2);
+			if(!RegisterHotkey(hotkey1))
+				return false;
+			if(RegisterHotkey(hotkey2))
 				return true;
-			}
-			catch
-			{
-				DecrementHotkeyUserCounter(hotkey1, out bool lastUser);
-				if(lastUser)
-					hotkeyManager.UnregisterHotkey(hotkey1);
-				
-				DecrementHotkeyUserCounter(hotkey2, out lastUser);
-				if(lastUser)
-					hotkeyManager.UnregisterHotkey(hotkey2);
-				throw;
-			}
+			//release only what this call took: the combination may be shared with another feature
+			UnregisterHotkey(hotkey1);
+			return false;
 		}
 
 		public void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
 		{
-			if(hotkeyManager == null)
-				throw new NullReferenceException("Hotkey manager is not set");
-			try
-			{
-				DecrementHotkeyUserCounter(hotkey1, out bool lastUser);
-				if(lastUser)
-					hotkeyManager.UnregisterHotkey(hotkey1);
-				DecrementHotkeyUserCounter(hotkey2, out lastUser);
-				if(lastUser)
-					hotkeyManager.UnregisterHotkey(hotkey2);
-			}
-			catch { }
+			UnregisterHotkey(hotkey1);
+			UnregisterHotkey(hotkey2);
 		}
 
+		/// <summary>
+		/// Registers the hotkey and counts this user. False, with nothing counted, if there's no manager yet or it refuses the hotkey
+		/// (e.g. another app owns the combination in blocking mode). The managers accept a combination that is already registered,
+		/// so several features can share one.
+		/// </summary>
 		public bool RegisterHotkey(HotKey hotkey)
 		{
+			if(hotkeyManager == null || hotkey == null)
+				return false;
 			try
 			{
-				IncrementHotkeyUserCounter(hotkey);
 				hotkeyManager.RegisterHotkey(hotkey);
-				return true;
 			}
-			catch {}
-			return false;
+			catch(Exception e)
+			{
+				Logger.Warn($"Failed to register hotkey [{hotkey}]", e);
+				return false;
+			}
+			IncrementHotkeyUserCounter(hotkey);
+			return true;
 		}
 
+		/// <summary>
+		/// Releases one user of the hotkey; the last one unregisters it.
+		/// </summary>
 		public void UnregisterHotkey(HotKey hotkey)
 		{
+			if(hotkeyManager == null || hotkey == null)
+				return;
+			DecrementHotkeyUserCounter(hotkey, out bool lastUser);
+			if(!lastUser)
+				return;
 			try
 			{
-				DecrementHotkeyUserCounter(hotkey, out bool lastUser);
-				if(lastUser)
-					hotkeyManager.UnregisterHotkey(hotkey);
+				hotkeyManager.UnregisterHotkey(hotkey);
 			}
-			catch { }
+			catch(Exception e)
+			{
+				Logger.Warn($"Failed to unregister hotkey [{hotkey}]", e);
+			}
 		}
 
 		public bool RegisterOpenMixerHotkey(HotKey hotkey)
 		{
-			if(hotkeyManager == null)
+			if(!RegisterHotkey(hotkey))
 				return false;
-			if(hotkey == null)
-				return false;
-			try
-			{
-				openMixer = hotkey;
-				IncrementHotkeyUserCounter(hotkey);
-				hotkeyManager.RegisterHotkey(hotkey);
-				return true;
-			}
-			catch { }
-			return false;
+			openMixer = hotkey;
+			return true;
 		}
 
 		public void UnregisterOpenMixerHotkey(HotKey hotkey)
 		{
-			if(hotkeyManager == null)
-				return;
 			if(hotkey == null)
 				return;
-			try
-			{
+			if(hotkey.Equals(openMixer))
 				openMixer = null;
-				DecrementHotkeyUserCounter(hotkey, out bool lastUser);
-				if(lastUser)
-					hotkeyManager.UnregisterHotkey(hotkey);
-			}
-			catch { }
+			UnregisterHotkey(hotkey);
 		}
 
 		public ErrorMessageType HotkeyIsValid(HotKey hotkey)
@@ -179,7 +161,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.OpenReg;
 			if(hotkey.ModifierKeys == ModifierKeys.None && hotkey.Key == Key.F12)
 				return ErrorMessageType.F12;
-			if(SettingsProvider.HotkeyExists(hotkey)) //!SettingsProvider.Settings.AllowDuplicates && 
+			if(SettingsProvider.HotkeyExists(hotkey))
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}
@@ -193,7 +175,7 @@ namespace Volumey.ViewModel.Settings
 				return ErrorMessageType.F12;
 			if(up.Equals(down))
 				return ErrorMessageType.Diff;
-			if(SettingsProvider.HotkeysExist(up, down)) //!SettingsProvider.Settings.AllowDuplicates && 
+			if(SettingsProvider.HotkeysExist(up, down))
 				return ErrorMessageType.HotkeyExists;
 			return ErrorMessageType.None;
 		}

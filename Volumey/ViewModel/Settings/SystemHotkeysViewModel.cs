@@ -79,11 +79,15 @@ namespace Volumey.ViewModel.Settings
 
 		private void RegisterHotkeys()
 		{
+			//shows an error instead of silently doing nothing; the hotkeys stay saved and are tried again on the next start
+			bool allRegistered = true;
 			foreach(var hotkey in RegisteredHotkeys)
 			{
-				this.hotkeys.RegisterHotkey(hotkey.Replacement);
+				allRegistered &= this.hotkeys.RegisterHotkey(hotkey.Replacement);
 				hotkey.RegisterHotkeyHandler(this.hotkeys);
 			}
+			if(!allRegistered)
+				this.SetErrorMessage(ErrorMessageType.OpenReg);
 		}
 
 		private void AddHotkey()
