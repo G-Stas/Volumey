@@ -261,21 +261,28 @@ namespace Volumey.ViewModel.Settings
 			Task.Run(() =>
 			{
 				var screens = _screenInfoProvider.GetAllScreensInfo().ToList();
-		
-				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
+
+				//on the UI thread: the OSD window belongs to it, and setting its area from another thread throws
+				//(it did on every display change, e.g. a game switching the resolution, so the OSD kept the old area)
+				void Apply()
 				{
-					App.Current.Dispatcher.Invoke(() =>
+					if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
 					{
 						if(PreviewIsOn)
 							PreviewIsOn = false;
 						AllScreens.Clear();
 						foreach(var screen in screens)
 							AllScreens.Add(screen);
-					});
+					}
+					//picks the remembered screen again once it's connected, and updates the selection in the UI, which is lost when AllScreens is replaced
+					ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Notifications.ScreenName));
 				}
-		
-				//picks the remembered screen again once it's connected, and updates the selection in the UI, which is lost when AllScreens is replaced
-				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Notifications.ScreenName));
+
+				var dispatcher = App.Current?.Dispatcher;
+				if(dispatcher == null || dispatcher.CheckAccess())
+					Apply();
+				else
+					dispatcher.Invoke(Apply);
 			}).ContinueWith(task =>
 			{
 				if(task.Exception != null)
