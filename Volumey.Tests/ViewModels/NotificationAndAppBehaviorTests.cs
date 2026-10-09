@@ -58,6 +58,19 @@ namespace Volumey.Tests.ViewModels
 		}
 
 		[TestMethod]
+		public void TheOsdAreaOfAScaledScreenIsInDeviceIndependentUnits()
+		{
+			//#76: a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them
+			var scaled = new ScreenInfo(@"\\.\DISPLAY2", false, 1920, 1020, 1920, 1080, 2560, 4480, 0, 1020, 1.25);
+			this.screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary, scaled });
+			this.Settings.Notifications.ScreenName = scaled.Name;
+
+			CreateNotifications();
+
+			this.Notifications.Verify(m => m.SetWindowWorkArea(2048, 0, 1536, 816));
+		}
+
+		[TestMethod]
 		public void MissingScreenFallsBackToThePrimaryOneAndStaysRemembered()
 		{
 			//#92: e.g. a monitor that turns on after the app has started

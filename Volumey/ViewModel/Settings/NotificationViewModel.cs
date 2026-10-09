@@ -204,7 +204,10 @@ namespace Volumey.ViewModel.Settings
 		{
 			this.selectedScreen = screen;
 			OnPropertyChanged(nameof(SelectedScreen));
-			this._notifications.SetWindowWorkArea(screen.WorkingAreaLeft, screen.WorkingAreaTop, screen.Width / screen.ScaleFactor, screen.Height / screen.ScaleFactor);
+			//the OSD window takes device-independent units of the screen it's on: the screen's values are physical pixels,
+			//so all four are divided by its scale factor (only the size was before, which put the OSD off a scaled screen, #76)
+			double scale = screen.ScaleFactor > 0 ? screen.ScaleFactor : 1;
+			this._notifications.SetWindowWorkArea(screen.WorkingAreaLeft / scale, screen.WorkingAreaTop / scale, screen.Width / scale, screen.Height / scale);
 		}
 
 		public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
