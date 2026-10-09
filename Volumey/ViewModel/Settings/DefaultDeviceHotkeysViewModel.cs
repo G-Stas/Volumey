@@ -23,8 +23,12 @@ namespace Volumey.ViewModel.Settings
             {
                 this._selected = value;
                 OnPropertyChanged();
+                ShowRegisteredHotkey(value);
             }
         }
+
+        //true while HotKey shows the registered hotkey of the selected device rather than one the user typed
+        private bool hotkeyShowsRegistration;
 
         private KeyValuePair<HotKey, DeviceInfo>? _selectedRegDev;
         public KeyValuePair<HotKey, DeviceInfo>? SelectedRegDev
@@ -46,6 +50,7 @@ namespace Volumey.ViewModel.Settings
             set
             {
                 this._hotkey = value;
+                this.hotkeyShowsRegistration = false;
                 OnPropertyChanged();
             }
         }
@@ -80,7 +85,39 @@ namespace Volumey.ViewModel.Settings
 
                 //Update registered devices names once on startup
                 UpdateNamesOrIDs();
+
+                //show a registration in the list, so the page doesn't look as if nothing was registered (#18)
+                this.SelectedRegDev = this.RegisteredDevices.First();
             }
+        }
+
+        /// <summary>
+        /// Shows the hotkey registered for the selected device and selects its registration in the list (#18)
+        /// </summary>
+        private void ShowRegisteredHotkey(OutputDeviceModel device)
+        {
+            KeyValuePair<HotKey, DeviceInfo>? registration = null;
+            if(device != null)
+            {
+                foreach(var registered in this.RegisteredDevices)
+                {
+                    if(device.CompareId(registered.Value.ID))
+                    {
+                        registration = registered;
+                        break;
+                    }
+                }
+            }
+
+            if(registration is { } reg)
+            {
+                this.HotKey = reg.Key;
+                this.hotkeyShowsRegistration = true;
+                this.SelectedRegDev = reg;
+            }
+            else if(this.hotkeyShowsRegistration)
+                //don't offer another device's hotkey for this one, but keep a hotkey the user typed
+                this.HotKey = null;
         }
 
         private void RegisterLoadedHotkeys()
@@ -157,6 +194,7 @@ namespace Volumey.ViewModel.Settings
             this.RegisteredDevices.Add(hotkey, deviceInfo);
             this.SelectedDevice = null;
             this.HotKey = null;
+            this.SelectedRegDev = new KeyValuePair<HotKey, DeviceInfo>(hotkey, deviceInfo);
             //take the settings now: they may be replaced before the task runs
             var hotkeySettings = SettingsProvider.Settings.Hotkeys;
             Task.Run(() =>
@@ -184,7 +222,7 @@ namespace Volumey.ViewModel.Settings
             if(this.RegisteredDevices.Keys.Count == 0)
                 this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
 
-            this.SelectedRegDev = null;
+            this.SelectedRegDev = this.RegisteredDevices.Count > 0 ? this.RegisteredDevices.First() : null;
             this.SetErrorMessage(ErrorMessageType.None);
 
             try
