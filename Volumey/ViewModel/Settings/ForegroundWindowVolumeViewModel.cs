@@ -162,26 +162,38 @@ namespace Volumey.ViewModel.Settings
 				return (false, null);
 			}
 
+			long started = Stopwatch.GetTimestamp();
 			Process process = null;
 			string filePath = string.Empty;
+			Exception pathError = null;
 			try
 			{
 				process = Process.GetProcessById((int)foregroundWindowProcId);
 				filePath = process.MainModule.FileName;
 			}
-			catch { }
+			catch(Exception e)
+			{
+				//e.g. a game protected by anti-cheat doesn't let other processes read its modules
+				pathError = e;
+			}
 
-			AudioProcessModel foundProcess;
+			AudioProcessModel foundProcess = null;
+			IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
 			try
 			{
-				IImmutableList<AudioProcessModel> curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
-				foundProcess = curDeviceProcesses.First(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath)); 
+				curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
+				foundProcess = curDeviceProcesses.FirstOrDefault(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath));
 			}
-			catch
-			{
-				return (false, null);
-			}
-			return (true, foundProcess);
+			catch { }
+			HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, SafeName(process), filePath, pathError, curDeviceProcesses, foundProcess,
+				Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+			return (foundProcess != null, foundProcess);
+		}
+
+		private static string SafeName(Process process)
+		{
+			try { return process?.ProcessName; }
+			catch { return null; }
 		}
 
 		private uint GetForegroundWindowProcessId()
@@ -206,20 +218,24 @@ namespace Volumey.ViewModel.Settings
 
 			if(hotkey.Equals(this._volumeUpHotkey))
 			{
+				HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
 				if(await TryGetForegroundAudioProcess() is (bool succeed, AudioProcessModel foundProcess) && succeed)
 				{
 					if(foundProcess.StateNotificationMediator == null)
 						foundProcess.SetStateMediator(this.StateMediator);
 					foundProcess.SetVolume(foundProcess.Volume + this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+					HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 				}
 			}
 			else if(hotkey.Equals(this._volumeDownHotkey))
 			{
+				HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
 				if(await TryGetForegroundAudioProcess() is (bool succeed, AudioProcessModel foundProcess) && succeed)
 				{
 					if(foundProcess.StateNotificationMediator == null)
 						foundProcess.SetStateMediator(this.StateMediator);
 					foundProcess.SetVolume(foundProcess.Volume - this.hotkeys.VolumeStep, notify: true, ref GuidValue.Internal.Empty);
+					HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 				}
 			}
 		}

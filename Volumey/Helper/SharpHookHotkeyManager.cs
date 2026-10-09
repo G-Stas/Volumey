@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,8 +93,13 @@ namespace Volumey.Helper
 					return;
 			}
 
+			long received = Stopwatch.GetTimestamp();
 			if(this.syncContext != null)
-				this.syncContext.Post(_ => this.HotkeyPressed?.Invoke(hotkey), null);
+				this.syncContext.Post(_ =>
+				{
+					HotkeyDiagnostics.HookHotkeyHandled(hotkey, received);
+					this.HotkeyPressed?.Invoke(hotkey);
+				}, null);
 			else
 				this.HotkeyPressed?.Invoke(hotkey);
 		}

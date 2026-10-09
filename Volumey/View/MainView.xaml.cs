@@ -393,6 +393,7 @@ namespace Volumey.View
 
 		        case WM_HOTKEY:
 		        {
+			        HotkeyDiagnostics.WmHotkeyReceived(wParam.ToInt32(), HotkeyDiagnostics.GetMessageTime());
 			        HotkeyMessageHandler?.Invoke(lParam.ToInt32());
 			        break;
 		        }
