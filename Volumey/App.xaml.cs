@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using System.Windows.Threading;
 using log4net;
                              
 namespace Volumey
@@ -14,6 +16,28 @@ namespace Volumey
         private ILog logger;
         private ILog Logger => logger ??= LogManager.GetLogger(typeof(App));
         private static Stopwatch execTimer;
+
+        public App()
+        {
+            this.DispatcherUnhandledException += OnDispatcherUnhandledException;
+        }
+
+        /// <summary>
+        /// Keeps the app alive on a known WPF failure: updating a window's render target can fail with
+        /// "Not enough quota is available to process this command" (Win32 error 1816), e.g. under a fullscreen game
+        /// or while the window grows with many apps (GitHub issues #58, #66). WPF updates the window again on its next change.
+        /// </summary>
+        private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            if(IsWindowUpdateQuotaFailure(e.Exception))
+            {
+                Logger.Warn("Ignored a failed window update (not enough quota)", e.Exception);
+                e.Handled = true;
+            }
+        }
+
+        internal static bool IsWindowUpdateQuotaFailure(Exception exception)
+            => exception is Win32Exception { NativeErrorCode: 1816 } && exception.StackTrace?.Contains("System.Windows.Interop.HwndTarget") == true;
 
         internal static void InitializeExecutionTimer()
         {

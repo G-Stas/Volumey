@@ -213,8 +213,9 @@ namespace Volumey.View
 		
 		private void MoveTo(double left, double top)
 		{
+			//move only: WPF sizes the window (Height is NaN while it sizes to its content, and passing it resized the window on every move)
 			NativeMethods.SetWindowPos(this.Hwnd, (IntPtr)NativeMethods.SpecialWindowHandles.Top,
-			             (int)left, (int)top, (int)this.Width, (int)this.Height, NativeMethods.SetWindowPosFlags.ShowWindow);
+			             (int)left, (int)top, 0, 0, NativeMethods.SetWindowPosFlags.ShowWindow | NativeMethods.SetWindowPosFlags.NoSize);
 		}
 
 		private void LimitWindowHeightIfNecessary()
