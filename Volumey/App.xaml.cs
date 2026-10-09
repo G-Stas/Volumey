@@ -53,27 +53,36 @@ namespace Volumey
             execTimer.Start();
         }
         
-        internal void LogFatalException(string exceptionType, Exception ex)
+        /// <summary>
+        /// Logs an exception that ends the app and flushes the log (Release builds send logs to Loggly in batches,
+        /// which would be lost when the process goes down). The caller decides how the process ends.
+        /// </summary>
+        internal static void LogFatal(string source, Exception ex)
         {
-            bool isStoreVersion;
-            
-            #if(STORE)
-            isStoreVersion = true;
-            #else
-            isStoreVersion = false;
-            #endif
-            
-            execTimer.Stop();
-            var ts = execTimer.Elapsed;
-            StringBuilder data = new StringBuilder($"Exception type: [{exceptionType}]\n");
-            data.Append($"OS Version: {Environment.OSVersion}\n");
-            data.Append($"Is 64 bit OS: {Environment.Is64BitOperatingSystem.ToString()}\n");
-            data.Append($"CPU cores count: {Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture)}\n");
-            data.Append($"Execution time: {ts.Days * 24 + ts.Hours} hrs. {ts.Minutes:00} mins. {ts.Seconds:00} secs.\n");
-            data.Append($"Is store version: {isStoreVersion}");
-            Logger.Fatal($"An unhandled exception has occurred: \n{data}", ex);
-            Logger.Logger.Repository.Shutdown();
-            Environment.Exit(0);
+            try
+            {
+                bool isStoreVersion;
+                #if(STORE)
+                isStoreVersion = true;
+                #else
+                isStoreVersion = false;
+                #endif
+
+                var ts = execTimer?.Elapsed ?? TimeSpan.Zero;
+                StringBuilder data = new StringBuilder($"Source: [{source}]\n");
+                data.Append($"OS Version: {Environment.OSVersion}\n");
+                data.Append($"Is 64 bit OS: {Environment.Is64BitOperatingSystem.ToString()}\n");
+                data.Append($"CPU cores count: {Environment.ProcessorCount.ToString(CultureInfo.InvariantCulture)}\n");
+                data.Append($"Execution time: {ts.Days * 24 + ts.Hours} hrs. {ts.Minutes:00} mins. {ts.Seconds:00} secs.\n");
+                data.Append($"Is store version: {isStoreVersion}");
+                var log = LogManager.GetLogger(typeof(App));
+                log.Fatal($"An unhandled exception has occurred: \n{data}", ex);
+                log.Logger.Repository.Shutdown();
+            }
+            catch
+            {
+                //nothing else can be done while the app is going down
+            }
         }
     }
 }

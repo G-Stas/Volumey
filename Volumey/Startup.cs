@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -63,6 +64,7 @@ namespace Volumey
 			{
 				App.InitializeExecutionTimer();
 				InitializeLoggerConfig();
+				LogUnhandledExceptions();
 
 				#if(STORE)
 				if(!StartMinimized)
@@ -83,22 +85,28 @@ namespace Volumey
 				#endif
 
 				#if(!DEBUG)
+				bool crashed = false;
 				try
 				{
 					App.Main();
 				}
 				catch(OutOfMemoryException e)
 				{
+					crashed = true;
 					MessageBox.Show(e.Message, "Fatal exception", MessageBoxButton.OK, MessageBoxImage.Error);
 				}
 				catch(Exception e)
 				{
-					(App.Current as App)?.LogFatalException("App.Main unhandled exception", e);
+					crashed = true;
+					App.LogFatal("UI thread", e);
 				}
 				finally
 				{
 					mutex.ReleaseMutex();
 				}
+				//other threads (e.g. the keyboard hook) could keep the process alive; a non-zero code tells Windows it was a crash
+				if(crashed)
+					Environment.Exit(1);
 				#endif
 				#if(DEBUG)
 				App.Main();
@@ -117,6 +125,23 @@ namespace Volumey
 		/// <summary>Path of a plain-text log file for debug builds, e.g. set by scripts/run-dev.ps1</summary>
 		private const string DebugLogFileVariable = "VOLUMEY_LOG_FILE";
 		#endif
+
+		/// <summary>
+		/// Logs crashes on every thread in every build. App.Main's try/catch only sees the UI thread, so an exception on an audio (COM),
+		/// thread-pool or keyboard hook thread used to end a Release build without a trace.
+		/// </summary>
+		private static void LogUnhandledExceptions()
+		{
+			//the process ends after this handler, the runtime sets the exit code
+			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+				App.LogFatal(e.IsTerminating ? "background thread" : "background thread (not terminating)", e.ExceptionObject as Exception);
+			//exceptions of tasks nobody awaited (fire-and-forget Task.Run): they don't end the app, but they used to vanish
+			TaskScheduler.UnobservedTaskException += (s, e) =>
+			{
+				LogManager.GetLogger(typeof(Startup)).Error("Unobserved task exception", e.Exception);
+				e.SetObserved();
+			};
+		}
 
 		private static void InitializeLoggerConfig()
 		{
@@ -163,9 +188,6 @@ namespace Volumey
 				};
 				appender.ActivateOptions();
 				BasicConfigurator.Configure(LogManager.GetRepository(Assembly.GetExecutingAssembly()), appender);
-				//log crashes before the process goes down, so they can be read without a debugger
-				AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-					LogManager.GetLogger(typeof(Startup)).Fatal("Unhandled exception", e.ExceptionObject as Exception);
 				LogManager.GetLogger(typeof(Startup)).Info($"Debug build started, pid {Environment.ProcessId}");
 			}
 			#endif
