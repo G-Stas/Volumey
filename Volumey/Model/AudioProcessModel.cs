@@ -382,11 +382,8 @@ namespace Volumey.Model
 			_disposed = true;
 			this.StateNotificationMediator?.NotifyOfDisposing(this);
 			
-			if(this._icon != null)
-			{
-				NativeMethods.DestroyIcon(this._icon.Handle);
-				this._icon.Dispose();
-			}
+			//the model owns its icon (see IconHelper); Dispose frees the handle
+			this._icon?.Dispose();
 			
 			if(_trackedSession != null)
 			{

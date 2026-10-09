@@ -42,41 +42,21 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 			return GetIcon().GetAsImageSource();
 		}
 
+		/// <summary>
+		/// A new icon owned by the caller, or null
+		/// </summary>
 		public Icon GetIcon()
 		{
-			Icon icon = null;
 			string iconPath = this.GetProperty<string>(PropertyKeys.PKEY_Device_IconPath);
-
-			if(string.IsNullOrEmpty(iconPath))
-				return null;
-
-			//try to extract the icon from DLL first since it's the most common location of the icons
 			try
 			{
-				string[] endpointIconPath = iconPath.Split(",");
-
-				if(endpointIconPath.Length < 2)
-					throw new Exception("Resource path is invalid");
-
-				string path = endpointIconPath[0];
-				int id = int.Parse(endpointIconPath[1], CultureInfo.InvariantCulture);
-
-				App.Current.Dispatcher.Invoke(() => icon = IconHelper.GetFromDll(path, id));
+				return IconHelper.GetFromResourcePath(iconPath);
 			}
-			catch { }
-			//try to extract the icon from file path
-			if(icon == null)
+			catch(Exception e)
 			{
-				try
-				{
-					App.Current.Dispatcher.Invoke(() => icon = IconHelper.GetFromFilePath(iconPath));
-				}
-				catch(Exception e)
-				{
-					Logger.Error($"Failed to extract device icon from the file path: [{iconPath}]", e);
-				}
+				Logger.Error($"Failed to extract the device icon: [{iconPath}]", e);
+				return null;
 			}
-			return icon;
 		}
 
 		public DataFlow GetDataFlow()
