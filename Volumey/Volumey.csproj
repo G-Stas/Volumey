@@ -56,6 +56,8 @@
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
     <!-- Non-blocking global hotkeys (low-level keyboard hook); ships the native uiohook.dll -->
     <PackageReference Include="SharpHook" Version="8.0.0" />
+    <!-- Tray icon (successor of Hardcodet.NotifyIcon.Wpf) -->
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
     <!-- Settings (settings.json): autosave and change notifications are woven into the settings classes at build time -->
     <PackageReference Include="Nucs.JsonSettings" Version="2.3.2" />
     <PackageReference Include="Nucs.JsonSettings.Autosave" Version="2.3.2" />
@@ -115,7 +117,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Hardcodet.NotifyIcon.Wpf.dll" />
     <Resource Include="Resources\Icons\TrayDark\high.ico" />
     <Resource Include="Resources\Icons\TrayDark\low.ico" />
     <Resource Include="Resources\Icons\TrayDark\mid.ico" />
@@ -159,9 +160,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Hardcodet.NotifyIcon.Wpf, Version=1.1.0.0, Culture=neutral, PublicKeyToken=682384a853a08aad">
-      <HintPath>Resources\Hardcodet.NotifyIcon.Wpf.dll</HintPath>
-    </Reference>
     <Reference Include="Notification.Wpf, Version=6.1.0.1, Culture=neutral, PublicKeyToken=1acac493089262b5">
       <HintPath>Resources\Notification.Wpf.dll</HintPath>
     </Reference>

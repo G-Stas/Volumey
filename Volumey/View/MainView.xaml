@@ -4,7 +4,7 @@
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:ui="http://schemas.modernwpf.com/2019"
-                  xmlns:tb="http://www.hardcodet.net/taskbar"
+                  xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
                   xmlns:view="clr-namespace:Volumey.View"
                   xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
                   xmlns:converters="clr-namespace:Volumey.View.Converters"
@@ -169,11 +169,19 @@
             </Storyboard>
             
             <converters:WindowVisibilityConverter x:Key="WindowVisibilityConverter" />
-            <converters:TrayTooltipDeviceNameConverter x:Key="TooltipDeviceNameConverter" />
-            <converters:TrayTooltipDeviceVolumeConverter x:Key="TooltipDeviceVolumeConverter" />
             <converters:TrayTooltipConverter x:Key="TrayTooltipConverter"/>
             <converters:TrayIconConverter x:Key="TrayIconConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+
+            <MultiBinding x:Key="TrayIconBinding"
+                          Converter="{StaticResource TrayIconConverter}">
+                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DeviceProvider.NoOutputDevices" />
+                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Volume" />
+                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.IsMuted" />
+                <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme" />
+                <Binding Source="{StaticResource AppBehaviorViewModel}" Path="DisplayDeviceIconAtTray"/>
+                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Icon" />
+            </MultiBinding>
 
             <MultiBinding x:Key="TrayTextTooltip"
                           Converter="{StaticResource TrayTooltipConverter}">
@@ -187,47 +195,9 @@
                          Path="DefaultDevice.Master.Volume"/>
                 <Binding Source="{x:Static lc:TranslationSource.Instance}"
                          Path="CurrentCulture"/>
+                <Binding Source="{StaticResource DeviceProviderViewModel}"
+                         Path="DefaultDevice.Master.DeviceFriendlyName"/>
             </MultiBinding>
-
-            <ToolTip
-                x:Key="TrayCustomTooltip"
-                BorderThickness="0"
-                Background="{Binding ElementName=GridContainer, Path=Background}"
-                Foreground="{Binding ElementName=Window, Path=Foreground}"
-                ui:ControlHelper.CornerRadius="4">
-            
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock>
-                        <TextBlock.Text>
-                            <MultiBinding
-                                Converter="{StaticResource TooltipDeviceNameConverter}">
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DeviceProvider.NoOutputDevices" />
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DefaultDevice.Master.DeviceFriendlyName" />
-                                <Binding Source="{x:Static lc:TranslationSource.Instance}"
-                                         Path="CurrentCulture" />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
-                    <TextBlock
-                        Name="Volume">
-                        <TextBlock.Text>
-                            <MultiBinding
-                                Converter="{StaticResource TooltipDeviceVolumeConverter}">
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DeviceProvider.NoOutputDevices" />
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DefaultDevice.Master" />
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DefaultDevice.Master.IsMuted" />
-                                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                                         Path="DefaultDevice.Master.Volume" />
-                            </MultiBinding>
-                        </TextBlock.Text>
-                    </TextBlock>
-                </StackPanel>
-            </ToolTip>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -282,20 +252,7 @@
             Name="Tray"
             NoLeftClickDelay="True"
             LeftClickCommand="{Binding TrayClickCommand}"
-            ContextMenu="{StaticResource TrayMenu}">
-
-            <tb:TaskbarIcon.Icon>
-                <MultiBinding Converter="{StaticResource TrayIconConverter}">
-                    <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DeviceProvider.NoOutputDevices" />
-                    <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Volume" />
-                    <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.IsMuted" />
-                    <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme" />
-                    <Binding Source="{StaticResource AppBehaviorViewModel}" Path="DisplayDeviceIconAtTray"/>
-                    <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Icon" />
-                </MultiBinding>
-            </tb:TaskbarIcon.Icon>
-            
-        </tb:TaskbarIcon>
+            ContextMenu="{StaticResource TrayMenu}" />
 
         <ui:NavigationView
             Name="NavView"

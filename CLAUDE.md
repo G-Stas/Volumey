@@ -22,13 +22,14 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   8. `fix/dev-autostart-isolation`: dev builds no longer take over the installed app's autostart entry and shortcut.
   9. `fix/many-apps-crash`: survive the WPF "Not enough quota" window update failure (#58, #66); GitHub issue triage.
   10. `chore/handoff-notes`: this section and the test-session helper (`scripts/test-sessions.ps1`).
-- **Validated on `release/2.0`:** Release build without warnings (except NU1902), 169/169 unit tests, 8/8 audio integration tests, a warning-free Store MSIX build (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`).
-- **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner); OSD popup on an outside volume change; non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Not tested: the startup task launching the app at sign-in, and a 1.x Store install upgrading (see *Settings persistence*).
-- Item G layer 4 (UI tests) comes before item C, later (owner's decision). The tray icon (item F) is done together with item C.
+  11. `feature/h-notifyicon`: the tray icon on H.NotifyIcon.Wpf 2.4.1 with the native text tooltip (item F, owner's call to do it before item C; fixes #91, #65).
+- **Validated on `release/2.0`:** Release build without warnings (except NU1902), 168/168 unit tests, 8/8 audio integration tests, a Store MSIX build without compiler warnings (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`, `H.NotifyIcon*.dll`). The package project's restore prints one NU1701 per WPF package (it targets UAP); that is known noise.
+- **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner, and again after the H.NotifyIcon switch: icon, device icon, native tooltip text, left click, menu commands, icon removed on exit); OSD popup on an outside volume change; non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Not tested: the startup task launching the app at sign-in, and a 1.x Store install upgrading (see *Settings persistence*).
+- Item G layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ### Open threads (where the last session stopped, 2026-10-09)
 The owner asked to work through the GitHub issues; the triage is in *GitHub issues*. The last session offered these next steps and was waiting for the owner:
-- **Can be done without the owner:** the stuck tray tooltip on Windows 10 (#91, #65: use the plain-text tooltip everywhere, `MainView.SetTrayIconTooltip`), and remembering screens by device name instead of index (#92: `Window.ScreenIndex` and `Notifications.ScreenIndex`; needs a settings migration step, see *Versioning*).
+- **Can be done without the owner:** remembering screens by device name instead of index (#92: `Window.ScreenIndex` and `Notifications.ScreenIndex`; needs a settings migration step, see *Versioning*).
 - **Need the owner's machine or hands** (ask first; they change real audio settings or need games or hardware):
   - #82/#85: toggle spatial sound on the headphones while the dev build runs, to see what the device format change does (today it restarts the whole app; rebuilding just that device's model is the likely fix).
   - #63/#88: a fullscreen game (the owner has Valorant, CS, Steam games) with the foreground-app hotkeys.
@@ -92,7 +93,7 @@ Volumey/                 WPF app (net10.0-windows10.0.19041.0, WinExe, entry poi
                          Controls/ (HotkeyBox, VolumeSlider...), Converters/, Styles/, Localization/
   Helper/                NativeMethods (P/Invoke), HotkeyManager / SharpHookHotkeyManager, NotificationManagerHelper,
                          SystemIntegrationHelper (autostart/start menu), UpdateHelper, IconHelper...
-  Resources/             Resources*.resx (localization), icons, and 2 vendored DLLs (see Dependencies)
+  Resources/             Resources*.resx (localization), icons, and 1 vendored DLL (`Notification.Wpf`, see Dependencies)
   log4net.config         Loggly appender (Release/Store only)
 Volumey.Tests/           MSTest + Moq unit tests: models, ViewModels (ViewModels/ViewModelTestBase), converters, settings, localization
 Volumey.IntegrationTests/ MSTest tests against real Windows audio (own session playing silence through NAudio)
@@ -121,11 +122,11 @@ dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 168 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09; the vendored tray DLL is excluded). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 168 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - **Audio integration tests** (`Volumey.IntegrationTests`, category `Integration`, 8 tests): a separate project because they run a real WPF `Application` on its own UI thread (`AudioTestEnvironment`), as the app does, so model callbacks marshal to a real dispatcher; that would change how the unit tests behave. The test process plays silence (`TestAudioSession`, NAudio `WasapiPlayer`) to get its own session and uses that session's volume as "the Windows mixer". Device volumes are only read. Without an output device the tests are inconclusive; CI runs only `Volumey.Tests`. Windows remembers the test executable's session volume and mute between runs, so `TestAudioSession` resets them.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
-  - **Coverage** comes with MSTest.Sdk, no tool needed: `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x64 --coverage --coverage-output-format cobertura --coverage-output <file>`. Read the `Volumey` package's `line-rate`; the `Hardcodet.NotifyIcon.Wpf` package is the vendored tray DLL.
+  - **Coverage** comes with MSTest.Sdk, no tool needed: `dotnet test --project Volumey.Tests\Volumey.Tests.csproj -c Debug -p:Platform=x64 --coverage --coverage-output-format cobertura --coverage-output <file>`. Read the `Volumey` package's `line-rate`.
   - Tests that drive the UI with the keyboard or mouse (layer 4 of item G, not written yet) must stay out of the normal run, e.g. in a separate category or project, and only run on demand.
   - `PlatformTarget` is always x64 and the `RuntimeIdentifier` is win-x64, because the app's `RuntimeIdentifier` is win-x64 on every platform.
 - `Volumey.Package.wapproj` (MSIX) does **not** build with `dotnet build`. It needs Visual Studio MSBuild with the "Windows application packaging" (DesktopBridge) targets and the Windows SDK (`TargetPlatformVersion` 10.0.26100.0, `TargetPlatformMinVersion` 10.0.18362.0). Use the VS menu *Project → Publish → Create App Packages* or the command above.
@@ -169,7 +170,12 @@ Bump the version in **3 places**: `Volumey/Volumey.csproj` (`Version`, `Assembly
    - **Only the parameterless constructors of the root VMs (XAML needs them) and controls (`HotKeyBox`, the example OSD) read `AppServices.Current`.** Everything else gets its services through `internal` constructors: `SettingsViewModel` passes them to the settings VMs, `DeviceEnumerator` passes the hotkey service to the models it creates (`AudioModelFactory`, `MasterSessionModel`, `AudioProcessModel`). Keep it that way in new code, so tests can pass fakes.
    - Still static on purpose: `SettingsProvider.Settings` (tests swap it with `UseSettings`), `TranslationSource.Instance`, and the theme code (`ThemeViewModel`, `SystemColorHelper`, converters that read app resources), which the UI redesign replaces.
 3. The `MainView` ctor force-creates the HWND, because the window starts hidden. It hooks `WndProc` (WM_HOTKEY, WM_SHOWME, …), calls `RegisterApplicationRestart`, and gives the HWND to `SettingsViewModel`, which sets the hotkey manager (`IHotkeyService.SetHotkeyManager`, blocking or non-blocking, see *Hotkeys*). The first manager fires `IHotkeyService.Activated`, and each settings VM then registers its saved hotkeys.
-4. The tray icon is `Hardcodet.NotifyIcon.Wpf` (`MainView.Tray`). Win11 uses a plain text tooltip because custom tooltips break there.
+4. The tray icon is `H.NotifyIcon.Wpf`'s `TaskbarIcon` (`MainView.Tray`, set up in `MainView.SetUpTrayIcon`).
+   - The ctor creates it with `ForceCreate(enablesEfficiencyMode: false)`: the library only creates it on `Loaded`, and the window starts hidden. Efficiency mode would throttle the app.
+   - The icon (`TrayIconConverter`) and the tooltip text (`TrayTooltipConverter`) are bound to private properties of `MainView`, which push them to the shell through `Tray.UpdateIcon` and `Tray.TrayIcon.UpdateToolTip`. **Don't bind `TaskbarIcon.Icon`:** it disposes the previous icon, but the icons are cached by the icon providers or belong to the device model. Shell failures are logged, not thrown (the library throws, e.g. while Explorer restarts; it re-creates the icon with the last icon and tooltip when the taskbar comes back).
+   - The tooltip is the **native** shell tooltip (`NIF_SHOWTIP`) on every Windows version. The old library drew a WPF tooltip popup instead, which got stuck at the top-left of the screen on Windows 10 (#91, #65) and didn't work on Windows 11. Don't set `TrayToolTip`.
+   - The context menu is the WPF `ContextMenu` from `MainView.xaml` (`TrayMenu`), as before.
+   - The icon's identity is a GUID hashed from the exe path (library default), so the dev build, the zip build and each Store version are separate icons for Windows' "show in tray" settings. The old library used the exe path too (window + uID).
 
 ### Audio layer
 Built on **NAudio.Wasapi 3.x** (`NAudio.CoreAudioApi`). NAudio 3 uses source-generated COM (`ComWrappers`); its raw COM interfaces are internal, so the app only uses NAudio's wrapper classes. Only `Volumey/CoreAudioWrapper/Wrapper/` touches NAudio types: models and VMs use the wrapper interfaces and the app's own types (`DeviceFormat`, `AudioSessionState`, `AudioSessionDisconnectReason`).
@@ -241,7 +247,7 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
 | Package | Purpose | Notes |
 |---|---|---|
 | ModernWpfUI 0.9.4 | UI controls/theme | Frozen 0.9.x line; to be replaced by iNKORE.UI.WPF.Modern (item C) |
-| Hardcodet.NotifyIcon.Wpf (**vendored DLL**, author's fork `G-Stas/wpf-notifyicon`) | tray icon | `Resources/` binary, not NuGet. To be replaced by `H.NotifyIcon.Wpf` (item F) |
+| H.NotifyIcon.Wpf 2.4.1 | tray icon | MIT, maintained successor of Hardcodet.NotifyIcon.Wpf (replaced the owner's vendored fork, item F). Brings `H.NotifyIcon.dll` and `H.GeneratedIcons.System.Drawing.dll` |
 | Notification.Wpf (**vendored DLL**, fork `G-Stas/Notification.Wpf`) | OSD popups | `Resources/` binary, not NuGet |
 | Autoupdater.NET.Official 1.8.2 | non-Store updates | 1.9.x is available; works on .NET 10 (update dialog verified) |
 | log4net-loggly 9.0.0 | remote logging to Loggly | **Loggly input key is committed in `log4net.config`** |
@@ -262,9 +268,9 @@ WinRT APIs (`StoreContext`, `AppInstance`, `Package`) come from the `-windows10.
 - **#57** closes after sleep ("non-responsive, then closes"): likely the same hang, since devices drop and return around sleep. Not tested with a real sleep yet.
 - **#58, #66** crash with `Win32Exception (1816) Not enough quota` in `HwndTarget.UpdateWindowSettings` (in games, or when the mixer has many apps). Reproduced once in a dev run with 12 extra apps, then not again in ~20 runs (timing-dependent). 2.0 catches exactly this error in `App.OnDispatcherUnhandledException` and keeps running (WPF updates the window on its next change), and `MainView.MoveTo` no longer passes the window's `NaN` height to `SetWindowPos` (it resized the window on every move).
 - **#46** hotkeys don't reach Volumey in some games: try the non-blocking hotkey mode (item D).
+- **#91, #65** a box with the device name stuck at the top-left until the tray icon is hovered (Windows 10): the old tray library drew the tooltip as a WPF popup (even for plain text). 2.0 uses the native shell tooltip (item F). Checked on Windows 11 only.
 
 **Known cause, not fixed yet:**
-- **#91, #65** a box with the device name stuck at the top-left until the tray icon is hovered: on Windows 10 the tray uses the vendored Hardcodet **custom tooltip** popup (Windows 11 already gets a plain-text tooltip, `MainView.SetTrayIconTooltip`). Likely fix: plain-text tooltip everywhere, or the new tray library (item F).
 - **#82, #85** changing spatial sound empties the mixer until a restart. A device format change makes `AppBehaviorViewModel` restart the whole app (`OnDeviceFormatChanged` → `IAppShell.StartNewInstance`); rebuilding just that device's model would be better, and with NAudio and proper disposal it should now be possible. For the Store build it's unclear whether starting the packaged exe by path works at all. Needs a repro with spatial sound (owner).
 - **#63, #88** "foreground app" hotkeys do nothing in fullscreen games until Alt+Tab, then act late on the wrong app: the hotkey is handled late, and the foreground process is looked up only then. Ideas: look up the foreground process as soon as the key arrives (the SharpHook manager could do it on its thread), and check whether the UI thread is stalled by the OSD under fullscreen games. Needs a game test (owner).
 - **#92** window opens on the wrong screen after a reboot (main monitor detected late): screens are remembered **by index** (`Window.ScreenIndex`, `Notifications.ScreenIndex`); remember the screen's device name instead.
@@ -295,7 +301,7 @@ Each step should leave a working, shippable build.
 3. ~~New settings format (item B).~~ Done (2026-10-08): settings.json via Nucs.JsonSettings, see Settings persistence. The new settings don't depend on `Notification.Wpf` types anymore (the position is stored by name).
 4. ~~Audio layer → NAudio (item A).~~ Done (2026-10-09).
 5. ~~Hotkeys through a library, with a non-blocking mode (item D).~~ Done (2026-10-09).
-6. ~~Tray icon on the current NotifyIcon library (item F).~~ Deferred (owner, 2026-10-09): done together with the UI redesign (item C).
+6. ~~Tray icon on the current NotifyIcon library (item F).~~ Done (2026-10-09).
 7. UI framework (item C). This is the biggest and riskiest change, so do it last, on top of a cleaner architecture.
 
 **Inserted 2026-10-09:** more tests (item G), layers 1–3 before item D, layer 4 (UI tests) before item C.
@@ -321,7 +327,7 @@ Candidates (state as of Oct 2026):
 - **ModernWPF 1.x** (same NuGet id `ModernWpfUI`, `1.0.0-rc.1`, revived upstream at Kinnara/ModernWpf): the smallest step. It targets net462, net8 and net10. On `net10.0-windows` the stock controls use the platform WPF Fluent theme (Win11 look), and ModernWPF adds NavigationView, ContentDialog, `WindowBackdrop` (Mica/Acrylic on Win11 22H2+) and a WinUI-style `TitleBar`. There is an official 0.9→1.x migration guide; the API is not drop-in compatible.
 - **WPF + the .NET 9+ built-in Fluent theme alone** (`Application.ThemeMode`): no third-party dependency, but there is no NavigationView or ContentDialog, and the API was still marked experimental.
 - **iNKORE.UI.WPF.Modern** (a ModernWpf fork, v0.10.x, LGPL-2.1): Win11-styled, with `SettingsCard`/`SettingsExpander` (Win11 Settings-app look) and backdrops. Its migration from ModernWpf is close, but the namespaces differ.
-- **WPF-UI (lepoco/wpfui)** (4.x, .NET 10, MIT, the most active WPF option): Win11 controls, Mica/Acrylic, NavigationView, a TitleBar, and a built-in `NotifyIcon` that could replace the vendored Hardcodet fork. Moderate migration, because its controls and theme dictionaries replace ModernWpf's, but the XAML and VM structure is kept.
+- **WPF-UI (lepoco/wpfui)** (4.x, .NET 10, MIT, the most active WPF option): Win11 controls, Mica/Acrylic, NavigationView, a TitleBar, and a built-in `NotifyIcon`. Moderate migration, because its controls and theme dictionaries replace ModernWpf's, but the XAML and VM structure is kept.
 - **WinUI 3 / Windows App SDK**: the real Win11 controls and Mica, and packaged MSIX fits the Store.
   - The views have to be rewritten.
   - There is no built-in tray icon (use H.NotifyIcon.WinUI).
@@ -329,7 +335,7 @@ Candidates (state as of Oct 2026):
 - **Avalonia + FluentAvalonia**: cross-platform, which this app doesn't need. Lowest priority.
 
 For any choice:
-- Re-evaluate the OSD (the `Notification.Wpf` fork); ideally that vendored DLL goes away too. The tray icon is handled separately in item F.
+- Re-evaluate the OSD (the `Notification.Wpf` fork); ideally that vendored DLL goes away too. Restyle the tray context menu with the new theme (the tray icon itself is done, item F).
 - Prototype the main mixer flyout plus one settings page before migrating.
 - Keep ViewModels framework-agnostic.
 
@@ -361,12 +367,11 @@ Tests must run the same way from the CLI, CI, Rider and VS.
 - GitHub Actions workflow: `.github/workflows/build.yml` exists but is inactive, because the work isn't pushed.
 
 ### F. Tray icon: switch to the current NotifyIcon library
-The tray icon uses a **vendored DLL** built from the owner's fork of Hardcodet (`G-Stas/wpf-notifyicon`, `Volumey/Resources/Hardcodet.NotifyIcon.Wpf.dll`). The owner wants the current library from NuGet instead. Decided 2026-10-08.
-- **Preferred: `H.NotifyIcon.Wpf`** (2.4.1, Dec 2025, MIT). It's the maintained continuation of Hardcodet.NotifyIcon.Wpf and keeps its API: `TaskbarIcon`, `TrayToolTip`, `TrayPopup`, `ContextMenu`, commands. On top of that it has native context menus with dark/light theming, Windows 11 Efficiency Mode, icons generated from text, and NativeAOT/trimming support. There's also a WinUI package, should the UI ever move there.
-- Alternative: the official `Hardcodet.NotifyIcon.Wpf` 2.0.1 (Oct 2024), an almost drop-in replacement but much less active.
-- **Before switching**, diff the owner's fork against its upstream to find what the fork changed, and keep that behavior. Known areas: the Win11 tooltip workaround in `MainView.SetTrayIconTooltip` (plain text tooltip on Windows 11) and the tray context menu.
-- H.NotifyIcon by default derives the tray icon's ID from the exe path. For the Store build the path changes with every version, so Windows could forget "always show this icon" after updates. Check how it behaves with MSIX; the library supports a fixed ID.
-- **Deferred (owner, 2026-10-09): do it together with the UI redesign (item C).** It doesn't depend on the UI framework (iNKORE stays on WPF), but the owner wants the tray reworked with the new UI. Afterwards, remove the vendored DLL and its `<Reference>`/`<EmbeddedResource>` entries from `Volumey.csproj`.
+**Done (2026-10-09)** with `H.NotifyIcon.Wpf` 2.4.1 (latest stable), replacing the vendored DLL from the owner's Hardcodet fork (`G-Stas/wpf-notifyicon`). It was first deferred to item C; the owner moved it up to fix the stuck Windows 10 tooltip (#91, #65). See *Architecture / runtime flow*, point 4. Notes:
+- The fork's own commits only suppressed some exceptions (`OnToolTipChange`, a VisualTarget parent error, a Win32 "operation completed successfully" error) and made the icon data public (unused by the app). The WPF tooltip code they patched isn't used anymore, and shell failures are caught in `MainView.UpdateTrayIcon`.
+- Removed with it: the custom tooltip popup and its two converters, `UpdateHelper.IsWindows11`.
+- Open: the icon ID follows the exe path, which changes with every Store version, so Windows may forget "show this icon" after a Store update (the old library had the same behavior). A fixed `Id` would fix that, but Windows binds a GUID to one exe path and refuses it from another, which would break moved zip builds; check with two MSIX versions before changing it.
+- Later (item C): H.NotifyIcon advertises native context menus with dark/light theming; check its docs for the WPF package before restyling the menu.
 
 ### G. More tests (owner's request, 2026-10-09)
 Coverage before: about 20% of the app's lines. The owner wants many more tests. Plan, one work branch per layer:

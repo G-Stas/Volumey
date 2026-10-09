@@ -12,8 +12,5 @@ namespace Volumey.Helper
 			var updates = await sContext.GetAppAndOptionalStorePackageUpdatesAsync();
 			return updates.Count > 0;
 		}
-		
-		internal static bool IsWindows11()
-			=> Environment.OSVersion.Version.Build >= 22000;
 	}
 }
