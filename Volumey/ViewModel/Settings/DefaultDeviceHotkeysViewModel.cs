@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Volumey.Helper;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,7 +68,6 @@ namespace Volumey.ViewModel.Settings
         internal DefaultDeviceHotkeysViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys)
         {
             this.hotkeys = hotkeys;
-            ErrorDictionary.LanguageChanged += () => { this.SetErrorMessage(this.CurrentErrorType);};
             
             this.DeviceProvider = deviceProvider;
 
@@ -123,8 +122,12 @@ namespace Volumey.ViewModel.Settings
         private void RegisterLoadedHotkeys()
         {
             this.hotkeys.HotkeyPressed += OnHotkeyPressed;
+            //shows an error instead of silently doing nothing; the hotkeys stay saved and are tried again on the next start
+            bool allRegistered = true;
             foreach(var hotkeyDeviceInfoPair in this.RegisteredDevices)
-                this.hotkeys.RegisterHotkey(hotkeyDeviceInfoPair.Key);
+                allRegistered &= this.hotkeys.RegisterHotkey(hotkeyDeviceInfoPair.Key);
+            if(!allRegistered)
+                this.SetErrorMessage(ErrorMessageType.OpenReg);
         }
 
         /// <summary>

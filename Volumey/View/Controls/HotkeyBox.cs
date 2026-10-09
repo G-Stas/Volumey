@@ -95,8 +95,12 @@ namespace Volumey.Controls
 			base.OnApplyTemplate();
 
 			this.PreviewKeyDown += this.TextBoxOnPreviewKeyDown2;
-			this.GotFocus += this.TextBoxOnGotFocus;
-			this.LostFocus += this.TextBoxOnLostFocus;
+			//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
+			//which left every hotkey ignored (and swallowed) until focus moved inside the window again
+			this.GotKeyboardFocus += this.TextBoxOnGotFocus;
+			this.LostKeyboardFocus += this.TextBoxOnLostFocus;
+			this.IsVisibleChanged += (s, e) => { if(!this.IsVisible) this.StopEditing(); };
+			this.Unloaded += (s, e) => this.StopEditing();
 			this.TextChanged += this.TextBoxOnTextChanged;
 
 			this.UpdateText();
@@ -109,10 +113,24 @@ namespace Volumey.Controls
 				this.HotKey = null;
 		}
 
+		private bool editing;
+
 		private void TextBoxOnGotFocus(object sender, RoutedEventArgs routedEventArgs)
 		{
+			if(this.editing)
+				return;
+			this.editing = true;
 			AppServices.Current.Hotkeys.IsEditingHotkey = true;
 			ComponentDispatcher.ThreadPreprocessMessage += this.ComponentDispatcherOnThreadPreprocessMessage;
+		}
+
+		private void StopEditing()
+		{
+			if(!this.editing)
+				return;
+			this.editing = false;
+			AppServices.Current.Hotkeys.IsEditingHotkey = false;
+			ComponentDispatcher.ThreadPreprocessMessage -= this.ComponentDispatcherOnThreadPreprocessMessage;
 		}
 
 		private void ComponentDispatcherOnThreadPreprocessMessage(ref MSG msg, ref bool handled)
@@ -125,10 +143,7 @@ namespace Volumey.Controls
 		}
 
 		private void TextBoxOnLostFocus(object sender, RoutedEventArgs routedEventArgs)
-		{
-			AppServices.Current.Hotkeys.IsEditingHotkey = false;
-			ComponentDispatcher.ThreadPreprocessMessage -= this.ComponentDispatcherOnThreadPreprocessMessage;
-		}
+			=> this.StopEditing();
 
 		private void TextBoxOnPreviewKeyDown2(object sender, KeyEventArgs e)
 		{

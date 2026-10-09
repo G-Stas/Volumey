@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using log4net;
 using Volumey.Controls;
@@ -50,7 +50,6 @@ namespace Volumey.ViewModel.Settings
 		internal OpenHotkeyViewModel(IHotkeyService hotkeys)
 		{
 			this.hotkeys = hotkeys;
-			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			if(SettingsProvider.Settings.Hotkeys.OpenMixer is HotKey openHotkey)
 			{
@@ -65,11 +64,9 @@ namespace Volumey.ViewModel.Settings
 
 		private void RegisterLoadedHotkey()
 		{
-			try
-			{
-				this.hotkeys.RegisterOpenMixerHotkey(this.Hotkey);
-			}
-			catch { }
+			//shows an error instead of silently doing nothing; it stays saved and is tried again on the next start
+			if(!this.hotkeys.RegisterOpenMixerHotkey(this.Hotkey))
+				this.SetErrorMessage(ErrorMessageType.OpenReg);
 		}
 		
 		private bool SaveHotkey(object param = null)

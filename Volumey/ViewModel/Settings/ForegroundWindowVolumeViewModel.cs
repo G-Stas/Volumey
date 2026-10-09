@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -76,7 +76,6 @@ namespace Volumey.ViewModel.Settings
 		{
 			this.hotkeys = hotkeys;
 			this.notifications = notifications;
-			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			_defaultDevice = deviceProvider.DefaultDevice;
 			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
@@ -95,12 +94,12 @@ namespace Volumey.ViewModel.Settings
 
 		private void RegisterLoadedHotkeys()
 		{
-			try
-			{
-				this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey);
+			//a saved pair that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
+			//it stays saved and is tried again on the next start
+			if(this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
 				this.hotkeys.HotkeyPressed += OnHotkeyPressed;
-			}
-			catch { }
+			else
+				this.SetErrorMessage(ErrorMessageType.VolumeReg);
 		}
 
 		private bool SaveHotkeys()

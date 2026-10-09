@@ -128,7 +128,6 @@ namespace Volumey.ViewModel.Settings
 			dProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 			this.DefaultDevice = dProvider.DefaultDevice;
 
-			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
 
 			this.VolumeStep = SettingsProvider.Settings.General.VolumeStep;
 			this.RegisteredProcesses = LoadRegisteredProcesses();
@@ -149,6 +148,8 @@ namespace Volumey.ViewModel.Settings
 		{
 			if(this.RegisteredProcesses == null || this.DefaultDevice == null)
 				return;
+			//-= first: a default device change may have subscribed already
+			this.DefaultDevice.ProcessCreated -= OnProcessStarted;
 			this.DefaultDevice.ProcessCreated += OnProcessStarted;
 			this.FindAndSetupRegisteredHotkeys();
 		}
@@ -163,18 +164,20 @@ namespace Volumey.ViewModel.Settings
 			for(int i = launchedProcessesCount-1; i >= 0; i--)
 			{
 				var process = this.LaunchedProcesses[i];
+				process.Exited -= OnProcessExited;
 				process.ResetVolumeHotkeys();
 				process.ResetStateMediator();
 				this.LaunchedProcesses.Remove(process);
 			}
-			
+
 			this.DefaultDevice = newDevice;
-			
+
 			if(newDevice == null)
 				return;
-			
+
 			if(this.RegisteredProcesses.Keys.Count != 0)
 			{
+				this.DefaultDevice.ProcessCreated -= OnProcessStarted;
 				this.DefaultDevice.ProcessCreated += OnProcessStarted;
 				this.FindAndSetupRegisteredHotkeys();
 			}
@@ -189,7 +192,8 @@ namespace Volumey.ViewModel.Settings
 				return;
 			foreach(AudioProcessModel process in this.DefaultDevice.GetImmutableProcesses())
 			{
-				if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
+				//an app that is set up already would get its hotkeys registered twice
+				if(this.RegisteredProcesses.TryGetValue(process.Name, out var hotkeys) && !this.LaunchedProcesses.Contains(process))
 				{
 					process.SetVolumeHotkeys(hotkeys.VolumeUp, hotkeys.VolumeDown);
 					process.Exited += OnProcessExited;
