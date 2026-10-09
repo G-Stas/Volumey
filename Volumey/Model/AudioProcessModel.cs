@@ -122,11 +122,9 @@ public class AudioProcessModel : IManagedMasterAudioSession
 
 	private HotKey _volumeUp;
 	private HotKey _volumeDown;
-	// private HotKey _muteKey;
 
 	public ICommand MuteCommand { get; set; }
 
-	// private bool _muteKeyRegistered;
 	private object _sessionsLock = new object();
 
 	private static Dispatcher _dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
@@ -235,33 +233,6 @@ public class AudioProcessModel : IManagedMasterAudioSession
 	public void ResetVolumeHotkeys()
 	{
 		UnregisterHotkeys();
-	}
-
-	public bool SetMuteHotkey(HotKey hotkey)
-	{
-		// try
-		// {
-		// 	if(hotkey != null && _hotkeys.RegisterHotkey(hotkey))
-		// 	{
-		// 		this._muteKey = hotkey;
-		// 		_hotkeys.HotkeyPressed += OnHotkeyPressed;
-		// 		this._muteKeyRegistered = true;
-		// 		HotkeysRegistered = true;
-		// 		return true;
-		// 	}
-		// }
-		// catch { }
-		return false;
-	}
-
-	public void ResetMuteHotkey()
-	{
-		// if(this._muteKey != null)
-		// 	_hotkeys.UnregisterHotkey(this._muteKey);
-		// if(!this._muteKeyRegistered)
-		// 	_hotkeys.HotkeyPressed -= OnHotkeyPressed;
-		// this._muteKeyRegistered = false;
-		// this._muteKey = null;
 	}
 
 	private void UnregisterHotkeys()

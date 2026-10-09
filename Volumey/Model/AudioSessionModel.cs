@@ -75,8 +75,6 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	public ICommand MuteCommand { get; set; }
 
-	private AudioSessionState _state;
-
 	private readonly IAudioSessionStateNotifications sessionStateNotifications;
 	private readonly IAudioSessionVolume sessionVolume;
 	public event Action<AudioSessionModel> SessionEnded;
@@ -104,7 +102,6 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		sessionStateNotifications.SessionEnded += OnSessionEnded;
 		sessionStateNotifications.NameChanged += OnNameChanged;
 		sessionStateNotifications.Disconnected += OnDisconnected;
-		sessionStateNotifications.StateChanged += OnStateChanged;
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
 	}
@@ -150,9 +147,6 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		EndedByFormatChange = reason == AudioSessionDisconnectReason.FormatChanged;
 		OnSessionEnded();
 	}
-
-	private void OnStateChanged(AudioSessionState newState)
-		=> _state = newState;
 
 	private void SetVolume(int newVol, Guid guid)
 	{

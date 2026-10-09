@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Threading.Tasks;
 using log4net;
 using Volumey.Controls;
 using Volumey.DataProvider;

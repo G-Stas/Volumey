@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using log4net;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
-using Volumey.Helper;
 using NAudioDisconnectReason = NAudio.CoreAudioApi.Interfaces.AudioSessionDisconnectReason;
 using NAudioSessionState = NAudio.CoreAudioApi.Interfaces.AudioSessionState;
 
@@ -19,7 +18,6 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 	public event Action<VolumeChangedEventArgs> VolumeChanged;
 	public event Action<string> NameChanged;
 	public event Action<AudioSessionDisconnectReason> Disconnected;
-	public event Action<AudioSessionState> StateChanged;
 	private readonly AudioSessionControl sessionControl;
 	private readonly SessionEchoFilter echoFilter;
 	private bool disposed;
@@ -70,8 +68,6 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 	{
 		if(newState == NAudioSessionState.AudioSessionStateExpired)
 			SessionEnded?.Invoke();
-		else
-			StateChanged?.Invoke((AudioSessionState)newState);
 	}
 
 	public void RegisterNotifications()
