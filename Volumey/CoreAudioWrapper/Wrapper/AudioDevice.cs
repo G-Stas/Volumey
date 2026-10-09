@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Globalization;
 using System.Threading;
 using System.Windows.Media;
 using log4net;

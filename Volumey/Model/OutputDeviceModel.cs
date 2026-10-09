@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -301,12 +300,9 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	internal bool CompareId(string deviceId) =>
 		string.Compare(Id, deviceId, StringComparison.InvariantCulture) == 0;
 
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
+	//never raised: the bound properties don't change, but without INotifyPropertyChanged WPF tracks bindings to the model
+	//through PropertyDescriptor, which keeps the model alive
+	public event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
 
 	/// <summary>
 	/// Stops all notifications right away; the apps and the device's COM objects are released afterwards

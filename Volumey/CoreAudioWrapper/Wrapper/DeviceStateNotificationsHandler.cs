@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using log4net;
 using NAudio.CoreAudioApi;
 using Volumey.Model;
-using Volumey.ViewModel.Settings;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
 

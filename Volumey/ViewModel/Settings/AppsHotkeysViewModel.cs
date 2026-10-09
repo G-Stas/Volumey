@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
