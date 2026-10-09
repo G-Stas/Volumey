@@ -77,25 +77,13 @@ namespace Volumey.ViewModel.Settings
 				return false;
 			}
 			this.SetErrorMessage(ErrorMessageType.None);
-			try
+			if(this.hotkeys.RegisterOpenMixerHotkey(this.hotkey))
 			{
-				if(this.hotkeys.RegisterOpenMixerHotkey(this.hotkey))
-				{
-					SettingsProvider.Settings.Hotkeys.OpenMixer = this.hotkey;
-					Task.Run(() =>
-					{
-						Logger.Info($"Registered open mixer hotkey: [{this.hotkey}]");
-					});	
-					return true;
-				}
+				SettingsProvider.Settings.Hotkeys.OpenMixer = this.hotkey;
+				Logger.Info($"Registered open mixer hotkey: [{this.hotkey}]");
+				return true;
 			}
-			catch(Exception e)
-			{
-				Task.Run(() =>
-				{
-					Logger.Error($"Failed to register open mixer hotkey, hotkey: [{this.hotkey}]", e);
-				});
-			}
+			//the hotkey service logs why
 			this.SetErrorMessage(ErrorMessageType.OpenReg);
 			return false;
 		}

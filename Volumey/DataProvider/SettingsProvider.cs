@@ -81,7 +81,7 @@ namespace Volumey.DataProvider
                 if(firstLaunch)
                     ImportLegacySettings(settingsDir, loaded, getScreens);
                 Migrate(loaded);
-                loaded.Save();
+                loaded.SaveNow();
                 return loaded.EnableAutosave();
             }
             catch(Exception e)

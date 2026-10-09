@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Nucs.JsonSettings;
@@ -34,12 +36,61 @@ namespace Volumey.DataProvider.Settings
 		public VolumeySettings() { }
 		public VolumeySettings(string fileName) : base(fileName) { }
 
-		//settings are changed from background threads as well, so don't let saves overlap
+		/// <summary>
+		/// How long a save waits for more changes. Every change saves the whole file, and changes come in bursts (e.g. a slider),
+		/// so a burst is written once, on the thread pool, instead of once per change on the UI thread.
+		/// </summary>
+		internal static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(300);
+
+		private Timer saveTimer;
+		private string pendingFile;
+
+		/// <summary>
+		/// Called by autosave on every change: schedules the write (see <see cref="SaveDelay"/>). <see cref="Flush"/> writes it at once.
+		/// </summary>
 		public override void Save(string filename)
 		{
 			lock(this.saveLock)
-				base.Save(filename);
+			{
+				this.pendingFile = filename;
+				(this.saveTimer ??= new Timer(_ => Flush())).Change(SaveDelay, Timeout.InfiniteTimeSpan);
+			}
 		}
+
+		/// <summary>
+		/// Writes a scheduled save now, e.g. when the app exits.
+		/// </summary>
+		public void Flush()
+		{
+			string file;
+			lock(this.saveLock)
+			{
+				file = this.pendingFile;
+				this.pendingFile = null;
+			}
+			if(file == null)
+				return;
+			try
+			{
+				SaveNow(file);
+			}
+			catch(Exception e)
+			{
+				//also runs on a timer thread, where an exception would end the app
+				log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
+			}
+		}
+
+		/// <summary>
+		/// Writes the file at once (loading and migration need that).
+		/// </summary>
+		public void SaveNow(string filename = null)
+		{
+			lock(this.writeLock)
+				base.Save(filename ?? this.FileName);
+		}
+
+		private readonly object writeLock = new object();
 
 		private static JsonSerializerSettings CreateSerializerSettings()
 		{

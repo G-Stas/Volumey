@@ -81,13 +81,7 @@ namespace Volumey.ViewModel
 				UpdateNotificationColors(AppTheme.Light);
 			}
 			
-			Task.Run(() =>
-			{
-				if(SettingsProvider.Settings.General.Theme != this.selectedTheme)
-				{
-					SettingsProvider.Settings.General.Theme = this.selectedTheme;
-				}
-			});
+			SettingsProvider.Settings.General.Theme = this.selectedTheme;
 		}
 
 		private void UpdateNotificationColors(AppTheme newTheme)

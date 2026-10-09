@@ -31,16 +31,12 @@ namespace Volumey.ViewModel.Settings
 					this.deviceProvider.DefaultDeviceChanged -= OnDefaultDeviceChanged;
 					this.SetDevice(null);
 				}
-				//take the settings now: they may be replaced before the task runs
 				var general = SettingsProvider.Settings.General;
 				if(general.AppVolumeSyncEnabled != value)
 				{
-					Task.Run(() =>
-					{
-						if(value)
-							Logger.Info("Synchronising app volume to master volume on change.");
-						general.AppVolumeSyncEnabled = value;
-					});
+					if(value)
+						Logger.Info("Synchronising app volume to master volume on change.");
+					general.AppVolumeSyncEnabled = value;
 				}
 				OnPropertyChanged();
 			}

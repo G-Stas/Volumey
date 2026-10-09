@@ -110,27 +110,15 @@ namespace Volumey.ViewModel.Settings
 				return false;
 			}
 			this.SetErrorMessage(ErrorMessageType.None);
-			try
+			if(this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
 			{
-				if(this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
-				{
-					SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = this._volumeUpHotkey;
-					SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = this._volumeDownHotkey;
-					this.hotkeys.HotkeyPressed += OnHotkeyPressed;
-					Task.Run(() =>
-					{
-						Logger.Info($"Registered foreground hotkeys: [{this._volumeUpHotkey}] [{this._volumeDownHotkey}]");
-					});	
-					return true;
-				}
+				SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = this._volumeUpHotkey;
+				SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = this._volumeDownHotkey;
+				this.hotkeys.HotkeyPressed += OnHotkeyPressed;
+				Logger.Info($"Registered foreground hotkeys: [{this._volumeUpHotkey}] [{this._volumeDownHotkey}]");
+				return true;
 			}
-			catch(Exception e)
-			{
-				Task.Run(() =>
-				{
-					Logger.Error($"Failed to register foreground hotkeys: [{this._volumeUpHotkey}, {this._volumeDownHotkey}]", e);
-				});
-			}
+			//the hotkey service logs why
 			this.SetErrorMessage(ErrorMessageType.VolumeReg);
 			return false;
 		}

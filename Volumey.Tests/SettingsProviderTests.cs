@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.DataProvider;
@@ -43,6 +43,7 @@ namespace Volumey.Tests
 		{
 			var settings = SettingsProvider.LoadSettings(this.dir);
 			settings.General.VolumeStep = 7;
+			settings.Flush();
 
 			var reloaded = SettingsProvider.LoadSettings(this.dir);
 
@@ -87,6 +88,7 @@ namespace Volumey.Tests
 			}
 			var settings = SettingsProvider.LoadSettings(this.dir, GetScreens);
 			settings.Window.ScreenName = @"\\.\DISPLAY2";
+			settings.Flush();
 
 			var reloaded = SettingsProvider.LoadSettings(this.dir, GetScreens);
 
@@ -111,6 +113,7 @@ namespace Volumey.Tests
 		{
 			var first = SettingsProvider.LoadSettings(this.dir);
 			first.General.VolumeStep = 9;
+			first.Flush();
 			File.Copy(Path.Combine(AppContext.BaseDirectory, "TestData", "legacy-appconfig-1.5.4"), Path.Combine(this.dir, "appconfig"));
 
 			var second = SettingsProvider.LoadSettings(this.dir);
