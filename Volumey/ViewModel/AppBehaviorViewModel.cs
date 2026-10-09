@@ -331,18 +331,24 @@ namespace Volumey.ViewModel
 			{
 				var screens = screenInfoProvider.GetAllScreensInfo().ToList();
 
-				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
+				//on the UI thread, which owns the window that follows SelectedScreen
+				void Apply()
 				{
-					this.shell.Dispatcher.Invoke(() =>
+					if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
 					{
 						AllScreens.Clear();
 						foreach(var screen in screens)
 							AllScreens.Add(screen);
-					});
+					}
+					//also updates the selection in the UI, which is lost when AllScreens is replaced
+					ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Window.ScreenName));
 				}
 
-				//also updates the selection in the UI, which is lost when AllScreens is replaced
-				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Window.ScreenName));
+				var dispatcher = this.shell.Dispatcher;
+				if(dispatcher == null || dispatcher.CheckAccess())
+					Apply();
+				else
+					dispatcher.Invoke(Apply);
 			}).ContinueWith(task =>
 			{
 				if(task.Exception != null)
