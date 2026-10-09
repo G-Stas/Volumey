@@ -5,58 +5,57 @@ using ModernWpf.Controls;
 using ModernWpf.Media.Animation;
 using Volumey.View.SettingsPage;
 
-namespace Volumey.View
+namespace Volumey.View;
+
+public partial class SettingsView : INotifyPropertyChanged
 {
-    public partial class SettingsView : INotifyPropertyChanged
-    {
-        public class NavLink
-        {
-            public string LocalizationKey { get; }
-            public Type PageType { get; }
+	public class NavLink
+	{
+		public string LocalizationKey { get; }
+		public Type PageType { get; }
 
-            public NavLink(string localizationKey, Type pageType)
-            {
-                this.LocalizationKey = localizationKey;
-                this.PageType = pageType;
-            }
-        }
+		public NavLink(string localizationKey, Type pageType)
+		{
+			LocalizationKey = localizationKey;
+			PageType = pageType;
+		}
+	}
 
-        public static List<NavLink> NavLinks { get; } = new List<NavLink>();
-        public NavLink SelectedNavLink { get; set; }
+	public static List<NavLink> NavLinks { get; } = new List<NavLink>();
+	public NavLink SelectedNavLink { get; set; }
 
-        static SettingsView()
-        {
-            NavLinks.Add(new NavLink("Settings_AppsHotkeys", typeof(AppsHotkeysPage)));
-            NavLinks.Add(new NavLink("Settings_DeviceHotkeys", typeof(DeviceVolumeHotkeysPage)));
-            NavLinks.Add(new NavLink("Settings_DefaultDeviceHotkey", typeof(DefaultDeviceHotkeysPage)));
-            NavLinks.Add(new NavLink("Settings_MixerSettings", typeof(MixerSettingsPage)));
-            NavLinks.Add(new NavLink("Notifications_Header", typeof(NotificationsPage)));
-            NavLinks.Add(new NavLink("Settings_MediaHotkeys", typeof(SystemHotkeysPage)));
-            NavLinks.Add(new NavLink("Settings_WindowBehavior", typeof(AppBehaviorPage)));
-            NavLinks.Add(new NavLink("Settings_HeaderMisc", typeof(MiscPage)));
-        }
-        
-        public SettingsView()
-        {
-            InitializeComponent();
-            this.SelectedNavLink = NavLinks[0];
-            this.PageContentFrame.Navigate(this.SelectedNavLink.PageType);
-        }
+	static SettingsView()
+	{
+		NavLinks.Add(new NavLink("Settings_AppsHotkeys", typeof(AppsHotkeysPage)));
+		NavLinks.Add(new NavLink("Settings_DeviceHotkeys", typeof(DeviceVolumeHotkeysPage)));
+		NavLinks.Add(new NavLink("Settings_DefaultDeviceHotkey", typeof(DefaultDeviceHotkeysPage)));
+		NavLinks.Add(new NavLink("Settings_MixerSettings", typeof(MixerSettingsPage)));
+		NavLinks.Add(new NavLink("Notifications_Header", typeof(NotificationsPage)));
+		NavLinks.Add(new NavLink("Settings_MediaHotkeys", typeof(SystemHotkeysPage)));
+		NavLinks.Add(new NavLink("Settings_WindowBehavior", typeof(AppBehaviorPage)));
+		NavLinks.Add(new NavLink("Settings_HeaderMisc", typeof(MiscPage)));
+	}
 
-        private NavigationTransitionInfo transition = new DrillInNavigationTransitionInfo();
+	public SettingsView()
+	{
+		InitializeComponent();
+		SelectedNavLink = NavLinks[0];
+		PageContentFrame.Navigate(SelectedNavLink.PageType);
+	}
 
-        private void OnNavLinkItemClick(object sender, ItemClickEventArgs e)
-        {
-            if(this.SelectedNavLink == null)
-                return;
-            if(this.PageContentFrame.CurrentSourcePageType != this.SelectedNavLink.PageType)
-                this.PageContentFrame.Navigate(this.SelectedNavLink.PageType, null, transition);
-        }
+	private NavigationTransitionInfo transition = new DrillInNavigationTransitionInfo();
 
-        //never raised, but implementing INotifyPropertyChanged keeps WPF from tracking the bound properties
-        //through PropertyDescriptor (which holds the view in memory)
+	private void OnNavLinkItemClick(object sender, ItemClickEventArgs e)
+	{
+		if(SelectedNavLink == null)
+			return;
+		if(PageContentFrame.CurrentSourcePageType != SelectedNavLink.PageType)
+			PageContentFrame.Navigate(SelectedNavLink.PageType, null, transition);
+	}
+
+	//never raised, but implementing INotifyPropertyChanged keeps WPF from tracking the bound properties
+	//through PropertyDescriptor (which holds the view in memory)
 #pragma warning disable CS0067
-        public event PropertyChangedEventHandler PropertyChanged;
+	public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore CS0067
-    }
 }

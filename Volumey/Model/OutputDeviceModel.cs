@@ -14,339 +14,338 @@ using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
-namespace Volumey.Model
+namespace Volumey.Model;
+
+/// <summary>
+/// Represents an audio output device and provides its master and application audio sessions
+/// </summary>
+public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 {
+	public MasterSessionModel Master { get; }
+
 	/// <summary>
-	/// Represents an audio output device and provides its master and application audio sessions
+	/// Provides collection of audio processes of the output device.
+	/// Should be used directly only in the UI, other classes must call <see cref="GetImmutableProcesses"/> methods to access processes.
 	/// </summary>
-	public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
+	public ObservableCollection<AudioProcessModel> Processes { get; }
+
+	private IImmutableList<AudioProcessModel> _cachedImmutableProcesses;
+
+	private Action<OutputDeviceModel> _disabled;
+	internal event Action<OutputDeviceModel> Disabled
 	{
-		public MasterSessionModel Master { get; }
-		
-		/// <summary>
-		/// Provides collection of audio processes of the output device.
-		/// Should be used directly only in the UI, other classes must call <see cref="GetImmutableProcesses"/> methods to access processes.
-		/// </summary>
-		public ObservableCollection<AudioProcessModel> Processes { get; }
-		
-		private IImmutableList<AudioProcessModel> _cachedImmutableProcesses;
-		
-		private Action<OutputDeviceModel> _disabled;
-		internal event Action<OutputDeviceModel> Disabled
+		add
 		{
-			add
-			{
-				//Prevent multiple subscribing of the same event handler
-				this._disabled -= value;
-				this._disabled += value;
-			}
-			remove => this._disabled -= value;
+			//Prevent multiple subscribing of the same event handler
+			_disabled -= value;
+			_disabled += value;
 		}
-		internal event Action<AudioProcessModel> ProcessCreated;
+		remove => _disabled -= value;
+	}
+	internal event Action<AudioProcessModel> ProcessCreated;
 
-		/// <summary>
-		/// Windows reconfigured the device's audio engine: its format changed, or spatial sound was turned on or off (#82, #85).
-		/// It disconnects all sessions then, and the device's objects stop working (AUDCLNT_E_DEVICE_INVALIDATED),
-		/// so the model has to be replaced by a new one. Raised once, on any thread.
-		/// </summary>
-		internal event Action<OutputDeviceModel> Invalidated;
-		private int invalidated;
-		private volatile bool disposed;
-		public string Id => this.Master.Id;
-		private readonly IDevice device;
-		private readonly ISessionProvider sessionProvider;
-		private readonly IDeviceStateNotificationHandler deviceStateEvents;
-		private DeviceFormat? currentStreamFormat;
+	/// <summary>
+	/// Windows reconfigured the device's audio engine: its format changed, or spatial sound was turned on or off (#82, #85).
+	/// It disconnects all sessions then, and the device's objects stop working (AUDCLNT_E_DEVICE_INVALIDATED),
+	/// so the model has to be replaced by a new one. Raised once, on any thread.
+	/// </summary>
+	internal event Action<OutputDeviceModel> Invalidated;
+	private int invalidated;
+	private volatile bool disposed;
+	public string Id => Master.Id;
+	private readonly IDevice device;
+	private readonly ISessionProvider sessionProvider;
+	private readonly IDeviceStateNotificationHandler deviceStateEvents;
+	private DeviceFormat? currentStreamFormat;
 
 
-		private readonly SemaphoreSlim _processesSemaphore = new SemaphoreSlim(1, 1);
+	private readonly SemaphoreSlim _processesSemaphore = new SemaphoreSlim(1, 1);
 
-		private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-		private static log4net.ILog logger;
-		private static log4net.ILog Logger => logger ??= log4net.LogManager.GetLogger(typeof(OutputDeviceModel));
+	private static log4net.ILog logger;
+	private static log4net.ILog Logger => logger ??= log4net.LogManager.GetLogger(typeof(OutputDeviceModel));
 
-		public OutputDeviceModel(IDevice device, IDeviceStateNotificationHandler deviceStateNotifications, ISessionProvider sessionProvider,
-			MasterSessionModel master, List<AudioProcessModel> processes)
+	public OutputDeviceModel(IDevice device, IDeviceStateNotificationHandler deviceStateNotifications, ISessionProvider sessionProvider,
+		MasterSessionModel master, List<AudioProcessModel> processes)
+	{
+		this.device = device ?? throw new ArgumentNullException(nameof(device));
+		Master = master ?? throw new ArgumentNullException(nameof(master));
+		if(processes == null)
+			throw new ArgumentNullException(nameof(processes));
+
+		Processes = new ObservableCollection<AudioProcessModel>(processes);
+
+		foreach(AudioProcessModel process in processes)
 		{
-			this.device = device ?? throw new ArgumentNullException(nameof(device));
-			this.Master = master ?? throw new ArgumentNullException(nameof(master));
-			if(processes == null)
-				throw new ArgumentNullException(nameof(processes));
-
-			this.Processes = new ObservableCollection<AudioProcessModel>(processes);
-
-			foreach(AudioProcessModel process in processes)
-			{
-				process.Exited += OnProcessExited;
-				process.DeviceReconfigured += OnProcessDeviceReconfigured;
-			}
-
-			this.currentStreamFormat = this.device.GetDeviceFormat();
-
-			this.deviceStateEvents = deviceStateNotifications;
-			this.deviceStateEvents.DeviceDisabled += OnDeviceDisabled;
-			this.deviceStateEvents.NameChanged += OnDeviceNameChanged;
-			this.deviceStateEvents.IconPathChanged += OnIconPathChanged;
-			this.deviceStateEvents.FormatChanged += OnFormatChanged;
-			this.sessionProvider = sessionProvider;
-			this.sessionProvider.SessionCreated += OnSessionCreated;
-			this.sessionProvider.DeviceInvalidated += RaiseInvalidated;
-			
-			this.Processes.CollectionChanged += OnProcessesCollectionChanged;
+			process.Exited += OnProcessExited;
+			process.DeviceReconfigured += OnProcessDeviceReconfigured;
 		}
 
-		internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
-			=> this.Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
+		currentStreamFormat = this.device.GetDeviceFormat();
 
-		internal void ResetVolumeHotkeys() => this.Master.ResetVolumeHotkeys();
+		deviceStateEvents = deviceStateNotifications;
+		deviceStateEvents.DeviceDisabled += OnDeviceDisabled;
+		deviceStateEvents.NameChanged += OnDeviceNameChanged;
+		deviceStateEvents.IconPathChanged += OnIconPathChanged;
+		deviceStateEvents.FormatChanged += OnFormatChanged;
+		this.sessionProvider = sessionProvider;
+		this.sessionProvider.SessionCreated += OnSessionCreated;
+		this.sessionProvider.DeviceInvalidated += RaiseInvalidated;
 
-		internal void SetStateNotificationMediator(AudioProcessStateNotificationMediator mediator)
-			=> this.Master.SetStateMediator(mediator);
+		Processes.CollectionChanged += OnProcessesCollectionChanged;
+	}
 
-		internal void ResetStateNotificationMediator(bool force = false)
-			=> this.Master.ResetStateMediator(force);
+	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+		=> Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
-		internal bool SetMuteHotkey(HotKey key)
-			=> this.Master.SetMuteHotkey(key);
+	internal void ResetVolumeHotkeys() => Master.ResetVolumeHotkeys();
 
-		internal void ResetMuteHotkeys()
-			=> this.Master.ResetMuteHotkey();
+	internal void SetStateNotificationMediator(AudioProcessStateNotificationMediator mediator)
+		=> Master.SetStateMediator(mediator);
 
-		/// <remarks>
-		/// Empty once the model is disposed: listeners still get the old default device after it was disabled and disposed
-		/// (e.g. a headset that drops out on sleep and wake, #57), and must not see its disposed processes.
-		/// </remarks>
-		internal async Task<IImmutableList<AudioProcessModel>> GetImmutableProcessesAsync()
+	internal void ResetStateNotificationMediator(bool force = false)
+		=> Master.ResetStateMediator(force);
+
+	internal bool SetMuteHotkey(HotKey key)
+		=> Master.SetMuteHotkey(key);
+
+	internal void ResetMuteHotkeys()
+		=> Master.ResetMuteHotkey();
+
+	/// <remarks>
+	/// Empty once the model is disposed: listeners still get the old default device after it was disabled and disposed
+	/// (e.g. a headset that drops out on sleep and wake, #57), and must not see its disposed processes.
+	/// </remarks>
+	internal async Task<IImmutableList<AudioProcessModel>> GetImmutableProcessesAsync()
+	{
+		if(disposed)
+			return ImmutableList<AudioProcessModel>.Empty;
+		if(_cachedImmutableProcesses != null)
+			return _cachedImmutableProcesses;
+
+		await _processesSemaphore.WaitAsync();
+		try
 		{
-			if(this.disposed)
-				return ImmutableList<AudioProcessModel>.Empty;
-			if(_cachedImmutableProcesses != null)
-				return _cachedImmutableProcesses;
-
-			await _processesSemaphore.WaitAsync();
-			try
-			{
-				return _cachedImmutableProcesses = this.Processes.ToImmutableList();
-			}
-			finally
-			{
-				_processesSemaphore.Release();
-			}
+			return _cachedImmutableProcesses = Processes.ToImmutableList();
 		}
-
-		/// <summary>
-		/// For the UI thread, the only one that changes <see cref="Processes"/>, so no lock is needed. It used to take the lock,
-		/// which deadlocked with <see cref="OnSessionCreated"/>: that holds the lock while it waits for the UI thread.
-		/// </summary>
-		internal IImmutableList<AudioProcessModel> GetImmutableProcesses()
+		finally
 		{
-			if(this.disposed)
-				return ImmutableList<AudioProcessModel>.Empty;
-			return _cachedImmutableProcesses ??= this.Processes.ToImmutableList();
+			_processesSemaphore.Release();
 		}
+	}
 
-		/// <summary>
-		/// Invalidates cached immutable processes collection if the original collection was changed
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void OnProcessesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		{
-			_cachedImmutableProcesses = null;
-		}
+	/// <summary>
+	/// For the UI thread, the only one that changes <see cref="Processes"/>, so no lock is needed. It used to take the lock,
+	/// which deadlocked with <see cref="OnSessionCreated"/>: that holds the lock while it waits for the UI thread.
+	/// </summary>
+	internal IImmutableList<AudioProcessModel> GetImmutableProcesses()
+	{
+		if(disposed)
+			return ImmutableList<AudioProcessModel>.Empty;
+		return _cachedImmutableProcesses ??= Processes.ToImmutableList();
+	}
 
-		private void OnIconPathChanged(string deviceId)
+	/// <summary>
+	/// Invalidates cached immutable processes collection if the original collection was changed
+	/// </summary>
+	/// <param name="sender"></param>
+	/// <param name="e"></param>
+	private void OnProcessesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+	{
+		_cachedImmutableProcesses = null;
+	}
+
+	private void OnIconPathChanged(string deviceId)
+	{
+		if(CompareId(deviceId))
 		{
-			if(this.CompareId(deviceId))
+			dispatcher.Invoke(() =>
 			{
-				dispatcher.Invoke(() =>
+				try
 				{
-					try
-					{
-						//switch to the new icon before releasing the old one, which the tray may still show
-						var oldIcon = this.Master.Icon;
-						this.Master.Icon = this.device.GetIcon();
-						this.Master.IconSource = this.Master.Icon?.GetAsImageSource();
-						oldIcon?.Dispose();
-					}
-					catch(Exception e)
-					{
-						Logger.Error("Failed to update the device icon", e);
-					}
-				});
-			}
-		}
-
-		private void OnDeviceNameChanged(string deviceId)
-		{
-			if(this.CompareId(deviceId))
-			{
-				dispatcher.Invoke(() =>
+					//switch to the new icon before releasing the old one, which the tray may still show
+					var oldIcon = Master.Icon;
+					Master.Icon = device.GetIcon();
+					Master.IconSource = Master.Icon?.GetAsImageSource();
+					oldIcon?.Dispose();
+				}
+				catch(Exception e)
 				{
-					try
-					{
-						string friendlyName = this.device.GetFriendlyName();
-						string deviceDesc = this.device.GetDeviceDesc();
-						this.Master.DeviceDesc = deviceDesc;
-						this.Master.Name = friendlyName;
-					}
-					catch { }
-				});
+					Logger.Error("Failed to update the device icon", e);
+				}
+			});
+		}
+	}
+
+	private void OnDeviceNameChanged(string deviceId)
+	{
+		if(CompareId(deviceId))
+		{
+			dispatcher.Invoke(() =>
+			{
+				try
+				{
+					string friendlyName = device.GetFriendlyName();
+					string deviceDesc = device.GetDeviceDesc();
+					Master.DeviceDesc = deviceDesc;
+					Master.Name = friendlyName;
+				}
+				catch { }
+			});
+		}
+	}
+
+	//raised on the UI thread
+	private void OnFormatChanged(string deviceId)
+	{
+		if(!CompareId(deviceId))
+			return;
+		try
+		{
+			var newFormat = device.GetDeviceFormat();
+			Logger.Info($"Device format notification: [{Master.DeviceFriendlyName}], {currentStreamFormat} -> {newFormat}");
+			if(newFormat.HasValue && newFormat != currentStreamFormat)
+			{
+				currentStreamFormat = newFormat;
+				RaiseInvalidated();
 			}
 		}
-
-		//raised on the UI thread
-		private void OnFormatChanged(string deviceId)
+		catch(Exception e)
 		{
-			if(!this.CompareId(deviceId))
+			Logger.Error("Failed to handle a device format notification", e);
+		}
+	}
+
+	private void OnProcessDeviceReconfigured(AudioProcessModel process) => RaiseInvalidated();
+
+	private void RaiseInvalidated()
+	{
+		if(Interlocked.Exchange(ref invalidated, 1) == 0)
+		{
+			Logger.Info($"Device reconfigured, its model will be replaced: [{Master.DeviceFriendlyName}]");
+			Invalidated?.Invoke(this);
+		}
+	}
+
+	private void OnDeviceDisabled(string deviceId)
+	{
+		if(CompareId(deviceId))
+			_disabled?.Invoke(this);
+	}
+
+	private void OnProcessExited(AudioProcessModel exitedProcess)
+		=> OnProcessExitedAsync(exitedProcess).Forget(Logger, $"Failed to remove the exited app [{exitedProcess.Name}]");
+
+	private async Task OnProcessExitedAsync(AudioProcessModel exitedProcess)
+	{
+		exitedProcess.Exited -= OnProcessExited;
+		await _processesSemaphore.WaitAsync();
+		try
+		{
+			await dispatcher.InvokeAsync(() => Processes.Remove(exitedProcess));
+		}
+		finally
+		{
+			_processesSemaphore.Release();
+		}
+		exitedProcess.Dispose();
+	}
+
+	//raised on a COM thread
+	private void OnSessionCreated(object sender, SessionCreatedEventArgs e)
+		=> OnSessionCreatedAsync(e).Forget(Logger, "Failed to add a new audio session");
+
+	private async Task OnSessionCreatedAsync(SessionCreatedEventArgs e)
+	{
+		var session = e.SessionModel;
+		bool added = false;
+		await _processesSemaphore.WaitAsync();
+		try
+		{
+			if(disposed)
 				return;
-			try
+
+			if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
 			{
-				var newFormat = this.device.GetDeviceFormat();
-				Logger.Info($"Device format notification: [{this.Master.DeviceFriendlyName}], {this.currentStreamFormat} -> {newFormat}");
-				if(newFormat.HasValue && newFormat != this.currentStreamFormat)
+				await dispatcher.InvokeAsync(() =>
 				{
-					this.currentStreamFormat = newFormat;
-					RaiseInvalidated();
-				}
+					session.Name = process.Name;
+					process.AddSession(session);
+				});
+				added = true;
 			}
-			catch(Exception e)
+			else if(e.CreateProcessModel() is AudioProcessModel newProcess)
 			{
-				Logger.Error("Failed to handle a device format notification", e);
-			}
-		}
-
-		private void OnProcessDeviceReconfigured(AudioProcessModel process) => RaiseInvalidated();
-
-		private void RaiseInvalidated()
-		{
-			if(Interlocked.Exchange(ref this.invalidated, 1) == 0)
-			{
-				Logger.Info($"Device reconfigured, its model will be replaced: [{this.Master.DeviceFriendlyName}]");
-				this.Invalidated?.Invoke(this);
-			}
-		}
-
-		private void OnDeviceDisabled(string deviceId)
-		{
-			if(this.CompareId(deviceId))
-				this._disabled?.Invoke(this);
-		}
-
-		private void OnProcessExited(AudioProcessModel exitedProcess)
-			=> OnProcessExitedAsync(exitedProcess).Forget(Logger, $"Failed to remove the exited app [{exitedProcess.Name}]");
-
-		private async Task OnProcessExitedAsync(AudioProcessModel exitedProcess)
-		{
-			exitedProcess.Exited -= OnProcessExited;
-			await _processesSemaphore.WaitAsync();
-			try
-			{
-				await dispatcher.InvokeAsync(() => this.Processes.Remove(exitedProcess));
-			}
-			finally
-			{
-				_processesSemaphore.Release();
-			}
-			exitedProcess.Dispose();
-		}
-
-		//raised on a COM thread
-		private void OnSessionCreated(object sender, SessionCreatedEventArgs e)
-			=> OnSessionCreatedAsync(e).Forget(Logger, "Failed to add a new audio session");
-
-		private async Task OnSessionCreatedAsync(SessionCreatedEventArgs e)
-		{
-			var session = e.SessionModel;
-			bool added = false;
-			await _processesSemaphore.WaitAsync();
-			try
-			{
-				if(this.disposed)
-					return;
-
-				if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
+				newProcess.AddSession(session);
+				newProcess.Exited += OnProcessExited;
+				newProcess.DeviceReconfigured += OnProcessDeviceReconfigured;
+				//listeners get the new process on the UI thread (after an await this method runs on the thread pool)
+				await dispatcher.InvokeAsync(() =>
 				{
-					await dispatcher.InvokeAsync(() =>
-					{
-						session.Name = process.Name;
-						process.AddSession(session);
-					});
-					added = true;
-				}
-				else if(e.CreateProcessModel() is AudioProcessModel newProcess)
-				{
-					newProcess.AddSession(session);
-					newProcess.Exited += OnProcessExited;
-					newProcess.DeviceReconfigured += OnProcessDeviceReconfigured;
-					//listeners get the new process on the UI thread (after an await this method runs on the thread pool)
-					await dispatcher.InvokeAsync(() =>
-					{
-						this.Processes.Add(newProcess);
-						this.ProcessCreated?.Invoke(newProcess);
-					});
-					added = true;
-				}
-			}
-			finally
-			{
-				_processesSemaphore.Release();
-				//a session nobody took (the device was disposed, or its app couldn't be read) would never be released
-				if(!added)
-					session.Dispose();
+					Processes.Add(newProcess);
+					ProcessCreated?.Invoke(newProcess);
+				});
+				added = true;
 			}
 		}
-
-		internal bool CompareId(string deviceId) =>
-			string.Compare(this.Id, deviceId, StringComparison.InvariantCulture) == 0;
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		finally
 		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			_processesSemaphore.Release();
+			//a session nobody took (the device was disposed, or its app couldn't be read) would never be released
+			if(!added)
+				session.Dispose();
 		}
+	}
 
-		/// <summary>
-		/// Stops all notifications right away; the apps and the device's COM objects are released afterwards
-		/// (the COM release on the thread pool: it waits for running audio callbacks, and those may wait for the UI thread).
-		/// </summary>
-		public void Dispose()
-		{
-			if(this.disposed)
-				return;
-			this.disposed = true;
-			this.sessionProvider.SessionCreated -= OnSessionCreated;
-			this.sessionProvider.DeviceInvalidated -= RaiseInvalidated;
-			this.sessionProvider.Dispose();
-			this.deviceStateEvents.DeviceDisabled -= OnDeviceDisabled;
-			this.deviceStateEvents.NameChanged -= OnDeviceNameChanged;
-			this.deviceStateEvents.IconPathChanged -= OnIconPathChanged;
-			this.deviceStateEvents.FormatChanged -= OnFormatChanged;
-			this.Master.Dispose();
-			this._disabled = null;
-			this.ProcessCreated = null;
-			this.Invalidated = null;
-			ReleaseAsync().Forget(Logger, $"Failed to release the device [{this.Master.DeviceFriendlyName}]");
-		}
+	internal bool CompareId(string deviceId) =>
+		string.Compare(Id, deviceId, StringComparison.InvariantCulture) == 0;
 
-		private async Task ReleaseAsync()
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	/// <summary>
+	/// Stops all notifications right away; the apps and the device's COM objects are released afterwards
+	/// (the COM release on the thread pool: it waits for running audio callbacks, and those may wait for the UI thread).
+	/// </summary>
+	public void Dispose()
+	{
+		if(disposed)
+			return;
+		disposed = true;
+		sessionProvider.SessionCreated -= OnSessionCreated;
+		sessionProvider.DeviceInvalidated -= RaiseInvalidated;
+		sessionProvider.Dispose();
+		deviceStateEvents.DeviceDisabled -= OnDeviceDisabled;
+		deviceStateEvents.NameChanged -= OnDeviceNameChanged;
+		deviceStateEvents.IconPathChanged -= OnIconPathChanged;
+		deviceStateEvents.FormatChanged -= OnFormatChanged;
+		Master.Dispose();
+		_disabled = null;
+		ProcessCreated = null;
+		Invalidated = null;
+		ReleaseAsync().Forget(Logger, $"Failed to release the device [{Master.DeviceFriendlyName}]");
+	}
+
+	private async Task ReleaseAsync()
+	{
+		//waits for a session that is being added; the semaphore isn't disposed: it holds no OS handle here,
+		//and late callers (listeners, session events in flight) would throw
+		await _processesSemaphore.WaitAsync();
+		try
 		{
-			//waits for a session that is being added; the semaphore isn't disposed: it holds no OS handle here,
-			//and late callers (listeners, session events in flight) would throw
-			await _processesSemaphore.WaitAsync();
-			try
-			{
-				foreach(var process in this.Processes)
-					process.Dispose();
-			}
-			finally
-			{
-				_processesSemaphore.Release();
-			}
-			var disposedDevice = this.device;
-			await Task.Run(() => disposedDevice.Dispose());
+			foreach(var process in Processes)
+				process.Dispose();
 		}
+		finally
+		{
+			_processesSemaphore.Release();
+		}
+		var disposedDevice = device;
+		await Task.Run(() => disposedDevice.Dispose());
 	}
 }

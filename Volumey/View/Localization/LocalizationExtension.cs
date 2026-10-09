@@ -1,13 +1,12 @@
 ﻿using System.Windows.Data;
 
-namespace Volumey.Localization
+namespace Volumey.Localization;
+
+public class LocalizationExtension : Binding
 {
-	public class LocalizationExtension : Binding
+	public LocalizationExtension(string name) : base($"[{name}]")
 	{
-		public LocalizationExtension(string name) : base($"[{name}]")
-		{
-			this.Mode = BindingMode.OneWay;
-			this.Source = TranslationSource.Instance;
-		}
+		Mode = BindingMode.OneWay;
+		Source = TranslationSource.Instance;
 	}
 }

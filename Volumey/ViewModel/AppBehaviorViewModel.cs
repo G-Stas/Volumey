@@ -15,462 +15,464 @@ using Microsoft.Xaml.Behaviors.Core;
 using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
-using Volumey.ViewModel.Settings;
 using Volumey.Services;
+using Volumey.ViewModel.Settings;
 
-namespace Volumey.ViewModel
+namespace Volumey.ViewModel;
+
+public sealed class AppBehaviorViewModel : INotifyPropertyChanged
 {
-	public sealed class AppBehaviorViewModel : INotifyPropertyChanged
+	public ICommand ClosingCommand { get; }
+	public ICommand LostFocusCommand { get; }
+	public ICommand TrayMixerCommand { get; }
+	public ICommand TraySettingsCommand { get; }
+	public ICommand TrayExitCommand { get; }
+	public ICommand TrayClickCommand { get; }
+	public ICommand SoundControlPanelCommand { get; }
+	public ICommand SoundSettingsCommand { get; }
+
+	private bool windowIsVisible;
+	public bool WindowIsVisible
 	{
-		public ICommand ClosingCommand { get; }
-		public ICommand LostFocusCommand { get; }
-		public ICommand TrayMixerCommand { get; }
-		public ICommand TraySettingsCommand { get; }
-		public ICommand TrayExitCommand { get; }
-		public ICommand TrayClickCommand { get; }
-		public ICommand SoundControlPanelCommand { get; }
-		public ICommand SoundSettingsCommand { get; }
-		
-		private bool windowIsVisible;
-		public bool WindowIsVisible
+		get => windowIsVisible;
+		set
 		{
-			get => windowIsVisible;
-			set
-			{
-				windowIsVisible = value;
-				OnPropertyChanged();
-			}
+			windowIsVisible = value;
+			OnPropertyChanged();
 		}
+	}
 
-		/// <summary>
-		/// Requests app display with these parameters: is settings page, is window visible, is in popup mode
-		/// </summary>
-        public event Action<bool, bool, bool> DisplayAppRequested;
+	/// <summary>
+	/// Requests app display with these parameters: is settings page, is window visible, is in popup mode
+	/// </summary>
+	public event Action<bool, bool, bool> DisplayAppRequested;
 
-        private bool displayedMinimalistic = false;
-        
-        /// <summary>
-        /// Used to hide title bar and taskbar icon in popup mode
-        /// </summary>
-        public bool DisplayMinimalistic
-        {
-	        get => this.displayedMinimalistic;
-	        set
-	        {
-		        this.displayedMinimalistic = value;
-		        OnPropertyChanged();
-	        }
-        }
-        
-        private bool popupEnabled;
-        
-        /// <summary>
-        /// Controls whether the window will be displayed without titlebar, tabs and will hide after losing focus when displayed by clicking on tray icon.
-        /// It doesn't affect the window behavior when it's displayed by trays context menu items. 
-        /// </summary>
-        public bool PopupEnabled
-        {
-	        get => this.popupEnabled;
-	        set
-	        {
-		        this.popupEnabled = value;
-		        this.DisplayMinimalistic = value;
-		        this.displayedAsPopup = value;
+	private bool displayedMinimalistic = false;
 
-		        SettingsProvider.Settings.Window.PopupMode = value;
-		        
-		        OnPropertyChanged();
-	        }
-        }
-
-        private bool alwaysOnTop;
-        public bool AlwaysOnTop
-        {
-	        get => this.alwaysOnTop;
-	        set
-	        {
-		        this.alwaysOnTop = value;
-		        
-		        SettingsProvider.Settings.Window.AlwaysOnTop = value;
-		        
-		        OnPropertyChanged();
-	        }
-        }
-
-        private bool deviceViewAtTheBottom;
-        public bool DeviceViewAtTheBottom
-        {
-	        get => this.deviceViewAtTheBottom;
-	        set
-	        {
-		        this.deviceViewAtTheBottom = value;
-
-		        SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
-		        
-		        OnPropertyChanged();
-	        }
-        }
-
-        private bool displayDeviceIconAtTray;
-        public bool DisplayDeviceIconAtTray
-        {
-	        get => this.displayDeviceIconAtTray;
-	        set
-	        {
-		        this.displayDeviceIconAtTray = value;
-
-		        SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
-		        
-		        OnPropertyChanged();
-	        }
-        }
-
-        private bool launchAtStartup;
-        public bool LaunchAtStartup
-        {
-	        get => this.launchAtStartup;
-	        set
-	        {
-		        #if(!STORE)
-		        if(value == launchAtStartup)
-			        return;
-
-		        if(value)
-			        this.launchAtStartup = this.systemIntegration.EnableLaunchAtStartup();
-		        else
-		        {
-			        this.launchAtStartup = false;
-			        this.systemIntegration.DisableLaunchAtStartup();
-		        }
-		        OnPropertyChanged();
-				#endif
-	        }
-        }
-
-        private bool addToStartMenu;
-        public bool AddToStartMenu
-        {
-	        get => this.addToStartMenu;
-	        set
-	        {
-				#if(!STORE)
-		        if(value == addToStartMenu)
-			        return;
-
-		        if(value)
-			        addToStartMenu = this.systemIntegration.AddToStartMenu();
-		        else
-		        {
-			        this.addToStartMenu = false;
-			        this.systemIntegration.RemoveFromStartMenu();
-		        }
-		        OnPropertyChanged();
-				#endif
-	        }
-        }
-
-        private double windowLeft;
-        public double WindowLeft
-        {
-	        get => windowLeft;
-	        set
-	        {
-		        windowLeft = value;
-		        OnPropertyChanged();
-	        }
-        }
-        
-        private double windowTop;
-        public double WindowTop
-        {
-	        get => windowTop;
-	        set
-	        {
-		        windowTop = value;
-		        OnPropertyChanged();
-	        }
-        }
-
-        private ScreenInfo selectedScreen;
-        public ScreenInfo SelectedScreen
-        {
-	        get => selectedScreen;
-	        set
-	        {
-		        //only a listed screen is the user's choice: the combo box writes back an empty value while the list is replaced
-		        if(!AllScreens.Contains(value))
-			        return;
-		        ShowScreen(value);
-		        SettingsProvider.Settings.Window.ScreenName = value.Name;
-	        }
-        }
-
-        /// <summary>
-        /// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
-        /// </summary>
-        private void ShowScreen(ScreenInfo screen)
-        {
-	        this.selectedScreen = screen;
-	        OnPropertyChanged(nameof(SelectedScreen));
-        }
-
-        public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
-
-        private readonly IScreenInfoProvider screenInfoProvider;
-        private readonly IHotkeyService hotkeys;
-        private readonly IAppShell shell;
-        private readonly ISystemIntegration systemIntegration;
-        
-        /// <summary>
-        /// Indicates whether the window is currently displayed as popup or not
-        /// </summary>
-        private bool displayedAsPopup = false;
-        
-        /// <summary>
-        /// Blocks displaying app by left clicking on tray.
-        /// Used when app is displayed as popup to prevent instant displaying again after it has lost focus because of the clicking on tray 
-        /// </summary>
-        private bool trayBlocked = false;
-        
-        /// <summary>
-        /// Unlocks tray with delay (<see cref="trayBlockDelay"/>)
-        /// </summary>
-        private Timer trayBlockTimer;
-        
-        /// <summary>
-        /// Amount of ms to block tray for 
-        /// </summary>
-        private const double trayBlockDelay = 300;
-
-        public ICommand LoadedCommand { get; set; }
-
-        private static ILog _logger;
-        private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
-
-		public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Screens,
-			AppServices.Current.Shell, AppServices.Current.SystemIntegration) { }
-
-		internal AppBehaviorViewModel(IHotkeyService hotkeys, IScreenInfoProvider screenInfoProvider, IAppShell shell,
-			ISystemIntegration systemIntegration)
+	/// <summary>
+	/// Used to hide title bar and taskbar icon in popup mode
+	/// </summary>
+	public bool DisplayMinimalistic
+	{
+		get => displayedMinimalistic;
+		set
 		{
-			this.hotkeys = hotkeys;
-			this.screenInfoProvider = screenInfoProvider;
-			this.shell = shell;
-			this.systemIntegration = systemIntegration;
-			this.WindowIsVisible = !shell.StartMinimized;
-			this.ClosingCommand = new ActionCommand(OnWindowClosing);
-			this.TrayMixerCommand = new ActionCommand(() => OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false));
-			this.TraySettingsCommand = new ActionCommand(() => OpenCommand(isSettingsPage: true, displayAsPopup: false, reverseDisplaying: false));
-			this.TrayClickCommand = new ActionCommand(() => {
+			displayedMinimalistic = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private bool popupEnabled;
+
+	/// <summary>
+	/// Controls whether the window will be displayed without titlebar, tabs and will hide after losing focus when displayed by clicking on tray icon.
+	/// It doesn't affect the window behavior when it's displayed by trays context menu items. 
+	/// </summary>
+	public bool PopupEnabled
+	{
+		get => popupEnabled;
+		set
+		{
+			popupEnabled = value;
+			DisplayMinimalistic = value;
+			displayedAsPopup = value;
+
+			SettingsProvider.Settings.Window.PopupMode = value;
+
+			OnPropertyChanged();
+		}
+	}
+
+	private bool alwaysOnTop;
+	public bool AlwaysOnTop
+	{
+		get => alwaysOnTop;
+		set
+		{
+			alwaysOnTop = value;
+
+			SettingsProvider.Settings.Window.AlwaysOnTop = value;
+
+			OnPropertyChanged();
+		}
+	}
+
+	private bool deviceViewAtTheBottom;
+	public bool DeviceViewAtTheBottom
+	{
+		get => deviceViewAtTheBottom;
+		set
+		{
+			deviceViewAtTheBottom = value;
+
+			SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
+
+			OnPropertyChanged();
+		}
+	}
+
+	private bool displayDeviceIconAtTray;
+	public bool DisplayDeviceIconAtTray
+	{
+		get => displayDeviceIconAtTray;
+		set
+		{
+			displayDeviceIconAtTray = value;
+
+			SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
+
+			OnPropertyChanged();
+		}
+	}
+
+	private bool launchAtStartup;
+	public bool LaunchAtStartup
+	{
+		get => launchAtStartup;
+		set
+		{
+#if(!STORE)
+			if(value == launchAtStartup)
+				return;
+
+			if(value)
+				launchAtStartup = systemIntegration.EnableLaunchAtStartup();
+			else
+			{
+				launchAtStartup = false;
+				systemIntegration.DisableLaunchAtStartup();
+			}
+			OnPropertyChanged();
+#endif
+		}
+	}
+
+	private bool addToStartMenu;
+	public bool AddToStartMenu
+	{
+		get => addToStartMenu;
+		set
+		{
+#if(!STORE)
+			if(value == addToStartMenu)
+				return;
+
+			if(value)
+				addToStartMenu = systemIntegration.AddToStartMenu();
+			else
+			{
+				addToStartMenu = false;
+				systemIntegration.RemoveFromStartMenu();
+			}
+			OnPropertyChanged();
+#endif
+		}
+	}
+
+	private double windowLeft;
+	public double WindowLeft
+	{
+		get => windowLeft;
+		set
+		{
+			windowLeft = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private double windowTop;
+	public double WindowTop
+	{
+		get => windowTop;
+		set
+		{
+			windowTop = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private ScreenInfo selectedScreen;
+	public ScreenInfo SelectedScreen
+	{
+		get => selectedScreen;
+		set
+		{
+			//only a listed screen is the user's choice: the combo box writes back an empty value while the list is replaced
+			if(!AllScreens.Contains(value))
+				return;
+			ShowScreen(value);
+			SettingsProvider.Settings.Window.ScreenName = value.Name;
+		}
+	}
+
+	/// <summary>
+	/// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
+	/// </summary>
+	private void ShowScreen(ScreenInfo screen)
+	{
+		selectedScreen = screen;
+		OnPropertyChanged(nameof(SelectedScreen));
+	}
+
+	public ObservableCollection<ScreenInfo> AllScreens { get; set; } = new ObservableCollection<ScreenInfo>();
+
+	private readonly IScreenInfoProvider screenInfoProvider;
+	private readonly IHotkeyService hotkeys;
+	private readonly IAppShell shell;
+	private readonly ISystemIntegration systemIntegration;
+
+	/// <summary>
+	/// Indicates whether the window is currently displayed as popup or not
+	/// </summary>
+	private bool displayedAsPopup = false;
+
+	/// <summary>
+	/// Blocks displaying app by left clicking on tray.
+	/// Used when app is displayed as popup to prevent instant displaying again after it has lost focus because of the clicking on tray 
+	/// </summary>
+	private bool trayBlocked = false;
+
+	/// <summary>
+	/// Unlocks tray with delay (<see cref="trayBlockDelay"/>)
+	/// </summary>
+	private Timer trayBlockTimer;
+
+	/// <summary>
+	/// Amount of ms to block tray for 
+	/// </summary>
+	private const double trayBlockDelay = 300;
+
+	public ICommand LoadedCommand { get; set; }
+
+	private static ILog _logger;
+	private static ILog Logger => _logger ??= LogManager.GetLogger(typeof(AppBehaviorViewModel));
+
+	public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Screens,
+		AppServices.Current.Shell, AppServices.Current.SystemIntegration)
+	{ }
+
+	internal AppBehaviorViewModel(IHotkeyService hotkeys, IScreenInfoProvider screenInfoProvider, IAppShell shell,
+		ISystemIntegration systemIntegration)
+	{
+		this.hotkeys = hotkeys;
+		this.screenInfoProvider = screenInfoProvider;
+		this.shell = shell;
+		this.systemIntegration = systemIntegration;
+		WindowIsVisible = !shell.StartMinimized;
+		ClosingCommand = new ActionCommand(OnWindowClosing);
+		TrayMixerCommand = new ActionCommand(() => OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false));
+		TraySettingsCommand = new ActionCommand(() => OpenCommand(isSettingsPage: true, displayAsPopup: false, reverseDisplaying: false));
+		TrayClickCommand = new ActionCommand(() =>
+		{
 			{
 				if(!trayBlocked)
 					OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
-			} });
-			this.TrayExitCommand = new ActionCommand(OnExit);
-			this.SoundControlPanelCommand = new ActionCommand(SystemSoundUtilities.StartSoundControlPanel);
-			this.SoundSettingsCommand = new ActionCommand(SystemSoundUtilities.StartSoundSettings);
-			this.LostFocusCommand = new ActionCommand(OnLostFocus);
-			shell.SessionEnding += OnExit;
+			}
+		});
+		TrayExitCommand = new ActionCommand(OnExit);
+		SoundControlPanelCommand = new ActionCommand(SystemSoundUtilities.StartSoundControlPanel);
+		SoundSettingsCommand = new ActionCommand(SystemSoundUtilities.StartSoundSettings);
+		LostFocusCommand = new ActionCommand(OnLostFocus);
+		shell.SessionEnding += OnExit;
 
-			hotkeys.OpenHotkeyPressed += OnOpenHotkeyPressed;
-			ComponentDispatcher.ThreadFilterMessage += OnThreadFilterMessage;
+		hotkeys.OpenHotkeyPressed += OnOpenHotkeyPressed;
+		ComponentDispatcher.ThreadFilterMessage += OnThreadFilterMessage;
 
-			this.trayBlockTimer = new Timer(trayBlockDelay);
-			this.trayBlockTimer.AutoReset = false;
-			this.trayBlockTimer.Elapsed += OnBlockTrayTimerElapsed;
+		trayBlockTimer = new Timer(trayBlockDelay);
+		trayBlockTimer.AutoReset = false;
+		trayBlockTimer.Elapsed += OnBlockTrayTimerElapsed;
 
-			this.popupEnabled = SettingsProvider.Settings.Window.PopupMode;
-			this.alwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
-			this.deviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
-			this.displayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
+		popupEnabled = SettingsProvider.Settings.Window.PopupMode;
+		alwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
+		deviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
+		displayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
-			this.windowLeft = SettingsProvider.Settings.Window.Left;
-			this.windowTop = SettingsProvider.Settings.Window.Top;
-			
-			this.LoadedCommand = new ActionCommand(this.CheckIfSelectedScreenIsAvailable);
+		windowLeft = SettingsProvider.Settings.Window.Left;
+		windowTop = SettingsProvider.Settings.Window.Top;
 
-			//always false in the Store build, whose autostart is the manifest's startup task
-			this.launchAtStartup = systemIntegration.LaunchesAtStartup();
-			this.addToStartMenu = systemIntegration.IsInStartMenu();
-			
-			SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
+		LoadedCommand = new ActionCommand(CheckIfSelectedScreenIsAvailable);
 
-			SetSelectedScreen();
-		}
+		//always false in the Store build, whose autostart is the manifest's startup task
+		launchAtStartup = systemIntegration.LaunchesAtStartup();
+		addToStartMenu = systemIntegration.IsInStartMenu();
 
-		private void OnSystemDisplaySettingsChanged(object sender, EventArgs e)
+		SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
+
+		SetSelectedScreen();
+	}
+
+	private void OnSystemDisplaySettingsChanged(object sender, EventArgs e)
+	{
+		CheckIfSelectedScreenIsAvailable();
+	}
+
+	/// <summary>
+	/// Blocks tray and setups timer to unlock it with delay
+	/// </summary>
+	private void BlockTrayWithTimer()
+	{
+		trayBlocked = true;
+		trayBlockTimer.Stop();
+		trayBlockTimer.Start();
+	}
+
+	private void SetSelectedScreen()
+	{
+		foreach(var screen in screenInfoProvider.GetAllScreensInfo())
+			AllScreens.Add(screen);
+
+		ShowScreen(ScreenInfo.Find(AllScreens, SettingsProvider.Settings.Window.ScreenName));
+	}
+
+	/// <summary>
+	/// Executes after the window was displayed and when the screens change: updates <see cref="AllScreens"/>
+	/// and picks the remembered screen again, or the primary one while it's not connected.
+	/// </summary>
+	private void CheckIfSelectedScreenIsAvailable()
+	{
+		Task.Run(() =>
 		{
-			CheckIfSelectedScreenIsAvailable();
-		}
+			var screens = screenInfoProvider.GetAllScreensInfo().ToList();
 
-		/// <summary>
-		/// Blocks tray and setups timer to unlock it with delay
-		/// </summary>
-		private void BlockTrayWithTimer()
-		{
-			this.trayBlocked = true;
-			this.trayBlockTimer.Stop();
-			this.trayBlockTimer.Start();
-		}
-
-		private void SetSelectedScreen()
-		{
-			foreach(var screen in screenInfoProvider.GetAllScreensInfo())
-				AllScreens.Add(screen);
-
-			ShowScreen(ScreenInfo.Find(AllScreens, SettingsProvider.Settings.Window.ScreenName));
-		}
-
-		/// <summary>
-		/// Executes after the window was displayed and when the screens change: updates <see cref="AllScreens"/>
-		/// and picks the remembered screen again, or the primary one while it's not connected.
-		/// </summary>
-		private void CheckIfSelectedScreenIsAvailable()
-		{
-			Task.Run(() =>
+			//on the UI thread, which owns the window that follows SelectedScreen
+			void Apply()
 			{
-				var screens = screenInfoProvider.GetAllScreensInfo().ToList();
-
-				//on the UI thread, which owns the window that follows SelectedScreen
-				void Apply()
+				if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
 				{
-					if(screens.Count != AllScreens.Count || screens.Except(AllScreens).Any())
-					{
-						AllScreens.Clear();
-						foreach(var screen in screens)
-							AllScreens.Add(screen);
-					}
-					//also updates the selection in the UI, which is lost when AllScreens is replaced
-					ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Window.ScreenName));
+					AllScreens.Clear();
+					foreach(var screen in screens)
+						AllScreens.Add(screen);
 				}
+				//also updates the selection in the UI, which is lost when AllScreens is replaced
+				ShowScreen(ScreenInfo.Find(screens, SettingsProvider.Settings.Window.ScreenName));
+			}
 
-				var dispatcher = this.shell.Dispatcher;
-				if(dispatcher == null || dispatcher.CheckAccess())
-					Apply();
-				else
-					dispatcher.Invoke(Apply);
-			}).ContinueWith(task =>
-			{
-				if(task.Exception != null)
-				{
-					Logger.Error("Failed to check the screen for availability", task.Exception.Flatten());
-				}
-			}, TaskContinuationOptions.OnlyOnFaulted);
-		}
-
-		private void OnExit()
+			var dispatcher = shell.Dispatcher;
+			if(dispatcher == null || dispatcher.CheckAccess())
+				Apply();
+			else
+				dispatcher.Invoke(Apply);
+		}).ContinueWith(task =>
 		{
-			SettingsProvider.Settings.Window.Left = this.windowLeft;
-			SettingsProvider.Settings.Window.Top = this.windowTop;
-			//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
-			this.hotkeys.Dispose();
-			this.shell.Shutdown();
-		}
-
-		/// <summary>
-		/// Changes window visibility if requested and invokes event which is used by the view to open the requested page 
-		/// </summary>
-		/// <param name="displayAsPopup"/>
-		/// <param name="isSettingsPage"/>
-		/// <param name="reverseDisplaying">Flag to control whether to close the window if it's displayed or not</param>
-		private void OpenCommand(bool isSettingsPage, bool displayAsPopup, bool reverseDisplaying = false)
-		{
-			this.displayedAsPopup = displayAsPopup;
-			if(reverseDisplaying)
+			if(task.Exception != null)
 			{
-				if(!windowIsVisible)
-				{
-					if(this.popupEnabled && !this.displayedMinimalistic)
-						this.DisplayMinimalistic = true;
-					//bring the window to the foreground and change page
-					this.DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, this.displayedAsPopup);
-					this.WindowIsVisible = true;
-					CheckIfSelectedScreenIsAvailable();
-				}
-				else
-					this.WindowIsVisible = false;
+				Logger.Error("Failed to check the screen for availability", task.Exception.Flatten());
+			}
+		}, TaskContinuationOptions.OnlyOnFaulted);
+	}
+
+	private void OnExit()
+	{
+		SettingsProvider.Settings.Window.Left = windowLeft;
+		SettingsProvider.Settings.Window.Top = windowTop;
+		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
+		hotkeys.Dispose();
+		shell.Shutdown();
+	}
+
+	/// <summary>
+	/// Changes window visibility if requested and invokes event which is used by the view to open the requested page 
+	/// </summary>
+	/// <param name="displayAsPopup"/>
+	/// <param name="isSettingsPage"/>
+	/// <param name="reverseDisplaying">Flag to control whether to close the window if it's displayed or not</param>
+	private void OpenCommand(bool isSettingsPage, bool displayAsPopup, bool reverseDisplaying = false)
+	{
+		displayedAsPopup = displayAsPopup;
+		if(reverseDisplaying)
+		{
+			if(!windowIsVisible)
+			{
+				if(popupEnabled && !displayedMinimalistic)
+					DisplayMinimalistic = true;
+				//bring the window to the foreground and change page
+				DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, displayedAsPopup);
+				WindowIsVisible = true;
+				CheckIfSelectedScreenIsAvailable();
 			}
 			else
+				WindowIsVisible = false;
+		}
+		else
+		{
+			if(popupEnabled && displayedMinimalistic)
+				DisplayMinimalistic = false;
+			DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, displayedAsPopup);
+			if(!WindowIsVisible)
 			{
-				if(this.popupEnabled && this.displayedMinimalistic)
-					this.DisplayMinimalistic = false;
-				this.DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, this.displayedAsPopup);
-				if(!WindowIsVisible)
-				{
-					WindowIsVisible = true;
-					CheckIfSelectedScreenIsAvailable();
-				}
+				WindowIsVisible = true;
+				CheckIfSelectedScreenIsAvailable();
 			}
 		}
+	}
 
-		private void OnThreadFilterMessage(ref MSG msg, ref bool handled)
+	private void OnThreadFilterMessage(ref MSG msg, ref bool handled)
+	{
+		//"The operating system communicates with your application window by passing messages to it.
+		// A message is simply a numeric code that designates a particular event."
+		//When a user attempts to launch the second instance of the app
+		//it sends a window message of type WM_SHOWME to all top-level windows in the system.
+		//This event handler checks every window message for this type of message
+		//to bring the window of the first instance to top or make it visible
+		//if it was minimized to tray
+
+		if(msg.message == Startup.WM_SHOWME)
+			OnShowRequestedBySecondInstance();
+	}
+
+	/// <summary>
+	/// Starting the app again opens the running instance like a tray click: as a popup in popup mode (#74), otherwise as a normal window
+	/// </summary>
+	internal void OnShowRequestedBySecondInstance()
+	{
+		if(popupEnabled && !WindowIsVisible)
+			OpenCommand(isSettingsPage: false, displayAsPopup: true, reverseDisplaying: true);
+		else if(!popupEnabled)
+			OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false);
+		else
+			//already visible in popup mode: bring it to the front as it is
+			DisplayAppRequested?.Invoke(false, WindowIsVisible, displayedAsPopup);
+	}
+
+	private void OnBlockTrayTimerElapsed(object sender, ElapsedEventArgs e)
+	{
+		trayBlocked = false;
+	}
+
+	private void OnLostFocus()
+	{
+		if(popupEnabled && displayedAsPopup)
 		{
-			//"The operating system communicates with your application window by passing messages to it.
-			// A message is simply a numeric code that designates a particular event."
-			//When a user attempts to launch the second instance of the app
-			//it sends a window message of type WM_SHOWME to all top-level windows in the system.
-			//This event handler checks every window message for this type of message
-			//to bring the window of the first instance to top or make it visible
-			//if it was minimized to tray
-
-			if(msg.message == Startup.WM_SHOWME)
-				this.OnShowRequestedBySecondInstance();
+			//If the window was displayed as popup, and it lost its focus we block tray icon left clicking for some time
+			//to prevent the situation when focus was lost because of the clicking on the tray icon in which case the window would disappear and instantly show up again.
+			BlockTrayWithTimer();
+			WindowIsVisible = displayedAsPopup = false;
 		}
+	}
 
-		/// <summary>
-		/// Starting the app again opens the running instance like a tray click: as a popup in popup mode (#74), otherwise as a normal window
-		/// </summary>
-		internal void OnShowRequestedBySecondInstance()
+	private void OnOpenHotkeyPressed()
+	{
+		OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
+	}
+
+	private void OnWindowClosing(object e)
+	{
+		if(e is CancelEventArgs args)
 		{
-			if(this.popupEnabled && !this.WindowIsVisible)
-				this.OpenCommand(isSettingsPage: false, displayAsPopup: true, reverseDisplaying: true);
-			else if(!this.popupEnabled)
-				this.OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false);
-			else
-				//already visible in popup mode: bring it to the front as it is
-				this.DisplayAppRequested?.Invoke(false, this.WindowIsVisible, this.displayedAsPopup);
+			args.Cancel = true;
+			WindowIsVisible = false;
 		}
+	}
 
-		private void OnBlockTrayTimerElapsed(object sender, ElapsedEventArgs e)
-		{
-			this.trayBlocked = false;
-		}
+	public event PropertyChangedEventHandler PropertyChanged;
 
-		private void OnLostFocus()
-		{
-			if(this.popupEnabled && this.displayedAsPopup)
-			{
-				//If the window was displayed as popup, and it lost its focus we block tray icon left clicking for some time
-				//to prevent the situation when focus was lost because of the clicking on the tray icon in which case the window would disappear and instantly show up again.
-				this.BlockTrayWithTimer();
-				this.WindowIsVisible = this.displayedAsPopup = false;
-			}
-		}
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
 
-		private void OnOpenHotkeyPressed()
-		{
-			this.OpenCommand(isSettingsPage: false, displayAsPopup: this.popupEnabled, reverseDisplaying: true);
-		}
-
-		private void OnWindowClosing(object e)
-		{
-			if(e is CancelEventArgs args)
-			{
-				args.Cancel = true;
-				this.WindowIsVisible = false;
-			}
-		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
-		~AppBehaviorViewModel()
-		{
-			SystemEvents.DisplaySettingsChanged -= OnSystemDisplaySettingsChanged;
-		}
+	~AppBehaviorViewModel()
+	{
+		SystemEvents.DisplaySettingsChanged -= OnSystemDisplaySettingsChanged;
 	}
 }

@@ -21,188 +21,186 @@
 //  SOFTWARE.
 
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Controls;
-
 using Volumey.Services;
 
-namespace Volumey.Controls
+namespace Volumey.Controls;
+
+public class HotKeyBox : TextBox
 {
-	public class HotKeyBox : TextBox
+	private static int WM_Hotkey = 786;
+
+	/// <summary>Identifies the <see cref="HotKey"/> dependency property.</summary>
+	public static readonly DependencyProperty HotKeyProperty
+		= DependencyProperty.Register(nameof(HotKey),
+									  typeof(HotKey),
+									  typeof(HotKeyBox),
+									  new FrameworkPropertyMetadata(default(HotKey),
+																	FrameworkPropertyMetadataOptions
+																	   .BindsTwoWayByDefault,
+																	OnHotKeyPropertyChanged));
+
+	private static void OnHotKeyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 	{
-		private static int WM_Hotkey = 786;
+		(d as HotKeyBox)?.UpdateText();
+	}
 
-		/// <summary>Identifies the <see cref="HotKey"/> dependency property.</summary>
-		public static readonly DependencyProperty HotKeyProperty
-			= DependencyProperty.Register(nameof(HotKey),
-			                              typeof(HotKey),
-			                              typeof(HotKeyBox),
-			                              new FrameworkPropertyMetadata(default(HotKey),
-			                                                            FrameworkPropertyMetadataOptions
-				                                                           .BindsTwoWayByDefault,
-			                                                            OnHotKeyPropertyChanged));
+	/// <summary>
+	/// Gets or sets the <see cref="HotKey"/> for this <see cref="HotKeyBox"/>.
+	/// </summary>
+	public HotKey HotKey
+	{
+		get => (HotKey)GetValue(HotKeyProperty);
+		set => SetValue(HotKeyProperty, value);
+	}
 
-		private static void OnHotKeyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+	static HotKeyBox()
+	{
+		EventManager.RegisterClassHandler(typeof(HotKeyBox), GotFocusEvent, new RoutedEventHandler(OnGotFocus));
+	}
+
+	private static void OnGotFocus(object sender, RoutedEventArgs e)
+	{
+		// If we're an editable HotKeyBox, forward focus to the TextBox or previous element
+		if(!e.Handled)
 		{
-			(d as HotKeyBox)?.UpdateText();
-		}
-
-		/// <summary>
-		/// Gets or sets the <see cref="HotKey"/> for this <see cref="HotKeyBox"/>.
-		/// </summary>
-		public HotKey HotKey
-		{
-			get => (HotKey) this.GetValue(HotKeyProperty);
-			set => this.SetValue(HotKeyProperty, value);
-		}
-
-		static HotKeyBox()
-		{
-			EventManager.RegisterClassHandler(typeof(HotKeyBox), GotFocusEvent, new RoutedEventHandler(OnGotFocus));
-		}
-
-		private static void OnGotFocus(object sender, RoutedEventArgs e)
-		{
-			// If we're an editable HotKeyBox, forward focus to the TextBox or previous element
-			if(!e.Handled)
+			HotKeyBox hotKeyBox = (HotKeyBox)sender;
+			if(hotKeyBox.Focusable && e.OriginalSource == hotKeyBox)
 			{
-				HotKeyBox hotKeyBox = (HotKeyBox) sender;
-				if(hotKeyBox.Focusable && e.OriginalSource == hotKeyBox)
-				{
-					// MoveFocus takes a TraversalRequest as its argument.
-					var request = new TraversalRequest((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift
-						                                   ? FocusNavigationDirection.Previous
-						                                   : FocusNavigationDirection.Next);
-					// Gets the element with keyboard focus.
-					// Change keyboard focus.
-					if(Keyboard.FocusedElement == hotKeyBox)
-						hotKeyBox.Focus();
-					else
-						(Keyboard.FocusedElement as UIElement)?.MoveFocus(request);
-					e.Handled = true;
-				}
+				// MoveFocus takes a TraversalRequest as its argument.
+				var request = new TraversalRequest((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift
+													   ? FocusNavigationDirection.Previous
+													   : FocusNavigationDirection.Next);
+				// Gets the element with keyboard focus.
+				// Change keyboard focus.
+				if(Keyboard.FocusedElement == hotKeyBox)
+					hotKeyBox.Focus();
+				else
+					(Keyboard.FocusedElement as UIElement)?.MoveFocus(request);
+				e.Handled = true;
 			}
 		}
+	}
 
-		public override void OnApplyTemplate()
+	public override void OnApplyTemplate()
+	{
+		PreviewKeyDown -= TextBoxOnPreviewKeyDown2;
+		GotFocus -= TextBoxOnGotFocus;
+		LostFocus -= TextBoxOnLostFocus;
+		TextChanged -= TextBoxOnTextChanged;
+
+		base.OnApplyTemplate();
+
+		PreviewKeyDown += TextBoxOnPreviewKeyDown2;
+		//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
+		//which left every hotkey ignored (and swallowed) until focus moved inside the window again
+		GotKeyboardFocus += TextBoxOnGotFocus;
+		LostKeyboardFocus += TextBoxOnLostFocus;
+		IsVisibleChanged += (s, e) => { if(!IsVisible) StopEditing(); };
+		Unloaded += (s, e) => StopEditing();
+		TextChanged += TextBoxOnTextChanged;
+
+		UpdateText();
+	}
+
+	private void TextBoxOnTextChanged(object sender, TextChangedEventArgs args)
+	{
+		this!.SelectionStart = Text.Length;
+		if(Text.Length == 0)
+			HotKey = null;
+	}
+
+	private bool editing;
+
+	private void TextBoxOnGotFocus(object sender, RoutedEventArgs routedEventArgs)
+	{
+		if(editing)
+			return;
+		editing = true;
+		AppServices.Current.Hotkeys.IsEditingHotkey = true;
+		ComponentDispatcher.ThreadPreprocessMessage += ComponentDispatcherOnThreadPreprocessMessage;
+	}
+
+	private void StopEditing()
+	{
+		if(!editing)
+			return;
+		editing = false;
+		AppServices.Current.Hotkeys.IsEditingHotkey = false;
+		ComponentDispatcher.ThreadPreprocessMessage -= ComponentDispatcherOnThreadPreprocessMessage;
+	}
+
+	private void ComponentDispatcherOnThreadPreprocessMessage(ref MSG msg, ref bool handled)
+	{
+		if(msg.message == WM_Hotkey)
 		{
-			this.PreviewKeyDown -= this.TextBoxOnPreviewKeyDown2;
-			this.GotFocus -= this.TextBoxOnGotFocus;
-			this.LostFocus -= this.TextBoxOnLostFocus;
-			this.TextChanged -= this.TextBoxOnTextChanged;
-
-			base.OnApplyTemplate();
-
-			this.PreviewKeyDown += this.TextBoxOnPreviewKeyDown2;
-			//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
-			//which left every hotkey ignored (and swallowed) until focus moved inside the window again
-			this.GotKeyboardFocus += this.TextBoxOnGotFocus;
-			this.LostKeyboardFocus += this.TextBoxOnLostFocus;
-			this.IsVisibleChanged += (s, e) => { if(!this.IsVisible) this.StopEditing(); };
-			this.Unloaded += (s, e) => this.StopEditing();
-			this.TextChanged += this.TextBoxOnTextChanged;
-
-			this.UpdateText();
+			// swallow all hotkeys, so our control can catch the key strokes
+			handled = true;
 		}
+	}
 
-		private void TextBoxOnTextChanged(object sender, TextChangedEventArgs args)
+	private void TextBoxOnLostFocus(object sender, RoutedEventArgs routedEventArgs)
+		=> StopEditing();
+
+	private void TextBoxOnPreviewKeyDown2(object sender, KeyEventArgs e)
+	{
+		var key = e.Key == Key.System ? e.SystemKey : e.Key;
+		switch(key)
 		{
-			this!.SelectionStart = this.Text.Length;
-			if(this.Text.Length == 0)
-				this.HotKey = null;
-		}
-
-		private bool editing;
-
-		private void TextBoxOnGotFocus(object sender, RoutedEventArgs routedEventArgs)
-		{
-			if(this.editing)
+			case Key.Tab:
+			case Key.LeftShift:
+			case Key.RightShift:
+			case Key.LeftCtrl:
+			case Key.RightCtrl:
+			case Key.LeftAlt:
+			case Key.RightAlt:
+			case Key.RWin:
+			case Key.LWin:
 				return;
-			this.editing = true;
-			AppServices.Current.Hotkeys.IsEditingHotkey = true;
-			ComponentDispatcher.ThreadPreprocessMessage += this.ComponentDispatcherOnThreadPreprocessMessage;
 		}
 
-		private void StopEditing()
+		e.Handled = true;
+
+		var currentModifierKeys = GetCurrentModifierKeys();
+		if(currentModifierKeys == ModifierKeys.None && key == Key.Back)
+			SetCurrentValue(HotKeyProperty, null);
+		else
+			SetCurrentValue(HotKeyProperty, new HotKey(key, currentModifierKeys));
+
+		UpdateText();
+	}
+
+	private static ModifierKeys GetCurrentModifierKeys()
+	{
+		var modifier = ModifierKeys.None;
+		if(Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
 		{
-			if(!this.editing)
-				return;
-			this.editing = false;
-			AppServices.Current.Hotkeys.IsEditingHotkey = false;
-			ComponentDispatcher.ThreadPreprocessMessage -= this.ComponentDispatcherOnThreadPreprocessMessage;
+			modifier |= ModifierKeys.Control;
 		}
 
-		private void ComponentDispatcherOnThreadPreprocessMessage(ref MSG msg, ref bool handled)
+		if(Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
 		{
-			if(msg.message == WM_Hotkey)
-			{
-				// swallow all hotkeys, so our control can catch the key strokes
-				handled = true;
-			}
+			modifier |= ModifierKeys.Alt;
 		}
 
-		private void TextBoxOnLostFocus(object sender, RoutedEventArgs routedEventArgs)
-			=> this.StopEditing();
-
-		private void TextBoxOnPreviewKeyDown2(object sender, KeyEventArgs e)
+		if(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
 		{
-			var key = e.Key == Key.System ? e.SystemKey : e.Key;
-			switch(key)
-			{
-				case Key.Tab:
-				case Key.LeftShift:
-				case Key.RightShift:
-				case Key.LeftCtrl:
-				case Key.RightCtrl:
-				case Key.LeftAlt:
-				case Key.RightAlt:
-				case Key.RWin:
-				case Key.LWin:
-					return;
-			}
-
-			e.Handled = true;
-
-			var currentModifierKeys = GetCurrentModifierKeys();
-			if(currentModifierKeys == ModifierKeys.None && key == Key.Back)
-				this.SetCurrentValue(HotKeyProperty, null);
-			else
-				this.SetCurrentValue(HotKeyProperty, new HotKey(key, currentModifierKeys));
-
-			this.UpdateText();
+			modifier |= ModifierKeys.Shift;
 		}
 
-		private static ModifierKeys GetCurrentModifierKeys()
+		if(Keyboard.IsKeyDown(Key.LWin) || Keyboard.IsKeyDown(Key.RWin))
 		{
-			var modifier = ModifierKeys.None;
-			if(Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
-			{
-				modifier |= ModifierKeys.Control;
-			}
-
-			if(Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))
-			{
-				modifier |= ModifierKeys.Alt;
-			}
-
-			if(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-			{
-				modifier |= ModifierKeys.Shift;
-			}
-
-			if(Keyboard.IsKeyDown(Key.LWin) || Keyboard.IsKeyDown(Key.RWin))
-			{
-				modifier |= ModifierKeys.Windows;
-			}
-
-			return modifier;
+			modifier |= ModifierKeys.Windows;
 		}
 
-		private void UpdateText()
-		{
-			var hotkey = this.HotKey;
-			this.Text = hotkey is null || hotkey.Key == Key.None ? string.Empty : hotkey.ToString();
-		}
+		return modifier;
+	}
+
+	private void UpdateText()
+	{
+		var hotkey = HotKey;
+		Text = hotkey is null || hotkey.Key == Key.None ? string.Empty : hotkey.ToString();
 	}
 }

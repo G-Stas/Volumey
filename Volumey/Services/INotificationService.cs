@@ -2,31 +2,30 @@
 using Notification.Wpf.Controls;
 using Volumey.Model;
 
-namespace Volumey.Services
+namespace Volumey.Services;
+
+/// <summary>
+/// The on-screen volume popups (OSD).
+/// </summary>
+public interface INotificationService
 {
-	/// <summary>
-	/// The on-screen volume popups (OSD).
-	/// </summary>
-	public interface INotificationService
-	{
-		void ShowNotification(IManagedMasterAudioSession session);
+	void ShowNotification(IManagedMasterAudioSession session);
 
-		void CloseNotification(IManagedMasterAudioSession session);
+	void CloseNotification(IManagedMasterAudioSession session);
 
-		void ShowNotificationExample();
+	void ShowNotificationExample();
 
-		void CloseNotificationExample();
+	void CloseNotificationExample();
 
-		void SetWindowWorkArea(double left, double top, double width, double height);
+	void SetWindowWorkArea(double left, double top, double width, double height);
 
-		void ChangePosition(NotificationPosition newPosition);
+	void ChangePosition(NotificationPosition newPosition);
 
-		void SetVerticalIndent(int indent);
+	void SetVerticalIndent(int indent);
 
-		void SetHorizontalIndent(int indent);
+	void SetHorizontalIndent(int indent);
 
-		void SetNotificationDisplayTime(int timeInSeconds);
+	void SetNotificationDisplayTime(int timeInSeconds);
 
-		void UpdateColors(Brush background, Brush foreground, Brush hover);
-	}
+	void UpdateColors(Brush background, Brush foreground, Brush hover);
 }

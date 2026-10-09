@@ -1,9 +1,8 @@
-namespace Volumey.DataProvider
+namespace Volumey.DataProvider;
+
+public enum AppTheme
 {
-	public enum AppTheme
-	{
-		Dark,
-		Light,
-		System
-	}
+	Dark,
+	Light,
+	System
 }

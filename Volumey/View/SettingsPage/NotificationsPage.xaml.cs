@@ -1,12 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace Volumey.View.SettingsPage
+namespace Volumey.View.SettingsPage;
+
+public partial class NotificationsPage : Page
 {
-	public partial class NotificationsPage : Page
+	public NotificationsPage()
 	{
-		public NotificationsPage()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

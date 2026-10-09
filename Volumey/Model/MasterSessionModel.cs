@@ -13,332 +13,331 @@ using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
-namespace Volumey.Model
+namespace Volumey.Model;
+
+/// <summary>
+/// Represents data and the volume control of an output audio device
+/// </summary>
+public sealed class MasterSessionModel : IManagedMasterAudioSession
 {
-    /// <summary>
-    /// Represents data and the volume control of an output audio device
-    /// </summary>
-    public sealed class MasterSessionModel : IManagedMasterAudioSession
-    {
-        private string deviceFriendlyName;
-        public string DeviceFriendlyName
-        {
-            get => deviceFriendlyName;
-            set
-            {
-                deviceFriendlyName = value;
-                OnPropertyChanged();
-            }
-        }
+	private string deviceFriendlyName;
+	public string DeviceFriendlyName
+	{
+		get => deviceFriendlyName;
+		set
+		{
+			deviceFriendlyName = value;
+			OnPropertyChanged();
+		}
+	}
 
-        private string deviceDesc;
-        public string DeviceDesc
-        {
-            get => deviceDesc;
-            set
-            {
-                deviceDesc = value;
-                OnPropertyChanged();
-            }
-        }
+	private string deviceDesc;
+	public string DeviceDesc
+	{
+		get => deviceDesc;
+		set
+		{
+			deviceDesc = value;
+			OnPropertyChanged();
+		}
+	}
 
-        public string Name
-        {
-            get => this.deviceFriendlyName;
-            set
-            {
-                this.DeviceFriendlyName = value;
-                OnPropertyChanged();
-            }
-        }
-        
-        private readonly string _id;
-        public string Id => this._id;
+	public string Name
+	{
+		get => deviceFriendlyName;
+		set
+		{
+			DeviceFriendlyName = value;
+			OnPropertyChanged();
+		}
+	}
 
-        //the endpoint volume doesn't belong to a process
-        public uint ProcessId => 0;
+	private readonly string _id;
+	public string Id => _id;
 
-        public Guid GroupingParam { get; } = Guid.Empty;
-        
-        public string FilePath { get; }
+	//the endpoint volume doesn't belong to a process
+	public uint ProcessId => 0;
 
-        private int _volume;
-        public int Volume
-        {
-            get => _volume;
-            set
-            {
-                if(this._volume != value)
-                {
-                    if(value < 0)
-                        this._volume = 0;
-                    else if(value > 100)
-                        this._volume = 100;
-                    else
-                        this._volume = value;
-                    this.SetVolume(this._volume, GuidValue.Internal.VolumeGUID);
-                    OnPropertyChanged();
-                }
-            }
-        }
+	public Guid GroupingParam { get; } = Guid.Empty;
 
-        private bool _isMuted;
-        public bool IsMuted
-        {
-            get => _isMuted;
-            set
-            {
-                if(this._isMuted != value)
-                {
-                    this._isMuted = value;
-                    this.SetMute(value, GuidValue.Internal.VolumeGUID);
-                    OnPropertyChanged();
-                }
-            }
-        }
-        
-        private ImageSource _iconSource;
-        public ImageSource IconSource
-        {
-            get => _iconSource;
-            set
-            {
-                _iconSource = value;
-                OnPropertyChanged();
-            }
-        }
+	public string FilePath { get; }
 
-        private Icon _icon;
-        public Icon Icon
-        {
-        	get => _icon;
-        	set
-        	{
-        		_icon = value;
-        		OnPropertyChanged();
-        	}
-        }
+	private int _volume;
+	public int Volume
+	{
+		get => _volume;
+		set
+		{
+			if(_volume != value)
+			{
+				if(value < 0)
+					_volume = 0;
+				else if(value > 100)
+					_volume = 100;
+				else
+					_volume = value;
+				SetVolume(_volume, GuidValue.Internal.VolumeGUID);
+				OnPropertyChanged();
+			}
+		}
+	}
 
-        public ICommand MuteCommand { get; set; }
+	private bool _isMuted;
+	public bool IsMuted
+	{
+		get => _isMuted;
+		set
+		{
+			if(_isMuted != value)
+			{
+				_isMuted = value;
+				SetMute(value, GuidValue.Internal.VolumeGUID);
+				OnPropertyChanged();
+			}
+		}
+	}
 
-        private HotKey volumeUp;
-        private HotKey volumeDown;
-        private HotKey muteKey;
-        
-        private bool volumeHotkeysRegistered;
-        private bool muteHotkeyRegistered;
+	private ImageSource _iconSource;
+	public ImageSource IconSource
+	{
+		get => _iconSource;
+		set
+		{
+			_iconSource = value;
+			OnPropertyChanged();
+		}
+	}
 
-        public bool AnyHotkeyRegistered => volumeHotkeysRegistered || muteHotkeyRegistered;
-        
-        public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
+	private Icon _icon;
+	public Icon Icon
+	{
+		get => _icon;
+		set
+		{
+			_icon = value;
+			OnPropertyChanged();
+		}
+	}
 
-        private readonly IHotkeyService hotkeys;
-        private IAudioSessionVolume masterVolume { get; }
-        private IMasterVolumeNotificationHandler notificationHandler { get; }
-        private static ILog logger;
-        private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
-        
-        public MasterSessionModel(string friendlyName, string desc, 
-            int volume, bool muteState, string id, Icon icon,
-            IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler, IHotkeyService hotkeys)
-        {
-            this.hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
-            this._volume = volume;
-            this._isMuted = muteState;
-            this._id = id;
-            this._icon = icon;
-            this._iconSource = icon.GetAsImageSource();
-            this.Name = friendlyName;
-            this.FilePath = this.Name;
-            this.DeviceDesc = desc;
-            this.masterVolume = mVolume;
-            this.notificationHandler = nHandler;
-            this.notificationHandler.VolumeChanged += OnVolumeChanged;
-            
-            MuteCommand = new ActionCommand(() => this.IsMuted = !this.IsMuted);
-        }
+	public ICommand MuteCommand { get; set; }
 
-        public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
-        {
-            try
-            {
-                if(volUp != null && volDown != null && this.hotkeys.RegisterHotkeysPair(volUp, volDown))
-                {
-                    this.volumeUp = volUp;
-                    this.volumeDown = volDown;
-                    this.hotkeys.HotkeyPressed += OnHotkeyPressed;
-                    this.volumeHotkeysRegistered = true;
-                    return true;
-                }
-            }
-            catch { }
-            return false;
-        }
+	private HotKey volumeUp;
+	private HotKey volumeDown;
+	private HotKey muteKey;
 
-        public void SetStateMediator(IAudioProcessStateMediator mediator)
-        {
-            StateNotificationMediator = mediator;
-        }
+	private bool volumeHotkeysRegistered;
+	private bool muteHotkeyRegistered;
 
-        public void ResetStateMediator(bool force = false)
-        {
-            if(!force && SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
-                return;
-            StateNotificationMediator = null;
-        }
+	public bool AnyHotkeyRegistered => volumeHotkeysRegistered || muteHotkeyRegistered;
 
-        public void ResetVolumeHotkeys()
-        {
-            if(this.volumeUp != null && this.volumeDown != null)
-                this.hotkeys.UnregisterHotkeysPair(this.volumeUp, this.volumeDown);
-            if(!this.muteHotkeyRegistered)
-                this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
-            this.volumeHotkeysRegistered = false;
-            this.volumeUp = this.volumeDown = null;
-        }
-        
-        public bool SetMuteHotkey(HotKey key)
-        {
-            try
-            {
-                if(key != null && this.hotkeys.RegisterHotkey(key))
-                {
-                    this.muteKey = key;
-                    this.hotkeys.HotkeyPressed += OnHotkeyPressed;
-                    this.muteHotkeyRegistered = true;
-                    return true;
-                }
-            }
-            catch { }
-            return false;
-        }
+	public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
 
-        public void ResetMuteHotkey()
-        {
-            if(this.muteKey != null)
-                this.hotkeys.UnregisterHotkey(this.muteKey);
-            if(!this.volumeHotkeysRegistered)
-                this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
-            this.muteHotkeyRegistered = false;
-            this.muteKey = null;
-        }
-		
-        private void OnHotkeyPressed(HotKey hotkey)
-        {
-            if(this.volumeHotkeysRegistered)
-            {
-                if(hotkey.Equals(this.volumeUp))
-                {
-                    if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && this.IsMuted)
-                        this.SetMute(false, notify: false, GuidValue.Internal.Empty);
-                    this.SetVolume(this.Volume + this.hotkeys.VolumeStep, notify:true, GuidValue.Internal.Empty);
-                }
-                else if(hotkey.Equals(this.volumeDown))
-                {
-                    int newValue = this.Volume - this.hotkeys.VolumeStep;
-                    if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
-                    {
-                        this.SetMute(true, notify: true, GuidValue.Internal.Empty);
-                    }
-                    else
-                        this.SetVolume(newValue, notify: true, GuidValue.Internal.Empty);
-                }
-            }
+	private readonly IHotkeyService hotkeys;
+	private IAudioSessionVolume masterVolume { get; }
+	private IMasterVolumeNotificationHandler notificationHandler { get; }
+	private static ILog logger;
+	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
-            if(this.muteHotkeyRegistered && hotkey.Equals(this.muteKey))
-            {
-                this.SetMute(!this._isMuted, notify: true, GuidValue.Internal.Empty);
-            }
-        }
+	public MasterSessionModel(string friendlyName, string desc,
+		int volume, bool muteState, string id, Icon icon,
+		IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler, IHotkeyService hotkeys)
+	{
+		this.hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
+		_volume = volume;
+		_isMuted = muteState;
+		_id = id;
+		_icon = icon;
+		_iconSource = icon.GetAsImageSource();
+		Name = friendlyName;
+		FilePath = Name;
+		DeviceDesc = desc;
+		masterVolume = mVolume;
+		notificationHandler = nHandler;
+		notificationHandler.VolumeChanged += OnVolumeChanged;
 
-        public void SetVolume(int newVol, bool notify, Guid guid)
-        {
-            SetVolume(newVol, guid);
-            if(notify)
-                this.StateNotificationMediator?.NotifyAudioStateChange(this);
-        }
+		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
+	}
 
-        public void SetMute(bool muteState, bool notify, Guid context)
-        {
-            SetMute(muteState, context);
-            if(notify)
-                this.StateNotificationMediator?.NotifyAudioStateChange(this);
-        }
-        
-        
-        //only writes; the public overloads notify (when asked to). Notifying here as well showed the OSD twice for every hotkey press
-        private void SetVolume(int newVol, Guid context)
-        {
-            try
-            {
-                this.masterVolume?.SetVolume(newVol, context);
-            }
-            catch(COMException com)
-            {
-                LogStateException(com);
-            }
-            catch(Exception e)
-            {
-                LogStateException(e);
-            }
-        }
+	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+	{
+		try
+		{
+			if(volUp != null && volDown != null && hotkeys.RegisterHotkeysPair(volUp, volDown))
+			{
+				volumeUp = volUp;
+				volumeDown = volDown;
+				hotkeys.HotkeyPressed += OnHotkeyPressed;
+				volumeHotkeysRegistered = true;
+				return true;
+			}
+		}
+		catch { }
+		return false;
+	}
 
-        private void SetMute(bool muteState, Guid context)
-        {
-            try
-            {
-                this.masterVolume?.SetMute(muteState);
-            }
-            catch(COMException com)
-            {
-                LogStateException(com);
-            }
-            catch(Exception e)
-            {
-                LogStateException(e);
-            }
-        }
+	public void SetStateMediator(IAudioProcessStateMediator mediator)
+	{
+		StateNotificationMediator = mediator;
+	}
 
-        private void OnVolumeChanged(VolumeChangedEventArgs e)
-        {
-            if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
-            {
-                if(this.Volume != e.NewVolume || this.IsMuted != e.IsMuted)
-                    this.StateNotificationMediator?.NotifyAudioStateChange(this);
-            }
-            
-            this.Volume = e.NewVolume;
-            this.IsMuted = e.IsMuted;
-        }
+	public void ResetStateMediator(bool force = false)
+	{
+		if(!force && SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
+			return;
+		StateNotificationMediator = null;
+	}
 
-        private void LogStateException(COMException com)
-        {
-            Logger.Info($"Failed to change state of the master session. COM error message: [{com.ErrorCode}]", com);
-        }
+	public void ResetVolumeHotkeys()
+	{
+		if(volumeUp != null && volumeDown != null)
+			hotkeys.UnregisterHotkeysPair(volumeUp, volumeDown);
+		if(!muteHotkeyRegistered)
+			hotkeys.HotkeyPressed -= OnHotkeyPressed;
+		volumeHotkeysRegistered = false;
+		volumeUp = volumeDown = null;
+	}
 
-        private void LogStateException(Exception e)
-        {
-            Logger.Info("Failed to change state of the master session", e);
-        }
-        
-        public event PropertyChangedEventHandler PropertyChanged;
+	public bool SetMuteHotkey(HotKey key)
+	{
+		try
+		{
+			if(key != null && hotkeys.RegisterHotkey(key))
+			{
+				muteKey = key;
+				hotkeys.HotkeyPressed += OnHotkeyPressed;
+				muteHotkeyRegistered = true;
+				return true;
+			}
+		}
+		catch { }
+		return false;
+	}
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	public void ResetMuteHotkey()
+	{
+		if(muteKey != null)
+			hotkeys.UnregisterHotkey(muteKey);
+		if(!volumeHotkeysRegistered)
+			hotkeys.HotkeyPressed -= OnHotkeyPressed;
+		muteHotkeyRegistered = false;
+		muteKey = null;
+	}
 
-        private bool disposed;
+	private void OnHotkeyPressed(HotKey hotkey)
+	{
+		if(volumeHotkeysRegistered)
+		{
+			if(hotkey.Equals(volumeUp))
+			{
+				if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && IsMuted)
+					SetMute(false, notify: false, GuidValue.Internal.Empty);
+				SetVolume(Volume + hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+			}
+			else if(hotkey.Equals(volumeDown))
+			{
+				int newValue = Volume - hotkeys.VolumeStep;
+				if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
+				{
+					SetMute(true, notify: true, GuidValue.Internal.Empty);
+				}
+				else
+					SetVolume(newValue, notify: true, GuidValue.Internal.Empty);
+			}
+		}
 
-        public void Dispose()
-        {
-            if(this.disposed)
-                return;
-            this.disposed = true;
-            //stop reacting to presses (and stop being kept alive by the hotkey service); the hotkeys themselves are released by
-            //the view models through ResetVolumeHotkeys/ResetMuteHotkey, often after this, so they aren't unregistered here
-            this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
-            this.StateNotificationMediator?.NotifyOfDisposing(this);
-            this.notificationHandler.VolumeChanged -= OnVolumeChanged;
-            this.notificationHandler.Dispose();
-        }
-    }
+		if(muteHotkeyRegistered && hotkey.Equals(muteKey))
+		{
+			SetMute(!_isMuted, notify: true, GuidValue.Internal.Empty);
+		}
+	}
+
+	public void SetVolume(int newVol, bool notify, Guid guid)
+	{
+		SetVolume(newVol, guid);
+		if(notify)
+			StateNotificationMediator?.NotifyAudioStateChange(this);
+	}
+
+	public void SetMute(bool muteState, bool notify, Guid context)
+	{
+		SetMute(muteState, context);
+		if(notify)
+			StateNotificationMediator?.NotifyAudioStateChange(this);
+	}
+
+
+	//only writes; the public overloads notify (when asked to). Notifying here as well showed the OSD twice for every hotkey press
+	private void SetVolume(int newVol, Guid context)
+	{
+		try
+		{
+			masterVolume?.SetVolume(newVol, context);
+		}
+		catch(COMException com)
+		{
+			LogStateException(com);
+		}
+		catch(Exception e)
+		{
+			LogStateException(e);
+		}
+	}
+
+	private void SetMute(bool muteState, Guid context)
+	{
+		try
+		{
+			masterVolume?.SetMute(muteState);
+		}
+		catch(COMException com)
+		{
+			LogStateException(com);
+		}
+		catch(Exception e)
+		{
+			LogStateException(e);
+		}
+	}
+
+	private void OnVolumeChanged(VolumeChangedEventArgs e)
+	{
+		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
+		{
+			if(Volume != e.NewVolume || IsMuted != e.IsMuted)
+				StateNotificationMediator?.NotifyAudioStateChange(this);
+		}
+
+		Volume = e.NewVolume;
+		IsMuted = e.IsMuted;
+	}
+
+	private void LogStateException(COMException com)
+	{
+		Logger.Info($"Failed to change state of the master session. COM error message: [{com.ErrorCode}]", com);
+	}
+
+	private void LogStateException(Exception e)
+	{
+		Logger.Info("Failed to change state of the master session", e);
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	private bool disposed;
+
+	public void Dispose()
+	{
+		if(disposed)
+			return;
+		disposed = true;
+		//stop reacting to presses (and stop being kept alive by the hotkey service); the hotkeys themselves are released by
+		//the view models through ResetVolumeHotkeys/ResetMuteHotkey, often after this, so they aren't unregistered here
+		hotkeys.HotkeyPressed -= OnHotkeyPressed;
+		StateNotificationMediator?.NotifyOfDisposing(this);
+		notificationHandler.VolumeChanged -= OnVolumeChanged;
+		notificationHandler.Dispose();
+	}
 }

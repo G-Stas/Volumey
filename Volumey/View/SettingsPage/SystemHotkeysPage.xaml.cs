@@ -1,10 +1,9 @@
-﻿namespace Volumey.View.SettingsPage
+﻿namespace Volumey.View.SettingsPage;
+
+public partial class SystemHotkeysPage
 {
-	public partial class SystemHotkeysPage
+	public SystemHotkeysPage()
 	{
-		public SystemHotkeysPage()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

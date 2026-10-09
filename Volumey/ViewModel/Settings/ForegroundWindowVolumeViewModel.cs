@@ -11,216 +11,215 @@ using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
 
-namespace Volumey.ViewModel.Settings
+namespace Volumey.ViewModel.Settings;
+
+public class ForegroundWindowVolumeViewModel : HotkeyViewModel
 {
-	public class ForegroundWindowVolumeViewModel : HotkeyViewModel
+	private HotKey _volumeUpHotkey;
+	public HotKey VolumeUpHotkey
 	{
-		private HotKey _volumeUpHotkey;
-		public HotKey VolumeUpHotkey
+		get => _volumeUpHotkey;
+		set
 		{
-			get => this._volumeUpHotkey;
-			set
-			{
-				this._volumeUpHotkey = value;
-				OnPropertyChanged();
-			}
+			_volumeUpHotkey = value;
+			OnPropertyChanged();
 		}
+	}
 
-		private HotKey _volumeDownHotkey;
-		public HotKey VolumeDownHotkey
+	private HotKey _volumeDownHotkey;
+	public HotKey VolumeDownHotkey
+	{
+		get => _volumeDownHotkey;
+		set
 		{
-			get => this._volumeDownHotkey;
-			set
-			{
-				this._volumeDownHotkey = value;
-				OnPropertyChanged();
-			}
+			_volumeDownHotkey = value;
+			OnPropertyChanged();
 		}
+	}
 
-		private bool _hotkeysRegistered;
-		public bool HotkeysRegistered
+	private bool _hotkeysRegistered;
+	public bool HotkeysRegistered
+	{
+		get => _hotkeysRegistered;
+		set
 		{
-			get => this._hotkeysRegistered;
-			set
+			if(value)
 			{
-				if(value)
+				if(!_hotkeysRegistered)
 				{
-					if(!_hotkeysRegistered)
-					{
-						this._hotkeysRegistered = SaveHotkeys();
-						OnPropertyChanged();
-						return;
-					}
+					_hotkeysRegistered = SaveHotkeys();
+					OnPropertyChanged();
+					return;
 				}
-				else if(_hotkeysRegistered)
-				{
-					ResetHotkeys();
-				}
-				this._hotkeysRegistered = value;
-				OnPropertyChanged();
 			}
-		}
-
-		private AudioProcessStateNotificationMediator _mediator;
-		private AudioProcessStateNotificationMediator StateMediator => _mediator ??= new AudioProcessStateNotificationMediator(this.notifications);
-
-		private OutputDeviceModel _defaultDevice;
-
-		private ILog _logger;
-		private ILog Logger => _logger ??=LogManager.GetLogger(typeof(ForegroundWindowVolumeViewModel));
-
-		private readonly IHotkeyService hotkeys;
-		private readonly INotificationService notifications;
-
-		internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
-		{
-			this.hotkeys = hotkeys;
-			this.notifications = notifications;
-
-			_defaultDevice = deviceProvider.DefaultDevice;
-			deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
-
-			if(SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp is HotKey volumeUp && SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown is HotKey volumeDown)
+			else if(_hotkeysRegistered)
 			{
-				this._hotkeysRegistered = true;
-				this.VolumeUpHotkey = volumeUp;
-				this.VolumeDownHotkey = volumeDown;
-				if(this.hotkeys.IsActive)
-					RegisterLoadedHotkeys();
-				else
-					this.hotkeys.Activated += RegisterLoadedHotkeys;
+				ResetHotkeys();
 			}
+			_hotkeysRegistered = value;
+			OnPropertyChanged();
 		}
+	}
 
-		private void RegisterLoadedHotkeys()
+	private AudioProcessStateNotificationMediator _mediator;
+	private AudioProcessStateNotificationMediator StateMediator => _mediator ??= new AudioProcessStateNotificationMediator(notifications);
+
+	private OutputDeviceModel _defaultDevice;
+
+	private ILog _logger;
+	private ILog Logger => _logger ??= LogManager.GetLogger(typeof(ForegroundWindowVolumeViewModel));
+
+	private readonly IHotkeyService hotkeys;
+	private readonly INotificationService notifications;
+
+	internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
+	{
+		this.hotkeys = hotkeys;
+		this.notifications = notifications;
+
+		_defaultDevice = deviceProvider.DefaultDevice;
+		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
+
+		if(SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp is HotKey volumeUp && SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown is HotKey volumeDown)
 		{
-			//a saved pair that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
-			//it stays saved and is tried again on the next start
-			if(this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
-				this.hotkeys.HotkeyPressed += OnHotkeyPressed;
+			_hotkeysRegistered = true;
+			VolumeUpHotkey = volumeUp;
+			VolumeDownHotkey = volumeDown;
+			if(this.hotkeys.IsActive)
+				RegisterLoadedHotkeys();
 			else
-				this.SetErrorMessage(ErrorMessageType.VolumeReg);
+				this.hotkeys.Activated += RegisterLoadedHotkeys;
 		}
+	}
 
-		private bool SaveHotkeys()
+	private void RegisterLoadedHotkeys()
+	{
+		//a saved pair that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
+		//it stays saved and is tried again on the next start
+		if(hotkeys.RegisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey))
+			hotkeys.HotkeyPressed += OnHotkeyPressed;
+		else
+			SetErrorMessage(ErrorMessageType.VolumeReg);
+	}
+
+	private bool SaveHotkeys()
+	{
+		if(hotkeys.HotkeysAreValid(_volumeUpHotkey, _volumeDownHotkey) is var error && error != ErrorMessageType.None)
 		{
-			if(this.hotkeys.HotkeysAreValid(this._volumeUpHotkey, this._volumeDownHotkey) is var error && error != ErrorMessageType.None)
-			{
-				this.SetErrorMessage(error);
-				return false;
-			}
-			this.SetErrorMessage(ErrorMessageType.None);
-			if(this.hotkeys.RegisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey))
-			{
-				SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = this._volumeUpHotkey;
-				SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = this._volumeDownHotkey;
-				this.hotkeys.HotkeyPressed += OnHotkeyPressed;
-				Logger.Info($"Registered foreground hotkeys: [{this._volumeUpHotkey}] [{this._volumeDownHotkey}]");
-				return true;
-			}
-			//the hotkey service logs why
-			this.SetErrorMessage(ErrorMessageType.VolumeReg);
+			SetErrorMessage(error);
 			return false;
 		}
-
-		private void ResetHotkeys()
+		SetErrorMessage(ErrorMessageType.None);
+		if(hotkeys.RegisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey))
 		{
-			try
-			{
-				this.hotkeys.UnregisterHotkeysPair(this._volumeUpHotkey, this._volumeDownHotkey);
-			}
-			catch { }
-			this.SetErrorMessage(ErrorMessageType.None);
-			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = null;
-			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = null;
-			this.hotkeys.HotkeyPressed -= OnHotkeyPressed;
+			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = _volumeUpHotkey;
+			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = _volumeDownHotkey;
+			hotkeys.HotkeyPressed += OnHotkeyPressed;
+			Logger.Info($"Registered foreground hotkeys: [{_volumeUpHotkey}] [{_volumeDownHotkey}]");
+			return true;
+		}
+		//the hotkey service logs why
+		SetErrorMessage(ErrorMessageType.VolumeReg);
+		return false;
+	}
+
+	private void ResetHotkeys()
+	{
+		try
+		{
+			hotkeys.UnregisterHotkeysPair(_volumeUpHotkey, _volumeDownHotkey);
+		}
+		catch { }
+		SetErrorMessage(ErrorMessageType.None);
+		SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = null;
+		SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = null;
+		hotkeys.HotkeyPressed -= OnHotkeyPressed;
+	}
+
+	private async Task<(bool succeed, AudioProcessModel foundProcess)> TryGetForegroundAudioProcess()
+	{
+		if(_defaultDevice == null)
+		{
+			return (false, null);
 		}
 
-		private async Task<(bool succeed, AudioProcessModel foundProcess)> TryGetForegroundAudioProcess()
+		uint foregroundWindowProcId = GetForegroundWindowProcessId();
+		if(foregroundWindowProcId == uint.MinValue)
 		{
-			if(_defaultDevice == null)
-			{
-				return (false, null);
-			}
-
-			uint foregroundWindowProcId = GetForegroundWindowProcessId();
-			if(foregroundWindowProcId == uint.MinValue)
-			{
-				return (false, null);
-			}
-
-			long started = Stopwatch.GetTimestamp();
-			Process process = null;
-			string filePath = string.Empty;
-			Exception pathError = null;
-			try
-			{
-				process = Process.GetProcessById((int)foregroundWindowProcId);
-				filePath = process.MainModule.FileName;
-			}
-			catch(Exception e)
-			{
-				//e.g. a game protected by anti-cheat doesn't let other processes read its modules
-				pathError = e;
-			}
-
-			AudioProcessModel foundProcess = null;
-			IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
-			try
-			{
-				curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
-				foundProcess = curDeviceProcesses.FirstOrDefault(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath));
-			}
-			catch { }
-			HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, SafeName(process), filePath, pathError, curDeviceProcesses, foundProcess,
-				Stopwatch.GetElapsedTime(started).TotalMilliseconds);
-			return (foundProcess != null, foundProcess);
+			return (false, null);
 		}
 
-		private static string SafeName(Process process)
+		long started = Stopwatch.GetTimestamp();
+		Process process = null;
+		string filePath = string.Empty;
+		Exception pathError = null;
+		try
 		{
-			try { return process?.ProcessName; }
-			catch { return null; }
+			process = Process.GetProcessById((int)foregroundWindowProcId);
+			filePath = process.MainModule.FileName;
+		}
+		catch(Exception e)
+		{
+			//e.g. a game protected by anti-cheat doesn't let other processes read its modules
+			pathError = e;
 		}
 
-		private uint GetForegroundWindowProcessId()
+		AudioProcessModel foundProcess = null;
+		IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
+		try
 		{
-			try
-			{
-				return NativeMethods.GetForegroundWindowProcessId();
-			}
-			catch(Exception e)
-			{
-				Logger.Error("Failed to get foreground window process id", e);
-			}
-			return uint.MinValue;
+			curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
+			foundProcess = curDeviceProcesses.FirstOrDefault(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath));
 		}
+		catch { }
+		HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, SafeName(process), filePath, pathError, curDeviceProcesses, foundProcess,
+			Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+		return (foundProcess != null, foundProcess);
+	}
 
-		private void OnHotkeyPressed(HotKey hotkey)
+	private static string SafeName(Process process)
+	{
+		try { return process?.ProcessName; }
+		catch { return null; }
+	}
+
+	private uint GetForegroundWindowProcessId()
+	{
+		try
 		{
-			if(!_hotkeysRegistered || _defaultDevice == null)
-				return;
-
-			int direction = hotkey.Equals(this._volumeUpHotkey) ? 1 : hotkey.Equals(this._volumeDownHotkey) ? -1 : 0;
-			if(direction != 0)
-				ChangeForegroundVolumeAsync(hotkey, direction).Forget(Logger, "Failed to change the volume of the foreground app");
+			return NativeMethods.GetForegroundWindowProcessId();
 		}
-
-		private async Task ChangeForegroundVolumeAsync(HotKey hotkey, int direction)
+		catch(Exception e)
 		{
-			HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
-			if(await TryGetForegroundAudioProcess() is (true, AudioProcessModel foundProcess))
-			{
-				if(foundProcess.StateNotificationMediator == null)
-					foundProcess.SetStateMediator(this.StateMediator);
-				foundProcess.SetVolume(foundProcess.Volume + direction * this.hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
-				HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
-			}
+			Logger.Error("Failed to get foreground window process id", e);
 		}
+		return uint.MinValue;
+	}
 
-		private void OnDefaultDeviceChanged(OutputDeviceModel newDefaultDevice)
+	private void OnHotkeyPressed(HotKey hotkey)
+	{
+		if(!_hotkeysRegistered || _defaultDevice == null)
+			return;
+
+		int direction = hotkey.Equals(_volumeUpHotkey) ? 1 : hotkey.Equals(_volumeDownHotkey) ? -1 : 0;
+		if(direction != 0)
+			ChangeForegroundVolumeAsync(hotkey, direction).Forget(Logger, "Failed to change the volume of the foreground app");
+	}
+
+	private async Task ChangeForegroundVolumeAsync(HotKey hotkey, int direction)
+	{
+		HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
+		if(await TryGetForegroundAudioProcess() is (true, AudioProcessModel foundProcess))
 		{
-			_defaultDevice = newDefaultDevice;
+			if(foundProcess.StateNotificationMediator == null)
+				foundProcess.SetStateMediator(StateMediator);
+			foundProcess.SetVolume(foundProcess.Volume + direction * hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+			HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 		}
+	}
+
+	private void OnDefaultDeviceChanged(OutputDeviceModel newDefaultDevice)
+	{
+		_defaultDevice = newDefaultDevice;
 	}
 }

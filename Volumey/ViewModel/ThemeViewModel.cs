@@ -1,143 +1,142 @@
 ﻿using System.ComponentModel;
-using System.Windows.Media;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using ModernWpf;
 using Volumey.DataProvider;
 using Volumey.Helper;
 
-namespace Volumey.ViewModel
+namespace Volumey.ViewModel;
+
+public sealed class ThemeViewModel : INotifyPropertyChanged
 {
-	public sealed class ThemeViewModel : INotifyPropertyChanged
+	public AppTheme[] AppThemes { get; } = { AppTheme.Light, AppTheme.Dark, AppTheme.System };
+
+	private AppTheme selectedTheme;
+	public AppTheme SelectedTheme
 	{
-		public AppTheme[] AppThemes { get; } = {AppTheme.Light, AppTheme.Dark, AppTheme.System};
-
-		private AppTheme selectedTheme;
-		public AppTheme SelectedTheme
+		get => selectedTheme;
+		set
 		{
-			get => selectedTheme;
-			set
-			{
-				selectedTheme = value;
-				this.SetTheme(value);
-				OnPropertyChanged();
-			}
+			selectedTheme = value;
+			SetTheme(value);
+			OnPropertyChanged();
+		}
+	}
+
+	private AppTheme windowsTheme;
+	/// <summary>
+	/// Used to display tray icon with appropriate to current windows theme colors
+	/// </summary>
+	public AppTheme WindowsTheme
+	{
+		get => windowsTheme;
+		set
+		{
+			windowsTheme = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private Brush _darkBackground;
+	private Brush _lightBackground;
+
+	private Brush _darkForeground;
+	private Brush _lightForeground;
+
+	private Brush _buttonHoverDarkBackground;
+	private Brush _lightButtonHoverBackground;
+
+	private const string BackgroundKey = "SystemChromeMediumLowColorBrush";
+	private const string ButtonHoverKey = "SystemControlHighlightListLowBrush";
+	private const double BackgroundOpacity = 0.94;
+
+	public ThemeViewModel()
+	{
+		WindowsTheme = SystemColorHelper.WindowsTheme;
+		SelectedTheme = SettingsProvider.Settings.General.Theme;
+		SystemColorHelper.WindowsThemeChanged += WindowsThemeChanged;
+	}
+
+	private void WindowsThemeChanged(AppTheme newTheme)
+	{
+		WindowsTheme = newTheme;
+		if(selectedTheme == AppTheme.System)
+			SetTheme(AppTheme.System);
+	}
+
+	private void SetTheme(AppTheme newTheme)
+	{
+		if(newTheme == AppTheme.System)
+			newTheme = windowsTheme;
+
+		if(newTheme == AppTheme.Dark && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Dark)
+		{
+			ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
+			UpdateNotificationColors(AppTheme.Dark);
+		}
+		else if(newTheme == AppTheme.Light && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Light)
+		{
+			ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
+			UpdateNotificationColors(AppTheme.Light);
 		}
 
-		private AppTheme windowsTheme;
-		/// <summary>
-		/// Used to display tray icon with appropriate to current windows theme colors
-		/// </summary>
-		public AppTheme WindowsTheme
+		SettingsProvider.Settings.General.Theme = selectedTheme;
+	}
+
+	private void UpdateNotificationColors(AppTheme newTheme)
+	{
+		if(newTheme == AppTheme.Dark)
 		{
-			get => windowsTheme;
-			set
+			if(_darkBackground == null)
 			{
-				windowsTheme = value;
-				OnPropertyChanged();
-			}
-		}
-
-		private Brush _darkBackground;
-		private Brush _lightBackground;
-		
-		private Brush _darkForeground;
-		private Brush _lightForeground;
-
-		private Brush _buttonHoverDarkBackground;
-		private Brush _lightButtonHoverBackground;
-
-		private const string BackgroundKey = "SystemChromeMediumLowColorBrush";
-		private const string ButtonHoverKey = "SystemControlHighlightListLowBrush";
-		private const double BackgroundOpacity = 0.94;
-
-		public ThemeViewModel()
-		{
-			this.WindowsTheme = SystemColorHelper.WindowsTheme;
-			this.SelectedTheme = SettingsProvider.Settings.General.Theme;
-			SystemColorHelper.WindowsThemeChanged += WindowsThemeChanged;
-		}
-
-		private void WindowsThemeChanged(AppTheme newTheme)
-		{
-			this.WindowsTheme = newTheme;
-			if(this.selectedTheme == AppTheme.System)
-				this.SetTheme(AppTheme.System);
-		}
-
-		private void SetTheme(AppTheme newTheme)
-		{
-			if(newTheme == AppTheme.System)
-				newTheme = windowsTheme;
-
-			if(newTheme == AppTheme.Dark && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Dark)
-			{
-				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
-				UpdateNotificationColors(AppTheme.Dark);
-			}
-			else if(newTheme == AppTheme.Light && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Light)
-			{
-				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
-				UpdateNotificationColors(AppTheme.Light);
-			}
-			
-			SettingsProvider.Settings.General.Theme = this.selectedTheme;
-		}
-
-		private void UpdateNotificationColors(AppTheme newTheme)
-		{
-			if(newTheme == AppTheme.Dark)
-			{
-				if(_darkBackground == null)
+				if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
 				{
-					if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
-					{
-						this._darkBackground = brush.CloneCurrentValue();
-						this._darkBackground.Opacity = BackgroundOpacity;
-						this._darkBackground.Freeze();
-					}
+					_darkBackground = brush.CloneCurrentValue();
+					_darkBackground.Opacity = BackgroundOpacity;
+					_darkBackground.Freeze();
 				}
-				if(this._buttonHoverDarkBackground == null)
-				{
-					if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
-					{
-						this._buttonHoverDarkBackground = brush.CloneCurrentValue();
-						this._buttonHoverDarkBackground.Freeze();
-					}
-				}
-				if(_darkForeground == null)
-					this._darkForeground = Brushes.White;
-				NotificationManagerHelper.UpdateColors(this._darkBackground, this._darkForeground, this._buttonHoverDarkBackground);
 			}
-			else if(newTheme == AppTheme.Light)
+			if(_buttonHoverDarkBackground == null)
 			{
-				if(_lightBackground == null)
+				if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
 				{
-					if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
-					{
-						this._lightBackground = brush.CloneCurrentValue();
-						this._lightBackground.Opacity = BackgroundOpacity;
-						this._lightBackground.Freeze();
-					}
+					_buttonHoverDarkBackground = brush.CloneCurrentValue();
+					_buttonHoverDarkBackground.Freeze();
 				}
-				if(this._lightButtonHoverBackground == null)
-				{
-					if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
-					{
-						this._lightButtonHoverBackground = brush.CloneCurrentValue();
-						this._lightButtonHoverBackground.Freeze();
-					}
-				}
-				if(_lightForeground == null)
-					this._lightForeground = Brushes.Black;
-				NotificationManagerHelper.UpdateColors(this._lightBackground, this._lightForeground, this._lightButtonHoverBackground);
 			}
+			if(_darkForeground == null)
+				_darkForeground = Brushes.White;
+			NotificationManagerHelper.UpdateColors(_darkBackground, _darkForeground, _buttonHoverDarkBackground);
 		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		else if(newTheme == AppTheme.Light)
 		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			if(_lightBackground == null)
+			{
+				if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
+				{
+					_lightBackground = brush.CloneCurrentValue();
+					_lightBackground.Opacity = BackgroundOpacity;
+					_lightBackground.Freeze();
+				}
+			}
+			if(_lightButtonHoverBackground == null)
+			{
+				if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
+				{
+					_lightButtonHoverBackground = brush.CloneCurrentValue();
+					_lightButtonHoverBackground.Freeze();
+				}
+			}
+			if(_lightForeground == null)
+				_lightForeground = Brushes.Black;
+			NotificationManagerHelper.UpdateColors(_lightBackground, _lightForeground, _lightButtonHoverBackground);
 		}
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }

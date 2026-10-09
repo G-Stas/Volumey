@@ -1,10 +1,9 @@
 ﻿using Volumey.Model;
 
-namespace Volumey.ViewModel.Settings
+namespace Volumey.ViewModel.Settings;
+
+public interface IAudioProcessStateMediator
 {
-	public interface IAudioProcessStateMediator
-	{
-		void NotifyAudioStateChange(IManagedMasterAudioSession sender);
-		void NotifyOfDisposing(IManagedMasterAudioSession sender);
-	}
+	void NotifyAudioStateChange(IManagedMasterAudioSession sender);
+	void NotifyOfDisposing(IManagedMasterAudioSession sender);
 }
