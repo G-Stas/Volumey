@@ -135,22 +135,15 @@ namespace Volumey.Model
 			}
 		}
 
+		/// <summary>
+		/// For the UI thread, the only one that changes <see cref="Processes"/>, so no lock is needed. It used to take the lock,
+		/// which deadlocked with <see cref="OnSessionCreated"/>: that holds the lock while it waits for the UI thread.
+		/// </summary>
 		internal IImmutableList<AudioProcessModel> GetImmutableProcesses()
 		{
 			if(this.disposed)
 				return ImmutableList<AudioProcessModel>.Empty;
-			if(_cachedImmutableProcesses != null)
-				return _cachedImmutableProcesses;
-			
-			_processesSemaphore.Wait();
-			try
-			{
-				return _cachedImmutableProcesses = this.Processes.ToImmutableList();
-			}
-			finally
-			{
-				_processesSemaphore.Release();
-			}
+			return _cachedImmutableProcesses ??= this.Processes.ToImmutableList();
 		}
 
 		/// <summary>

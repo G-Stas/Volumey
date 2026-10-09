@@ -24,8 +24,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper
         public event Action<string> DeviceDisabled;
         public event Action<OutputDeviceModel> ActiveDeviceAdded;
 
-        private readonly MMDeviceEnumerator deviceEnumerator;
-        private readonly IHotkeyService hotkeys;
+        private readonly DeviceEnumerator enumerator;
         private readonly MMDeviceNotificationClient notificationClient;
 
         private ILog logger;
@@ -33,9 +32,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper
 
         public DeviceStateNotificationsHandler(DeviceEnumerator enumerator)
         {
-            this.deviceEnumerator = enumerator.Enumerator;
-            this.hotkeys = enumerator.Hotkeys;
-            this.notificationClient = this.deviceEnumerator.CreateNotificationClient(useSynchronizationContext: false);
+            this.enumerator = enumerator;
+            this.notificationClient = enumerator.Enumerator.CreateNotificationClient(useSynchronizationContext: false);
             this.notificationClient.DefaultDeviceChanged += OnDefaultDeviceChanged;
             this.notificationClient.DeviceAdded += OnDeviceAdded;
             this.notificationClient.DeviceStateChanged += OnDeviceStateChanged;
@@ -80,30 +78,25 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             {
                 try
                 {
+                    //every output device model ignores other devices' IDs, so input devices need no check
+                    //(opening the device for one used to release it on the UI thread)
                     if(e.NewState != DeviceState.Active)
-                    {
-                        using var device = new AudioDevice(this.deviceEnumerator.GetDevice(e.DeviceId));
-                        if(device.GetDataFlow() == DataFlow.Render)
-                            this.DeviceDisabled?.Invoke(e.DeviceId);
-                    }
+                        this.DeviceDisabled?.Invoke(e.DeviceId);
                     else
                         this.AddIfActiveOutput(e.DeviceId);
                 }
-                catch { }
+                catch(Exception ex)
+                {
+                    Logger.Error("Failed to handle a device state change", ex);
+                }
             });
         }
 
         private void AddIfActiveOutput(string deviceId)
         {
-            var device = new AudioDevice(this.deviceEnumerator.GetDevice(deviceId));
-            OutputDeviceModel model = null;
-            if(device.GetDataFlow() == DataFlow.Render && device.GetState() == DeviceState.Active)
-                model = AudioModelFactory.CreateOutputDeviceModel(device, this, this.hotkeys);
-
-            if(model != null)
+            //null for input or inactive devices; their objects are released off the UI thread
+            if(this.enumerator.CreateDeviceModel(deviceId, this) is OutputDeviceModel model)
                 this.ActiveDeviceAdded?.Invoke(model);
-            else
-                device.Dispose();
         }
 
         private void OnPropertyValueChanged(object sender, DevicePropertyChangedEventArgs e)

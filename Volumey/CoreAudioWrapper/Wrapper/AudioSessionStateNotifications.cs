@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Windows.Media;
+using System.Threading.Tasks;
+using log4net;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using Volumey.Helper;
@@ -81,9 +82,16 @@ namespace Volumey.CoreAudioWrapper.Wrapper
             if(this.disposed)
                 return;
             this.disposed = true;
-            try { this.sessionControl.UnRegisterEventClient(this); }
-            catch { }
-            this.sessionControl.Dispose();
+            //on the thread pool: unregistering and releasing wait for running session callbacks, and those may wait for the UI thread,
+            //where most disposals happen (the same deadlock as releasing a device on the UI thread)
+            var control = this.sessionControl;
+            _ = Task.Run(() =>
+            {
+                try { control.UnRegisterEventClient(this); }
+                catch { }
+                try { control.Dispose(); }
+                catch(Exception e) { LogManager.GetLogger(typeof(AudioSessionStateNotifications)).Warn("Failed to release an audio session", e); }
+            });
         }
     }
 
