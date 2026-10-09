@@ -23,18 +23,20 @@ The last release is **v1.5.4.0** (May 2023), and `main` was last changed in June
   9. `fix/many-apps-crash`: survive the WPF "Not enough quota" window update failure (#58, #66); GitHub issue triage.
   10. `chore/handoff-notes`: this section and the test-session helper (`scripts/test-sessions.ps1`).
   11. `feature/h-notifyicon`: the tray icon on H.NotifyIcon.Wpf 2.4.1 with the native text tooltip (item F, owner's call to do it before item C; fixes #91, #65).
-- **Validated on `release/2.0`:** Release build without warnings (except NU1902), 172/172 unit tests, 8/8 audio integration tests, a Store MSIX build without compiler warnings (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`, `H.NotifyIcon*.dll`). The package project's restore prints one NU1701 per WPF package (it targets UAP); that is known noise.
+  12. `fix/second-start-popup`: starting the exe again opens the popup in popup mode (#74).
+  13. `fix/device-hotkeys-shown`: saved default-device hotkeys are visible on their settings page (#18).
+  14. `fix/screens-by-name`: screens remembered by device name, fallbacks not saved; settings version 2 (#92).
+- **Validated on `release/2.0`:** Release build without warnings (except NU1902), 177/177 unit tests, 8/8 audio integration tests, a Store MSIX build without compiler warnings (contains `NAudio.*.dll`, `SharpHook.dll`, `uiohook.dll`, `H.NotifyIcon*.dll`). The package project's restore prints one NU1701 per WPF package (it targets UAP); that is known noise.
 - **Verified at runtime on 2.0:** mixer and settings; app and device volume and mute both ways with fast slider sweeps; disabling, re-enabling and renaming a device; switching the default device; hotkeys in both modes (owner); tray icon and menu (owner, and again after the H.NotifyIcon switch: icon, device icon, native tooltip text, left click, menu commands, icon removed on exit); OSD popup on an outside volume change; non-Store autostart and Start Menu toggles (dev entries); starting minimized; an installed MSIX (registered unsigned in developer mode, then removed): starts, mixer and settings work, registry autostart toggles hidden, startup task registered and enabled. Not tested: the startup task launching the app at sign-in, and a 1.x Store install upgrading (see *Settings persistence*).
 - Item G layer 4 (UI tests) comes before item C, later (owner's decision).
 
 ### Open threads (where the last session stopped, 2026-10-09)
 The owner asked to work through the GitHub issues; the triage is in *GitHub issues*. The last session offered these next steps and was waiting for the owner:
-- **Can be done without the owner:** remembering screens by device name instead of index (#92: `Window.ScreenIndex` and `Notifications.ScreenIndex`; needs a settings migration step, see *Versioning*).
 - **Need the owner's machine or hands** (ask first; they change real audio settings or need games or hardware):
   - #82/#85: toggle spatial sound on the headphones while the dev build runs, to see what the device format change does (today it restarts the whole app; rebuilding just that device's model is the likely fix).
   - #63/#88: a fullscreen game (the owner has Valorant, CS, Steam games) with the foreground-app hotkeys.
   - #57: sleep and wake with the dev build running.
-  - #76/#92: a multi-monitor setup, ideally with different scaling; ask whether the owner has one.
+  - #76: the owner has two monitors (`\\.\DISPLAY1` 2560x1440 primary, `\\.\DISPLAY2` 1920x1080); ask whether their scaling differs, and check the OSD position on the second one.
 - Feature requests are listed at the end of *GitHub issues*; the owner hasn't picked any yet.
 - Other open items: the UI redesign (item C, with UI tests first), logging cleanup (Loggly key committed in `log4net.config`, log4net NU1902), Autoupdater.NET 1.9.x, `async void`/`Task.Run` error handling (*Known issues*), release prep (*Release checklist*, Store certificate expired).
 
@@ -122,7 +124,7 @@ dotnet test --project Volumey.IntegrationTests\Volumey.IntegrationTests.csproj -
 ```
 
 - **Release/Store builds share the single-instance mutex with an installed Volumey:** while it runs, a second release build just signals it and exits. Debug builds have their own mutex (see below).
-- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 172 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
+- Tests use **MSTest 4** via `<Project Sdk="MSTest.Sdk/4.5.1">`, on the **Microsoft.Testing.Platform** runner: the test project builds to a standalone exe. They run from the CLI, Rider or VS. The unit suite has 177 tests, all passing. Line coverage of the app is about 42% from unit tests and about 49% together with the integration tests (2026-10-09). `.github/workflows/build.yml` (`windows-latest`, build + test) is prepared, but it doesn't run because nothing is pushed; the Store package couldn't be built there anyway, because it needs Visual Studio MSBuild. The app has `InternalsVisibleTo Volumey.Tests`, and the tests reference the vendored `Notification.Wpf.dll` directly.
   - **Audio integration tests** (`Volumey.IntegrationTests`, category `Integration`, 8 tests): a separate project because they run a real WPF `Application` on its own UI thread (`AudioTestEnvironment`), as the app does, so model callbacks marshal to a real dispatcher; that would change how the unit tests behave. The test process plays silence (`TestAudioSession`, NAudio `WasapiPlayer`) to get its own session and uses that session's volume as "the Windows mixer". Device volumes are only read. Without an output device the tests are inconclusive; CI runs only `Volumey.Tests`. Windows remembers the test executable's session volume and mute between runs, so `TestAudioSession` resets them.
   - The test project must use the same TFM as the app, and it needs `UseWPF`.
   - Write tests with `[TestClass]`, `[TestMethod]` and `Assert.AreEqual`/`IsTrue`/`Contains`/`ContainsSingle`. Test methods must be public, non-static instance methods, or MSTest skips them silently with a UTA007 discovery warning. Use `[STATestMethod]` for tests that need a WPF/STA thread.
@@ -220,16 +222,20 @@ Settings are a JSON file managed by **Nucs.JsonSettings** (`DataProvider/Setting
   - `HotKey` is stored as `{ "Key": "F1", "ModifierKeys": "Control, Shift" }`; Json.NET deserializes it through its constructor.
   - `TypeNameHandling.None` means no .NET type names are written, so renaming or moving C# types is safe; renaming *properties* is not.
 - **Threading:** settings are also written from background threads. `VolumeySettings.Save` takes a lock so saves can't overlap. `PropertyChanged` fires on the writing thread.
-- **Versioning:** `VolumeySettings.Version` / `CurrentVersion`.
+- **Versioning:** `VolumeySettings.Version` / `CurrentVersion` (currently **2**).
   - Adding a property needs nothing, because missing values keep their defaults.
-  - Renaming, moving or retyping a property needs a bumped `CurrentVersion` and a step in `SettingsProvider.Migrate`. To read a removed or renamed value there, add a `[JsonExtensionData]` dictionary to the affected class.
+  - Renaming, moving or retyping a property needs a bumped `CurrentVersion` and a step in `SettingsProvider.Migrate` (one `if(Version < n)` block per version).
+  - Values in the file that no property reads are kept in each section's `[JsonExtensionData]` store (`SettingsSection.otherValues`) and written back, so settings of a newer app version survive a downgrade. A migration step reads a removed value with `TakeOtherValue<T>(name)`, which also drops it from the file.
+  - Version 1 → 2: `ScreenIndex` (a position in the list of screens) became `ScreenName` (#92). The step turns the index into the name of the screen at that position now (`LoadSettings(dir, getScreens)`; the screens are only read when an old index is there), or null (primary) if there's no such screen.
   - The library's own versioning module only resets or renames the file on a mismatch, so it isn't used.
 - **Corrupt file:** `RecoveryAction.RenameAndLoadDefault` renames it to `settings.<n>.json` and loads defaults. If loading fails for another reason, the app logs it and runs on unsaved defaults.
 - **Window position:** `Window.Left`/`Top` are kept in `AppBehaviorViewModel` and only written in `OnExit`, because they change on every window move.
+- **Screens** (`Window.ScreenName` for the window, `Notifications.ScreenName` for the OSD): the screen's device name from `WpfScreenHelper` (`\\.\DISPLAYn`, one per GPU output, stable across reboots; plugging the monitor into another port changes it). `AppBehaviorViewModel` and `NotificationViewModel` pick a screen with `ScreenInfo.Find`: the remembered one, else the primary one. **Only a choice in the UI is saved** (the `SelectedScreen` setter, which ignores values not in `AllScreens`, e.g. the empty item a combo box writes back while its list is replaced). Fallbacks go through `ShowScreen` and are never saved, and the VMs pick again on `SystemEvents.DisplaySettingsChanged`, so a monitor that turns on late gets the window back (#92).
 - **Import from 1.x (`LegacySettingsImporter`):** on the first start (no `settings.json` yet), the importer reads the old BinaryFormatter file `appconfig` once.
   - It parses the file as plain data with **`System.Formats.Nrbf`**, which is part of .NET 10, so no old types and no BinaryFormatter are needed.
   - The member names in the importer are the old `AppSettings` field names (e.g. `currentAppTheme`, `serializableRegisteredSessions`, `<MusicAppName>k__BackingField`) and must stay as they are.
   - It also converts the oldest single-app hotkey format (`MusicAppName`).
+  - It writes the version 1 layout (`Version = 1`, the screen indexes as `ScreenIndex` in the sections' other values), and `Migrate` brings it up to date like an old settings.json.
   - **`appconfig` is never modified or renamed**, so a downgrade to 1.x keeps its settings.
   - Not imported, because nothing read them: `userHasRated`, `firstLaunchDate`, `launchCount`, `rememberLastPosition`.
 - **Tests:**
@@ -271,11 +277,11 @@ WinRT APIs (`StoreContext`, `AppInstance`, `Package`) come from the `-windows10.
 - **#91, #65** a box with the device name stuck at the top-left until the tray icon is hovered (Windows 10): the old tray library drew the tooltip as a WPF popup (even for plain text). 2.0 uses the native shell tooltip (item F). Checked on Windows 11 only.
 - **#74** starting the exe again opened a normal window even in popup mode. **Fixed in 2.0** (owner's choice): `AppBehaviorViewModel.OnShowRequestedBySecondInstance` opens the popup when popup mode is on (and leaves a visible popup open), otherwise the normal window as before.
 - **#18** the "Change default device by hotkey" page looked as if no hotkeys were registered after a restart. **Fixed in 2.0** (`DefaultDeviceHotkeysViewModel`): the list of registrations opens with one selected, selecting a registered device fills in its hotkey and selects its registration, and an added registration gets selected.
+- **#92** the window opened on the wrong screen after a reboot when the main monitor was detected late. Two causes: screens were remembered by their position in the list, and a missing screen made the app fall back to the primary one **and save that**. **Fixed in 2.0**: screens are remembered by device name, fallbacks aren't saved, and the remembered screen is picked again when it connects (see *Settings persistence*, Screens). Checked with two monitors; the late-monitor case is covered by unit tests only.
 
 **Known cause, not fixed yet:**
 - **#82, #85** changing spatial sound empties the mixer until a restart. A device format change makes `AppBehaviorViewModel` restart the whole app (`OnDeviceFormatChanged` → `IAppShell.StartNewInstance`); rebuilding just that device's model would be better, and with NAudio and proper disposal it should now be possible. For the Store build it's unclear whether starting the packaged exe by path works at all. Needs a repro with spatial sound (owner).
 - **#63, #88** "foreground app" hotkeys do nothing in fullscreen games until Alt+Tab, then act late on the wrong app: the hotkey is handled late, and the foreground process is looked up only then. Ideas: look up the foreground process as soon as the key arrives (the SharpHook manager could do it on its thread), and check whether the UI thread is stalled by the OSD under fullscreen games. Needs a game test (owner).
-- **#92** window opens on the wrong screen after a reboot (main monitor detected late): screens are remembered **by index** (`Window.ScreenIndex`, `Notifications.ScreenIndex`); remember the screen's device name instead.
 - **#76** OSD in the wrong place on multi-monitor setups with different scaling: `NotificationViewModel` passes `WorkingAreaLeft/Top` unscaled but `Width/Height` divided by the scale factor to `SetWindowWorkArea`; needs a check on a mixed-DPI setup.
 - **#20** the navigation bar disappears: that's popup mode hiding it; probably a UX problem, not a bug.
 

@@ -5,7 +5,6 @@ namespace Volumey.DataProvider
 {
 	public interface IScreenInfoProvider
 	{
-		ScreenInfo GetPrimaryScreenInfo();
 		IEnumerable<ScreenInfo> GetAllScreensInfo();
 	}
 }

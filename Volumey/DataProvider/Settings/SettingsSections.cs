@@ -31,7 +31,8 @@ namespace Volumey.DataProvider.Settings
 		public bool DisplayDeviceIconAtTray { get; set; }
 		public double Left { get; set; }
 		public double Top { get; set; }
-		public int ScreenIndex { get; set; }
+		/// <summary>Device name of the screen the window opens on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
+		public string ScreenName { get; set; }
 	}
 
 	/// <summary>
@@ -66,6 +67,7 @@ namespace Volumey.DataProvider.Settings
 		public NotificationPosition Position { get; set; } = NotificationPosition.TopLeft;
 		public int DisplayTimeSeconds { get; set; } = 3;
 		public bool ReactToAllVolumeChanges { get; set; }
-		public int ScreenIndex { get; set; }
+		/// <summary>Device name of the screen the notifications show on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
+		public string ScreenName { get; set; }
 	}
 }
