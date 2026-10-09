@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows.Input;
 using Notification.Wpf.Controls;
 using Volumey.Controls;
+using Volumey.Model;
 
 namespace Volumey.DataProvider.Settings
 {
@@ -15,7 +16,10 @@ namespace Volumey.DataProvider.Settings
 	/// </summary>
 	internal static class LegacySettingsImporter
 	{
-		internal static void Import(Stream legacyFile, VolumeySettings settings)
+		/// <param name="legacyFile"/>
+		/// <param name="settings"/>
+		/// <param name="getScreens">The current screens, read only if the file stores a screen index</param>
+		internal static void Import(Stream legacyFile, VolumeySettings settings, Func<IReadOnlyList<ScreenInfo>> getScreens)
 		{
 			var root = (ClassRecord) NrbfDecoder.Decode(legacyFile);
 
@@ -36,8 +40,15 @@ namespace Volumey.DataProvider.Settings
 			ReadBool(root, "displayDeviceIconAtTray", v => window.DisplayDeviceIconAtTray = v);
 			ReadDouble(root, "windowLeft", v => window.Left = v);
 			ReadDouble(root, "windowTop", v => window.Top = v);
-			//screens were stored by index, which only the migration to settings version 2 can turn into a name
-			ReadInt(root, "selectedScreenIndex", v => window.SetOtherValue(VolumeySettings.LegacyScreenIndex, v));
+			//1.x stored screens by their index in the list of screens, which changes order when a monitor is detected late (#92).
+			//The index meant the screens as they are now, so that's the best guess for the name
+			IReadOnlyList<ScreenInfo> screens = null;
+			string ScreenNameAt(int index)
+			{
+				screens ??= getScreens();
+				return index >= 0 && index < screens.Count ? screens[index].Name : null;
+			}
+			ReadInt(root, "selectedScreenIndex", v => window.ScreenName = ScreenNameAt(v));
 
 			if(GetClass(root, "hotkeysSettings") is ClassRecord hotkeys)
 				ImportHotkeys(hotkeys, settings.Hotkeys);
@@ -51,11 +62,8 @@ namespace Volumey.DataProvider.Settings
 				ReadEnum(notifications, "position", v => n.Position = (NotificationPosition) v);
 				ReadInt(notifications, "displayTimeInSeconds", v => n.DisplayTimeSeconds = v);
 				ReadBool(notifications, "reactToAllVolumeChanges", v => n.ReactToAllVolumeChanges = v);
-				ReadInt(notifications, "selectedScreenIndex", v => n.SetOtherValue(VolumeySettings.LegacyScreenIndex, v));
+				ReadInt(notifications, "selectedScreenIndex", v => n.ScreenName = ScreenNameAt(v));
 			}
-
-			//the imported values have the layout of settings version 1, the migration brings them up to date
-			settings.Version = 1;
 		}
 
 		private static void ImportHotkeys(ClassRecord record, HotkeySettings hotkeys)

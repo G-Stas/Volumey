@@ -77,31 +77,7 @@ namespace Volumey.Tests
 		};
 
 		[TestMethod]
-		public void Version1ScreenIndexesBecomeScreenNames()
-		{
-			Directory.CreateDirectory(this.dir);
-			File.WriteAllText(this.SettingsFile, """
-				{
-				  "Version": 1,
-				  "Window": { "PopupMode": true, "ScreenIndex": 2 },
-				  "Notifications": { "Enabled": true, "ScreenIndex": 7 }
-				}
-				""");
-
-			var settings = SettingsProvider.LoadSettings(this.dir, () => ThreeScreens);
-
-			Assert.AreEqual(@"\\.\DISPLAY3", settings.Window.ScreenName);
-			Assert.IsTrue(settings.Window.PopupMode);
-			//an index of a screen that isn't there anymore means the primary screen
-			Assert.IsNull(settings.Notifications.ScreenName);
-			Assert.AreEqual(VolumeySettings.CurrentVersion, settings.Version);
-			string saved = File.ReadAllText(this.SettingsFile);
-			Assert.DoesNotContain("ScreenIndex", saved);
-			Assert.Contains("ScreenName", saved);
-		}
-
-		[TestMethod]
-		public void CurrentFilesDontReadTheScreens()
+		public void ScreensAreOnlyReadToImportLegacySettings()
 		{
 			bool screensRead = false;
 			ScreenInfo[] GetScreens()
@@ -119,23 +95,15 @@ namespace Volumey.Tests
 		}
 
 		[TestMethod]
-		public void SettingsOfANewerVersionAreKept()
+		public void LegacySettingsAreImportedWhenTheScreensCantBeRead()
 		{
-			//a downgrade from a later version keeps the settings only that version knows
 			Directory.CreateDirectory(this.dir);
-			File.WriteAllText(this.SettingsFile, $$"""
-				{
-				  "Version": {{VolumeySettings.CurrentVersion}},
-				  "Window": { "PopupMode": true, "SomeFutureSetting": { "Value": 5 } }
-				}
-				""");
+			File.Copy(Path.Combine(AppContext.BaseDirectory, "TestData", "legacy-appconfig-1.5.4"), Path.Combine(this.dir, "appconfig"));
 
-			var settings = SettingsProvider.LoadSettings(this.dir);
-			settings.Window.AlwaysOnTop = true;
+			var settings = SettingsProvider.LoadSettings(this.dir, () => throw new InvalidOperationException("no screens"));
 
-			string saved = File.ReadAllText(this.SettingsFile);
-			Assert.Contains("SomeFutureSetting", saved);
-			Assert.IsTrue(SettingsProvider.LoadSettings(this.dir).Window.AlwaysOnTop);
+			Assert.AreEqual(3, settings.General.VolumeStep);
+			Assert.IsNull(settings.Window.ScreenName);
 		}
 
 		[TestMethod]

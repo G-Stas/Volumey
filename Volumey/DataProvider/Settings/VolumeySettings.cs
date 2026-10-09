@@ -16,13 +16,7 @@ namespace Volumey.DataProvider.Settings
 		/// Version of the settings layout. Bump it and add a migration step to <see cref="SettingsProvider"/>
 		/// when a property is renamed, moved or changes its type. Adding new properties doesn't require it.
 		/// </summary>
-		/// <remarks>
-		/// 1: the first settings.json. 2: screens are stored by device name (ScreenName) instead of their index (ScreenIndex).
-		/// </remarks>
-		public const int CurrentVersion = 2;
-
-		/// <summary>Name of the removed screen index setting of version 1 (and of 1.x), read by the migration to version 2</summary>
-		internal const string LegacyScreenIndex = "ScreenIndex";
+		public const int CurrentVersion = 1;
 
 		private readonly object saveLock = new object();
 

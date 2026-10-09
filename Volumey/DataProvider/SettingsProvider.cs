@@ -65,7 +65,7 @@ namespace Volumey.DataProvider
             => LoadSettings(settingsDir, () => new ScreenInfoProvider().GetAllScreensInfo().ToList());
 
         /// <param name="settingsDir"/>
-        /// <param name="getScreens">The current screens, read only when an old settings file stores screens by index</param>
+        /// <param name="getScreens">The current screens, read only when 1.x settings with a screen index are imported</param>
         internal static VolumeySettings LoadSettings(string settingsDir, Func<IReadOnlyList<ScreenInfo>> getScreens)
         {
             string path = Path.Combine(settingsDir, SettingsFileName);
@@ -79,8 +79,8 @@ namespace Volumey.DataProvider
                                          .WithRecovery(RecoveryAction.RenameAndLoadDefault)
                                          .LoadNow();
                 if(firstLaunch)
-                    ImportLegacySettings(settingsDir, loaded);
-                Migrate(loaded, getScreens);
+                    ImportLegacySettings(settingsDir, loaded, getScreens);
+                Migrate(loaded);
                 loaded.Save();
                 return loaded.EnableAutosave();
             }
@@ -92,43 +92,14 @@ namespace Volumey.DataProvider
             }
         }
 
-        private static void Migrate(VolumeySettings volumeySettings, Func<IReadOnlyList<ScreenInfo>> getScreens)
+        private static void Migrate(VolumeySettings volumeySettings)
         {
-            //one step per version, each brings the layout to the next version
-            if(volumeySettings.Version < 2)
-            {
-                //screens were stored by their index in the list of screens, which changes order when a monitor is detected late (#92).
-                //The index meant the screens as they are now, so that's the best guess for the name
-                int? windowIndex = volumeySettings.Window.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex);
-                int? notificationsIndex = volumeySettings.Notifications.TakeOtherValue<int?>(VolumeySettings.LegacyScreenIndex);
-                if(windowIndex != null || notificationsIndex != null)
-                {
-                    var screens = GetScreensForMigration(getScreens);
-                    volumeySettings.Window.ScreenName = ScreenNameAt(screens, windowIndex);
-                    volumeySettings.Notifications.ScreenName = ScreenNameAt(screens, notificationsIndex);
-                }
-            }
+            //add migration steps here when the layout changes after 2.0 has shipped, e.g.:
+            //if(volumeySettings.Version < 2) { ...move values...; volumeySettings.Version = 2; }
             volumeySettings.Version = VolumeySettings.CurrentVersion;
         }
 
-        private static IReadOnlyList<ScreenInfo> GetScreensForMigration(Func<IReadOnlyList<ScreenInfo>> getScreens)
-        {
-            try
-            {
-                return getScreens();
-            }
-            catch(Exception e)
-            {
-                //the primary screen is used then
-                Logger.Error("Failed to read the screens to migrate the settings", e);
-                return Array.Empty<ScreenInfo>();
-            }
-        }
-
-        private static string ScreenNameAt(IReadOnlyList<ScreenInfo> screens, int? index)
-            => index is int i && i >= 0 && i < screens.Count ? screens[i].Name : null;
-
-        private static void ImportLegacySettings(string settingsDir, VolumeySettings volumeySettings)
+        private static void ImportLegacySettings(string settingsDir, VolumeySettings volumeySettings, Func<IReadOnlyList<ScreenInfo>> getScreens)
         {
             string legacyPath = Path.Combine(settingsDir, LegacySettingsFileName);
             if(!File.Exists(legacyPath))
@@ -136,7 +107,7 @@ namespace Volumey.DataProvider
             try
             {
                 using(var file = File.OpenRead(legacyPath))
-                    LegacySettingsImporter.Import(file, volumeySettings);
+                    LegacySettingsImporter.Import(file, volumeySettings, () => GetScreensForImport(getScreens));
                 Logger.Info("Imported settings of the previous app version");
             }
             catch(Exception e)
@@ -144,6 +115,20 @@ namespace Volumey.DataProvider
                 Logger.Error("Failed to import settings of the previous app version", e);
             }
             //the legacy file is left untouched so a downgrade to 1.x keeps its settings
+        }
+
+        private static IReadOnlyList<ScreenInfo> GetScreensForImport(Func<IReadOnlyList<ScreenInfo>> getScreens)
+        {
+            try
+            {
+                return getScreens();
+            }
+            catch(Exception e)
+            {
+                //the primary screen is used then, the rest of the import still works
+                Logger.Error("Failed to read the screens to import the settings of the previous app version", e);
+                return Array.Empty<ScreenInfo>();
+            }
         }
 
         /// <summary>
