@@ -207,6 +207,48 @@ namespace Volumey.Tests.ViewModels
 		}
 
 		[TestMethod]
+		public void SavedDeviceHotkeysAreShownAfterARestart()
+		{
+			//#18: after a restart the page looked as if no hotkeys were registered
+			this.Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "2", DeviceName = "Headphones" } };
+			var speakers = CreateDevice("1", "Speakers");
+			var headphones = CreateDevice("2", "Headphones");
+			SetDefaultDevice(speakers);
+			this.ActiveDevices.Add(headphones);
+
+			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys);
+			Assert.AreEqual(Switch, vm.SelectedRegDev?.Key);
+
+			//selecting a registered device shows its hotkey
+			vm.SelectedDevice = headphones;
+			Assert.AreEqual(Switch, vm.HotKey);
+			Assert.AreEqual("2", vm.SelectedRegDev?.Value.ID);
+
+			//another device doesn't keep that hotkey
+			vm.SelectedDevice = speakers;
+			Assert.IsNull(vm.HotKey);
+
+			//but a hotkey the user typed stays
+			vm.HotKey = Up;
+			vm.SelectedDevice = null;
+			vm.SelectedDevice = speakers;
+			Assert.AreEqual(Up, vm.HotKey);
+		}
+
+		[TestMethod]
+		public void AddedDeviceHotkeyIsSelectedInTheList()
+		{
+			ActivateHotkeys();
+			var headphones = CreateDevice("2", "Headphones");
+			SetDefaultDevice(headphones);
+			var vm = new DefaultDeviceHotkeysViewModel(this.DeviceProvider.Object, this.Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
+
+			vm.AddDeviceCommand.Execute(null);
+
+			Assert.AreEqual(Switch, vm.SelectedRegDev?.Key);
+		}
+
+		[TestMethod]
 		public void SystemHotkeyMovesBetweenTheListsAndIsSaved()
 		{
 			ActivateHotkeys();
