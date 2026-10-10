@@ -155,7 +155,7 @@
                                   Value="{Binding HotkeysViewModel.VolumeStep}"
                                   ValueChanged="OnNumberBoxValueChanged"
                                   controls:DigitsOnly.IsEnabled="True"
-                                  controls:CommitOnFocusLoss.IsEnabled="True"
+                                  controls:NumberBoxCommit.IsEnabled="True"
                                   AutomationProperties.Name="{lc:Localization General_VolumeStep}"
                                   AutomationProperties.AutomationId="VolumeStepBox" />
                     <TextBlock Text="%" Margin="8 0 0 0" VerticalAlignment="Center" Style="{StaticResource Caption}" />

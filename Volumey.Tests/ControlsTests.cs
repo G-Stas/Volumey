@@ -31,10 +31,22 @@ public class ControlsTests
 		System.Windows.Input.FocusManager.SetFocusedElement(scope, box);
 		box.Text = "150";
 
-		CommitOnFocusLoss.Commit(box);
+		NumberBoxCommit.TakeLogicalFocus(box);
 
 		Assert.AreEqual(100d, box.Value, $"text {box.Text}");
 		Assert.IsFalse(box.IsFocused);
+	}
+
+	[STATestMethod]
+	public void NumberBoxShowsTheClampedValueWhenItEqualsTheCurrentOne()
+	{
+		//WPF-UI doesn't update the text when the clamped value doesn't change the value
+		var box = new Wpf.Ui.Controls.NumberBox { Minimum = 1, Maximum = 100, Value = 100 };
+		box.Text = "150";
+
+		NumberBoxCommit.ShowValue(box);
+
+		Assert.AreEqual("100", box.Text);
 	}
 
 	[TestMethod]
