@@ -32,10 +32,79 @@
     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
         <Setter Property="Width" Value="220" />
     </Style>
-    <!-- the app's hotkey box is a TextBox subclass, which WPF-UI's implicit TextBox style doesn't reach -->
+    <!-- a key cap in a hotkey box (mockup Settings*.dc.html: <kbd>); the elevation border is darker at the bottom, like a key -->
+    <Style x:Key="KeyCap" TargetType="Border">
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Padding" Value="7 0" />
+        <Setter Property="Margin" Value="0 0 4 0" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="BorderThickness" Value="1 1 1 2" />
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+    </Style>
+    <!-- the app's hotkey box is a TextBox subclass, which WPF-UI's implicit TextBox style doesn't reach. It shows the hotkey
+         as key caps (owner's choice); the template follows WPF-UI's TextBox template (its brushes, the accent line at the bottom
+         when focused). The text itself stays in the hidden content host: the box still works as a TextBox and screen readers read it. -->
     <Style TargetType="controls:HotKeyBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
         <Setter Property="Width" Value="180" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Arrow" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="controls:HotKeyBox">
+                    <Grid>
+                        <Border x:Name="ContentBorder"
+                                MinHeight="{TemplateBinding MinHeight}"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding Border.CornerRadius}">
+                            <Grid Margin="6 0">
+                                <ScrollViewer x:Name="PART_ContentHost" Opacity="0" IsHitTestVisible="False" Focusable="False" />
+                                <ItemsControl ItemsSource="{TemplateBinding KeyNames}" VerticalAlignment="Center" Focusable="False">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource KeyCap}">
+                                                <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </Border>
+                        <Border x:Name="AccentBorder"
+                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                BorderThickness="0 0 0 1"
+                                CornerRadius="{TemplateBinding Border.CornerRadius}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="AccentBorder" Property="BorderThickness" Value="0 0 0 2" />
+                            <Setter TargetName="AccentBorder" Property="BorderBrush" Value="{DynamicResource TextControlFocusedBorderBrush}" />
+                            <Setter TargetName="ContentBorder" Property="Background" Value="{DynamicResource TextControlBackgroundFocused}" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsEnabled" Value="True" />
+                                <Condition Property="IsKeyboardFocused" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="ContentBorder" Property="Background" Value="{DynamicResource TextControlBackgroundPointerOver}" />
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ContentBorder" Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
+                            <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
+                            <Setter TargetName="AccentBorder" Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     <!-- an error under a setting (e.g. a hotkey that couldn't be registered), in the Windows "critical" color -->
     <Style x:Key="SettingError" TargetType="TextBlock">

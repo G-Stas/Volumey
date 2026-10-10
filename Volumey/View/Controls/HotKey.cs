@@ -21,7 +21,7 @@
 //  SOFTWARE.
 
 using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Windows.Input;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
@@ -65,34 +65,24 @@ public class HotKey : IEquatable<HotKey>
 		return Key == other.Key && ModifierKeys == other.ModifierKeys;
 	}
 
-	public override string ToString()
+	public override string ToString() => string.Join("+", GetKeyNames());
+
+	/// <summary>
+	/// The keys' names, modifiers first, as the keyboard layout names them (the hotkey box shows each as a key cap)
+	/// </summary>
+	public IReadOnlyList<string> GetKeyNames()
 	{
-		var sb = new StringBuilder();
+		var names = new List<string>();
 		if((ModifierKeys & ModifierKeys.Alt) == ModifierKeys.Alt)
-		{
-			sb.Append(GetLocalizedKeyStringUnsafe(VK_MENU));
-			sb.Append("+");
-		}
-
+			names.Add(GetLocalizedKeyStringUnsafe(VK_MENU));
 		if((ModifierKeys & ModifierKeys.Control) == ModifierKeys.Control)
-		{
-			sb.Append(GetLocalizedKeyStringUnsafe(VK_CONTROL));
-			sb.Append("+");
-		}
-
+			names.Add(GetLocalizedKeyStringUnsafe(VK_CONTROL));
 		if((ModifierKeys & ModifierKeys.Shift) == ModifierKeys.Shift)
-		{
-			sb.Append(GetLocalizedKeyStringUnsafe(VK_SHIFT));
-			sb.Append("+");
-		}
-
+			names.Add(GetLocalizedKeyStringUnsafe(VK_SHIFT));
 		if((ModifierKeys & ModifierKeys.Windows) == ModifierKeys.Windows)
-		{
-			sb.Append("Windows+");
-		}
-
-		sb.Append(GetLocalizedKeyString(Key));
-		return sb.ToString();
+			names.Add("Windows");
+		names.Add(GetLocalizedKeyString(Key));
+		return names;
 	}
 
 	private static string GetLocalizedKeyString(Key key)
