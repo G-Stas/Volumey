@@ -182,7 +182,8 @@ public partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
 		if(await TryGetForegroundAudioProcess() is (true, AudioProcessModel foundProcess))
 		{
-			if(foundProcess.StateNotificationMediator == null)
+			//like the app hotkeys: the OSD only while notifications are on
+			if(SettingsProvider.Settings.Notifications.Enabled && foundProcess.StateNotificationMediator == null)
 				foundProcess.SetStateMediator(notifications);
 			foundProcess.SetVolume(foundProcess.Volume + direction * hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 			HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);

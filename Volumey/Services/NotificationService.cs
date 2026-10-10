@@ -2,6 +2,7 @@
 using System.Windows.Media;
 using System.Windows.Threading;
 using Notification.Wpf.Controls;
+using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 
@@ -16,7 +17,12 @@ internal sealed class NotificationService : INotificationService
 
 	//the models call these from audio callbacks, on any thread
 	public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
-		=> UiDispatcher.InvokeAsync(() => ShowNotification(sender));
+	{
+		//the "OSD notifications" switch: a model can still have the mediator from before it was turned off
+		if(!SettingsProvider.Settings.Notifications.Enabled)
+			return;
+		UiDispatcher.InvokeAsync(() => ShowNotification(sender));
+	}
 
 	public void NotifyOfDisposing(IManagedMasterAudioSession sender)
 		=> UiDispatcher.InvokeAsync(() => CloseNotification(sender));
