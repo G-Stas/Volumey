@@ -69,7 +69,10 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Style="{StaticResource KeyCap}">
-                                                <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                                                <!-- the box's Foreground set locally: WPF-UI's TextBlock style switches a disabled
+                                                     TextBlock to its disabled color itself, which ignored the box's -->
+                                                <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap"
+                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=controls:HotKeyBox}}" />
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -99,7 +102,9 @@
                             <Setter TargetName="ContentBorder" Property="Background" Value="{DynamicResource TextControlBackgroundDisabled}" />
                             <Setter TargetName="ContentBorder" Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
                             <Setter TargetName="AccentBorder" Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundDisabled}" />
+                            <!-- the keys in the secondary text color, not WPF-UI's disabled one: that one was hard to read
+                                 on the key caps in the light theme (owner's decision) -->
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
