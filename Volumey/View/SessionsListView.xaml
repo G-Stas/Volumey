@@ -45,7 +45,8 @@
         <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <StackPanel>
-                    <Grid Margin="16 6 6 6">
+                    <!-- 16 on the right too: WPF-UI's scroll bar (up to 14 px) is drawn over the content and covered the mute buttons -->
+                    <Grid Margin="16 6 16 6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
                             <ColumnDefinition Width="*" />
@@ -125,7 +126,7 @@
                     </Grid>
 
                     <ItemsControl ItemsSource="{Binding Sessions}"
-                                  Margin="57 0 12 4"
+                                  Margin="57 0 16 4"
                                   BorderThickness="1 0 0 0"
                                   BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}">
                         <ItemsControl.Visibility>
