@@ -13,5 +13,7 @@ Volumey.Package/bin/
 Volumey.Package/obj/
 Volumey.Package/AppPackages/
 Volumey.Package/Volumey.Package.wapproj.user
+# Loggly input key for Release/Store builds (see Volumey/Helper/RemoteLogging.cs)
+loggly.key
 Volumey.Package/BundleArtifacts/
 TestResults/
