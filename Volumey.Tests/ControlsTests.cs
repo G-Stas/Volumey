@@ -9,6 +9,19 @@ namespace Volumey.Tests;
 public class ControlsTests
 {
 	[TestMethod]
+	public void DigitsOnlyLetsOnlyDigitsIn()
+	{
+		Assert.IsTrue(DigitsOnly.IsAllowed("5"));
+		Assert.IsTrue(DigitsOnly.IsAllowed("100"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("-"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("-1"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("1.5"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("1e2"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("٣")); //non-ASCII digits
+		Assert.IsFalse(DigitsOnly.IsAllowed(""));
+	}
+
+	[TestMethod]
 	public void HotkeysWithSameKeysAreEqual()
 	{
 		var hotkey = new HotKey(Key.F5, ModifierKeys.Control | ModifierKeys.Shift);

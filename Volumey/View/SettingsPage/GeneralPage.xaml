@@ -4,6 +4,7 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:lc="clr-namespace:Volumey.Localization"
       xmlns:converters="clr-namespace:Volumey.View.Converters"
+      xmlns:controls="clr-namespace:Volumey.Controls"
       Title="{lc:Localization Nav_General}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       DataContext="{StaticResource SettingsViewModel}">
@@ -153,6 +154,7 @@
                                   ClearButtonEnabled="False"
                                   Value="{Binding HotkeysViewModel.VolumeStep}"
                                   ValueChanged="OnNumberBoxValueChanged"
+                                  controls:DigitsOnly.IsEnabled="True"
                                   AutomationProperties.Name="{lc:Localization General_VolumeStep}"
                                   AutomationProperties.AutomationId="VolumeStepBox" />
                     <TextBlock Text="%" Margin="8 0 0 0" VerticalAlignment="Center" Style="{StaticResource Caption}" />
