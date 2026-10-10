@@ -7,7 +7,9 @@ using System.Windows;
 using log4net;
 using log4net.Appender;
 using log4net.Config;
+using log4net.Core;
 using log4net.Layout;
+using log4net.Repository.Hierarchy;
 using Volumey.Helper;
 using Volumey.View;
 using Windows.ApplicationModel;
@@ -156,27 +158,24 @@ static class Startup
 #if(!DEBUG)
 		try
 		{
+			//a build without the Loggly key (e.g. CI) doesn't log
+			if(RemoteLogging.BuildInputKey is not string inputKey)
+				return;
 			var assembly = Assembly.GetExecutingAssembly();
-			var assemblyPath = Path.GetDirectoryName(assembly.Location);
 			var repo = LogManager.GetRepository(assembly);
-			if(assemblyPath != null)
+			BasicConfigurator.Configure(repo, RemoteLogging.CreateAppender(inputKey));
+			((Hierarchy)repo).Root.Level = Level.All;
+			try
 			{
-				var file = new FileInfo(Path.Combine(assemblyPath, "log4net.config"));
-				XmlConfigurator.Configure(repo, file);
-				try
-				{
 #if(STORE)
-					PackageVersion ver = Package.Current?.Id?.Version ?? new PackageVersion();
-					GlobalContext.Properties["AppVer"] =
-						$"[ver.: {ver.Major.ToString()}.{ver.Minor.ToString()}.{ver.Build.ToString()}.{ver.Revision.ToString()}]";
-#elif (!DEBUG)
-					GlobalContext.Properties["AppVer"] =
-						$"[ver.: {assembly?.GetName()?.Version?.ToString()}]";
+				PackageVersion ver = Package.Current?.Id?.Version ?? new PackageVersion();
+				GlobalContext.Properties["AppVer"] =
+					$"[ver.: {ver.Major.ToString()}.{ver.Minor.ToString()}.{ver.Build.ToString()}.{ver.Revision.ToString()}]";
+#else
+				GlobalContext.Properties["AppVer"] = $"[ver.: {assembly.GetName().Version}]";
 #endif
-					
-				}
-				catch { }
 			}
+			catch { }
 		}
 		catch { }
 #else

@@ -50,7 +50,7 @@
     <PackageReference Include="Autoupdater.NET.Official" Version="1.8.2" />
     <PackageReference Include="log4net-loggly" Version="9.0.0" />
     <!-- Override vulnerable transitive versions pulled in by log4net-loggly (log4net 2.0.8, Newtonsoft.Json 10.0.3) -->
-    <PackageReference Include="log4net" Version="2.0.17" />
+    <PackageReference Include="log4net" Version="3.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
@@ -160,11 +160,19 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="log4net.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+  <!-- The Loggly input key of Release/Store builds (Helper/RemoteLogging): from the environment variable VOLUMEY_LOGGLY_INPUT_KEY
+       or the git-ignored loggly.key at the repository root. Without one the build doesn't send logs. -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <LogglyInputKey Condition="'$(LogglyInputKey)' == ''">$(VOLUMEY_LOGGLY_INPUT_KEY)</LogglyInputKey>
+    <LogglyKeyFile>$(MSBuildThisFileDirectory)..\loggly.key</LogglyKeyFile>
+    <LogglyInputKey Condition="'$(LogglyInputKey)' == '' And Exists('$(LogglyKeyFile)')">$([System.IO.File]::ReadAllText('$(LogglyKeyFile)').Trim())</LogglyInputKey>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(LogglyInputKey)' != ''">
+    <AssemblyMetadata Include="LogglyInputKey" Value="$(LogglyInputKey)" />
   </ItemGroup>
+  <Target Name="ReportNoLogglyKey" BeforeTargets="CoreCompile" Condition="'$(Configuration)' != 'Debug' And '$(LogglyInputKey)' == ''">
+    <Message Importance="high" Text="No Loggly input key (VOLUMEY_LOGGLY_INPUT_KEY or loggly.key): this build doesn't send logs" />
+  </Target>
 
   <ItemGroup>
     <Reference Include="Notification.Wpf, Version=6.1.0.1, Culture=neutral, PublicKeyToken=1acac493089262b5">
