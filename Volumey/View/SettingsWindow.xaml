@@ -35,7 +35,7 @@
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavAppHotkeys" Content="{lc:Localization Nav_AppHotkeys}" Icon="{ui:SymbolIcon Apps24}"
                                        TargetPageType="{x:Type pages:AppHotkeysPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavDevices" Content="{lc:Localization Nav_Devices}" Icon="{ui:SymbolIcon Speaker224}"
-                                       TargetPageType="{x:Type pages:PlaceholderPage}" />
+                                       TargetPageType="{x:Type pages:DevicesPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavMediaKeys" Content="{lc:Localization Nav_MediaKeys}" Icon="{ui:SymbolIcon Keyboard24}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavNotifications" Content="{lc:Localization Nav_Notifications}" Icon="{ui:SymbolIcon Alert24}"

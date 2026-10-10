@@ -579,4 +579,58 @@
   <data name="Error_RejectedHotkey" xml:space="preserve">
     <value />
   </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Default" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_DefaultHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_IsDefault" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_HotkeyHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_FeaturesHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value />
+  </data>
 </root>

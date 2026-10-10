@@ -1,0 +1,273 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.DevicesPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization"
+      xmlns:converters="clr-namespace:Volumey.View.Converters"
+      xmlns:controls="clr-namespace:Volumey.Controls"
+      Title="{lc:Localization Nav_Devices}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      DataContext="{StaticResource SettingsViewModel}">
+    <!-- the Foreground: see GeneralPage -->
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:HotkeysRegisteredToEnabledConverter x:Key="NotRegisteredToEnabled" />
+            <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
+            <!-- a row's label lines up with its hotkey box, also when an error shows under the box -->
+            <Style x:Key="HotkeyRowLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="VerticalAlignment" Value="Top" />
+                <Setter Property="Margin" Value="0 6 0 0" />
+            </Style>
+            <Style x:Key="HotkeyError" TargetType="TextBlock" BasedOn="{StaticResource SettingError}">
+                <Setter Property="MaxWidth" Value="180" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="0 4 0 0" />
+            </Style>
+            <!-- shown only while the selected device is connected -->
+            <Style x:Key="WhenConnected" TargetType="FrameworkElement">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding SelectedDevice.IsConnected}" Value="True">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- mockup SettingsDevices.dc.html, with the switches kept (owner's decision) and a device combo box instead of the tiles
+         (the page is too narrow for three); the audio features come one by one (owner's decision), the format first -->
+    <!-- no ScrollViewer here: see GeneralPage -->
+        <StackPanel Margin="16 4 40 32">
+            <TextBlock Text="{lc:Localization Nav_Devices}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{lc:Localization Devices_Description}" Style="{StaticResource PageDescription}" />
+
+            <!-- the default device's hotkeys: they follow the default device -->
+            <StackPanel Margin="0 20 0 8">
+                <TextBlock Text="{lc:Localization Devices_Default}" FontWeight="SemiBold" />
+                <TextBlock Text="{lc:Localization Devices_DefaultHint}" Style="{StaticResource Caption}" />
+            </StackPanel>
+            <StackPanel DataContext="{Binding DeviceVolumeHotkeysViewModel}">
+                <!-- as before: the hotkeys can be edited while they're off; turning them on registers them -->
+                <ui:CardExpander Icon="{ui:SymbolIcon Speaker224}" IsExpanded="True" Margin="0 0 0 4">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{lc:Localization Devices_VolumeHotkeys}" VerticalAlignment="Center" />
+                            <ui:ToggleSwitch Grid.Column="1"
+                                             Margin="16 0"
+                                             IsChecked="{Binding VolumeHotkeysRegistered}"
+                                             AutomationProperties.Name="{lc:Localization Devices_VolumeHotkeys}"
+                                             AutomationProperties.AutomationId="DeviceVolumeToggle" />
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <Grid Margin="40 0 0 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{lc:Localization AppHotkeys_VolumeUp}" Style="{StaticResource HotkeyRowLabel}" />
+                        <StackPanel Grid.Column="1" Margin="0 0 0 8">
+                            <controls:HotKeyBox HotKey="{Binding VolumeUp}"
+                                                IsEnabled="{Binding VolumeHotkeysRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                                AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeUp}"
+                                                AutomationProperties.AutomationId="DeviceUpBox" />
+                            <TextBlock Text="{Binding VolumeErrors.VolumeUp}" Style="{StaticResource HotkeyError}" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="1" Text="{lc:Localization AppHotkeys_VolumeDown}" Style="{StaticResource HotkeyRowLabel}" />
+                        <StackPanel Grid.Row="1" Grid.Column="1">
+                            <controls:HotKeyBox HotKey="{Binding VolumeDown}"
+                                                IsEnabled="{Binding VolumeHotkeysRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                                AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeDown}"
+                                                AutomationProperties.AutomationId="DeviceDownBox" />
+                            <TextBlock Text="{Binding VolumeErrors.VolumeDown}" Style="{StaticResource HotkeyError}" />
+                        </StackPanel>
+                    </Grid>
+                </ui:CardExpander>
+                <ui:CardControl Icon="{ui:SymbolIcon SpeakerMute24}">
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization Devices_Mute}" />
+                            <TextBlock Text="{Binding MuteError}" Style="{StaticResource SettingError}" />
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <controls:HotKeyBox HotKey="{Binding MuteKey}"
+                                            IsEnabled="{Binding MuteHotkeyRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                            Margin="0 0 12 0"
+                                            AutomationProperties.Name="{lc:Localization Devices_Mute}"
+                                            AutomationProperties.AutomationId="DeviceMuteBox" />
+                        <ui:ToggleSwitch IsChecked="{Binding MuteHotkeyRegistered}"
+                                         AutomationProperties.Name="{lc:Localization Devices_Mute}"
+                                         AutomationProperties.AutomationId="DeviceMuteToggle" />
+                    </StackPanel>
+                </ui:CardControl>
+                <ui:CardControl Icon="{ui:SymbolIcon SpeakerOff24}">
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization Devices_KeepBalance}" />
+                            <TextBlock Text="{lc:Localization Devices_KeepBalanceHint}" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <ui:ToggleSwitch IsChecked="{Binding PreventResettingVolumeBalance}"
+                                     AutomationProperties.Name="{lc:Localization Devices_KeepBalance}"
+                                     AutomationProperties.AutomationId="KeepBalanceToggle" />
+                </ui:CardControl>
+            </StackPanel>
+
+            <!-- each device: picked in a combo box (owner's decision), then its own settings -->
+            <StackPanel DataContext="{Binding DefaultDeviceHotkeysViewModel}">
+                <TextBlock Text="{lc:Localization Devices_YourDevices}" Style="{StaticResource SectionHeader}" />
+                <ComboBox Width="Auto"
+                          HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Devices}"
+                          SelectedItem="{Binding SelectedDevice}"
+                          IsSynchronizedWithCurrentItem="False"
+                          AutomationProperties.Name="{lc:Localization Devices_Device}"
+                          AutomationProperties.AutomationId="DeviceBox">
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <!-- the device's icon while it's connected -->
+                                <Grid Width="16" Height="16" Margin="0 0 12 0" VerticalAlignment="Center">
+                                    <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <ui:SymbolIcon Symbol="Speaker224" FontSize="16">
+                                        <ui:SymbolIcon.Style>
+                                            <Style TargetType="ui:SymbolIcon">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:SymbolIcon.Style>
+                                    </ui:SymbolIcon>
+                                </Grid>
+                                <TextBlock Grid.Column="1" Text="{Binding Name}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Margin="12 0 0 0" VerticalAlignment="Center" TextWrapping="NoWrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                            <Setter Property="Text" Value="" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDefault}" Value="True">
+                                                    <Setter Property="Text" Value="{lc:Localization Devices_IsDefault}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                    <Setter Property="Text" Value="{lc:Localization Devices_NotConnected}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- the selected device -->
+                <ui:CardControl Margin="0 12 0 4">
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedDevice.Name}" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedDevice.IsDefault}" Value="True">
+                                                <Setter Property="Text" Value="{lc:Localization Devices_IsDefault}" />
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding SelectedDevice.IsConnected}" Value="False">
+                                                <Setter Property="Text" Value="{lc:Localization Devices_NotConnected}" />
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <!-- "Default device" (disabled) on the default device, as in the mockup -->
+                    <ui:Button Command="{Binding SetAsDefaultCommand}" AutomationProperties.AutomationId="SetAsDefaultButton">
+                        <ui:Button.Style>
+                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Setter Property="Content" Value="{lc:Localization Devices_SetAsDefault}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedDevice.IsDefault}" Value="True">
+                                        <Setter Property="Content" Value="{lc:Localization Devices_IsDefault}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:Button.Style>
+                    </ui:Button>
+                </ui:CardControl>
+                <ui:CardControl Icon="{ui:SymbolIcon Keyboard24}" DataContext="{Binding SelectedDevice}">
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization Devices_Hotkey}" />
+                            <TextBlock Text="{lc:Localization Devices_HotkeyHint}" Style="{StaticResource Caption}" />
+                            <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource SettingError}" />
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <controls:HotKeyBox HotKey="{Binding Hotkey}"
+                                            IsEnabled="{Binding HotkeyRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                            Margin="0 0 12 0"
+                                            AutomationProperties.Name="{lc:Localization Devices_Hotkey}"
+                                            AutomationProperties.AutomationId="DeviceHotkeyBox" />
+                        <ui:ToggleSwitch IsChecked="{Binding HotkeyRegistered}"
+                                         AutomationProperties.Name="{lc:Localization Devices_Hotkey}"
+                                         AutomationProperties.AutomationId="DeviceHotkeyToggle" />
+                    </StackPanel>
+                </ui:CardControl>
+
+                <!-- the device's audio features, read from Windows; only while it's connected -->
+                <StackPanel Style="{StaticResource WhenConnected}">
+                    <StackPanel Margin="0 20 0 8">
+                        <TextBlock Text="{lc:Localization Devices_Features}" FontWeight="SemiBold" />
+                        <TextBlock Style="{StaticResource Caption}">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="Devices_FeaturesHint">
+                                    <Binding Path="SelectedDevice.Name" />
+                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+                    <ui:CardControl Icon="{ui:SymbolIcon Pulse24}">
+                        <ui:CardControl.Header>
+                            <StackPanel>
+                                <TextBlock Text="{lc:Localization Devices_Format}" />
+                                <TextBlock Text="{lc:Localization Devices_FormatHint}" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                        </ui:CardControl.Header>
+                        <TextBlock Text="{Binding SelectedDevice.Format}"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   AutomationProperties.AutomationId="DeviceFormat" />
+                    </ui:CardControl>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+</Page>

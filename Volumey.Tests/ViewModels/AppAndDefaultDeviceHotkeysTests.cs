@@ -263,64 +263,67 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void DefaultDeviceHotkeySwitchesTheDevice()
+	public void TurningOnADevicesHotkeyRegistersAndSavesIt()
 	{
 		ActivateHotkeys();
 		var headphones = CreateDevice("2", "Headphones");
 		SetDefaultDevice(CreateDevice("1", "Speakers"));
 		ActiveDevices.Add(headphones);
-		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var entry = vm.Devices.Single(d => d.Model == headphones);
 
-		vm.AddDeviceCommand.Execute(null);
+		entry.Hotkey = Switch;
+		entry.HotkeyRegistered = true;
 		PressHotkey(Switch);
 
+		Assert.IsTrue(entry.HotkeyRegistered);
 		DeviceProvider.Verify(m => m.SetDefaultDevice("2"), Times.Once);
-		Assert.IsTrue(vm.RegisteredDevices.ContainsKey(Switch));
-		WaitFor(() => Settings.Hotkeys.DefaultDevices.Count == 1, "the device hotkey wasn't saved");
 		var saved = Settings.Hotkeys.DefaultDevices.Single();
 		Assert.AreEqual("2", saved.DeviceId);
 		Assert.AreEqual("Headphones", saved.DeviceName);
+		Assert.AreEqual(Switch, saved.Hotkey);
 	}
 
 	[TestMethod]
-	public void TheSameDeviceOrHotkeyCannotBeAddedTwice()
+	public void AHotkeyCannotBeUsedForTwoDevices()
 	{
 		ActivateHotkeys();
-		var speakers = CreateDevice("1", "Speakers");
-		var headphones = CreateDevice("2", "Headphones");
-		SetDefaultDevice(speakers);
-		ActiveDevices.Add(headphones);
-		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
-		vm.AddDeviceCommand.Execute(null);
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		ActiveDevices.Add(CreateDevice("2", "Headphones"));
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var (speakers, headphones) = (vm.Devices[0], vm.Devices[1]);
+		headphones.Hotkey = Switch;
+		headphones.HotkeyRegistered = true;
 
-		vm.SelectedDevice = speakers;
-		vm.HotKey = Switch;
-		vm.AddDeviceCommand.Execute(null);
-		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.HotkeyExists], vm.ErrorMessage);
+		speakers.Hotkey = Switch;
+		speakers.HotkeyRegistered = true;
 
-		vm.SelectedDevice = headphones;
-		vm.HotKey = Up;
-		vm.AddDeviceCommand.Execute(null);
-		Assert.HasCount(1, vm.RegisteredDevices);
+		Assert.IsFalse(speakers.HotkeyRegistered);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.HotkeyExists], speakers.ErrorMessage);
+		//a new hotkey clears the error
+		speakers.Hotkey = Up;
+		Assert.AreEqual(string.Empty, speakers.ErrorMessage);
+		Assert.HasCount(1, Settings.Hotkeys.DefaultDevices);
 	}
 
 	[TestMethod]
-	public void RemovingADeviceHotkeyUnregistersIt()
+	public void TurningOffADevicesHotkeyUnregistersIt()
 	{
 		ActivateHotkeys();
-		var headphones = CreateDevice("2", "Headphones");
-		SetDefaultDevice(headphones);
-		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
-		vm.AddDeviceCommand.Execute(null);
+		SetDefaultDevice(CreateDevice("2", "Headphones"));
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var entry = vm.Devices.Single();
+		entry.Hotkey = Switch;
+		entry.HotkeyRegistered = true;
 
-		vm.SelectedRegDev = vm.RegisteredDevices.Single();
-		vm.RemoveDeviceCommand.Execute(null);
+		entry.HotkeyRegistered = false;
 		PressHotkey(Switch);
 
-		Assert.IsEmpty(vm.RegisteredDevices);
 		Assert.IsEmpty(Settings.Hotkeys.DefaultDevices);
 		HotkeyManager.Verify(m => m.UnregisterHotkey(Switch), Times.Once);
 		DeviceProvider.Verify(m => m.SetDefaultDevice(It.IsAny<string>()), Times.Never);
+		//the hotkey stays in the box to turn it on again
+		Assert.AreEqual(Switch, entry.Hotkey);
 	}
 
 	[TestMethod]
@@ -338,8 +341,11 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 
 		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
 
-		Assert.AreEqual("Speakers", vm.RegisteredDevices[Switch].Name);
-		Assert.AreEqual("2", vm.RegisteredDevices[Up].ID);
+		Assert.HasCount(2, vm.Devices);
+		var speakers = vm.Devices.Single(d => d.Hotkey == Switch);
+		Assert.AreEqual("Speakers", speakers.Name);
+		Assert.IsTrue(speakers.IsConnected && speakers.HotkeyRegistered);
+		Assert.AreEqual("2", vm.Devices.Single(d => d.Hotkey == Up).Id);
 		var saved = Settings.Hotkeys.DefaultDevices.ToDictionary(d => d.Hotkey);
 		Assert.AreEqual("Speakers", saved[Switch].DeviceName);
 		Assert.AreEqual("2", saved[Up].DeviceId);
@@ -350,45 +356,81 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void SavedDeviceHotkeysAreShownAfterARestart()
+	public void SavedHotkeysOfDisconnectedDevicesAreListed()
 	{
-		//#18: after a restart the page looked as if no hotkeys were registered
-		Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "2", DeviceName = "Headphones" } };
-		var speakers = CreateDevice("1", "Speakers");
-		var headphones = CreateDevice("2", "Headphones");
-		SetDefaultDevice(speakers);
-		ActiveDevices.Add(headphones);
+		//#18: after a restart the page looked as if no hotkeys were registered; an unplugged device's hotkey is shown too
+		Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "3", DeviceName = "Monitor" } };
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
 
 		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
-		Assert.AreEqual(Switch, vm.SelectedRegDev?.Key);
 
-		//selecting a registered device shows its hotkey
-		vm.SelectedDevice = headphones;
-		Assert.AreEqual(Switch, vm.HotKey);
-		Assert.AreEqual("2", vm.SelectedRegDev?.Value.ID);
+		var monitor = vm.Devices.Last();
+		Assert.AreEqual("Monitor", monitor.Name);
+		Assert.IsFalse(monitor.IsConnected);
+		Assert.IsTrue(monitor.HotkeyRegistered);
+		//the default device is selected first
+		Assert.AreEqual("Speakers", vm.SelectedDevice.Name);
 
-		//another device doesn't keep that hotkey
-		vm.SelectedDevice = speakers;
-		Assert.IsNull(vm.HotKey);
-
-		//but a hotkey the user typed stays
-		vm.HotKey = Up;
-		vm.SelectedDevice = null;
-		vm.SelectedDevice = speakers;
-		Assert.AreEqual(Up, vm.HotKey);
+		//once its hotkey is off, nothing is left to show for it
+		vm.SelectedDevice = monitor;
+		monitor.HotkeyRegistered = false;
+		Assert.HasCount(1, vm.Devices);
+		Assert.AreEqual("Speakers", vm.SelectedDevice.Name);
+		Assert.IsEmpty(Settings.Hotkeys.DefaultDevices);
 	}
 
 	[TestMethod]
-	public void AddedDeviceHotkeyIsSelectedInTheList()
+	public void TheListFollowsDevicesComingAndGoing()
 	{
 		ActivateHotkeys();
+		var speakers = CreateDevice("1", "Speakers");
+		SetDefaultDevice(speakers);
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+
 		var headphones = CreateDevice("2", "Headphones");
-		SetDefaultDevice(headphones);
-		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys) { SelectedDevice = headphones, HotKey = Switch };
+		ActiveDevices.Add(headphones);
+		var entry = vm.Devices.Single(d => d.Name == "Headphones");
+		entry.Hotkey = Switch;
+		entry.HotkeyRegistered = true;
 
-		vm.AddDeviceCommand.Execute(null);
+		//unplugged: kept (it has a hotkey), after the connected ones
+		var monitor = CreateDevice("3", "Monitor");
+		ActiveDevices.Add(monitor);
+		ActiveDevices.Remove(headphones);
+		Assert.IsFalse(entry.IsConnected);
+		Assert.AreSame(entry, vm.Devices.Last());
 
-		Assert.AreEqual(Switch, vm.SelectedRegDev?.Key);
+		//plugged in again: the same entry, connected again
+		var again = CreateDevice("2", "Headphones");
+		ActiveDevices.Add(again);
+		Assert.AreSame(again, entry.Model);
+		Assert.HasCount(3, vm.Devices);
+
+		//a device without a hotkey is removed
+		ActiveDevices.Remove(monitor);
+		Assert.HasCount(2, vm.Devices);
+
+		ChangeDefaultDevice(again);
+		Assert.IsTrue(entry.IsDefault);
+		Assert.IsFalse(vm.Devices.Single(d => d.Name == "Speakers").IsDefault);
+	}
+
+	[TestMethod]
+	public void SetAsDefaultOnlyForAConnectedDeviceThatIsntTheDefault()
+	{
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		ActiveDevices.Add(CreateDevice("2", "Headphones"));
+		Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "3", DeviceName = "Monitor" } };
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+
+		vm.SelectedDevice = vm.Devices.Single(d => d.Name == "Speakers");
+		Assert.IsFalse(vm.SetAsDefaultCommand.CanExecute(null));
+		vm.SelectedDevice = vm.Devices.Single(d => d.Name == "Monitor");
+		Assert.IsFalse(vm.SetAsDefaultCommand.CanExecute(null));
+
+		vm.SelectedDevice = vm.Devices.Single(d => d.Name == "Headphones");
+		vm.SetAsDefaultCommand.Execute(null);
+		DeviceProvider.Verify(m => m.SetDefaultDevice("2"), Times.Once);
 	}
 
 	[TestMethod]

@@ -1,49 +1,30 @@
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
-using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
 
+/// <summary>
+/// The Devices page's device list: every connected output device, plus the ones with a saved "make default" hotkey that aren't connected.
+/// Each device can have one hotkey that makes it the default device (saved by ID and name, so it still works after a rename).
+/// </summary>
 public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 {
-	private OutputDeviceModel _selected;
-	public OutputDeviceModel SelectedDevice
-	{
-		get => _selected;
-		set
-		{
-			_selected = value;
-			OnPropertyChanged();
-			ShowRegisteredHotkey(value);
-		}
-	}
-
-	//true while HotKey shows the registered hotkey of the selected device rather than one the user typed
-	private bool hotkeyShowsRegistration;
+	/// <summary>
+	/// Connected devices first (in Windows' order), then the saved ones that aren't connected
+	/// </summary>
+	public ObservableCollection<DeviceEntry> Devices { get; } = new ObservableCollection<DeviceEntry>();
 
 	[ObservableProperty]
-	public partial KeyValuePair<HotKey, DeviceInfo>? SelectedRegDev { get; set; }
-
-	public ObservableConcurrentDictionary<HotKey, DeviceInfo> RegisteredDevices { get; }
-
-	private HotKey _hotkey;
-	public HotKey HotKey
-	{
-		get => _hotkey;
-		set
-		{
-			_hotkey = value;
-			hotkeyShowsRegistration = false;
-			OnPropertyChanged();
-		}
-	}
-
+	[NotifyCanExecuteChangedFor(nameof(SetAsDefaultCommand))]
+	public partial DeviceEntry SelectedDevice { get; set; }
 
 	public IDeviceProvider DeviceProvider { get; }
 
@@ -51,177 +32,201 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	{
 		DeviceProvider = deviceProvider;
 
-		RegisteredDevices = LoadRegisteredDevices();
-		if(RegisteredDevices.Keys.Count > 0)
+		foreach(var saved in SettingsProvider.Settings.Hotkeys.DefaultDevices)
 		{
+			if(saved.Hotkey == null || Devices.Any(d => d.Hotkey.Equals(saved.Hotkey)))
+				continue;
+			var entry = new DeviceEntry(this, saved.DeviceId, saved.DeviceName) { Hotkey = saved.Hotkey };
+			entry.SetRegistered(true);
+			Devices.Add(entry);
+		}
+		bool anySaved = Devices.Count > 0;
+
+		foreach(var device in deviceProvider.ActiveDevices)
+			Connect(device);
+		UpdateDefault();
+		//the names or IDs of saved devices may have changed (they're matched by either)
+		if(anySaved)
+			Save();
+
+		deviceProvider.ActiveDevices.CollectionChanged += OnActiveDevicesChanged;
+		deviceProvider.DefaultDeviceChanged += _ => UpdateDefault();
+		ErrorDictionary.LanguageChanged += () =>
+		{
+			foreach(var entry in Devices)
+				entry.SetError(entry.ErrorType);
+		};
+
+		SelectedDevice = Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
+
+		if(anySaved)
 			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
-
-			//Update registered devices names once on startup
-			UpdateNamesOrIDs();
-
-			//show a registration in the list, so the page doesn't look as if nothing was registered (#18)
-			SelectedRegDev = RegisteredDevices.First();
-		}
-	}
-
-	/// <summary>
-	/// Shows the hotkey registered for the selected device and selects its registration in the list (#18)
-	/// </summary>
-	private void ShowRegisteredHotkey(OutputDeviceModel device)
-	{
-		KeyValuePair<HotKey, DeviceInfo>? registration = null;
-		if(device != null)
-		{
-			foreach(var registered in RegisteredDevices)
-			{
-				if(device.CompareId(registered.Value.ID))
-				{
-					registration = registered;
-					break;
-				}
-			}
-		}
-
-		if(registration is { } reg)
-		{
-			HotKey = reg.Key;
-			hotkeyShowsRegistration = true;
-			SelectedRegDev = reg;
-		}
-		else if(hotkeyShowsRegistration)
-			//don't offer another device's hotkey for this one, but keep a hotkey the user typed
-			HotKey = null;
 	}
 
 	private void RegisterLoadedHotkeys()
 	{
 		hotkeys.HotkeyPressed += OnHotkeyPressed;
-		//shows an error instead of silently doing nothing; the hotkeys stay saved and are tried again on the next start
-		bool allRegistered = true;
-		foreach(var hotkeyDeviceInfoPair in RegisteredDevices)
-			allRegistered &= hotkeys.RegisterHotkey(hotkeyDeviceInfoPair.Key);
-		if(!allRegistered)
-			SetErrorMessage(ErrorMessageType.OpenReg);
+		//a hotkey that fails now shows an error instead of silently doing nothing; it stays saved and is tried again on the next start
+		foreach(var entry in Devices.Where(d => d.HotkeyRegistered))
+		{
+			if(!hotkeys.RegisterHotkey(entry.Hotkey))
+				entry.SetError(ErrorMessageType.OpenReg);
+		}
 	}
 
 	/// <summary>
-	/// Check if registered devices have changed their names or IDs to update these values in settings,
-	/// since IDs are critical for setting default device in system
+	/// A device is connected: its saved entry (same ID, or same name for a device whose ID changed) gets the model, otherwise it gets a new entry
 	/// </summary>
-	private void UpdateNamesOrIDs()
+	private void Connect(OutputDeviceModel device)
 	{
-		try
+		var entry = Devices.FirstOrDefault(d => device.CompareId(d.Id))
+					?? Devices.FirstOrDefault(d => d.Model == null && d.Name == device.Master.DeviceFriendlyName);
+		if(entry == null)
 		{
-			foreach(var activeDevice in DeviceProvider.ActiveDevices)
+			entry = new DeviceEntry(this, device.Id, device.Master.DeviceFriendlyName);
+			//connected devices stay before the ones that aren't
+			int index = Devices.TakeWhile(d => d.IsConnected).Count();
+			Devices.Insert(index, entry);
+		}
+		else
+		{
+			entry.Id = device.Id;
+			entry.Name = device.Master.DeviceFriendlyName;
+			if(!entry.IsConnected)
 			{
-				foreach(var registeredDevice in RegisteredDevices)
-				{
-					string id = registeredDevice.Value.ID;
-					string name = registeredDevice.Value.Name;
-
-					if(activeDevice.CompareId(id) || activeDevice.Master.Name.Equals(name))
-					{
-						var actualFriendlyName = activeDevice.Master.DeviceFriendlyName;
-						var friendlyName = registeredDevice.Value.Name;
-						if(!actualFriendlyName.Equals(friendlyName) || !activeDevice.CompareId(id))
-						{
-							DeviceInfo deviceInfo = new DeviceInfo(activeDevice.Id, actualFriendlyName);
-							HotKey hotkey = registeredDevice.Key;
-							RegisteredDevices[hotkey] = deviceInfo;
-							SaveRegisteredDevices();
-						}
-					}
-				}
+				Devices.Move(Devices.IndexOf(entry), Devices.TakeWhile(d => d.IsConnected).Count());
 			}
 		}
-		catch { }
+		entry.Model = device;
 	}
 
-	[RelayCommand]
-	private void AddDevice()
+	/// <summary>
+	/// A device went away: it stays listed as not connected if it has a hotkey, otherwise it's removed
+	/// </summary>
+	private void Disconnect(OutputDeviceModel device)
 	{
-		if(RegisteredDevices.Values.Any(deviceInfo => deviceInfo.ID.Equals(SelectedDevice.Id)))
+		//a replaced device (#82) is connected again first, so its entry already has the new model
+		var entry = Devices.FirstOrDefault(d => d.Model == device);
+		if(entry == null)
 			return;
-
-		if(RegisteredDevices.ContainsKey(HotKey))
+		entry.Model = null;
+		entry.IsDefault = false;
+		if(entry.HotkeyRegistered)
 		{
-			SetErrorMessage(ErrorMessageType.HotkeyExists);
+			Devices.Move(Devices.IndexOf(entry), Devices.Count - 1);
 			return;
 		}
+		bool wasSelected = SelectedDevice == entry;
+		Devices.Remove(entry);
+		if(wasSelected)
+			SelectedDevice = Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
+	}
 
-		if(!IsValid(hotkeys.HotkeyIsValid(HotKey)))
-			return;
+	private void OnActiveDevicesChanged(object sender, NotifyCollectionChangedEventArgs e)
+	{
+		if(e.Action == NotifyCollectionChangedAction.Reset)
+		{
+			foreach(var entry in Devices.Where(d => d.IsConnected).ToList())
+				Disconnect(entry.Model);
+			foreach(var device in DeviceProvider.ActiveDevices)
+				Connect(device);
+		}
+		else
+		{
+			foreach(OutputDeviceModel device in e.OldItems ?? new OutputDeviceModel[0])
+				Disconnect(device);
+			foreach(OutputDeviceModel device in e.NewItems ?? new OutputDeviceModel[0])
+				Connect(device);
+		}
+		UpdateDefault();
+		SelectedDevice ??= Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
+		SetAsDefaultCommand.NotifyCanExecuteChanged();
+	}
 
-		SetErrorMessage(ErrorMessageType.None);
+	private void UpdateDefault()
+	{
+		var defaultDevice = DeviceProvider.DefaultDevice;
+		foreach(var entry in Devices)
+			entry.IsDefault = entry.Model != null && entry.Model == defaultDevice;
+		SetAsDefaultCommand.NotifyCanExecuteChanged();
+	}
 
-		if(RegisteredDevices.Keys.Count == 0)
+	private bool CanSetAsDefault() => SelectedDevice is { IsConnected: true, IsDefault: false };
+
+	[RelayCommand(CanExecute = nameof(CanSetAsDefault))]
+	private void SetAsDefault()
+	{
+		if(CanSetAsDefault())
+			DeviceProvider.SetDefaultDevice(SelectedDevice.Id);
+	}
+
+	/// <summary>
+	/// Turns a device's hotkey on; false (with the device's error set) if it can't be used
+	/// </summary>
+	internal bool TurnOn(DeviceEntry entry)
+	{
+		var hotkey = entry.Hotkey;
+		var error = hotkey == null ? ErrorMessageType.Missing : hotkeys.HotkeyIsValid(hotkey);
+		if(error == ErrorMessageType.None && !hotkeys.RegisterHotkey(hotkey))
+			//the hotkey service logs why
+			error = ErrorMessageType.OpenReg;
+		entry.SetError(error);
+		if(error != ErrorMessageType.None)
+			return false;
+
+		if(!Devices.Any(d => d != entry && d.HotkeyRegistered))
 			hotkeys.HotkeyPressed += OnHotkeyPressed;
-
-		if(!hotkeys.RegisterHotkey(HotKey))
-		{
-			SetErrorMessage(ErrorMessageType.OpenReg);
-			return;
-		}
-
-		DeviceInfo deviceInfo = new DeviceInfo(SelectedDevice.Id, SelectedDevice.Master.DeviceFriendlyName);
-		var hotkey = HotKey;
-
-		RegisteredDevices.Add(hotkey, deviceInfo);
-		SelectedDevice = null;
-		HotKey = null;
-		SelectedRegDev = new KeyValuePair<HotKey, DeviceInfo>(hotkey, deviceInfo);
-		Logger.Info($"Registered default device hotkey: {hotkey}, count: {RegisteredDevices.Keys.Count}");
-		SaveRegisteredDevices();
+		Logger.Info($"Registered default device hotkey: [{hotkey}] for [{entry.Name}]");
+		return true;
 	}
 
-	[RelayCommand]
-	private void RemoveDevice()
+	internal void TurnOff(DeviceEntry entry)
 	{
-		if(SelectedRegDev == null || !SelectedRegDev.HasValue)
-			return;
-
-		HotKey hotkey = SelectedRegDev.Value.Key;
-
-		hotkeys.UnregisterHotkey(hotkey);
-		RegisteredDevices.Remove(hotkey);
-
-		if(RegisteredDevices.Keys.Count == 0)
+		hotkeys.UnregisterHotkey(entry.Hotkey);
+		entry.SetError(ErrorMessageType.None);
+		if(!Devices.Any(d => d != entry && d.HotkeyRegistered))
 			hotkeys.HotkeyPressed -= OnHotkeyPressed;
-
-		SelectedRegDev = RegisteredDevices.Count > 0 ? RegisteredDevices.First() : null;
-		SetErrorMessage(ErrorMessageType.None);
-
-		try
-		{
-			SaveRegisteredDevices();
-		}
-		catch { }
 	}
 
-	private static ObservableConcurrentDictionary<HotKey, DeviceInfo> LoadRegisteredDevices()
+	/// <summary>
+	/// A device's hotkey was turned on or off (called after the entry stored its new state): saves, and removes a device
+	/// that isn't connected once its hotkey is off (nothing is left to show for it)
+	/// </summary>
+	internal void OnHotkeyStateChanged(DeviceEntry entry)
 	{
-		var devices = new ObservableConcurrentDictionary<HotKey, DeviceInfo>();
-		foreach(var entry in SettingsProvider.Settings.Hotkeys.DefaultDevices)
-		{
-			if(entry.Hotkey != null)
-				devices[entry.Hotkey] = new DeviceInfo(entry.DeviceId, entry.DeviceName);
-		}
-		return devices;
+		Save();
+		if(entry.HotkeyRegistered || entry.IsConnected)
+			return;
+		//later, not inside the switch's click: selecting another device here moved the switch to that device while its click
+		//was still being handled, and turned that device's hotkey off too (owner found it)
+		if(SynchronizationContext.Current is { } uiThread)
+			uiThread.Post(_ => RemoveDisconnected(entry), null);
+		else
+			RemoveDisconnected(entry);
 	}
 
-	private void SaveRegisteredDevices() => SaveRegisteredDevices(SettingsProvider.Settings.Hotkeys);
-
-	private void SaveRegisteredDevices(HotkeySettings hotkeySettings)
+	private void RemoveDisconnected(DeviceEntry entry)
 	{
-		var entries = RegisteredDevices
-						  .Select(d => new DeviceHotkeyEntry { Hotkey = d.Key, DeviceId = d.Value.ID, DeviceName = d.Value.Name })
-						  .ToArray();
-		hotkeySettings.DefaultDevices = entries;
+		//turned on again or plugged in meanwhile
+		if(entry.HotkeyRegistered || entry.IsConnected || !Devices.Contains(entry))
+			return;
+		if(SelectedDevice == entry)
+			SelectedDevice = Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault(d => d != entry);
+		Devices.Remove(entry);
+	}
+
+	private void Save()
+	{
+		SettingsProvider.Settings.Hotkeys.DefaultDevices = Devices
+			.Where(d => d.HotkeyRegistered)
+			.Select(d => new DeviceHotkeyEntry { Hotkey = d.Hotkey, DeviceId = d.Id, DeviceName = d.Name })
+			.ToArray();
 	}
 
 	private void OnHotkeyPressed(HotKey pressedHotkey)
 	{
-		if(RegisteredDevices.TryGetValue(pressedHotkey, out DeviceInfo deviceInfo))
-			DeviceProvider.SetDefaultDevice(deviceInfo.ID);
+		var entry = Devices.FirstOrDefault(d => d.HotkeyRegistered && pressedHotkey.Equals(d.Hotkey));
+		if(entry != null)
+			DeviceProvider.SetDefaultDevice(entry.Id);
 	}
 }

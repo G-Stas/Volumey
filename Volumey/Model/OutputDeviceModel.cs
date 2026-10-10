@@ -98,6 +98,15 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
 		=> Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
+	/// <param name="failed">The hotkey the system refused, null otherwise</param>
+	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey failed)
+		=> Master.SetVolumeHotkeys(volUp, volDown, out failed);
+
+	/// <summary>
+	/// The device's format when the model was made (a format change makes a new model, see <see cref="Invalidated"/>); null if it couldn't be read
+	/// </summary>
+	internal DeviceFormat? Format => currentStreamFormat;
+
 	internal void ResetVolumeHotkeys() => Master.ResetVolumeHotkeys();
 
 	internal void SetStateNotificationMediator(IAudioProcessStateMediator mediator)
