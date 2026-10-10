@@ -16,7 +16,68 @@
         </Setter>
     </Style>
 
-    <!-- WPF-UI's horizontal slider template plus the fill -->
+    <!-- the thumb as in Windows 11: the inner circle keeps its color and grows while the pointer is over it, shrinks while
+         dragging (WinUI: 12 px, ×1.167 over, ×0.833 pressed); WPF-UI's thumb changes color instead (owner's request) -->
+    <Style x:Key="VolumeSliderThumb" TargetType="Thumb" BasedOn="{StaticResource UiSliderThumbStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="16">
+                        <Ellipse x:Name="Inner"
+                                 Width="12"
+                                 Height="12"
+                                 Fill="{TemplateBinding Foreground}"
+                                 RenderTransformOrigin="0.5 0.5">
+                            <Ellipse.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1" />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                    </Border>
+                    <ControlTemplate.Resources>
+                        <Storyboard x:Key="Grow">
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.167" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.167" Duration="0:0:0.083" />
+                        </Storyboard>
+                        <Storyboard x:Key="Shrink">
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.833" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.833" Duration="0:0:0.083" />
+                        </Storyboard>
+                        <Storyboard x:Key="Normal">
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.083" />
+                        </Storyboard>
+                    </ControlTemplate.Resources>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsDragging" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource Grow}" />
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard Storyboard="{StaticResource Normal}" />
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource Shrink}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Storyboard="{StaticResource Normal}" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- WPF-UI's horizontal slider template plus the fill and the Windows 11 thumb -->
     <ControlTemplate x:Key="VolumeSliderTemplate" TargetType="controls:VolumeSlider">
         <Grid>
             <Border x:Name="TrackBackground"
@@ -28,7 +89,7 @@
                     <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource VolumeSliderFillButton}" />
                 </Track.DecreaseRepeatButton>
                 <Track.Thumb>
-                    <Thumb x:Name="Thumb" Style="{StaticResource UiSliderThumbStyle}" />
+                    <Thumb x:Name="Thumb" Style="{StaticResource VolumeSliderThumb}" />
                 </Track.Thumb>
                 <Track.IncreaseRepeatButton>
                     <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource UiSliderButtonStyle}" />
@@ -38,7 +99,6 @@
         <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter TargetName="TrackBackground" Property="Background" Value="{DynamicResource SliderTrackFillPointerOver}" />
-                <Setter TargetName="Thumb" Property="Foreground" Value="{DynamicResource SliderThumbBackgroundPointerOver}" />
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
