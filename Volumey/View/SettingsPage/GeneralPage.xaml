@@ -143,7 +143,7 @@
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
-                    <ui:NumberBox Width="110"
+                    <ui:NumberBox Width="140"
                                   Minimum="1"
                                   Maximum="100"
                                   SmallChange="1"
