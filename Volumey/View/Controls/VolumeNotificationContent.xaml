@@ -5,6 +5,7 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:controls="clr-namespace:Volumey.Controls"
 			 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+			 xmlns:lc="clr-namespace:Volumey.Localization"
 			 mc:Ignorable="d"
 			 DataContext="{Binding RelativeSource={RelativeSource Self}}">
 	<!-- the OSD's content, as before but with the WPF-UI controls (the OSD's redesign comes later) -->
@@ -62,6 +63,13 @@
 				   Tag="{Binding AudioSession.IsMuted}"
 				   Command="{Binding AudioSession.MuteCommand}"
 				   HorizontalAlignment="Left">
+			<AutomationProperties.Name>
+				<MultiBinding Converter="{StaticResource MuteButtonName}">
+					<Binding Path="AudioSession.IsMuted" />
+					<Binding Path="AudioSession.Name" />
+					<Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+				</MultiBinding>
+			</AutomationProperties.Name>
 			<ui:SymbolIcon Style="{StaticResource MuteIcon}" />
 		</ui:Button>
 	</Grid>

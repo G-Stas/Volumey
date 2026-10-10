@@ -6,6 +6,7 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:controls="clr-namespace:Volumey.Controls"
              xmlns:converters="clr-namespace:Volumey.View.Converters"
+             xmlns:lc="clr-namespace:Volumey.Localization"
              mc:Ignorable="d"
              DataContext="{StaticResource DeviceProviderViewModel}">
     <UserControl.Resources>
@@ -112,6 +113,13 @@
                                    Margin="10 0 0 0"
                                    Tag="{Binding IsMuted}"
                                    Command="{Binding MuteCommand}">
+                            <AutomationProperties.Name>
+                                <MultiBinding Converter="{StaticResource MuteButtonName}">
+                                    <Binding Path="IsMuted" />
+                                    <Binding Path="Name" />
+                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                </MultiBinding>
+                            </AutomationProperties.Name>
                             <ui:SymbolIcon Style="{StaticResource MuteIcon}" />
                         </ui:Button>
                     </Grid>
@@ -161,6 +169,13 @@
                                                Margin="10 0 0 0"
                                                Tag="{Binding IsMuted}"
                                                Command="{Binding MuteCommand}">
+                                        <AutomationProperties.Name>
+                                            <MultiBinding Converter="{StaticResource MuteButtonName}">
+                                                <Binding Path="IsMuted" />
+                                                <Binding Path="Name" />
+                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                            </MultiBinding>
+                                        </AutomationProperties.Name>
                                         <ui:SymbolIcon Style="{StaticResource MuteIcon}" FontSize="16" />
                                     </ui:Button>
                                 </Grid>

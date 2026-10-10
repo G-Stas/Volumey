@@ -441,4 +441,13 @@
   <data name="Toggle_Off" xml:space="preserve">
     <value>Off</value>
   </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>Mute {0}</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>Unmute {0}</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>Open mixer</value>
+  </data>
 </root>

@@ -25,30 +25,25 @@
         <ResourceDictionary>
             <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
 
-            <ContextMenu x:Key="TrayMenu">
+            <!-- mockup TrayMenu.dc.html (248 wide, the default item in bold), plus the two Windows sound items (owner's decision;
+                 no "Start with Windows" item) -->
+            <ContextMenu x:Key="TrayMenu" MinWidth="248">
                 <MenuItem
-                    Header="{lc:Localization TabHeader_Mixer}"
+                    Header="{lc:Localization Tray_OpenMixer}"
+                    FontWeight="SemiBold"
                     Command="{Binding TrayMixerCommand}"
-                    Icon="{ui:SymbolIcon Speaker224}" />
+                    Icon="{ui:SymbolIcon Options24}" />
                 <MenuItem
                     Header="{lc:Localization TabHeader_Settings}"
                     Command="{Binding TraySettingsCommand}"
                     Icon="{ui:SymbolIcon Settings24}" />
-                <Separator />
                 <MenuItem
-                    Header="{lc:Localization TrayMenu_SoundPanel}"
-                    Command="{Binding SoundControlPanelCommand}"
-                    Icon="{ui:SymbolIcon Options24}" />
-                <MenuItem
-                    Header="{lc:Localization TrayMenu_SoundSettings}"
-                    Command="{Binding SoundSettingsCommand}"
-                    Icon="{ui:SymbolIcon Open24}" />
-                <MenuItem
-                    Header="{lc:Localization TrayMenu_ChangeDevice}"
+                    Header="{lc:Localization Mixer_OutputDevice}"
                     ItemsSource="{Binding Source={StaticResource DeviceProviderViewModel}, Path=DeviceProvider.ActiveDevices}"
-                    Icon="{ui:SymbolIcon HeadphonesSoundWave24}">
+                    Icon="{ui:SymbolIcon Headphones24}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                            <Setter Property="FontWeight" Value="Normal"/>
                             <Setter Property="Icon">
                                 <Setter.Value>
                                     <MultiBinding Converter="{StaticResource DeviceIsDefaultToIconConverter}">
@@ -65,9 +60,18 @@
                 </MenuItem>
                 <Separator />
                 <MenuItem
+                    Header="{lc:Localization TrayMenu_SoundPanel}"
+                    Command="{Binding SoundControlPanelCommand}"
+                    Icon="{ui:SymbolIcon Speaker224}" />
+                <MenuItem
+                    Header="{lc:Localization TrayMenu_SoundSettings}"
+                    Command="{Binding SoundSettingsCommand}"
+                    Icon="{ui:SymbolIcon Open24}" />
+                <Separator />
+                <MenuItem
                     Header="{lc:Localization TrayMenu_Exit}"
                     Command="{Binding TrayExitCommand}"
-                    Icon="{ui:SymbolIcon Dismiss24}" />
+                    Icon="{ui:SymbolIcon Power24}" />
             </ContextMenu>
 
             <Storyboard x:Key="DisplayFadeIn">

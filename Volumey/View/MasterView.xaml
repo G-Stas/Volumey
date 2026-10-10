@@ -108,6 +108,13 @@
                     Style="{StaticResource IconButton}"
                     Tag="{Binding SelectedDevice.Master.IsMuted}"
                     Command="{Binding SelectedDevice.Master.MuteCommand}">
+                    <AutomationProperties.Name>
+                        <MultiBinding Converter="{StaticResource MuteButtonName}">
+                            <Binding Path="SelectedDevice.Master.IsMuted" />
+                            <Binding Path="SelectedDevice.Master.DeviceFriendlyName" />
+                            <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                        </MultiBinding>
+                    </AutomationProperties.Name>
                     <ui:SymbolIcon Style="{StaticResource MuteIcon}" />
                 </ui:Button>
                 <controls:VolumeSlider

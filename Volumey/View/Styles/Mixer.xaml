@@ -6,6 +6,8 @@
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     <!-- true = collapsed (the app's BoolToVisibilityConverter is the inverse of WPF's) -->
     <converters:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+    <!-- "Mute Spotify" / "Unmute Spotify": what a screen reader says for a mute button -->
+    <converters:MuteButtonNameConverter x:Key="MuteButtonName" />
 
     <!-- a transparent square icon button (mute, settings) -->
     <Style x:Key="IconButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">

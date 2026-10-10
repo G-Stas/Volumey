@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using H.NotifyIcon;
 using log4net;
 using Volumey.Helper;
@@ -14,6 +16,7 @@ using Volumey.Model;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 using ContentDialog = Wpf.Ui.Controls.ContentDialog;
 
@@ -348,10 +351,35 @@ public partial class MainView
 	private void ShowSettings()
 	{
 		settingsWindow ??= new SettingsWindow();
+		if(!settingsWindow.IsVisible)
+			CenterOnMixerScreen(settingsWindow);
 		settingsWindow.Show();
 		if(settingsWindow.WindowState == WindowState.Minimized)
 			settingsWindow.WindowState = WindowState.Normal;
 		settingsWindow.Activate();
+	}
+
+	/// <summary>
+	/// The settings open centered on the screen the mixer is on (owner's decision), also when the mixer is hidden:
+	/// its window keeps its last position. If the screen can't be read, the window's own startup location is used
+	/// </summary>
+	private void CenterOnMixerScreen(Window window)
+	{
+		var monitor = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+		if(!PInvoke.GetMonitorInfo(PInvoke.MonitorFromWindow((HWND)Hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST), ref monitor))
+			return;
+		var work = monitor.rcWork;
+		//the target screen's scale gives the window's size there; the window's current DPI converts physical pixels to its Left/Top
+		double targetScale = 1;
+		foreach(var screen in vm.AllScreens)
+			if((int)screen.WorkingAreaLeft == work.left && (int)screen.WorkingAreaTop == work.top)
+				targetScale = screen.ScaleFactor;
+		double currentScale = VisualTreeHelper.GetDpi(window).DpiScaleX;
+		double width = window.Width * targetScale;
+		double height = window.Height * targetScale;
+		window.WindowStartupLocation = WindowStartupLocation.Manual;
+		window.Left = (work.left + Math.Max(0, (work.right - work.left - width) / 2)) / currentScale;
+		window.Top = (work.top + Math.Max(0, (work.bottom - work.top - height) / 2)) / currentScale;
 	}
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

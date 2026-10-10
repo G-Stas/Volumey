@@ -188,6 +188,16 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
+	public void MuteButtonsAreNamedAfterTheirApp()
+	{
+		var converter = new MuteButtonNameConverter();
+		Assert.AreEqual("Mute Spotify", Convert(converter, false, "Spotify", "en"));
+		Assert.AreEqual("Unmute Spotify", Convert(converter, true, "Spotify", "en"));
+		Assert.AreEqual("Mute", Convert(converter, false, null, "en"));
+		Assert.AreEqual(string.Empty, Convert(converter, null, "Spotify", "en"));
+	}
+
+	[TestMethod]
 	public void ThemeNamesAreTranslated()
 	{
 		var converter = new ThemeNameConverter();
