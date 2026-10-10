@@ -35,7 +35,8 @@
         <Setter Property="Width" Value="28" />
         <Setter Property="TextAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <!-- primary, as in Windows 11's volume flyout: the secondary color was hard to read in the light theme (owner) -->
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
     </Style>
 
