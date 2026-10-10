@@ -116,15 +116,11 @@ internal static class SystemIntegrationHelper
 	{
 		try
 		{
-			var link = (IShellLinkW)new ShellLink();
-
 			var exePath = Environment.ProcessPath;
 			if(string.IsNullOrEmpty(exePath))
 				return false;
 
-			link.SetPath(exePath);
-			IPersistFile file = (IPersistFile)link;
-			file.Save(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), false);
+			SaveShortcut(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), exePath);
 			return true;
 		}
 		catch(Exception e)
@@ -164,25 +160,40 @@ internal static class SystemIntegrationHelper
 	{
 		try
 		{
-			var link = (IShellLinkW)new ShellLink();
-			IPersistFile file = (IPersistFile)link;
-
-			file.Load(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), (int)0x00000002L);
-			//long enough for any path; flags 0: the full path (SLGP_SHORTPATH, used before, can give an 8.3 path that differs from the exe path)
-			var buffer = new char[32768];
-			var data = new WIN32_FIND_DATAW();
-			link.GetPath(buffer, ref data, 0).ThrowOnFailure();
-			int end = Array.IndexOf(buffer, '\0');
-			string existingShortcutExePath = new string(buffer, 0, end < 0 ? buffer.Length : end);
+			string linkPath = Path.Combine(StartMenuProgramsPath, StartMenuLinkName);
 			string exePath = Environment.ProcessPath;
-
-			if(!existingShortcutExePath.Equals(exePath))
-			{
-				link.SetPath(exePath);
-				file.Save(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), false);
-			}
+			if(!ReadShortcutTarget(linkPath).Equals(exePath))
+				SaveShortcut(linkPath, exePath);
 		}
 		catch { }
+	}
+
+	/// <summary>
+	/// Creates a shortcut to <paramref name="targetPath"/>, or points an existing one there (keeping its other settings, e.g. its icon)
+	/// </summary>
+	internal static void SaveShortcut(string linkPath, string targetPath)
+	{
+		var link = (IShellLinkW)new ShellLink();
+		var file = (IPersistFile)link;
+		if(File.Exists(linkPath))
+			file.Load(linkPath, 2 /*STGM_READWRITE*/);
+		link.SetPath(targetPath);
+		file.Save(linkPath, false);
+	}
+
+	/// <summary>
+	/// The path a shortcut points to
+	/// </summary>
+	internal static string ReadShortcutTarget(string linkPath)
+	{
+		var link = (IShellLinkW)new ShellLink();
+		((IPersistFile)link).Load(linkPath, 0 /*STGM_READ*/);
+		//long enough for any path; flags 0: the full path (SLGP_SHORTPATH, used before, can give an 8.3 path that differs from the exe path)
+		var buffer = new char[32768];
+		var data = new WIN32_FIND_DATAW();
+		link.GetPath(buffer, ref data, 0).ThrowOnFailure();
+		int end = Array.IndexOf(buffer, '\0');
+		return new string(buffer, 0, end < 0 ? buffer.Length : end);
 	}
 #endif
 
