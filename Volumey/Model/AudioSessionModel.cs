@@ -1,8 +1,6 @@
 using System;
 using System.ComponentModel;
-using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;

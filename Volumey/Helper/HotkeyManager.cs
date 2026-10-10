@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Input;
 using log4net;
 using Volumey.Controls;
-using Windows.Win32;
-using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace Volumey.Helper;
@@ -25,19 +22,23 @@ internal class HotkeyManager : IHotkeyManager
 	private readonly IntPtr handle;
 
 	private int keyId;
-	private ILog logger;
-	private ILog Logger => logger ??= LogManager.GetLogger(typeof(HotkeyManager));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(HotkeyManager));
 
 	private readonly SynchronizationContext syncContext;
+	private readonly IWin32 win32;
 
 	/// <summary></summary>
 	/// <param name="handle">A handle to the window which will be receiving a WM_HOTKEY message</param>
 	/// <exception cref="NullReferenceException">A handle points to zero</exception>
-	internal HotkeyManager(IntPtr handle)
+	internal HotkeyManager(IntPtr handle) : this(handle, Win32.Instance) { }
+
+	internal HotkeyManager(IntPtr handle, IWin32 win32)
 	{
 		if(handle == IntPtr.Zero)
 			throw new NullReferenceException("Handle ptr is zero");
 		this.handle = handle;
+		this.win32 = win32;
+		//the hotkeys belong to the thread that registers them: the window's (UI) thread
 		syncContext = SynchronizationContext.Current;
 	}
 
@@ -59,13 +60,13 @@ internal class HotkeyManager : IHotkeyManager
 		{
 			var id = keyId;
 			var virtualKey = KeyInterop.VirtualKeyFromKey(hotkey.Key);
-			if(RegisterHotkey((int)hotkey.ModifierKeys, (uint)virtualKey))
+			//WPF's ModifierKeys have the values of the MOD_ flags (Alt 1, Control 2, Shift 4, Windows 8)
+			if(RegisterHotkey((HOT_KEY_MODIFIERS)hotkey.ModifierKeys, (uint)virtualKey, out int error))
 			{
 				RegisteredHotkeys.Add(hotkey, id);
 				keyId++;
 				return;
 			}
-			var error = Marshal.GetLastWin32Error();
 			Logger.Error($"Failed to register hotkey: [{hotkey}], id: [{id.ToString()}], error code: [{error.ToString()}]");
 			throw new Win32Exception(error);
 		}
@@ -82,36 +83,52 @@ internal class HotkeyManager : IHotkeyManager
 			throw new NullReferenceException("Hotkey is null");
 		if(RegisteredHotkeys.TryGetValue(hotkey, out int id))
 		{
-			if(UnregisterHotkey(id))
+			if(UnregisterHotkey(id, out int errCode))
 			{
 				RegisteredHotkeys.Remove(hotkey);
 				return;
 			}
-			var errCode = Marshal.GetLastWin32Error();
 			Logger.Error($"Failed to unregister hotkey: [{hotkey}], id: [{id.ToString()}], error code: [{errCode.ToString()}]");
 		}
 	}
 
 	public int RegisteredHotkeysCount => RegisteredHotkeys.Count;
 
-	private bool RegisterHotkey(int modifierKeys, uint virtualKey)
+	//the error is read right after the call, on the thread that made it (it's per thread)
+	private bool RegisterHotkey(HOT_KEY_MODIFIERS modifiers, uint virtualKey, out int error)
 	{
 		bool result = false;
-		syncContext.Send((o) =>
+		int lastError = 0;
+		OnOwnerThread(() =>
 		{
-			result = PInvoke.RegisterHotKey((HWND)handle, keyId, (HOT_KEY_MODIFIERS)modifierKeys, virtualKey);
-		}, null);
+			result = win32.RegisterHotKey(handle, keyId, modifiers, virtualKey);
+			if(!result)
+				lastError = win32.GetLastError();
+		});
+		error = lastError;
 		return result;
 	}
 
-	private bool UnregisterHotkey(int id)
+	private bool UnregisterHotkey(int id, out int error)
 	{
 		bool result = false;
-		syncContext.Send((o) =>
+		int lastError = 0;
+		OnOwnerThread(() =>
 		{
-			result = PInvoke.UnregisterHotKey((HWND)handle, id);
-		}, null);
+			result = win32.UnregisterHotKey(handle, id);
+			if(!result)
+				lastError = win32.GetLastError();
+		});
+		error = lastError;
 		return result;
+	}
+
+	private void OnOwnerThread(Action action)
+	{
+		if(syncContext == null)
+			action();
+		else
+			syncContext.Send(_ => action(), null);
 	}
 
 	private void OnWindowHotkeyMessage(int lParam)
@@ -129,6 +146,6 @@ internal class HotkeyManager : IHotkeyManager
 	public void Dispose()
 	{
 		foreach(var hotkeyId in RegisteredHotkeys.Values)
-			UnregisterHotkey(hotkeyId);
+			UnregisterHotkey(hotkeyId, out _);
 	}
 }

@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Windows.Input;
 using System.Windows.Media;
 using log4net;

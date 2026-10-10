@@ -20,7 +20,6 @@ using Volumey.Model;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
-using Windows.Win32.System.Recovery;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Volumey.View;
@@ -29,13 +28,9 @@ public partial class MainView
 {
 	private IntPtr Hwnd;
 
-	private const int WM_INITMENU = 0x0116;
-	private const int WM_CLOSE = 0x0010;
-	private const int WM_ACTIVATEAPP = 0x001C;
-	private const int WM_HOTKEY = 0x0312;
 	private const int WM_ENTERSIZEMOVE = 0x0231;
-	private int prevMsg;
 	private bool positionChanged;
+	private readonly WindowMessages messages;
 
 	private const int ScrollStep = 30;
 	private static object NavPaneHeight = (double)32;
@@ -49,7 +44,6 @@ public partial class MainView
 	private static readonly DependencyProperty TrayIconImageProperty = DependencyProperty.Register("TrayIconImage", typeof(System.Drawing.Icon), typeof(MainView), new PropertyMetadata(OnTrayIconImageChanged));
 	private static readonly DependencyProperty TrayToolTipTextProperty = DependencyProperty.Register("TrayToolTipText", typeof(string), typeof(MainView), new PropertyMetadata(OnTrayToolTipTextChanged));
 
-	private Action<int> HotkeyMessageHandler;
 	private ILog logger;
 	private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
 
@@ -74,8 +68,8 @@ public partial class MainView
 		var source = HwndSource.FromHwnd(Hwnd);
 		source?.AddHook(WndProc);
 
-		//register the app to restart it automatically in case it's going to be updated while running
-		PInvoke.RegisterApplicationRestart(Startup.MinimizedArg, REGISTER_APPLICATION_RESTART_FLAGS.RESTART_NO_REBOOT);
+		messages = new WindowMessages(Win32.Instance, Hwnd);
+		messages.RegisterRestart();
 
 		ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: Startup.StartMinimized && SettingsProvider.Settings.Window.PopupMode));
 		if(DataContext is AppBehaviorViewModel vm)
@@ -96,7 +90,7 @@ public partial class MainView
 
 		//Load SettingsViewModel from resources so hotkeys could be loaded on app startup instead of waiting when settings view will be opened to load it
 		var settingsVm = (SettingsViewModel)TryFindResource("SettingsViewModel");
-		HotkeyMessageHandler = settingsVm.GetHotkeyMessageHandler();
+		messages.HotkeyMessageHandler = settingsVm.GetHotkeyMessageHandler();
 		settingsVm.SetWindowHandle(Hwnd);
 	}
 
@@ -360,45 +354,9 @@ public partial class MainView
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
-		switch(msg)
-		{
-			case WM_ENTERSIZEMOVE:
-				{
-					positionChanged = true;
-					break;
-				}
-			//Disable Minimize menu item in title bar's context menu every time it opens
-			case WM_INITMENU:
-				{
-					//the window's own menu: not destroyed
-					HMENU menu = PInvoke.GetSystemMenu((HWND)Hwnd, false);
-					PInvoke.EnableMenuItem(menu, PInvoke.SC_MINIMIZE, MENU_ITEM_FLAGS.MF_GRAYED | MENU_ITEM_FLAGS.MF_BYCOMMAND);
-					PInvoke.EnableMenuItem(menu, PInvoke.SC_MAXIMIZE, MENU_ITEM_FLAGS.MF_GRAYED | MENU_ITEM_FLAGS.MF_BYCOMMAND);
-					break;
-				}
-
-			//Unregister application restart if it was closed "normal way"
-			case WM_CLOSE:
-				{
-					//Hidden window doesn't receive WM_QUERYENDSESSION message which indicates about closing the app because of an update
-					//and which has to be used to register app restart
-					//so instead window registers app restart at startup and unregisters when it's closed "normal way"	
-
-					//When the window is closed by "exit" menu item in the context menu i.e. normal way, the previous message is always WM_ACTIVATEAPP.
-					//It recieves other messages before WM_CLOSE when it's closed by update/crash
-					if(prevMsg == WM_ACTIVATEAPP)
-						PInvoke.UnregisterApplicationRestart();
-					break;
-				}
-
-			case WM_HOTKEY:
-				{
-					HotkeyDiagnostics.WmHotkeyReceived(wParam.ToInt32(), HotkeyDiagnostics.GetMessageTime());
-					HotkeyMessageHandler?.Invoke(lParam.ToInt32());
-					break;
-				}
-		}
-		prevMsg = msg;
+		if(msg == WM_ENTERSIZEMOVE)
+			positionChanged = true;
+		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}
 

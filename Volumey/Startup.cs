@@ -9,10 +9,10 @@ using log4net.Appender;
 using log4net.Config;
 using log4net.Layout;
 using Volumey.Helper;
+using Volumey.View;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Win32;
-using Windows.Win32.Foundation;
 
 namespace Volumey;
 
@@ -110,7 +110,7 @@ static class Startup
 		}
 		else
 		{
-			PInvoke.PostMessage(HWND.HWND_BROADCAST, (uint)WM_SHOWME, default, default);
+			WindowMessages.ShowRunningInstance(Win32.Instance, WM_SHOWME);
 		}
 	}
 

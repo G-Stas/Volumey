@@ -73,6 +73,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Volumey.Tests" />
     <InternalsVisibleTo Include="Volumey.IntegrationTests" />
+    <!-- Moq's proxies, for mocking internal interfaces (IWin32) -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
   <ItemGroup>
