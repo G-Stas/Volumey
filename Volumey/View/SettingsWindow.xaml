@@ -28,25 +28,25 @@
                            IsPaneToggleVisible="False"
                            OpenPaneLength="280">
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="{lc:Localization Nav_General}" Icon="{ui:SymbolIcon Home24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavGeneral" Content="{lc:Localization Nav_General}" Icon="{ui:SymbolIcon Home24}"
                                        TargetPageType="{x:Type pages:GeneralPage}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_Mixer}" Icon="{ui:SymbolIcon Options24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavMixer" Content="{lc:Localization Nav_Mixer}" Icon="{ui:SymbolIcon Options24}"
+                                       TargetPageType="{x:Type pages:MixerPage}" />
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavAppHotkeys" Content="{lc:Localization Nav_AppHotkeys}" Icon="{ui:SymbolIcon Apps24}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_AppHotkeys}" Icon="{ui:SymbolIcon Apps24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavDevices" Content="{lc:Localization Nav_Devices}" Icon="{ui:SymbolIcon Speaker224}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_Devices}" Icon="{ui:SymbolIcon Speaker224}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavMediaKeys" Content="{lc:Localization Nav_MediaKeys}" Icon="{ui:SymbolIcon Keyboard24}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_MediaKeys}" Icon="{ui:SymbolIcon Keyboard24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavNotifications" Content="{lc:Localization Nav_Notifications}" Icon="{ui:SymbolIcon Alert24}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_Notifications}" Icon="{ui:SymbolIcon Alert24}"
-                                       TargetPageType="{x:Type pages:PlaceholderPage}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_About}" Icon="{ui:SymbolIcon Info24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavAbout" Content="{lc:Localization Nav_About}" Icon="{ui:SymbolIcon Info24}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem Content="{lc:Localization Nav_SourceCode}" Icon="{ui:SymbolIcon Code24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavSourceCode" Content="{lc:Localization Nav_SourceCode}" Icon="{ui:SymbolIcon Code24}"
                                        Command="{Binding GitHubCommand}" />
-                <ui:NavigationViewItem Content="{lc:Localization Nav_Support}" Icon="{ui:SymbolIcon Heart24}"
+                <ui:NavigationViewItem AutomationProperties.AutomationId="NavSupport" Content="{lc:Localization Nav_Support}" Icon="{ui:SymbolIcon Heart24}"
                                        Command="{Binding TipCommand}"
                                        CommandParameter="{Binding TipSource.Item2}" />
             </ui:NavigationView.FooterMenuItems>

@@ -450,4 +450,58 @@
   <data name="Tray_OpenMixer" xml:space="preserve">
     <value />
   </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_ScreenHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_DeviceBottomHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value />
+  </data>
 </root>

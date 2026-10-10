@@ -1,0 +1,59 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                    xmlns:lc="clr-namespace:Volumey.Localization"
+                    xmlns:controls="clr-namespace:Volumey.Controls">
+    <!-- shared by the settings pages: each page merges this into its own resources (the implicit styles mustn't reach the mixer) -->
+
+    <!-- the page title and its description (mockups Settings*.dc.html) -->
+    <Style x:Key="PageTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+    </Style>
+    <Style x:Key="PageDescription" TargetType="TextBlock">
+        <Setter Property="Margin" Value="0 4 0 0" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- a setting's title wraps instead of being cut off when the control next to it is wide -->
+    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="SectionHeader" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0 20 0 8" />
+    </Style>
+    <Style TargetType="ui:CardControl" BasedOn="{StaticResource {x:Type ui:CardControl}}">
+        <Setter Property="Margin" Value="0 0 0 4" />
+    </Style>
+    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+        <Setter Property="Width" Value="220" />
+    </Style>
+    <!-- the app's hotkey box is a TextBox subclass, which WPF-UI's implicit TextBox style doesn't reach -->
+    <Style TargetType="controls:HotKeyBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+        <Setter Property="Width" Value="180" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <!-- an error under a setting (e.g. a hotkey that couldn't be registered), in the Windows "critical" color -->
+    <Style x:Key="SettingError" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Style.Triggers>
+            <Trigger Property="Text" Value="">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="Text" Value="{x:Null}">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style TargetType="ui:ToggleSwitch" BasedOn="{StaticResource {x:Type ui:ToggleSwitch}}">
+        <Setter Property="OnContent" Value="{lc:Localization Toggle_On}" />
+        <Setter Property="OffContent" Value="{lc:Localization Toggle_Off}" />
+        <Setter Property="LabelPosition" Value="Left" />
+    </Style>
+</ResourceDictionary>

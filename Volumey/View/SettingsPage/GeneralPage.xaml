@@ -11,36 +11,20 @@
     <!-- the Foreground: a page in a Frame doesn't inherit the window's text color, so plain text was black in the dark theme
          (until a theme switch at runtime); set it on every settings page (an implicit Page style doesn't reach subclasses) -->
     <Page.Resources>
-        <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
-        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
-
-        <Style x:Key="SectionHeader" TargetType="TextBlock">
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0 20 0 8" />
-        </Style>
-        <Style TargetType="ui:CardControl" BasedOn="{StaticResource {x:Type ui:CardControl}}">
-            <Setter Property="Margin" Value="0 0 0 4" />
-        </Style>
-        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="Width" Value="220" />
-        </Style>
-        <Style TargetType="ui:ToggleSwitch" BasedOn="{StaticResource {x:Type ui:ToggleSwitch}}">
-            <Setter Property="OnContent" Value="{lc:Localization Toggle_On}" />
-            <Setter Property="OffContent" Value="{lc:Localization Toggle_Off}" />
-            <Setter Property="LabelPosition" Value="Left" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        </ResourceDictionary>
     </Page.Resources>
 
     <!-- mockup SettingsGeneral.dc.html -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="16 4 40 32">
-            <TextBlock Text="{lc:Localization Nav_General}"
-                       FontSize="28"
-                       FontWeight="SemiBold"
-                       FontFamily="Segoe UI Variable Display, Segoe UI" />
-            <TextBlock Text="{lc:Localization General_Description}"
-                       Margin="0 4 0 0"
-                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <TextBlock Text="{lc:Localization Nav_General}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{lc:Localization General_Description}" Style="{StaticResource PageDescription}" />
 
             <TextBlock Text="{lc:Localization General_Appearance}" Style="{StaticResource SectionHeader}" />
             <ui:CardControl Icon="{ui:SymbolIcon Globe24}" Header="{lc:Localization General_Language}">

@@ -198,6 +198,18 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
+	public void ScreensAreShownByNameAndSize()
+	{
+		var converter = new ScreenNameConverter();
+		var main = new ScreenInfo(@"\\.\DISPLAY1", true, 2560, 1392, 2560, 1440, 0, 2560, 0, 1392, 1);
+		var second = new ScreenInfo(@"\\.\DISPLAY2", false, 1920, 1032, 1920, 1080, 2560, 4480, 0, 1032, 1.25);
+
+		Assert.AreEqual("DISPLAY1 · 2560 × 1440 (main)", Convert(converter, main, "en"));
+		Assert.AreEqual("DISPLAY2 · 1920 × 1080", Convert(converter, second, "en"));
+		Assert.AreEqual(string.Empty, Convert(converter, "DISPLAY1"));
+	}
+
+	[TestMethod]
 	public void ThemeNamesAreTranslated()
 	{
 		var converter = new ThemeNameConverter();

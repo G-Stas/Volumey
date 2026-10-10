@@ -450,4 +450,58 @@
   <data name="Tray_OpenMixer" xml:space="preserve">
     <value>Open mixer</value>
   </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>How the mixer opens, what it shows, and rules for app volumes.</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>Opening the mixer</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>Hotkey to open the mixer</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>Opens it from anywhere; press again to close it</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>Pop-up mode</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>Opens above the tray like a Windows flyout and hides when you click elsewhere. Off: a normal window you can move and resize.</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>Always on top</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>Screen</value>
+  </data>
+  <data name="MixerPage_ScreenHint" xml:space="preserve">
+    <value>The screen the mixer opens on; remembered by name, so it survives a reboot</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>(main)</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>Show the device at the bottom</value>
+  </data>
+  <data name="MixerPage_DeviceBottomHint" xml:space="preserve">
+    <value>Puts the device picker and its slider below the apps</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>App volumes</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>Lower apps that start at full volume</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>An app that starts at 100% is set to this volume instead</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>Keep app volumes in sync with the device</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>Moving the device volume sets every app to the same value, new apps included</value>
+  </data>
 </root>
