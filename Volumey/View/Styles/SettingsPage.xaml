@@ -126,6 +126,13 @@
         </Style.Triggers>
     </Style>
     <Style TargetType="ui:ToggleSwitch" BasedOn="{StaticResource {x:Type ui:ToggleSwitch}}">
+        <!-- as in Windows 11 Settings, hovering only grows the knob (WPF-UI's template does that); the track keeps its color
+             (owner). WPF-UI's hover brushes are replaced by the normal ones, same color references as its Light/Dark themes -->
+        <Style.Resources>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{DynamicResource SystemAccentColorPrimary}" />
+            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="{DynamicResource SystemAccentColorPrimary}" />
+            <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="{DynamicResource ControlAltFillColorSecondary}" />
+        </Style.Resources>
         <Setter Property="OnContent" Value="{lc:Localization Toggle_On}" />
         <Setter Property="OffContent" Value="{lc:Localization Toggle_Off}" />
         <Setter Property="LabelPosition" Value="Left" />
