@@ -1,10 +1,13 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Windows.Media;
 using log4net;
 using NAudio.CoreAudioApi;
+using NAudio.Wave;
 using Volumey.Helper;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
@@ -79,6 +82,44 @@ public sealed class AudioDevice : IDevice
 			Logger.Error("Couldn't read device format structure", e);
 		}
 		return null;
+	}
+
+	//the formats Windows' sound settings offer: 16 and 24 bit (24 also in 32-bit containers) and 32-bit integers,
+	//at the common sample rates
+	private static readonly (ushort bits, ushort container)[] CandidateSampleSizes = { (16, 16), (24, 24), (24, 32), (32, 32) };
+	private static readonly uint[] CandidateSampleRates = { 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000 };
+
+	public IReadOnlyList<DeviceFormatOption> GetSupportedFormats()
+	{
+		var supported = new List<DeviceFormatOption>();
+		try
+		{
+			//the channels stay the device's: only the sample size and rate can be picked (as in Windows' list)
+			var current = GetDeviceFormat();
+			using var client = Device.CreateAudioClient();
+			int channels = current?.Channels ?? client.MixFormat.Channels;
+			int channelMask = (int)(current?.ChannelMask ?? 0);
+			if(channelMask == 0 && client.MixFormat is WaveFormatExtensible mix)
+				channelMask = mix.ChannelMask;
+			foreach(var (bits, container) in CandidateSampleSizes)
+			{
+				foreach(uint rate in CandidateSampleRates)
+				{
+					//24 bit in 24- and in 32-bit containers are one choice; the first one the device takes is kept
+					if(supported.Any(s => s.Bits == bits && s.SamplesPerSec == rate))
+						continue;
+					//what Windows' format list checks: integer PCM the device takes in exclusive mode
+					var format = new WaveFormatExtensible((int)rate, container, channels, false, bits, channelMask);
+					if(client.IsFormatSupported(AudioClientShareMode.Exclusive, format))
+						supported.Add(new DeviceFormatOption(bits, container, rate));
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			Logger.Error("Couldn't read the device's supported formats", e);
+		}
+		return supported.OrderBy(f => f.Bits).ThenBy(f => f.SamplesPerSec).ToList();
 	}
 
 	/// <summary>

@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Media;
 
@@ -21,4 +22,9 @@ public interface IDevice : IDisposable
 	Icon? GetIcon();
 
 	DeviceFormat? GetDeviceFormat();
+
+	/// <summary>
+	/// The formats the device can run at (Windows' list: what it takes in exclusive mode), by bits and rate; empty if they can't be read
+	/// </summary>
+	IReadOnlyList<DeviceFormatOption> GetSupportedFormats();
 }

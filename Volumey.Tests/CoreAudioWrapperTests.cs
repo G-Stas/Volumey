@@ -110,7 +110,7 @@ public class CoreAudioWrapperTests
 
 		var format = DeviceFormat.FromWaveFormatEx(blob);
 
-		Assert.AreEqual(new DeviceFormat(Channels: 2, SamplesPerSec: 48000, AvgBytesPerSec: 384000, BlockAlign: 8, BitsPerSample: 32), format);
+		Assert.AreEqual(new DeviceFormat(Channels: 2, SamplesPerSec: 48000, AvgBytesPerSec: 384000, BlockAlign: 8, BitsPerSample: 32, ValidBitsPerSample: 32, ChannelMask: 3), format);
 	}
 
 	[TestMethod]

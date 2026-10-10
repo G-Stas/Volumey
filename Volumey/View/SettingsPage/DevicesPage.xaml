@@ -47,8 +47,8 @@
 
             <!-- the default device's hotkeys: they follow the default device -->
             <StackPanel Margin="0 20 0 8">
-                <TextBlock Text="{lc:Localization Devices_Default}" FontWeight="SemiBold" />
-                <TextBlock Text="{lc:Localization Devices_DefaultHint}" Style="{StaticResource Caption}" />
+                <TextBlock Text="{lc:Localization Devices_VolumeSection}" FontWeight="SemiBold" />
+                <TextBlock Text="{lc:Localization Devices_VolumeSectionHint}" Style="{StaticResource Caption}" />
             </StackPanel>
             <StackPanel DataContext="{Binding DeviceVolumeHotkeysViewModel}">
                 <!-- as before: the hotkeys can be edited while they're off; turning them on registers them -->
@@ -128,102 +128,87 @@
             <!-- each device: picked in a combo box (owner's decision), then its own settings -->
             <StackPanel DataContext="{Binding DefaultDeviceHotkeysViewModel}">
                 <TextBlock Text="{lc:Localization Devices_YourDevices}" Style="{StaticResource SectionHeader}" />
-                <ComboBox Width="Auto"
-                          HorizontalAlignment="Stretch"
-                          ItemsSource="{Binding Devices}"
-                          SelectedItem="{Binding SelectedDevice}"
-                          IsSynchronizedWithCurrentItem="False"
-                          AutomationProperties.Name="{lc:Localization Devices_Device}"
-                          AutomationProperties.AutomationId="DeviceBox">
-                    <ComboBox.ItemContainerStyle>
-                        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
-                            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                        </Style>
-                    </ComboBox.ItemContainerStyle>
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <!-- the device's icon while it's connected -->
-                                <Grid Width="16" Height="16" Margin="0 0 12 0" VerticalAlignment="Center">
-                                    <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" />
-                                    <ui:SymbolIcon Symbol="Speaker224" FontSize="16">
-                                        <ui:SymbolIcon.Style>
-                                            <Style TargetType="ui:SymbolIcon">
-                                                <Setter Property="Visibility" Value="Collapsed" />
+                <!-- the device's name is only here, and "Default" only as the list's tag (owner: no repeated name or "Default device") -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Width="Auto"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding Devices}"
+                              SelectedItem="{Binding SelectedDevice}"
+                              IsSynchronizedWithCurrentItem="False"
+                              AutomationProperties.Name="{lc:Localization Devices_Device}"
+                              AutomationProperties.AutomationId="DeviceBox">
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <!-- the device's icon while it's connected -->
+                                    <Grid Width="16" Height="16" Margin="0 0 12 0" VerticalAlignment="Center">
+                                        <Image Source="{Binding IconSource}" RenderOptions.BitmapScalingMode="HighQuality" />
+                                        <ui:SymbolIcon Symbol="Speaker224" FontSize="16">
+                                            <ui:SymbolIcon.Style>
+                                                <Style TargetType="ui:SymbolIcon">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ui:SymbolIcon.Style>
+                                        </ui:SymbolIcon>
+                                    </Grid>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Margin="12 0 0 0" VerticalAlignment="Center" TextWrapping="NoWrap">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                                <Setter Property="Text" Value="" />
                                                 <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDefault}" Value="True">
+                                                        <Setter Property="Text" Value="{lc:Localization Devices_DefaultTag}" />
+                                                    </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsConnected}" Value="False">
-                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Setter Property="Text" Value="{lc:Localization Devices_NotConnected}" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </ui:SymbolIcon.Style>
-                                    </ui:SymbolIcon>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
-                                <TextBlock Grid.Column="1" Text="{Binding Name}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="2" Margin="12 0 0 0" VerticalAlignment="Center" TextWrapping="NoWrap">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
-                                            <Setter Property="Text" Value="" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsDefault}" Value="True">
-                                                    <Setter Property="Text" Value="{lc:Localization Devices_IsDefault}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding IsConnected}" Value="False">
-                                                    <Setter Property="Text" Value="{lc:Localization Devices_NotConnected}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                            </Grid>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-
-                <!-- the selected device -->
-                <ui:CardControl Margin="0 12 0 4">
-                    <ui:CardControl.Header>
-                        <StackPanel>
-                            <TextBlock Text="{Binding SelectedDevice.Name}" FontSize="20" FontWeight="SemiBold" />
-                            <TextBlock>
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedDevice.IsDefault}" Value="True">
-                                                <Setter Property="Text" Value="{lc:Localization Devices_IsDefault}" />
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding SelectedDevice.IsConnected}" Value="False">
-                                                <Setter Property="Text" Value="{lc:Localization Devices_NotConnected}" />
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </StackPanel>
-                    </ui:CardControl.Header>
-                    <!-- "Default device" (disabled) on the default device, as in the mockup -->
-                    <ui:Button Command="{Binding SetAsDefaultCommand}" AutomationProperties.AutomationId="SetAsDefaultButton">
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <!-- only while the picked device is connected and not the default (like the mixer's button) -->
+                    <ui:Button Grid.Column="1"
+                               Margin="8 0 0 0"
+                               Content="{lc:Localization Devices_SetAsDefault}"
+                               Command="{Binding SetAsDefaultCommand}"
+                               AutomationProperties.AutomationId="SetAsDefaultButton">
                         <ui:Button.Style>
                             <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
-                                <Setter Property="Content" Value="{lc:Localization Devices_SetAsDefault}" />
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SelectedDevice.IsDefault}" Value="True">
-                                        <Setter Property="Content" Value="{lc:Localization Devices_IsDefault}" />
-                                    </DataTrigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </ui:Button.Style>
                     </ui:Button>
-                </ui:CardControl>
-                <ui:CardControl Icon="{ui:SymbolIcon Keyboard24}" DataContext="{Binding SelectedDevice}">
+                </Grid>
+
+                <ui:CardControl Icon="{ui:SymbolIcon Keyboard24}" DataContext="{Binding SelectedDevice}" Margin="0 12 0 4">
                     <ui:CardControl.Header>
                         <StackPanel>
                             <TextBlock Text="{lc:Localization Devices_Hotkey}" />
@@ -247,25 +232,59 @@
                 <StackPanel Style="{StaticResource WhenConnected}">
                     <StackPanel Margin="0 20 0 8">
                         <TextBlock Text="{lc:Localization Devices_Features}" FontWeight="SemiBold" />
-                        <TextBlock Style="{StaticResource Caption}">
-                            <TextBlock.Text>
-                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="Devices_FeaturesHint">
-                                    <Binding Path="SelectedDevice.Name" />
-                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
+                        <TextBlock Text="{lc:Localization Devices_FeaturesHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
-                    <ui:CardControl Icon="{ui:SymbolIcon Pulse24}">
+                    <!-- the format: Windows' list of what the device supports (picking one reconfigures the device), or the current one as
+                         text while the list is read or if it can't be -->
+                    <ui:CardControl Icon="{ui:SymbolIcon Pulse24}" DataContext="{Binding SelectedDevice}">
                         <ui:CardControl.Header>
                             <StackPanel>
                                 <TextBlock Text="{lc:Localization Devices_Format}" />
                                 <TextBlock Text="{lc:Localization Devices_FormatHint}" Style="{StaticResource Caption}" />
+                                <TextBlock Text="{Binding FormatError}" Style="{StaticResource SettingError}" />
                             </StackPanel>
                         </ui:CardControl.Header>
-                        <TextBlock Text="{Binding SelectedDevice.Format}"
-                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                   AutomationProperties.AutomationId="DeviceFormat" />
+                        <Grid>
+                            <TextBlock Text="{Binding Format}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       Visibility="{Binding CanChooseFormat, Converter={StaticResource InverseBoolToVisibility}}"
+                                       AutomationProperties.AutomationId="DeviceFormat" />
+                            <ComboBox ItemsSource="{Binding SupportedFormats}"
+                                      SelectedItem="{Binding SelectedFormat}"
+                                      IsSynchronizedWithCurrentItem="False"
+                                      IsEnabled="{Binding IsChangingFormat, Converter={StaticResource NotRegisteredToEnabled}}"
+                                      Visibility="{Binding CanChooseFormat, Converter={StaticResource BoolToVisibility}}"
+                                      AutomationProperties.Name="{lc:Localization Devices_Format}"
+                                      AutomationProperties.AutomationId="DeviceFormatBox">
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                        <Setter Property="AutomationProperties.Name">
+                                            <Setter.Value>
+                                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="Devices_FormatName">
+                                                    <Binding Path="Bits" />
+                                                    <Binding Path="SamplesPerSec" />
+                                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                </MultiBinding>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextWrapping="NoWrap">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="Devices_FormatName">
+                                                    <Binding Path="Bits" />
+                                                    <Binding Path="SamplesPerSec" />
+                                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
                     </ui:CardControl>
                 </StackPanel>
             </StackPanel>

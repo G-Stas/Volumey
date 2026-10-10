@@ -11,13 +11,13 @@ public interface IPolicyConfig
 	[PreserveSig]
 	int GetMixFormat(
 		[In][MarshalAs(UnmanagedType.LPWStr)] string pszDeviceName,
-		[In] IntPtr ppFormat);
+		out IntPtr ppFormat);
 
 	[PreserveSig]
 	int GetDeviceFormat(
 		[In][MarshalAs(UnmanagedType.LPWStr)] string pszDeviceName,
 		[In][MarshalAs(UnmanagedType.Bool)] bool bDefault,
-		[In] IntPtr ppFormat);
+		out IntPtr ppFormat);
 
 	[PreserveSig]
 	int ResetDeviceFormat([In][MarshalAs(UnmanagedType.LPWStr)] string pszDeviceName);

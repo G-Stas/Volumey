@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.Controls;
+using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider.Settings;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
@@ -431,6 +432,80 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		vm.SelectedDevice = vm.Devices.Single(d => d.Name == "Headphones");
 		vm.SetAsDefaultCommand.Execute(null);
 		DeviceProvider.Verify(m => m.SetDefaultDevice("2"), Times.Once);
+	}
+
+	private static readonly DeviceFormat At48 = new DeviceFormat(2, 48000, 384000, 8, 32, 24, 3);
+	private static readonly DeviceFormatOption Option16At44 = new DeviceFormatOption(16, 16, 44100);
+	private static readonly DeviceFormatOption Option24At48 = new DeviceFormatOption(24, 32, 48000);
+	private static readonly DeviceFormatOption Option24At96 = new DeviceFormatOption(24, 32, 96000);
+
+	[TestMethod]
+	public void TheSelectedDevicesFormatsAreListedWithTheCurrentOneSelected()
+	{
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option16At44, Option24At48, Option24At96));
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var speakers = vm.SelectedDevice;
+
+		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+
+		Assert.HasCount(3, speakers.SupportedFormats);
+		Assert.AreEqual(Option24At48, speakers.SelectedFormat);
+		//the real bits, not the 32-bit container
+		Assert.AreEqual("24 bit, 48000 Hz", speakers.Format);
+		DeviceProvider.Verify(m => m.SetDeviceFormatAsync(It.IsAny<string>(), It.IsAny<DeviceFormatOption>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void PickingAFormatSetsIt()
+	{
+		DeviceProvider.Setup(m => m.SetDeviceFormatAsync("1", Option24At96)).ReturnsAsync(true);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48, Option24At96));
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var speakers = vm.SelectedDevice;
+		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+
+		speakers.SelectedFormat = Option24At96;
+
+		WaitFor(() => !speakers.IsChangingFormat, "the format change didn't finish");
+		DeviceProvider.Verify(m => m.SetDeviceFormatAsync("1", Option24At96), Times.Once);
+		Assert.AreEqual(string.Empty, speakers.FormatError ?? string.Empty);
+		Assert.AreEqual(Option24At96, speakers.SelectedFormat);
+	}
+
+	[TestMethod]
+	public void ARefusedFormatShowsAnErrorAndTheCurrentOneAgain()
+	{
+		DeviceProvider.Setup(m => m.SetDeviceFormatAsync("1", Option24At96)).ReturnsAsync(false);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48, Option24At96));
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var speakers = vm.SelectedDevice;
+		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+
+		speakers.SelectedFormat = Option24At96;
+
+		WaitFor(() => speakers.FormatError == ErrorDictionary.Instance[ErrorMessageType.FormatRefused], "no error shown");
+		Assert.AreEqual(Option24At48, speakers.SelectedFormat);
+		Assert.IsFalse(speakers.IsChangingFormat);
+	}
+
+	[TestMethod]
+	public void ARebuiltDeviceShowsItsNewFormat()
+	{
+		var old = CreateDevice("1", "Speakers", At48, Option24At48, Option24At96);
+		SetDefaultDevice(old);
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var speakers = vm.SelectedDevice;
+		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+
+		//Windows reconfigured the device: the provider inserts the new model, then removes the old one
+		var rebuilt = CreateDevice("1", "Speakers", new DeviceFormat(2, 96000, 768000, 8, 32, 24, 3), Option24At48, Option24At96);
+		ActiveDevices.Insert(0, rebuilt);
+		ActiveDevices.Remove(old);
+
+		Assert.AreSame(rebuilt, speakers.Model);
+		WaitFor(() => speakers.CanChooseFormat, "the new model's formats weren't read");
+		Assert.AreEqual(Option24At96, speakers.SelectedFormat);
+		Assert.AreEqual("24 bit, 96000 Hz", speakers.Format);
 	}
 
 	[TestMethod]

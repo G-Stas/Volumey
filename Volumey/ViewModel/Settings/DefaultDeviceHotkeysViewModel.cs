@@ -1,12 +1,16 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
+using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
@@ -54,7 +58,10 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		ErrorDictionary.LanguageChanged += () =>
 		{
 			foreach(var entry in Devices)
+			{
 				entry.SetError(entry.ErrorType);
+				entry.SetFormatError(entry.FormatErrorType);
+			}
 		};
 
 		SelectedDevice = Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
@@ -149,6 +156,56 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		foreach(var entry in Devices)
 			entry.IsDefault = entry.Model != null && entry.Model == defaultDevice;
 		SetAsDefaultCommand.NotifyCanExecuteChanged();
+	}
+
+	partial void OnSelectedDeviceChanged(DeviceEntry value) => LoadFormats(value);
+
+	/// <summary>
+	/// A device got a new model (plugged in, or rebuilt after a format change)
+	/// </summary>
+	internal void OnModelChanged(DeviceEntry entry)
+	{
+		if(entry == SelectedDevice)
+			LoadFormats(entry);
+	}
+
+	/// <summary>
+	/// Reads the device's supported formats off the UI thread (COM calls, one per candidate format)
+	/// </summary>
+	private void LoadFormats(DeviceEntry entry)
+	{
+		if(entry?.Model is not { } model || entry.CanChooseFormat)
+			return;
+		LoadFormatsAsync(entry, model).Forget(Logger, "Failed to read the device's formats");
+	}
+
+	private static async Task LoadFormatsAsync(DeviceEntry entry, OutputDeviceModel model)
+	{
+		var formats = await Task.Run(model.GetSupportedFormats);
+		//unplugged or rebuilt meanwhile: the new model reads its own
+		if(entry.Model != model)
+			return;
+		entry.SetSupportedFormats(formats ?? Array.Empty<DeviceFormatOption>());
+	}
+
+	/// <summary>
+	/// The format picked in a device's list: Windows reconfigures the device, which rebuilds its model (and the list then shows the new format).
+	/// If Windows refuses it, the device shows the error and the list goes back to the current format.
+	/// </summary>
+	internal void ChangeFormat(DeviceEntry entry, DeviceFormatOption format)
+		=> ChangeFormatAsync(entry, format).Forget(Logger, "Failed to change the device format");
+
+	private async Task ChangeFormatAsync(DeviceEntry entry, DeviceFormatOption format)
+	{
+		entry.IsChangingFormat = true;
+		entry.SetFormatError(ErrorMessageType.None);
+		bool changed = await DeviceProvider.SetDeviceFormatAsync(entry.Id, format);
+		entry.IsChangingFormat = false;
+		if(!changed)
+		{
+			entry.SetFormatError(ErrorMessageType.FormatRefused);
+			entry.ShowCurrentFormat();
+		}
 	}
 
 	private bool CanSetAsDefault() => SelectedDevice is { IsConnected: true, IsDefault: false };

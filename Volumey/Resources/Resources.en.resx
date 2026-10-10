@@ -582,11 +582,11 @@
   <data name="Devices_Description" xml:space="preserve">
     <value>Hotkeys for the default device, and each device's own settings.</value>
   </data>
-  <data name="Devices_Default" xml:space="preserve">
-    <value>Default device</value>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>Volume hotkeys</value>
   </data>
-  <data name="Devices_DefaultHint" xml:space="preserve">
-    <value>These hotkeys control whichever device is the default, also after you switch it</value>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>They control whichever device is the default, also after you switch it</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Volume up and down</value>
@@ -606,8 +606,8 @@
   <data name="Devices_Device" xml:space="preserve">
     <value>Device</value>
   </data>
-  <data name="Devices_IsDefault" xml:space="preserve">
-    <value>Default device</value>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>Default</value>
   </data>
   <data name="Devices_NotConnected" xml:space="preserve">
     <value>Not connected</value>
@@ -625,12 +625,18 @@
     <value>Audio features</value>
   </data>
   <data name="Devices_FeaturesHint" xml:space="preserve">
-    <value>Read from Windows for {0}</value>
+    <value>Read from Windows</value>
   </data>
   <data name="Devices_Format" xml:space="preserve">
     <value>Format</value>
   </data>
   <data name="Devices_FormatHint" xml:space="preserve">
     <value>What the audio engine runs at</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>Couldn't change the format</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} bit, {1} Hz</value>
   </data>
 </root>

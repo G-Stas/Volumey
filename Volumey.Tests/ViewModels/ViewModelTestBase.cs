@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -68,6 +69,21 @@ public abstract class ViewModelTestBase
 
 	protected OutputDeviceModel CreateDevice(string id, string name, params AudioProcessModel[] processes)
 		=> CreateDevice(id, name, out _, 70, processes);
+
+	/// <summary>
+	/// A device running at <paramref name="format"/> that supports <paramref name="supported"/>
+	/// </summary>
+	protected OutputDeviceModel CreateDevice(string id, string name, DeviceFormat format, params DeviceFormatOption[] supported)
+	{
+		var master = new MasterSessionModel(name, name, 70, false, id, null, new Mock<IAudioSessionVolume>().Object,
+			new Mock<IMasterVolumeNotificationHandler>().Object, Hotkeys);
+		var device = new Mock<IDevice>();
+		device.Setup(m => m.GetId()).Returns(id);
+		device.Setup(m => m.GetDeviceFormat()).Returns(format);
+		device.Setup(m => m.GetSupportedFormats()).Returns(supported);
+		return new OutputDeviceModel(device.Object, new Mock<IDeviceStateNotificationHandler>().Object, new Mock<ISessionProvider>().Object,
+									 master, new List<AudioProcessModel>());
+	}
 
 	protected AudioProcessModel CreateProcess(string name, int volume = 50)
 		=> AudioProcessModelTests.GetProcessMock(name, volume, false, Hotkeys);

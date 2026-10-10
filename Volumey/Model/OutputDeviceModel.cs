@@ -107,6 +107,12 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	/// </summary>
 	internal DeviceFormat? Format => currentStreamFormat;
 
+	/// <summary>
+	/// The formats the device can run at (makes COM calls: call it off the UI thread); empty if they can't be read
+	/// </summary>
+	internal IReadOnlyList<DeviceFormatOption> GetSupportedFormats()
+		=> disposed ? Array.Empty<DeviceFormatOption>() : device.GetSupportedFormats();
+
 	internal void ResetVolumeHotkeys() => Master.ResetVolumeHotkeys();
 
 	internal void SetStateNotificationMediator(IAudioProcessStateMediator mediator)

@@ -179,6 +179,10 @@ public class AudioLayerTests
 		Assert.IsNotNull(format);
 		Assert.IsGreaterThan(0, (int)format.Value.Channels);
 		Assert.IsGreaterThan(0u, format.Value.SamplesPerSec);
+		//the format list (what Windows' sound settings offer) has the format the device runs at
+		var supported = device.GetSupportedFormats();
+		Assert.IsNotEmpty(supported);
+		Assert.IsTrue(supported.Any(option => option.Matches(format.Value)), $"{format} isn't in the supported formats");
 
 		using var devices = new LoadedDevices();
 		var model = devices.Get(id);
