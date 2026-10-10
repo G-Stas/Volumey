@@ -21,6 +21,22 @@ public class ControlsTests
 		Assert.IsFalse(DigitsOnly.IsAllowed(""));
 	}
 
+	[STATestMethod]
+	public void NumberBoxCommitsAClampedValueWhenItLosesFocus()
+	{
+		var box = new Wpf.Ui.Controls.NumberBox { Minimum = 1, Maximum = 100, Value = 5 };
+		var scope = new System.Windows.Controls.StackPanel();
+		System.Windows.Input.FocusManager.SetIsFocusScope(scope, true);
+		scope.Children.Add(box);
+		System.Windows.Input.FocusManager.SetFocusedElement(scope, box);
+		box.Text = "150";
+
+		CommitOnFocusLoss.Commit(box);
+
+		Assert.AreEqual(100d, box.Value, $"text {box.Text}");
+		Assert.IsFalse(box.IsFocused);
+	}
+
 	[TestMethod]
 	public void HotkeysWithSameKeysAreEqual()
 	{
