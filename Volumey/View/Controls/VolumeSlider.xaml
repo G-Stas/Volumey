@@ -16,8 +16,9 @@
         </Setter>
     </Style>
 
-    <!-- the thumb as in Windows 11: the inner circle keeps its color and grows while the pointer is over it, shrinks while
-         dragging (WinUI: 12 px, ×1.167 over, ×0.833 pressed); WPF-UI's thumb changes color instead (owner's request) -->
+    <!-- the thumb as in Windows 11's volume flyout (measured on the owner's screenshot): a 10 px inner circle in the fill's accent
+         color that keeps its color, grows to 14 px while the pointer is over it and shrinks while dragging;
+         WPF-UI's thumb is 12 px in a darker accent and changes color on hover instead (owner's request) -->
     <Style x:Key="VolumeSliderThumb" TargetType="Thumb" BasedOn="{StaticResource UiSliderThumbStyle}">
         <Setter Property="Template">
             <Setter.Value>
@@ -27,9 +28,9 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="16">
                         <Ellipse x:Name="Inner"
-                                 Width="12"
-                                 Height="12"
-                                 Fill="{TemplateBinding Foreground}"
+                                 Width="10"
+                                 Height="10"
+                                 Fill="{DynamicResource AccentFillColorDefaultBrush}"
                                  RenderTransformOrigin="0.5 0.5">
                             <Ellipse.RenderTransform>
                                 <ScaleTransform ScaleX="1" ScaleY="1" />
@@ -38,12 +39,12 @@
                     </Border>
                     <ControlTemplate.Resources>
                         <Storyboard x:Key="Grow">
-                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.167" Duration="0:0:0.083" />
-                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.167" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.4" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.4" Duration="0:0:0.083" />
                         </Storyboard>
                         <Storyboard x:Key="Shrink">
-                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.833" Duration="0:0:0.083" />
-                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.833" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.86" Duration="0:0:0.083" />
+                            <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.86" Duration="0:0:0.083" />
                         </Storyboard>
                         <Storyboard x:Key="Normal">
                             <DoubleAnimation Storyboard.TargetName="Inner" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.083" />
