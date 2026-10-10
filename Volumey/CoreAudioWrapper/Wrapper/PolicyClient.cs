@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿#nullable enable
+using System.Runtime.InteropServices;
 using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
 
@@ -9,7 +10,7 @@ public class PolicyClient
 	[ComImport, Guid(GuidValue.External.PolicyConfigCOM)]
 	private class PolicyClientCOM { }
 
-	private IPolicyConfig instance = new PolicyClientCOM() as IPolicyConfig;
+	private readonly IPolicyConfig instance = (IPolicyConfig)new PolicyClientCOM();
 
 	/// <exception cref="COMException">Windows refused the switch (it used to fail silently)</exception>
 	public void SetDefaultEndpointDevice(string deviceId)

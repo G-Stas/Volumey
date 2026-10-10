@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using NAudio.CoreAudioApi;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
@@ -19,8 +20,8 @@ public class SessionCreatedEventArgs : EventArgs
 	}
 
 	/// <summary>
-	/// Creates a process model for the new session when no existing process can hold it.
+	/// Creates a process model for the new session when no existing process can hold it. Null if that fails.
 	/// </summary>
-	public AudioProcessModel CreateProcessModel()
+	public AudioProcessModel? CreateProcessModel()
 		=> AudioModelFactory.CreateProcessModel(SessionModel, sessionControl, hotkeys, out _);
 }

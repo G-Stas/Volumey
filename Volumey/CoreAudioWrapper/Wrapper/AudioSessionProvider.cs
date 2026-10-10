@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using log4net;
 using NAudio.CoreAudioApi;
 using Volumey.ViewModel.Settings;
@@ -10,8 +11,8 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// </summary>
 class AudioSessionProvider : ISessionProvider
 {
-	public event Action<object, SessionCreatedEventArgs> SessionCreated;
-	public event Action DeviceInvalidated;
+	public event Action<object, SessionCreatedEventArgs>? SessionCreated;
+	public event Action? DeviceInvalidated;
 	private readonly AudioSessionManager sessionManager;
 	private readonly IHotkeyService hotkeys;
 

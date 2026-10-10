@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Buffers.Binary;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;

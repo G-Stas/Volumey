@@ -1,4 +1,5 @@
-﻿namespace Volumey.CoreAudioWrapper.Wrapper;
+﻿#nullable enable
+namespace Volumey.CoreAudioWrapper.Wrapper;
 
 /// <summary>
 /// The reason an audio session was disconnected. Same values as the Core Audio AudioSessionDisconnectReason enum.

@@ -8,6 +8,8 @@
     <UseWPF>true</UseWPF>
     <!-- CsWin32's generated declarations use pointers -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- nullable reference types are turned on per file (#nullable enable); in those files their warnings are errors -->
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <Platforms>x64</Platforms>
     <RootNamespace>Volumey</RootNamespace>
     <StartupObject>Volumey.Startup</StartupObject>
