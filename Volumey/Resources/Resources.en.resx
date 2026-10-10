@@ -504,4 +504,79 @@
   <data name="MixerPage_SyncHint" xml:space="preserve">
     <value>Moving the device volume sets every app to the same value, new apps included</value>
   </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>Set a hotkey</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>Change one app's volume from anywhere, even while it's in the background.</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>Foreground app</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>Control the app in focus</value>
+  </data>
+  <data name="AppHotkeys_ForegroundHint" xml:space="preserve">
+    <value>Hotkeys change the volume of whichever app is in front</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>Volume up</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>Volume down</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>Apps</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>Add app</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>No apps yet. Add one to change its volume with hotkeys.</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>{0} volume up</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>{0} volume down</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>Add an app</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>App</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>Apps that use the default device right now</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>No other app uses the default device right now. Start the app, then try again.</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AppHotkeys_BlockedInfo" xml:space="preserve">
+    <value>Hotkeys are blocked for other apps. Turn that off in General if a game needs the same keys.</value>
+  </data>
+  <data name="AppHotkeys_SharedInfo" xml:space="preserve">
+    <value>Other apps get the keys too, and hotkeys don't work while an app running as administrator is in focus. You can change that in General.</value>
+  </data>
+  <data name="AppHotkeys_OpenGeneral" xml:space="preserve">
+    <value>Open General</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>An app needs both hotkeys</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
 </root>

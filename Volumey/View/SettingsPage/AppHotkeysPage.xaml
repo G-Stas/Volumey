@@ -1,0 +1,227 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.AppHotkeysPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization"
+      xmlns:converters="clr-namespace:Volumey.View.Converters"
+      xmlns:controls="clr-namespace:Volumey.Controls"
+      Title="{lc:Localization Nav_AppHotkeys}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      DataContext="{StaticResource SettingsViewModel}">
+    <!-- the Foreground: see GeneralPage -->
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:HotkeysRegisteredToEnabledConverter x:Key="NotRegisteredToEnabled" />
+            <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
+            <!-- a row's label lines up with its hotkey box, also when an error shows under the box -->
+            <Style x:Key="HotkeyRowLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="VerticalAlignment" Value="Top" />
+                <Setter Property="Margin" Value="0 6 0 0" />
+            </Style>
+            <!-- the error of one hotkey, under its box (owner's decision) -->
+            <Style x:Key="HotkeyError" TargetType="TextBlock" BasedOn="{StaticResource SettingError}">
+                <Setter Property="MaxWidth" Value="180" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="0 4 0 0" />
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- mockup SettingsApps.dc.html; the app list is an expander per app (the mockup's table doesn't fit the page's width),
+         apps are added in a dialog and their hotkeys can be changed in place (owner's decisions) -->
+    <!-- no ScrollViewer here: see GeneralPage -->
+        <StackPanel Margin="16 4 40 32">
+            <TextBlock Text="{lc:Localization Nav_AppHotkeys}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{lc:Localization AppHotkeys_Description}" Style="{StaticResource PageDescription}" />
+
+            <TextBlock Text="{lc:Localization AppHotkeys_Foreground}" Style="{StaticResource SectionHeader}" />
+            <!-- as before: the hotkeys can be edited while it's off; turning it on registers them -->
+            <ui:CardExpander Icon="{ui:SymbolIcon WindowApps24}" IsExpanded="True" Margin="0 0 0 4"
+                             DataContext="{Binding ForegroundWindowVolumeViewModel}">
+                <ui:CardExpander.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{lc:Localization AppHotkeys_ForegroundTitle}" />
+                            <TextBlock Text="{lc:Localization AppHotkeys_ForegroundHint}" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1"
+                                         Margin="16 0"
+                                         IsChecked="{Binding HotkeysRegistered}"
+                                         AutomationProperties.Name="{lc:Localization AppHotkeys_ForegroundTitle}"
+                                         AutomationProperties.AutomationId="ForegroundToggle" />
+                    </Grid>
+                </ui:CardExpander.Header>
+                <Grid Margin="40 0 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="{lc:Localization AppHotkeys_VolumeUp}" Style="{StaticResource HotkeyRowLabel}" />
+                    <StackPanel Grid.Column="1" Margin="0 0 0 8">
+                        <controls:HotKeyBox HotKey="{Binding VolumeUpHotkey}"
+                                            IsEnabled="{Binding HotkeysRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                            AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeUp}"
+                                            AutomationProperties.AutomationId="ForegroundUpBox" />
+                        <TextBlock Text="{Binding Errors.VolumeUp}" Style="{StaticResource HotkeyError}" />
+                    </StackPanel>
+                    <TextBlock Grid.Row="1" Text="{lc:Localization AppHotkeys_VolumeDown}" Style="{StaticResource HotkeyRowLabel}" />
+                    <StackPanel Grid.Row="1" Grid.Column="1">
+                        <controls:HotKeyBox HotKey="{Binding VolumeDownHotkey}"
+                                            IsEnabled="{Binding HotkeysRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                            AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeDown}"
+                                            AutomationProperties.AutomationId="ForegroundDownBox" />
+                        <TextBlock Text="{Binding Errors.VolumeDown}" Style="{StaticResource HotkeyError}" />
+                    </StackPanel>
+                </Grid>
+            </ui:CardExpander>
+
+            <Grid Margin="0 20 0 8" DataContext="{Binding HotkeysViewModel}">
+                <TextBlock Text="{lc:Localization AppHotkeys_Apps}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <ui:Button HorizontalAlignment="Right"
+                           Appearance="Primary"
+                           Icon="{ui:SymbolIcon Add24}"
+                           Content="{lc:Localization AppHotkeys_AddApp}"
+                           Click="OnAddAppClick"
+                           AutomationProperties.AutomationId="AddAppButton" />
+            </Grid>
+
+            <StackPanel DataContext="{Binding HotkeysViewModel}">
+                <TextBlock Text="{lc:Localization AppHotkeys_NoApps}" Margin="0 0 0 4">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Apps.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <ItemsControl ItemsSource="{Binding Apps}" Focusable="False" AutomationProperties.AutomationId="AppList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ui:CardExpander Margin="0 0 0 4" AutomationProperties.Name="{Binding ProcessName}">
+                                <ui:CardExpander.Header>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <!-- the app's icon while it runs, a generic one otherwise (only the process name is saved) -->
+                                        <Grid Width="24" Height="24" Margin="0 0 16 0" VerticalAlignment="Center">
+                                            <Image Source="{Binding Icon}" />
+                                            <ui:SymbolIcon Symbol="AppGeneric24" FontSize="20">
+                                                <ui:SymbolIcon.Style>
+                                                    <Style TargetType="ui:SymbolIcon">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ui:SymbolIcon.Style>
+                                            </ui:SymbolIcon>
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ProcessName}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="16 0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding VolumeUp}" Style="{StaticResource Caption}" HorizontalAlignment="Right" TextWrapping="NoWrap" />
+                                            <TextBlock Text="{Binding VolumeDown}" Style="{StaticResource Caption}" HorizontalAlignment="Right" TextWrapping="NoWrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </ui:CardExpander.Header>
+                                <Grid Margin="40 0 0 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="{lc:Localization AppHotkeys_VolumeUp}" Style="{StaticResource HotkeyRowLabel}" />
+                                    <StackPanel Grid.Column="1" Margin="0 0 0 8">
+                                        <controls:HotKeyBox HotKey="{Binding VolumeUp}">
+                                            <AutomationProperties.Name>
+                                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="AppHotkeys_AppVolumeUp">
+                                                    <Binding Path="ProcessName" />
+                                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                </MultiBinding>
+                                            </AutomationProperties.Name>
+                                        </controls:HotKeyBox>
+                                        <TextBlock Text="{Binding Errors.VolumeUp}" Style="{StaticResource HotkeyError}" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="1" Text="{lc:Localization AppHotkeys_VolumeDown}" Style="{StaticResource HotkeyRowLabel}" />
+                                    <StackPanel Grid.Row="1" Grid.Column="1">
+                                        <controls:HotKeyBox HotKey="{Binding VolumeDown}">
+                                            <AutomationProperties.Name>
+                                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="AppHotkeys_AppVolumeDown">
+                                                    <Binding Path="ProcessName" />
+                                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                </MultiBinding>
+                                            </AutomationProperties.Name>
+                                        </controls:HotKeyBox>
+                                        <TextBlock Text="{Binding Errors.VolumeDown}" Style="{StaticResource HotkeyError}" />
+                                    </StackPanel>
+                                    <ui:Button Grid.Row="2"
+                                               Grid.Column="1"
+                                               Margin="0 12 0 0"
+                                               HorizontalAlignment="Right"
+                                               Icon="{ui:SymbolIcon Delete24}"
+                                               Content="{lc:Localization AppHotkeys_Remove}"
+                                               Command="{Binding RemoveCommand}">
+                                        <AutomationProperties.Name>
+                                            <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="AppHotkeys_RemoveApp">
+                                                <Binding Path="ProcessName" />
+                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                            </MultiBinding>
+                                        </AutomationProperties.Name>
+                                    </ui:Button>
+                                </Grid>
+                            </ui:CardExpander>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- what the hotkey mode (General) means for these hotkeys; a card as in the mockup (WPF-UI's InfoBar doesn't show content, so no link) -->
+            <ui:CardControl Margin="0 12 0 0">
+                <ui:CardControl.Icon>
+                    <ui:SymbolIcon Symbol="Info24" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                </ui:CardControl.Icon>
+                <ui:CardControl.Header>
+                    <TextBlock>
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="Text" Value="{lc:Localization AppHotkeys_BlockedInfo}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BlockHotkeysInSystem}" Value="False">
+                                        <Setter Property="Text" Value="{lc:Localization AppHotkeys_SharedInfo}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </ui:CardControl.Header>
+                <ui:HyperlinkButton Content="{lc:Localization AppHotkeys_OpenGeneral}"
+                                    Click="OnOpenGeneralClick"
+                                    AutomationProperties.AutomationId="OpenGeneralLink" />
+            </ui:CardControl>
+        </StackPanel>
+</Page>

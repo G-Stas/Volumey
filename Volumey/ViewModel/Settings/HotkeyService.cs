@@ -79,15 +79,24 @@ public sealed class HotkeyService : IHotkeyService
 	/// <summary>
 	/// Registers both hotkeys, or neither: if the second one fails, the first is released again.
 	/// </summary>
-	public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
+	public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2) => RegisterHotkeysPair(hotkey1, hotkey2, out _);
+
+	/// <inheritdoc cref="RegisterHotkeysPair(HotKey, HotKey)"/>
+	/// <param name="failed">The hotkey that couldn't be registered (the settings show the error under its box), null on success</param>
+	public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2, out HotKey failed)
 	{
+		failed = hotkey1;
 		if(!RegisterHotkey(hotkey1))
 			return false;
-		if(RegisterHotkey(hotkey2))
-			return true;
-		//release only what this call took: the combination may be shared with another feature
-		UnregisterHotkey(hotkey1);
-		return false;
+		failed = hotkey2;
+		if(!RegisterHotkey(hotkey2))
+		{
+			//release only what this call took: the combination may be shared with another feature
+			UnregisterHotkey(hotkey1);
+			return false;
+		}
+		failed = null;
+		return true;
 	}
 
 	public void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
@@ -178,6 +187,21 @@ public sealed class HotkeyService : IHotkeyService
 		if(SettingsProvider.HotkeysExist(up, down))
 			return ErrorMessageType.HotkeyExists;
 		return ErrorMessageType.None;
+	}
+
+	/// <summary>
+	/// Checks a volume up/down pair hotkey by hotkey, so the settings can show an error under the box that has it.
+	/// A missing hotkey is <see cref="ErrorMessageType.Missing"/>; two equal hotkeys are reported on the second one.
+	/// </summary>
+	public (ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey up, HotKey down)
+	{
+		ErrorMessageType Check(HotKey hotkey) => hotkey == null ? ErrorMessageType.Missing : HotkeyIsValid(hotkey);
+
+		var upError = Check(up);
+		var downError = Check(down);
+		if(downError == ErrorMessageType.None && down.Equals(up))
+			downError = ErrorMessageType.Diff;
+		return (upError, downError);
 	}
 
 	public void SetVolumeStep(int newValue)

@@ -39,6 +39,9 @@ public interface IHotkeyService : IDisposable
 
 	bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2);
 
+	/// <param name="failed">The hotkey that couldn't be registered, null on success</param>
+	bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2, out HotKey failed);
+
 	void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2);
 
 	bool RegisterHotkey(HotKey hotkey);
@@ -52,4 +55,9 @@ public interface IHotkeyService : IDisposable
 	ErrorMessageType HotkeyIsValid(HotKey hotkey);
 
 	ErrorMessageType HotkeysAreValid(HotKey up, HotKey down);
+
+	/// <summary>
+	/// Checks a volume up/down pair hotkey by hotkey (see <see cref="HotkeyService.CheckHotkeysPair"/>)
+	/// </summary>
+	(ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey up, HotKey down);
 }

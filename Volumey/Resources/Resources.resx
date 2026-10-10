@@ -504,4 +504,79 @@
   <data name="MixerPage_SyncHint" xml:space="preserve">
     <value />
   </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_ForegroundHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_BlockedInfo" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_SharedInfo" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_OpenGeneral" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value />
+  </data>
 </root>

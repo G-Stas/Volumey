@@ -60,4 +60,19 @@ public class HotkeysValidationTests
 		Assert.IsTrue(hotkeys.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
 		Assert.IsTrue(hotkeys.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
 	}
+
+	[TestMethod]
+	public void PairCheckReportsEachHotkeysOwnError()
+	{
+		var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
+		SettingsProvider.Settings.Hotkeys.DeviceMute = existingHotkey;
+		var free = new HotKey(Key.A, ModifierKeys.Control);
+
+		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.HotkeyExists), hotkeys.CheckHotkeysPair(free, existingHotkey));
+		Assert.AreEqual((ErrorMessageType.F12, ErrorMessageType.None), hotkeys.CheckHotkeysPair(new HotKey(Key.F12), free));
+		Assert.AreEqual((ErrorMessageType.Missing, ErrorMessageType.None), hotkeys.CheckHotkeysPair(null, free));
+		//two equal hotkeys: the second one gets the error
+		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.Diff), hotkeys.CheckHotkeysPair(free, free));
+		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.None), hotkeys.CheckHotkeysPair(free, new HotKey(Key.B, ModifierKeys.Control)));
+	}
 }

@@ -33,7 +33,7 @@
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavMixer" Content="{lc:Localization Nav_Mixer}" Icon="{ui:SymbolIcon Options24}"
                                        TargetPageType="{x:Type pages:MixerPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavAppHotkeys" Content="{lc:Localization Nav_AppHotkeys}" Icon="{ui:SymbolIcon Apps24}"
-                                       TargetPageType="{x:Type pages:PlaceholderPage}" />
+                                       TargetPageType="{x:Type pages:AppHotkeysPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavDevices" Content="{lc:Localization Nav_Devices}" Icon="{ui:SymbolIcon Speaker224}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavMediaKeys" Content="{lc:Localization Nav_MediaKeys}" Icon="{ui:SymbolIcon Keyboard24}"
@@ -51,5 +51,8 @@
                                        CommandParameter="{Binding TipSource.Item2}" />
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
+
+        <!-- dialogs of the settings pages (App hotkeys: Add app) -->
+        <ui:ContentDialogHost x:Name="DialogHost" Grid.Row="0" Grid.RowSpan="2" />
     </Grid>
 </ui:FluentWindow>

@@ -24,10 +24,12 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
 
-		vm.AddAppCommand.Execute(null);
+		Assert.IsTrue(vm.TryAddApp());
 
 		Assert.IsTrue(spotify.AnyHotkeyRegistered);
-		Assert.IsTrue(vm.RegisteredProcesses.ContainsKey("Spotify"));
+		var app = Assert.ContainsSingle(vm.Apps);
+		Assert.AreEqual("Spotify", app.ProcessName);
+		Assert.AreEqual(Up, app.VolumeUp);
 		var saved = Assert.ContainsSingle(Settings.Hotkeys.Apps);
 		Assert.AreEqual("Spotify", saved.ProcessName);
 		Assert.AreEqual(Up, saved.VolumeUp);
@@ -46,11 +48,39 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = null };
 
-		vm.AddAppCommand.Execute(null);
+		Assert.IsFalse(vm.TryAddApp());
 
-		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.ErrorMessage);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.Missing], vm.AddErrors.VolumeDown);
+		Assert.AreEqual(string.Empty, vm.AddErrors.VolumeUp);
 		Assert.IsFalse(spotify.AnyHotkeyRegistered);
+		Assert.IsEmpty(vm.Apps);
 		Assert.IsEmpty(Settings.Hotkeys.Apps);
+	}
+
+	[TestMethod]
+	public void TheAddDialogShowsAnErrorUnderTheHotkeyThatHasIt()
+	{
+		var taken = new HotKey(Key.M, ModifierKeys.Control);
+		var refused = new HotKey(Key.R, ModifierKeys.Control);
+		Settings.Hotkeys.DeviceMute = taken;
+		ActivateHotkeys();
+		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new System.InvalidOperationException("taken by another app"));
+		var spotify = CreateProcess("Spotify");
+		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = taken };
+
+		Assert.IsFalse(vm.TryAddApp());
+		Assert.AreEqual(string.Empty, vm.AddErrors.VolumeUp);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.HotkeyExists], vm.AddErrors.VolumeDown);
+
+		//a new hotkey in that box clears its error; one the system refuses shows there too
+		vm.VolumeDown = refused;
+		Assert.IsFalse(vm.AddErrors.Any);
+		Assert.IsFalse(vm.TryAddApp());
+		Assert.AreEqual(string.Empty, vm.AddErrors.VolumeUp);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.AddErrors.VolumeDown);
+		Assert.IsFalse(spotify.AnyHotkeyRegistered);
+		Assert.IsEmpty(vm.Apps);
 	}
 
 	[TestMethod]
@@ -60,15 +90,128 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
-		vm.AddAppCommand.Execute(null);
+		vm.TryAddApp();
 
-		vm.SelectedRegApp = vm.RegisteredProcesses.Single();
-		vm.RemoveAppCommand.Execute(null);
+		vm.Apps.Single().RemoveCommand.Execute(null);
 
 		Assert.IsFalse(spotify.AnyHotkeyRegistered);
-		Assert.IsEmpty(vm.RegisteredProcesses);
+		Assert.IsEmpty(vm.Apps);
 		Assert.IsEmpty(Settings.Hotkeys.Apps);
 		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
+	}
+
+	[TestMethod]
+	public void AddDialogOffersOnlyAppsWithoutHotkeys()
+	{
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var chrome = CreateProcess("Chrome");
+		SetDefaultDevice(CreateDevice("1", "Speakers", CreateProcess("Spotify"), chrome, CreateProcess("Chrome")));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = chrome, VolumeUp = Up };
+		vm.TryAddApp(); //fails without the second hotkey, which sets an error
+
+		vm.PrepareAddApp();
+
+		Assert.AreEqual(chrome, Assert.ContainsSingle(vm.AddableProcesses));
+		Assert.IsNull(vm.VolumeUp);
+		Assert.IsFalse(vm.AddErrors.Any);
+	}
+
+	[TestMethod]
+	public void ChangingARunningAppsHotkeyReregistersAndSavesIt()
+	{
+		var newUp = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var spotify = CreateProcess("Spotify", 50);
+		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var app = vm.Apps.Single();
+
+		app.VolumeUp = newUp;
+
+		Assert.AreEqual(newUp, app.VolumeUp);
+		Assert.IsFalse(app.Errors.Any);
+		Assert.AreEqual(newUp, Settings.Hotkeys.Apps.Single().VolumeUp);
+		Assert.AreEqual(Down, Settings.Hotkeys.Apps.Single().VolumeDown);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
+		PressHotkey(Up);
+		Assert.AreEqual(50, spotify.Volume);
+		PressHotkey(newUp);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, spotify.Volume);
+	}
+
+	[TestMethod]
+	public void ChangingAStoppedAppsHotkeyOnlySavesIt()
+	{
+		var newDown = new HotKey(Key.Down, ModifierKeys.Control | ModifierKeys.Shift);
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+
+		vm.Apps.Single().VolumeDown = newDown;
+
+		Assert.AreEqual(newDown, Settings.Hotkeys.Apps.Single().VolumeDown);
+		HotkeyManager.Verify(m => m.RegisterHotkey(It.IsAny<HotKey>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void InvalidHotkeyChangesKeepTheOldHotkeys()
+	{
+		var taken = new HotKey(Key.M, ModifierKeys.Control);
+		Settings.Hotkeys.DeviceMute = taken;
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var spotify = CreateProcess("Spotify");
+		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var app = vm.Apps.Single();
+		var changes = 0;
+		app.PropertyChanged += (_, e) => { if(e.PropertyName == nameof(AppHotkeysItem.VolumeUp)) changes++; };
+
+		foreach(var (hotkey, error) in new[]
+				{
+					(null, ErrorMessageType.NeedsBoth),
+					(Down, ErrorMessageType.Diff),
+					(taken, ErrorMessageType.HotkeyExists),
+					(new HotKey(Key.F12), ErrorMessageType.F12)
+				})
+		{
+			app.VolumeUp = hotkey;
+			//the box shows Up again, so the message names the rejected hotkey
+			string expected = hotkey == null ? ErrorDictionary.Instance[error] : $"{hotkey}: {ErrorDictionary.Instance[error]}";
+			Assert.AreEqual(expected, app.Errors.VolumeUp);
+			Assert.AreEqual(string.Empty, app.Errors.VolumeDown);
+			Assert.AreEqual(Up, app.VolumeUp);
+		}
+
+		//the hotkey box is told the old hotkey again after each rejected change
+		Assert.AreEqual(4, changes);
+		Assert.AreEqual(Up, Settings.Hotkeys.Apps.Single().VolumeUp);
+		Assert.IsTrue(spotify.AnyHotkeyRegistered);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(It.IsAny<HotKey>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void AHotkeyChangeTheSystemRefusesKeepsTheOldHotkeys()
+	{
+		var refused = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new System.InvalidOperationException("taken by another app"));
+		var spotify = CreateProcess("Spotify", 50);
+		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var app = vm.Apps.Single();
+
+		app.VolumeUp = refused;
+
+		Assert.AreEqual($"{refused}: {ErrorDictionary.Instance[ErrorMessageType.VolumeReg]}", app.Errors.VolumeUp);
+		Assert.AreEqual(Up, app.VolumeUp);
+		Assert.AreEqual(Up, Settings.Hotkeys.Apps.Single().VolumeUp);
+		PressHotkey(Up);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, spotify.Volume);
 	}
 
 	[TestMethod]
@@ -317,6 +460,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		vm.HotkeysRegistered = true;
 
 		Assert.IsFalse(vm.HotkeysRegistered);
-		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.Diff], vm.ErrorMessage);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.Diff], vm.Errors.VolumeDown);
+		Assert.AreEqual(string.Empty, vm.Errors.VolumeUp);
 	}
 }
