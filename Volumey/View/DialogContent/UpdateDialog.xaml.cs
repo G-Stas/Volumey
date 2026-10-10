@@ -15,6 +15,8 @@ public partial class UpdateDialog
 
 	public UpdateDialog()
 	{
+		//WPF-UI's dialog style is implicit, which doesn't reach a subclass (without it: no dialog chrome, no buttons)
+		SetResourceReference(StyleProperty, typeof(ContentDialog));
 		InitializeComponent();
 	}
 
