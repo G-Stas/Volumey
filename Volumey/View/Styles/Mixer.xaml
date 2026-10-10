@@ -42,7 +42,8 @@
     <!-- a small caption above a control ("Output device") -->
     <Style x:Key="Caption" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12" />
-        <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+        <!-- secondary, as Windows 11 Settings' descriptions: WPF-UI's tertiary was hard to read in the light theme (owner) -->
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 </ResourceDictionary>
