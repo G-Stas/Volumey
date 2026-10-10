@@ -15,14 +15,13 @@
 
     <!-- mockup Main.dc.html (popup) and MixerWindow.dc.html (window mode) -->
     <DockPanel>
-        <!-- popup only: in window mode the settings button sits next to the device picker -->
+        <!-- the bottom bar (mockup Main.dc.html), in both modes (owner's decision) -->
         <Border x:Name="Footer"
                 DockPanel.Dock="Bottom"
                 Height="48"
                 Background="{DynamicResource LayerFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
-                BorderThickness="0 1 0 0"
-                Visibility="{Binding DisplayMinimalistic, Converter={StaticResource BoolToVisibility}}">
+                BorderThickness="0 1 0 0">
             <DockPanel Margin="8 0 6 0" LastChildFill="False">
                 <ui:Button DockPanel.Dock="Left"
                            Appearance="Transparent"
@@ -35,7 +34,7 @@
                            Style="{StaticResource IconButton}"
                            ToolTip="{lc:Localization Mixer_OpenSettings}"
                            AutomationProperties.Name="{lc:Localization Mixer_OpenSettings}"
-                           AutomationProperties.AutomationId="OpenSettingsButton"
+                           AutomationProperties.AutomationId="SettingsButton"
                            Command="{Binding TraySettingsCommand}">
                     <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
                 </ui:Button>

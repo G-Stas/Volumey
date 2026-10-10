@@ -35,7 +35,6 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <ComboBox
@@ -82,19 +81,6 @@
                         </MultiBinding>
                     </ui:Button.IsEnabled>
                     <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="18" />
-                </ui:Button>
-
-                <!-- window mode only: the popup has the settings button in its footer -->
-                <ui:Button
-                    Grid.Column="2"
-                    Style="{StaticResource IconButton}"
-                    Margin="4 0 0 0"
-                    ToolTip="{lc:Localization Mixer_OpenSettings}"
-                    AutomationProperties.Name="{lc:Localization Mixer_OpenSettings}"
-                    AutomationProperties.AutomationId="SettingsButton"
-                    Command="{Binding Source={StaticResource AppBehaviorViewModel}, Path=TraySettingsCommand}"
-                    Visibility="{Binding Source={StaticResource AppBehaviorViewModel}, Path=DisplayMinimalistic, Converter={StaticResource InverseBoolToVisibility}}">
-                    <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
                 </ui:Button>
             </Grid>
 
