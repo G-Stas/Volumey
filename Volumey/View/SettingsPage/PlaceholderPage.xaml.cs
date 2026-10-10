@@ -1,8 +1,8 @@
 ﻿namespace Volumey.View.SettingsPage;
 
-public partial class SystemHotkeysPage
+public partial class PlaceholderPage
 {
-	public SystemHotkeysPage()
+	public PlaceholderPage()
 	{
 		InitializeComponent();
 	}

@@ -13,7 +13,7 @@ public partial class MainView
 	{
 		try
 		{
-			SetWindowPosition();
+			PlaceWindow();
 		}
 		catch(Exception e)
 		{

@@ -253,13 +253,29 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		shell.Setup(m => m.StartMinimized).Returns(true);
 		var vm = CreateAppBehavior();
 		int requests = 0;
-		vm.DisplayAppRequested += (settingsPage, visible, popup) => requests++;
+		vm.DisplayAppRequested += (visible, popup) => requests++;
 
 		vm.TrayClickCommand.Execute(null);
 		Assert.IsTrue(vm.WindowIsVisible);
 		Assert.AreEqual(1, requests);
 
 		vm.TrayClickCommand.Execute(null);
+		Assert.IsFalse(vm.WindowIsVisible);
+	}
+
+	[TestMethod]
+	public void SettingsOpenTheirOwnWindowWithoutTheMixer()
+	{
+		shell.Setup(m => m.StartMinimized).Returns(true);
+		var vm = CreateAppBehavior();
+		int settingsRequests = 0, mixerRequests = 0;
+		vm.SettingsRequested += () => settingsRequests++;
+		vm.DisplayAppRequested += (visible, popup) => mixerRequests++;
+
+		vm.TraySettingsCommand.Execute(null);
+
+		Assert.AreEqual(1, settingsRequests);
+		Assert.AreEqual(0, mixerRequests);
 		Assert.IsFalse(vm.WindowIsVisible);
 	}
 
@@ -284,7 +300,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		var vm = CreateAppBehavior();
 		vm.PopupEnabled = true;
 		bool? openedAsPopup = null;
-		vm.DisplayAppRequested += (settingsPage, visible, popup) => openedAsPopup = popup;
+		vm.DisplayAppRequested += (visible, popup) => openedAsPopup = popup;
 
 		vm.OnShowRequestedBySecondInstance();
 
@@ -304,7 +320,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		shell.Setup(m => m.StartMinimized).Returns(true);
 		var vm = CreateAppBehavior();
 		bool? openedAsPopup = null;
-		vm.DisplayAppRequested += (settingsPage, visible, popup) => openedAsPopup = popup;
+		vm.DisplayAppRequested += (visible, popup) => openedAsPopup = popup;
 
 		vm.OnShowRequestedBySecondInstance();
 		vm.OnShowRequestedBySecondInstance();
@@ -345,11 +361,15 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		var vm = CreateAppBehavior(hotkeys.Object);
 		vm.WindowLeft = 123;
 		vm.WindowTop = 45;
+		vm.WindowWidth = 520;
+		vm.WindowHeight = 540;
 
 		shell.Raise(m => m.SessionEnding += null);
 
 		Assert.AreEqual(123, Settings.Window.Left);
 		Assert.AreEqual(45, Settings.Window.Top);
+		Assert.AreEqual(520, Settings.Window.Width);
+		Assert.AreEqual(540, Settings.Window.Height);
 		hotkeys.Verify(m => m.Dispose(), Times.Once);
 		shell.Verify(m => m.Shutdown(), Times.Once);
 	}

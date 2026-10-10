@@ -49,6 +49,8 @@ public class ConvertersTests
 		Assert.AreEqual(false, Convert(converter, true));
 		Assert.AreEqual(true, Convert(converter, false));
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, null));
+		Assert.AreEqual(true, converter.ConvertBack(false, typeof(bool), null, Culture));
+		Assert.AreEqual(false, converter.ConvertBack(true, typeof(bool), null, Culture));
 	}
 
 	[TestMethod]
@@ -183,6 +185,15 @@ public class ConvertersTests
 		var converter = new LocalizationKeyConverter();
 		Assert.AreEqual(TranslationSource.Instance[TranslationSource.MutedCaptionKey], Convert(converter, TranslationSource.MutedCaptionKey));
 		Assert.IsNull(Convert(converter, 5));
+	}
+
+	[TestMethod]
+	public void ThemeNamesAreTranslated()
+	{
+		var converter = new ThemeNameConverter();
+		Assert.AreEqual("Use system setting", Convert(converter, Volumey.DataProvider.AppTheme.System, "English"));
+		Assert.AreEqual("Dark", Convert(converter, Volumey.DataProvider.AppTheme.Dark, "English"));
+		Assert.IsNull(Convert(converter, "Dark"));
 	}
 
 	[TestMethod]

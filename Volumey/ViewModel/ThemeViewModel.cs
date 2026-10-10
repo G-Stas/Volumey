@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Media;
-using ModernWpf;
 using Volumey.DataProvider;
 using Volumey.Helper;
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
 
 namespace Volumey.ViewModel;
 
@@ -37,6 +39,11 @@ public sealed class ThemeViewModel : INotifyPropertyChanged
 		}
 	}
 
+	/// <summary>
+	/// The backdrop of the app's windows (Windows 11; older versions get the solid background)
+	/// </summary>
+	public static WindowBackdropType Backdrop => WindowBackdropType.Mica;
+
 	private Brush _darkBackground;
 	private Brush _lightBackground;
 
@@ -46,15 +53,20 @@ public sealed class ThemeViewModel : INotifyPropertyChanged
 	private Brush _buttonHoverDarkBackground;
 	private Brush _lightButtonHoverBackground;
 
-	private const string BackgroundKey = "SystemChromeMediumLowColorBrush";
-	private const string ButtonHoverKey = "SystemControlHighlightListLowBrush";
+	private const string BackgroundKey = "SolidBackgroundFillColorBaseBrush";
+	private const string ButtonHoverKey = "SubtleFillColorSecondaryBrush";
 	private const double BackgroundOpacity = 0.94;
+
+	private readonly Windows.UI.ViewManagement.UISettings uiSettings = new();
+	private ApplicationTheme? appliedTheme;
 
 	public ThemeViewModel()
 	{
 		WindowsTheme = SystemColorHelper.WindowsTheme;
 		SelectedTheme = SettingsProvider.Settings.General.Theme;
 		SystemColorHelper.WindowsThemeChanged += WindowsThemeChanged;
+		//an accent change in Windows' settings (raised on a background thread)
+		uiSettings.ColorValuesChanged += (_, _) => Application.Current?.Dispatcher.InvokeAsync(ApplicationAccentColorManager.ApplySystemAccent);
 	}
 
 	private void WindowsThemeChanged(AppTheme newTheme)
@@ -69,15 +81,16 @@ public sealed class ThemeViewModel : INotifyPropertyChanged
 		if(newTheme == AppTheme.System)
 			newTheme = windowsTheme;
 
-		if(newTheme == AppTheme.Dark && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Dark)
+		var theme = newTheme == AppTheme.Dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+		//tracked here: App.xaml starts WPF-UI in the dark theme, but nothing (accent, OSD colors) has been applied yet
+		if(appliedTheme != theme)
 		{
-			ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
-			UpdateNotificationColors(AppTheme.Dark);
-		}
-		else if(newTheme == AppTheme.Light && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Light)
-		{
-			ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
-			UpdateNotificationColors(AppTheme.Light);
+			appliedTheme = theme;
+			//without updateAccent: WPF-UI derives the accent shades by shifting the colorization color, which turns a muted
+			//accent gray; ApplySystemAccent takes Windows' own shades (AccentLight1-3 in dark, AccentDark1-3 in light), like WinUI
+			ApplicationThemeManager.Apply(theme, Backdrop, updateAccent: false);
+			ApplicationAccentColorManager.ApplySystemAccent();
+			UpdateNotificationColors(newTheme);
 		}
 
 		SettingsProvider.Settings.General.Theme = selectedTheme;

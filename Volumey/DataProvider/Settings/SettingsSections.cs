@@ -31,6 +31,9 @@ public sealed class WindowSettings : SettingsSection
 	public bool DisplayDeviceIconAtTray { get; set; }
 	public double Left { get; set; }
 	public double Top { get; set; }
+	/// <summary>Size of the mixer in window mode (not in popup mode); 0 = not saved yet</summary>
+	public double Width { get; set; }
+	public double Height { get; set; }
 	/// <summary>Device name of the screen the window opens on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
 	public string ScreenName { get; set; }
 }

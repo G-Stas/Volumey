@@ -321,4 +321,124 @@
   <data name="Settings_AppVolumeSync" xml:space="preserve">
     <value />
   </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value />
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_StartMenuHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_HotkeyModeHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value />
+  </data>
 </root>

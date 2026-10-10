@@ -1,38 +1,25 @@
-﻿using System;
-using System.Collections.Specialized;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Volumey.View;
 
 public partial class MixerView
 {
-	/// <summary>
-	/// Occurs when currently displayed sessions count changes.
-	/// </summary>
-	public event Action<object, NotifyCollectionChangedEventArgs> CollectionChanged;
-	private readonly INotifyCollectionChanged itemsCollection;
 	public MixerView()
 	{
 		InitializeComponent();
-
-		if(SessionsList.ItemsControl.Items.SourceCollection is INotifyCollectionChanged items)
-		{
-			items.CollectionChanged += OnItemsCollectionChanged;
-			itemsCollection = items;
-		}
-		Unloaded += OnUnloaded;
 	}
 
-	private void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+	/// <summary>
+	/// The height the mixer needs for its fixed parts (device area, header, footer) and for the apps list,
+	/// measured at the given width
+	/// </summary>
+	internal (double chrome, double apps) MeasureHeights(double width)
 	{
-		CollectionChanged?.Invoke(this, e);
-	}
-
-	private void OnUnloaded(object sender, RoutedEventArgs e)
-	{
-		Unloaded -= OnUnloaded;
-		if(itemsCollection != null)
-			itemsCollection.CollectionChanged -= OnItemsCollectionChanged;
-		CollectionChanged = null;
+		var unbounded = new Size(width, double.PositiveInfinity);
+		SessionsList.Measure(unbounded);
+		Measure(unbounded);
+		//the scroll viewer takes the list's height when unbounded, so the rest is the fixed part
+		double apps = SessionsList.DesiredSize.Height + ScrollViewer.Padding.Top + ScrollViewer.Padding.Bottom;
+		return (DesiredSize.Height - apps, apps);
 	}
 }

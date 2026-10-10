@@ -1,0 +1,9 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.PlaceholderPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization">
+    <!-- the settings pages that aren't redesigned yet (owner's decision for the prototype) -->
+    <TextBlock Margin="16 4 40 32"
+               Text="{lc:Localization Settings_PageNotDone}"
+               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+</Page>

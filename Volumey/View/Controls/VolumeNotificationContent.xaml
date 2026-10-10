@@ -4,14 +4,10 @@
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:controls="clr-namespace:Volumey.Controls"
-			 xmlns:controls1="http://schemas.modernwpf.com/2019"
-			 xmlns:converters="clr-namespace:Volumey.View.Converters"
+			 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
 			 mc:Ignorable="d"
 			 DataContext="{Binding RelativeSource={RelativeSource Self}}">
-	<UserControl.Resources>
-		<converters:AnyPropertyIsTrueConverter x:Key="AnyPropertyIsTrueConverter"/>
-	</UserControl.Resources>
-
+	<!-- the OSD's content, as before but with the WPF-UI controls (the OSD's redesign comes later) -->
 	<Grid Width="Auto"
 		  Margin="0 9 0 4">
 		<Grid.ColumnDefinitions>
@@ -37,8 +33,7 @@
 				   TextTrimming="CharacterEllipsis"
 				   LineHeight="18"
 				   MaxHeight="45"
-				   Margin="0 0 0 5"
-				   Foreground="{Binding Source={x:Static Application.Current}, Path=MainWindow.Foreground}"/>
+				   Margin="0 0 0 5"/>
 		<Image Grid.Column="0"
 			   Grid.Row="1"
 			   Source="{Binding AudioSession.IconSource}"
@@ -50,35 +45,24 @@
 		<controls:VolumeSlider Grid.Column="1"
 							   Grid.Row="1"
 							   Value="{Binding AudioSession.Volume, UpdateSourceTrigger=PropertyChanged}"
+							   IsMuted="{Binding AudioSession.IsMuted}"
 							   Height="{StaticResource SliderHeight}"
 							   Width="Auto"
-							   HorizontalAlignment="Stretch">
-			<controls:VolumeSlider.IsMuted>
-				<MultiBinding Converter="{StaticResource AnyPropertyIsTrueConverter}">
-					<Binding Path="AudioSession.IsMuted"/>
-					<Binding Source="{StaticResource DeviceProviderViewModel}"
-							 Path="DefaultDevice.Master.IsMuted"/>
-				</MultiBinding>
-			</controls:VolumeSlider.IsMuted>
-		</controls:VolumeSlider>
-		<Label Grid.Column="2"
-			   Grid.Row="1"
-			   Content="{Binding AudioSession.Volume}"
-			   FontSize="19"
-			   HorizontalContentAlignment="Center"
-			   HorizontalAlignment="Center"
-			   VerticalAlignment="Top"
-			   Margin="10 1 7 0"/>
-		<controls1:AppBarButton Grid.Column="3"
-								Grid.Row="1"
-								Command="{Binding AudioSession.MuteCommand}"
-								Margin="0 -5 -3 0"
-								HorizontalAlignment="Left"
-								HorizontalContentAlignment="Left">
-			<controls1:AppBarButton.Icon>
-				<controls1:FontIcon FontFamily="Segoe MDL2 Assets"
-									Glyph="{Binding AudioSession.IsMuted, Converter={StaticResource MutedToGlyphConverter}}"/>
-			</controls1:AppBarButton.Icon>
-		</controls1:AppBarButton>
+							   HorizontalAlignment="Stretch"/>
+		<TextBlock Grid.Column="2"
+				   Grid.Row="1"
+				   Text="{Binding AudioSession.Volume}"
+				   FontSize="19"
+				   HorizontalAlignment="Center"
+				   VerticalAlignment="Center"
+				   Margin="10 0 7 0"/>
+		<ui:Button Grid.Column="3"
+				   Grid.Row="1"
+				   Style="{StaticResource IconButton}"
+				   Tag="{Binding AudioSession.IsMuted}"
+				   Command="{Binding AudioSession.MuteCommand}"
+				   HorizontalAlignment="Left">
+			<ui:SymbolIcon Style="{StaticResource MuteIcon}" />
+		</ui:Button>
 	</Grid>
 </UserControl>

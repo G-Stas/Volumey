@@ -29,9 +29,14 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Requests app display with these parameters: is settings page, is window visible, is in popup mode
+	/// Requests showing the mixer window with these parameters: is the window visible already, is it shown as the popup
 	/// </summary>
-	public event Action<bool, bool, bool> DisplayAppRequested;
+	public event Action<bool, bool> DisplayAppRequested;
+
+	/// <summary>
+	/// Requests showing the settings window (a window of its own; the mixer window stays as it is)
+	/// </summary>
+	public event Action SettingsRequested;
 
 	private bool displayedMinimalistic = false;
 
@@ -135,6 +140,13 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[ObservableProperty]
 	public partial double WindowTop { get; set; }
 
+	//the size of the window mode (the popup's size is computed when it opens); 0 = not saved yet
+	[ObservableProperty]
+	public partial double WindowWidth { get; set; }
+
+	[ObservableProperty]
+	public partial double WindowHeight { get; set; }
+
 	private readonly ScreenSelection screens;
 
 	/// <summary>
@@ -205,6 +217,8 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;
+		WindowWidth = SettingsProvider.Settings.Window.Width;
+		WindowHeight = SettingsProvider.Settings.Window.Height;
 
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
@@ -234,18 +248,19 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	{
 		SettingsProvider.Settings.Window.Left = WindowLeft;
 		SettingsProvider.Settings.Window.Top = WindowTop;
+		SettingsProvider.Settings.Window.Width = WindowWidth;
+		SettingsProvider.Settings.Window.Height = WindowHeight;
 		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
 		hotkeys.Dispose();
 		shell.Shutdown();
 	}
 
 	/// <summary>
-	/// Changes window visibility if requested and invokes event which is used by the view to open the requested page 
+	/// Changes window visibility if requested and invokes the event the view uses to show the mixer window
 	/// </summary>
 	/// <param name="displayAsPopup"/>
-	/// <param name="isSettingsPage"/>
 	/// <param name="reverseDisplaying">Flag to control whether to close the window if it's displayed or not</param>
-	private void OpenCommand(bool isSettingsPage, bool displayAsPopup, bool reverseDisplaying = false)
+	private void OpenCommand(bool displayAsPopup, bool reverseDisplaying = false)
 	{
 		displayedAsPopup = displayAsPopup;
 		if(reverseDisplaying)
@@ -255,7 +270,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 				if(popupEnabled && !displayedMinimalistic)
 					DisplayMinimalistic = true;
 				//bring the window to the foreground and change page
-				DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, displayedAsPopup);
+				DisplayAppRequested?.Invoke(WindowIsVisible, displayedAsPopup);
 				WindowIsVisible = true;
 				screens.Refresh();
 			}
@@ -266,7 +281,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		{
 			if(popupEnabled && displayedMinimalistic)
 				DisplayMinimalistic = false;
-			DisplayAppRequested?.Invoke(isSettingsPage, WindowIsVisible, displayedAsPopup);
+			DisplayAppRequested?.Invoke(WindowIsVisible, displayedAsPopup);
 			if(!WindowIsVisible)
 			{
 				WindowIsVisible = true;
@@ -295,12 +310,12 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	internal void OnShowRequestedBySecondInstance()
 	{
 		if(popupEnabled && !WindowIsVisible)
-			OpenCommand(isSettingsPage: false, displayAsPopup: true, reverseDisplaying: true);
+			OpenCommand(displayAsPopup: true, reverseDisplaying: true);
 		else if(!popupEnabled)
-			OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false);
+			OpenCommand(displayAsPopup: false, reverseDisplaying: false);
 		else
 			//already visible in popup mode: bring it to the front as it is
-			DisplayAppRequested?.Invoke(false, WindowIsVisible, displayedAsPopup);
+			DisplayAppRequested?.Invoke(WindowIsVisible, displayedAsPopup);
 	}
 
 	private void OnBlockTrayTimerElapsed(object sender, ElapsedEventArgs e)
@@ -322,7 +337,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	private void OnOpenHotkeyPressed()
 	{
-		OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
+		OpenCommand(displayAsPopup: popupEnabled, reverseDisplaying: true);
 	}
 
 	[RelayCommand]
@@ -336,16 +351,16 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	}
 
 	[RelayCommand]
-	private void TrayMixer() => OpenCommand(isSettingsPage: false, displayAsPopup: false, reverseDisplaying: false);
+	private void TrayMixer() => OpenCommand(displayAsPopup: false, reverseDisplaying: false);
 
 	[RelayCommand]
-	private void TraySettings() => OpenCommand(isSettingsPage: true, displayAsPopup: false, reverseDisplaying: false);
+	private void TraySettings() => SettingsRequested?.Invoke();
 
 	[RelayCommand]
 	private void TrayClick()
 	{
 		if(!trayBlocked)
-			OpenCommand(isSettingsPage: false, displayAsPopup: popupEnabled, reverseDisplaying: true);
+			OpenCommand(displayAsPopup: popupEnabled, reverseDisplaying: true);
 	}
 
 	[RelayCommand]

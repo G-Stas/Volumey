@@ -13,8 +13,7 @@ public class InverseBoolConverter : IValueConverter
 		return Binding.DoNothing;
 	}
 
+	//two-way: e.g. the second radio button of a two-choice setting
 	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-	{
-		return null;
-	}
+		=> Convert(value, targetType, parameter, culture);
 }

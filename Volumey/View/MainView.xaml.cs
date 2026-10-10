@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,34 +7,42 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Navigation;
 using H.NotifyIcon;
 using log4net;
-using ModernWpf.Controls;
-using ModernWpf.Media.Animation;
-using ModernWpf.Navigation;
-using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
+using ContentDialog = Wpf.Ui.Controls.ContentDialog;
 
 namespace Volumey.View;
 
+/// <summary>
+/// The mixer window: the popup above the tray in popup mode (no title bar, height fixed when it opens),
+/// otherwise a normal resizable window whose size and position are remembered (#80). It also owns the tray icon
+/// and the window messages (hotkeys, restart, second start)
+/// </summary>
 public partial class MainView
 {
 	private IntPtr Hwnd;
 
-	private const int WM_ENTERSIZEMOVE = 0x0231;
-	private bool positionChanged;
 	private readonly WindowMessages messages;
 
 	private const int ScrollStep = 30;
-	private static object NavPaneHeight = (double)32;
-	private static object NavPaneHiddenHeight = (double)0;
 	private const int BorderIndent = 11;
+
+	//popup sizing (mockups FlyoutMin/FlyoutCapped): the height is computed once when it opens and doesn't change while it's
+	//visible; new apps go to the end of the scrolling list
+	private const double PopupWidth = 460; //WPF-UI's minimum window width (owner's decision)
+	private const double RowHeight = 54;
+	private const int MinRows = 3;
+	private const double MaxShareOfWorkArea = 0.6;
+
+	//window mode before its size was ever saved (mockup MixerWindow)
+	private const double DefaultWindowWidth = 520;
+	private const double DefaultWindowHeight = 540;
 
 	public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo), typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
 
@@ -47,17 +54,31 @@ public partial class MainView
 	private ILog logger;
 	private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
 
-	private readonly NavigationTransitionInfo transitionFromRight = new SlideNavigationTransitionInfo
-	{ Effect = SlideNavigationTransitionEffect.FromRight };
+	private readonly AppBehaviorViewModel vm;
+	private SettingsWindow settingsWindow;
 
-	private readonly NavigationTransitionInfo transitionFromLeft = new SlideNavigationTransitionInfo
-	{ Effect = SlideNavigationTransitionEffect.FromLeft };
+	/// <summary>Set while the window mode's size or position is applied, so applying it isn't saved as a user change</summary>
+	private bool applyingPlacement;
 
-	private readonly NavigationTransitionInfo suppressTransition = new SuppressNavigationTransitionInfo();
+	/// <summary>
+	/// Set once the visible window has been placed: before that, WPF's first position (Windows' default) would be saved
+	/// over the remembered one
+	/// </summary>
+	private bool placed;
 
 	public MainView()
 	{
 		InitializeComponent();
+		WindowBackdropType = ThemeViewModel.Backdrop;
+		vm = (AppBehaviorViewModel)DataContext;
+
+		//size and position before the HWND exists, so a window shown at startup appears at its remembered place right away
+		ApplyMode();
+		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0)
+		{
+			Left = vm.WindowLeft;
+			Top = vm.WindowTop;
+		}
 
 		//force create HWND of the window
 		//since the window is hidden at the startup
@@ -71,22 +92,16 @@ public partial class MainView
 		messages = new WindowMessages(Win32.Instance, Hwnd);
 		messages.RegisterRestart();
 
-		ContentRendered += ((s, a) => ActivateIfLoaded(isSettingsPage: ContentFrame.Content is SettingsView, windowIsVisible: false, isPopupMode: Startup.StartMinimized && SettingsProvider.Settings.Window.PopupMode));
-		if(DataContext is AppBehaviorViewModel vm)
-			vm.DisplayAppRequested += ActivateIfLoaded;
+		ContentRendered += (s, a) => ActivateIfLoaded(windowIsVisible: false, isPopupMode: vm.DisplayMinimalistic);
+		vm.DisplayAppRequested += ActivateIfLoaded;
+		vm.SettingsRequested += ShowSettings;
+		vm.PropertyChanged += OnViewModelPropertyChanged;
+
+		SizeChanged += (s, a) => SaveWindowPlacement();
+		LocationChanged += (s, a) => SaveWindowPlacement();
 
 		SetUpTrayIcon();
-		SetControlsNameScope();
 		SetBindings();
-
-		ContentFrame.SizeChanged += (sender, args) => OnCurrentPageSizeChanged();
-		ContentFrame.Navigated += (sender, args) =>
-		{
-			if(args.SourcePageType() == typeof(SettingsView))
-				NavView.SelectedItem = NavView.SettingsItem;
-			else
-				NavView.SelectedItem = NavView.MenuItems[0];
-		};
 
 		//Load SettingsViewModel from resources so hotkeys could be loaded on app startup instead of waiting when settings view will be opened to load it
 		var settingsVm = (SettingsViewModel)TryFindResource("SettingsViewModel");
@@ -94,24 +109,11 @@ public partial class MainView
 		settingsVm.SetWindowHandle(Hwnd);
 	}
 
-	/// <summary>
-	/// Set name scopes for controls so they could bind to other controls by ElementName
-	/// </summary>
-	private void SetControlsNameScope()
-	{
-		var nameScope = NameScope.GetNameScope(this);
-		if(Tray.ContextMenu != null)
-			NameScope.SetNameScope(Tray.ContextMenu, nameScope);
-		if(TryFindResource("TextControlContextMenu") is ContextMenu cm)
-			NameScope.SetNameScope(cm, nameScope);
-	}
-
 	private void SetBindings()
 	{
-		var appBehaviorVm = (AppBehaviorViewModel)DataContext;
 		var displayBinding = new Binding
 		{
-			Source = appBehaviorVm,
+			Source = vm,
 			Path = new PropertyPath("SelectedScreen"),
 			Mode = BindingMode.OneWay,
 			UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
@@ -164,23 +166,118 @@ public partial class MainView
 
 	private IntPtr ForceCreateHwnd() => Hwnd = new WindowInteropHelper(this).EnsureHandle();
 
+	private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+	{
+		if(e.PropertyName == nameof(AppBehaviorViewModel.DisplayMinimalistic))
+		{
+			ApplyMode();
+			//e.g. the tray menu's "Mixer" while the popup is open: it becomes the window, where the window belongs
+			if(IsLoaded && IsVisible)
+				PlaceWindow();
+		}
+	}
+
+	/// <summary>
+	/// The popup has a fixed width and can't be resized; the window mode is resizable and gets its saved size
+	/// </summary>
+	private void ApplyMode()
+	{
+		applyingPlacement = true;
+		try
+		{
+			if(vm.DisplayMinimalistic)
+			{
+				ResizeMode = ResizeMode.NoResize;
+				Width = PopupWidth;
+			}
+			else
+			{
+				ResizeMode = ResizeMode.CanResize;
+				Width = vm.WindowWidth > 0 ? vm.WindowWidth : DefaultWindowWidth;
+				Height = vm.WindowHeight > 0 ? vm.WindowHeight : DefaultWindowHeight;
+			}
+		}
+		finally
+		{
+			applyingPlacement = false;
+		}
+	}
+
 	private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
 	{
 		bool isVisible = (bool)e.NewValue;
-		if(isVisible)
+		if(!isVisible)
+			placed = false;
+		else if(IsLoaded)
 		{
-			positionChanged = false;
-			if(IsLoaded)
-			{
-				LimitWindowHeightIfNecessary();
-
-				//update layout before setting windows position to use actual height of the window when calculating its position
-				UpdateLayout();
-				SetWindowPosition();
-				Activate();
-				Focus();
-			}
+			PlaceWindow();
+			Activate();
+			Focus();
 		}
+	}
+
+	private void PlaceWindow()
+	{
+		if(vm.DisplayMinimalistic)
+		{
+			SizePopup();
+			//update layout before setting windows position to use actual height of the window when calculating its position
+			UpdateLayout();
+			SetWindowPosition();
+		}
+		else
+			RestoreWindowPlacement();
+		placed = true;
+	}
+
+	/// <summary>
+	/// The popup's height: its fixed parts plus the apps list (at least <see cref="MinRows"/> rows),
+	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. Computed when it opens only
+	/// </summary>
+	private void SizePopup()
+	{
+		var (chrome, apps) = Mixer.MeasureHeights(PopupWidth);
+		double workAreaHeight = (SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor;
+		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea);
+		applyingPlacement = true;
+		Height = Math.Clamp(chrome + Math.Max(apps, MinRows * RowHeight), MinHeight, max);
+		applyingPlacement = false;
+	}
+
+	/// <summary>
+	/// Window mode: the saved position if it's still on a screen, otherwise next to the tray like the popup
+	/// </summary>
+	private void RestoreWindowPlacement()
+	{
+		ApplyMode();
+		var bounds = new Rect(vm.WindowLeft, vm.WindowTop, Width, Height);
+		var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+			SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+		if(vm.WindowWidth > 0 && screen.IntersectsWith(bounds))
+		{
+			applyingPlacement = true;
+			Left = vm.WindowLeft;
+			Top = vm.WindowTop;
+			applyingPlacement = false;
+		}
+		else
+		{
+			UpdateLayout();
+			SetWindowPosition();
+		}
+	}
+
+	/// <summary>
+	/// Remembers the window mode's size and position (saved to the settings on exit)
+	/// </summary>
+	private void SaveWindowPlacement()
+	{
+		if(applyingPlacement || !placed || vm.DisplayMinimalistic || !IsVisible || WindowState != WindowState.Normal)
+			return;
+		vm.WindowLeft = Left;
+		vm.WindowTop = Top;
+		vm.WindowWidth = ActualWidth;
+		vm.WindowHeight = ActualHeight;
 	}
 
 	private enum TaskBarLocation { TOP, BOTTOM, LEFT, RIGHT }
@@ -234,164 +331,61 @@ public partial class MainView
 
 	private void MoveTo(double left, double top)
 	{
-		//move only: WPF sizes the window (Height is NaN while it sizes to its content, and passing it resized the window on every move)
+		//move only: WPF sizes the window
 		PInvoke.SetWindowPos((HWND)Hwnd, default /*HWND_TOP*/, (int)left, (int)top, 0, 0,
 			SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
 	}
 
-	private void LimitWindowHeightIfNecessary()
+	/// <summary>
+	/// Brings a visible window to the front; a hidden one is placed and activated when it becomes visible
+	/// </summary>
+	private void ActivateIfLoaded(bool windowIsVisible, bool isPopupMode)
 	{
-		var desktopHeight = SelectedScreen.Height;
-		var maxHeight = desktopHeight * 0.6;
-
-		if(ContentFrame.Content is MixerView)
-		{
-			if(ActualHeight > maxHeight)
-			{
-				SizeToContent = SizeToContent.Manual;
-				Height = desktopHeight * 0.64;
-				return;
-			}
-		}
-		SizeToContent = SizeToContent.Height;
-	}
-
-	private void ActivateIfLoaded(bool isSettingsPage, bool windowIsVisible, bool isPopupMode)
-	{
-		var pageType = isSettingsPage ? typeof(SettingsView) : typeof(MixerView);
-
-		//hide navigation pane if in popup mode 
-		if(isPopupMode)
-			Resources["NavigationViewTopPaneHeight"] = NavPaneHiddenHeight;
-		else
-			Resources["NavigationViewTopPaneHeight"] = NavPaneHeight;
-
-		if(windowIsVisible)
-			Navigate(pageType);
-		else
-			NavigateWithoutTransition(pageType);
-
-		if(IsLoaded)
+		if(IsLoaded && IsVisible)
 			Activate();
 	}
 
-	private void NavigationView_OnItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+	private void ShowSettings()
 	{
-		if(args.IsSettingsInvoked)
-			Navigate(typeof(SettingsView));
-		else if(args.InvokedItemContainer is NavigationViewItem item)
-			Navigate(GetPageType(item));
-	}
-
-	private void Navigate(Type sourcePageType)
-	{
-		if(ContentFrame.CurrentSourcePageType == sourcePageType)
-			return;
-		//Subscribe to mixer view CollectionChanged event when it'll start loading
-		if(sourcePageType == typeof(MixerView))
-			ContentFrame.Navigated += OnMixerViewNavigated;
-		//Unsubscribe if mixer view is changed to another view
-		else
-		{
-			if(ContentFrame.Content is MixerView view)
-				view.CollectionChanged -= OnMixerViewCollectionChanged;
-		}
-		ContentFrame.Navigate(sourcePageType, null, sourcePageType == typeof(SettingsView) ? transitionFromRight : transitionFromLeft);
-	}
-
-	/// <summary>
-	/// Handles navigating pages without animations which occurs when app is displayed after being minimized.
-	/// </summary>
-	private void NavigateWithoutTransition(Type sourcePageType)
-	{
-		if(ContentFrame.CurrentSourcePageType != sourcePageType)
-		{
-			//Subscribe to mixer view CollectionChanged event when it'll start loading
-			if(sourcePageType == typeof(MixerView))
-				ContentFrame.Navigated += OnMixerViewNavigated;
-			//Unsubscribe if mixer view is changed to another view
-			else
-			{
-				if(ContentFrame.Content is MixerView view)
-					view.CollectionChanged -= OnMixerViewCollectionChanged;
-			}
-			ContentFrame.Navigate(sourcePageType, null, suppressTransition);
-		}
-	}
-
-	/// <summary>
-	/// Invokes when a mixer view is loading to display. Subscribes to its event to update window position when its items count changes. 
-	/// </summary>
-	private void OnMixerViewNavigated(object sender, NavigationEventArgs e)
-	{
-		ContentFrame.Navigated -= OnMixerViewNavigated;
-		if(ContentFrame.Content is MixerView view)
-			view.CollectionChanged += OnMixerViewCollectionChanged;
-	}
-
-	/// <summary>
-	/// Invokes when items count of the currently displayed mixer view changes. Calls PageSizeChanged handler to update window position.
-	/// </summary>
-	private void OnMixerViewCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		=> OnCurrentPageSizeChanged();
-
-	/// <summary>
-	/// Updates window position when the currently displayed page changes its size.
-	/// </summary>
-	private void OnCurrentPageSizeChanged()
-	{
-		if(Visibility == Visibility.Visible && !positionChanged)
-		{
-			LimitWindowHeightIfNecessary();
-			SetWindowPosition();
-		}
-	}
-
-	private Type GetPageType(NavigationViewItem item)
-	{
-		return item.Tag as Type;
+		settingsWindow ??= new SettingsWindow();
+		settingsWindow.Show();
+		if(settingsWindow.WindowState == WindowState.Minimized)
+			settingsWindow.WindowState = WindowState.Normal;
+		settingsWindow.Activate();
 	}
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
-		if(msg == WM_ENTERSIZEMOVE)
-			positionChanged = true;
 		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}
 
 	private bool isDialogOpened;
-	private Queue<ContentDialog> dialogQueue;
+	private readonly Queue<ContentDialog> dialogQueue = new();
 
 	private async Task DisplayContentDialog(ContentDialog dialog)
 	{
+		if(isDialogOpened)
+		{
+			dialogQueue.Enqueue(dialog);
+			return;
+		}
+		isDialogOpened = true;
 		try
 		{
-			if(isDialogOpened)
-			{
-				if(dialogQueue == null)
-					dialogQueue = new Queue<ContentDialog>();
-				dialogQueue.Enqueue(dialog);
-				return;
-			}
-
-			dialog.Closed += OnDialogClosed;
-			isDialogOpened = true;
+			dialog.DialogHostEx = DialogHost;
 			NativeMethods.FlashWindow(Hwnd);
-			await dialog.ShowAsync(ContentDialogPlacement.Popup);
+			await dialog.ShowAsync();
 		}
 		catch(Exception e)
 		{
-			isDialogOpened = false;
 			Logger.Error($"Failed to display ContentDialog of type {dialog.GetType()}", e);
 		}
-	}
-
-	private void OnDialogClosed(ContentDialog sender, ContentDialogClosedEventArgs args)
-	{
-		sender.Closed -= OnDialogClosed;
-		isDialogOpened = false;
-		if(dialogQueue != null && dialogQueue.Count > 0)
+		finally
+		{
+			isDialogOpened = false;
+		}
+		if(dialogQueue.Count > 0)
 			DisplayContentDialog(dialogQueue.Dequeue()).Forget(Logger, "Failed to show a queued dialog");
 	}
 
@@ -400,46 +394,29 @@ public partial class MainView
 		//prevent closing or scrolling if any textbox is focused
 		if(Keyboard.FocusedElement is TextBox)
 			return;
+		var scrollViewer = Mixer.ScrollViewer;
 		switch(e.Key)
 		{
 			case Key.Escape:
 				Close();
 				break;
 			case Key.Up:
-				{
-					var scrollViewer = GetCurrentPageScrollViewer();
-					if(scrollViewer != null && scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible)
-						scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - ScrollStep);
-					break;
-				}
+				if(scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible)
+					scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - ScrollStep);
+				break;
 			case Key.Down:
-				{
-					var scrollViewer = GetCurrentPageScrollViewer();
-					if(scrollViewer != null && scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible)
-						scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + ScrollStep);
-					break;
-				}
+				if(scrollViewer.ComputedVerticalScrollBarVisibility == Visibility.Visible)
+					scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + ScrollStep);
+				break;
 		}
 	}
 
-	private ScrollViewer GetCurrentPageScrollViewer()
-	{
-		ScrollViewer scrollViewer = null;
-		if(ContentFrame.Content is MixerView mixer)
-			scrollViewer = mixer.ScrollViewer;
-		else if(ContentFrame.Content is SettingsView settings)
-			scrollViewer = settings.ScrollViewer;
-		return scrollViewer;
-	}
-
-
 	private static void SelectedScreenChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
 	{
-		if(d is MainView view)
+		if(d is MainView view && view.IsVisible && view.vm.DisplayMinimalistic)
 		{
-			if(!view.IsVisible)
-				return;
-			view.LimitWindowHeightIfNecessary();
+			view.SizePopup();
+			view.UpdateLayout();
 			view.SetWindowPosition();
 		}
 	}

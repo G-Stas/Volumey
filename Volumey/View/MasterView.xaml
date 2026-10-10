@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:Volumey.View.Converters"
              xmlns:lc="clr-namespace:Volumey.Localization"
-             xmlns:ui="http://schemas.modernwpf.com/2019"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:controls="clr-namespace:Volumey.Controls"
              mc:Ignorable="d">
 
@@ -16,114 +16,109 @@
     <UserControl.Resources>
         <converters:NoDeviceToVisibilityConverter x:Key="NoDeviceToVisibilityConverter" />
         <converters:DeviceIsDefaultToVisibilityPropertiesConverter x:Key="DeviceIsDefaultToVisibilityPropertiesConverter"/>
-        
-        <SolidColorBrush x:Key="ButtonBackground" Color="{DynamicResource SystemAltMediumLowColor}"/>
-        <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{DynamicResource SystemAltLowColor}"/>
-        <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="{DynamicResource SystemBaseMediumHighColor}"/>
-        <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="{DynamicResource SystemChromeMediumColor}"/>
-
     </UserControl.Resources>
 
     <Grid>
         <TextBlock
             Text="{lc:Localization Error_NoDevice}"
-            Height="Auto"
             TextWrapping="Wrap"
-            FontSize="16"
-            Margin="8 2 8 0"
             Visibility="{Binding DeviceProvider.NoOutputDevices, ConverterParameter=Label, Converter={StaticResource NoDeviceToVisibilityConverter}}" />
+
         <StackPanel
-            Orientation="Vertical"
             Visibility="{Binding DeviceProvider.NoOutputDevices, ConverterParameter=Master, Converter={StaticResource NoDeviceToVisibilityConverter}}">
-            <Grid
-                HorizontalAlignment="Left"
-                Width="Auto"
-                MaxWidth="300"
-                Margin="42 0 0 0">
+            <TextBlock
+                Text="{lc:Localization Mixer_OutputDevice}"
+                Style="{StaticResource Caption}"
+                Margin="0 0 0 8" />
+
+            <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width='*'/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                    <ComboBox
-                        DockPanel.Dock="Left"
-                        ItemsSource="{Binding DeviceProvider.ActiveDevices}"
-                        DisplayMemberPath="Master.DeviceFriendlyName"
-                        SelectedItem="{Binding SelectedDevice}"
-                        BorderThickness="1"
-                        Width="Auto"
-                        IsSynchronizedWithCurrentItem="False"
-                        ui:ControlHelper.CornerRadius="4"/>
-
-                    <Button ToolTip="{lc:Localization TrayMenu_ChangeDevice}"
-                             Command="{Binding SetDefaultDeviceCommand}"
-                             Height="32"
-                             Padding="5 0 5 0"
-                             Margin="3 0 0 0"
-                             ui:ControlHelper.CornerRadius="4"
-                             Background="{DynamicResource ComboBoxBackground}"
-                             BorderBrush="{DynamicResource SystemChromeHighColorBrush}"
-                             Grid.Column="1"
-                             DockPanel.Dock="Left">
-
-                        <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
-                                <Binding Path="SelectedDevice"/>
-                                <Binding Path="DefaultDevice"/>
-                            </MultiBinding>
-                        </Button.Visibility>
-                        <Button.IsEnabled>
-                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
-                                <Binding Path="SelectedDevice"/>
-                                <Binding Path="DefaultDevice"/>
-                            </MultiBinding>
-                        </Button.IsEnabled>
-
-                        <Button.Content>
-                            <ui:FontIcon Glyph="&#xF623;"/>
-                        </Button.Content>
-                    </Button>
-            </Grid>
-             <Grid
-                Width="Auto">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="{StaticResource ImageColumnWidth}" x:Name="IconCol"/>
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
-                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Image
-                    Grid.Column="0"
-                    Source="{Binding SelectedDevice.Master.IconSource}"
-                    RenderOptions.BitmapScalingMode="HighQuality"
-                    Height="{StaticResource ImageSize}"
-                    Width="{StaticResource ImageSize}"
-                    Margin="{StaticResource ImageMargin}"
-                    VerticalAlignment="Center" />
+
+                <ComboBox
+                    ItemsSource="{Binding DeviceProvider.ActiveDevices}"
+                    SelectedItem="{Binding SelectedDevice}"
+                    IsSynchronizedWithCurrentItem="False"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="{lc:Localization Mixer_OutputDevice}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Image
+                                    Source="{Binding Master.IconSource}"
+                                    Width="16"
+                                    Height="16"
+                                    Margin="0 0 12 0"
+                                    RenderOptions.BitmapScalingMode="HighQuality" />
+                                <TextBlock
+                                    Text="{Binding Master.DeviceFriendlyName}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- shown while the picked device isn't the default one -->
+                <ui:Button
+                    Grid.Column="1"
+                    Style="{StaticResource IconButton}"
+                    Margin="4 0 0 0"
+                    ToolTip="{lc:Localization Mixer_MakeDefault}"
+                    AutomationProperties.Name="{lc:Localization Mixer_MakeDefault}"
+                    Command="{Binding SetDefaultDeviceCommand}">
+                    <ui:Button.Visibility>
+                        <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
+                            <Binding Path="SelectedDevice"/>
+                            <Binding Path="DefaultDevice"/>
+                        </MultiBinding>
+                    </ui:Button.Visibility>
+                    <ui:Button.IsEnabled>
+                        <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
+                            <Binding Path="SelectedDevice"/>
+                            <Binding Path="DefaultDevice"/>
+                        </MultiBinding>
+                    </ui:Button.IsEnabled>
+                    <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="18" />
+                </ui:Button>
+
+                <!-- window mode only: the popup has the settings button in its footer -->
+                <ui:Button
+                    Grid.Column="2"
+                    Style="{StaticResource IconButton}"
+                    Margin="4 0 0 0"
+                    ToolTip="{lc:Localization Mixer_OpenSettings}"
+                    AutomationProperties.Name="{lc:Localization Mixer_OpenSettings}"
+                    AutomationProperties.AutomationId="SettingsButton"
+                    Command="{Binding Source={StaticResource AppBehaviorViewModel}, Path=TraySettingsCommand}"
+                    Visibility="{Binding Source={StaticResource AppBehaviorViewModel}, Path=DisplayMinimalistic, Converter={StaticResource InverseBoolToVisibility}}">
+                    <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
+                </ui:Button>
+            </Grid>
+
+            <Grid Margin="0 8 0 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:Button
+                    Style="{StaticResource IconButton}"
+                    Tag="{Binding SelectedDevice.Master.IsMuted}"
+                    Command="{Binding SelectedDevice.Master.MuteCommand}">
+                    <ui:SymbolIcon Style="{StaticResource MuteIcon}" />
+                </ui:Button>
                 <controls:VolumeSlider
                     Grid.Column="1"
+                    Margin="8 0"
                     Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
-                    IsMuted="{Binding SelectedDevice.Master.IsMuted}"
-                    Width="{StaticResource SliderWidth}"
-                    Height="{StaticResource SliderHeight}"
-                    Margin="3 0 0 0"
-                    VerticalContentAlignment="Center" />
-                <Label
+                    IsMuted="{Binding SelectedDevice.Master.IsMuted}" />
+                <TextBlock
                     Grid.Column="2"
-                    Content="{Binding SelectedDevice.Master.Volume}"
-                    Width="45"
-                    VerticalContentAlignment="Center"
-                    HorizontalContentAlignment="Center"
-                    Margin="0 -2 0 0" />
-                <ui:AppBarButton
-                    Grid.Column="3"
-                    Command="{Binding SelectedDevice.Master.MuteCommand}"
-                    Margin="-4 -4 0 0">
-                    <ui:AppBarButton.Icon>
-                        <ui:FontIcon
-                            FontFamily="Segoe MDL2 Assets"
-                            Glyph="{Binding SelectedDevice.Master.IsMuted, Converter={StaticResource MutedToGlyphConverter}}" />
-                    </ui:AppBarButton.Icon>
-                </ui:AppBarButton>
+                    Style="{StaticResource VolumeValue}"
+                    Text="{Binding SelectedDevice.Master.Volume}" />
             </Grid>
         </StackPanel>
     </Grid>
