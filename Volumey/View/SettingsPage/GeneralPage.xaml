@@ -5,7 +5,10 @@
       xmlns:lc="clr-namespace:Volumey.Localization"
       xmlns:converters="clr-namespace:Volumey.View.Converters"
       Title="{lc:Localization Nav_General}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       DataContext="{StaticResource SettingsViewModel}">
+    <!-- the Foreground: a page in a Frame doesn't inherit the window's text color, so plain text was black in the dark theme
+         (until a theme switch at runtime); set it on every settings page (an implicit Page style doesn't reach subclasses) -->
     <Page.Resources>
         <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
