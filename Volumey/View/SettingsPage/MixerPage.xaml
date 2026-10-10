@@ -23,7 +23,8 @@
     </Page.Resources>
 
     <!-- mockup SettingsMixer.dc.html, plus "Always on top" (owner's decision); the level meters row comes with item K -->
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolled
+         but took the mouse wheel, so only the scroll bar scrolled) -->
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_Mixer}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization MixerPage_Description}" Style="{StaticResource PageDescription}" />
@@ -149,5 +150,4 @@
                                  AutomationProperties.AutomationId="SyncToggle" />
             </ui:CardControl>
         </StackPanel>
-    </ScrollViewer>
 </Page>

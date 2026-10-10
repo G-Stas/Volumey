@@ -21,7 +21,8 @@
     </Page.Resources>
 
     <!-- mockup SettingsGeneral.dc.html -->
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolled
+         but took the mouse wheel, so only the scroll bar scrolled) -->
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_General}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization General_Description}" Style="{StaticResource PageDescription}" />
@@ -100,9 +101,11 @@
                         <TextBlock Text="{lc:Localization General_HotkeyModeHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardExpander.Header>
+                <!-- no GroupName: WPF then groups the buttons by their panel. With a GroupName, the old and the new page instance
+                     (both in the window while WPF-UI changes pages) shared the group: selecting a button in the new page
+                     unchecked its twin in the old one, whose binding wrote the setting back (nothing or both selected) -->
                 <StackPanel Margin="34 0 0 0">
-                    <RadioButton GroupName="HotkeyMode"
-                                 Margin="0 0 0 12"
+                    <RadioButton Margin="0 0 0 12"
                                  AutomationProperties.AutomationId="BlockHotkeysRadio"
                                  IsChecked="{Binding BlockHotkeysInSystem}">
                         <StackPanel>
@@ -110,8 +113,7 @@
                             <TextBlock Text="{lc:Localization General_KeepKeysHint}" Style="{StaticResource Caption}" />
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton GroupName="HotkeyMode"
-                                 AutomationProperties.AutomationId="ShareHotkeysRadio"
+                    <RadioButton AutomationProperties.AutomationId="ShareHotkeysRadio"
                                  IsChecked="{Binding BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}">
                         <StackPanel>
                             <TextBlock Text="{lc:Localization General_ShareKeys}" />
@@ -146,5 +148,4 @@
                 </StackPanel>
             </ui:CardControl>
         </StackPanel>
-    </ScrollViewer>
 </Page>
