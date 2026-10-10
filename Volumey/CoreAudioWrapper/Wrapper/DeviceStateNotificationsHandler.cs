@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Threading.Tasks;
 using log4net;
 using NAudio.CoreAudioApi;
@@ -16,18 +17,17 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// </summary>
 public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHandler
 {
-	public event Action<string> DefaultDeviceChanged;
-	public event Action<string> NameChanged;
-	public event Action<string> IconPathChanged;
-	public event Action<string> FormatChanged;
-	public event Action<string> DeviceDisabled;
-	public event Action<OutputDeviceModel> ActiveDeviceAdded;
+	public event Action<string>? DefaultDeviceChanged;
+	public event Action<string>? NameChanged;
+	public event Action<string>? IconPathChanged;
+	public event Action<string>? FormatChanged;
+	public event Action<string>? DeviceDisabled;
+	public event Action<OutputDeviceModel>? ActiveDeviceAdded;
 
 	private readonly DeviceEnumerator enumerator;
 	private readonly MMDeviceNotificationClient notificationClient;
 
-	private ILog logger;
-	private ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceStateNotificationsHandler));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(DeviceStateNotificationsHandler));
 
 	public DeviceStateNotificationsHandler(DeviceEnumerator enumerator)
 	{
@@ -42,7 +42,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 	/// <summary>
 	/// Called when the default Endpoint device for a given role changes
 	/// </summary>
-	private void OnDefaultDeviceChanged(object sender, DefaultDeviceChangedEventArgs e)
+	private void OnDefaultDeviceChanged(object? sender, DefaultDeviceChangedEventArgs e)
 	{
 		if(e.Flow == DataFlow.Render && e.Role == Role.Console)
 		{
@@ -53,7 +53,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 	/// <summary>
 	/// Called when a new Endpoint device is added to the system
 	/// </summary>
-	private void OnDeviceAdded(object sender, DeviceNotificationEventArgs e)
+	private void OnDeviceAdded(object? sender, DeviceNotificationEventArgs e)
 	{
 		Post(() =>
 		{
@@ -71,7 +71,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 	/// <summary>
 	/// Called when the state of an Endpoint device changes
 	/// </summary>
-	private void OnDeviceStateChanged(object sender, DeviceStateChangedEventArgs e)
+	private void OnDeviceStateChanged(object? sender, DeviceStateChangedEventArgs e)
 	{
 		Post(() =>
 		{
@@ -98,7 +98,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 			ActiveDeviceAdded?.Invoke(model);
 	}
 
-	private void OnPropertyValueChanged(object sender, DevicePropertyChangedEventArgs e)
+	private void OnPropertyValueChanged(object? sender, DevicePropertyChangedEventArgs e)
 	{
 		var key = e.PropertyKey;
 		if(IsKey(key, PropertyKeys.PKEY_Device_FriendlyName) || IsKey(key, PropertyKeys.PKEY_Device_DeviceDesc))

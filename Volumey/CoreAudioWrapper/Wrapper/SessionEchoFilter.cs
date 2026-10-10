@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -23,7 +24,7 @@ internal sealed class SessionEchoFilter
 	private int volume;
 	private bool mute;
 
-	internal SessionEchoFilter(int volume, bool mute, Func<long> clock = null)
+	internal SessionEchoFilter(int volume, bool mute, Func<long>? clock = null)
 	{
 		this.volume = volume;
 		this.mute = mute;

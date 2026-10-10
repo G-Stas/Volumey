@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Drawing;
 using System.Windows.Media;
 
@@ -12,9 +13,12 @@ public interface IDevice : IDisposable
 
 	string GetDeviceDesc();
 
-	ImageSource GetIconSource();
+	ImageSource? GetIconSource();
 
-	Icon GetIcon();
+	/// <summary>
+	/// A new icon owned by the caller, or null if the device has none (or it can't be read)
+	/// </summary>
+	Icon? GetIcon();
 
 	DeviceFormat? GetDeviceFormat();
 }

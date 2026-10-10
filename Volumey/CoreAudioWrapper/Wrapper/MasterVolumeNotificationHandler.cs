@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using NAudio.CoreAudioApi;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
@@ -8,7 +9,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// </summary>
 class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
 {
-	public event Action<VolumeChangedEventArgs> VolumeChanged;
+	public event Action<VolumeChangedEventArgs>? VolumeChanged;
 	private readonly AudioEndpointVolume endpointVolume;
 
 	public MasterVolumeNotificationHandler(AudioEndpointVolume eVolume)

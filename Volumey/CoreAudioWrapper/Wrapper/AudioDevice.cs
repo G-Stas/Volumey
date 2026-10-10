@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Media;
@@ -18,8 +19,7 @@ public sealed class AudioDevice : IDevice
 	private readonly Lock propertiesLock = new Lock();
 	private bool disposed;
 
-	private static ILog logger;
-	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(AudioDevice));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(AudioDevice));
 
 	internal AudioDevice(MMDevice device)
 	{
@@ -36,7 +36,7 @@ public sealed class AudioDevice : IDevice
 
 	public string GetDeviceDesc() => GetProperty<string>(PropertyKeys.PKEY_Device_DeviceDesc) ?? string.Empty;
 
-	public ImageSource GetIconSource()
+	public ImageSource? GetIconSource()
 	{
 		return GetIcon().GetAsImageSource();
 	}
@@ -44,9 +44,9 @@ public sealed class AudioDevice : IDevice
 	/// <summary>
 	/// A new icon owned by the caller, or null
 	/// </summary>
-	public Icon GetIcon()
+	public Icon? GetIcon()
 	{
-		string iconPath = GetProperty<string>(PropertyKeys.PKEY_Device_IconPath);
+		string? iconPath = GetProperty<string>(PropertyKeys.PKEY_Device_IconPath);
 		try
 		{
 			return IconHelper.GetFromResourcePath(iconPath);
@@ -85,7 +85,7 @@ public sealed class AudioDevice : IDevice
 	/// Reads a property from a freshly opened property store: NAudio keeps the store open, and a kept store doesn't show later changes
 	/// (the device properties are read again when Windows reports that they changed).
 	/// </summary>
-	private T GetProperty<T>(PropertyKey key) where T : class
+	private T? GetProperty<T>(PropertyKey key) where T : class
 	{
 		lock(propertiesLock)
 		{
@@ -93,7 +93,7 @@ public sealed class AudioDevice : IDevice
 			{
 				Device.Properties.Dispose();
 				Device.GetPropertyInformation();
-				return Device.Properties.TryGetValue(key, out T value) ? value : null;
+				return Device.Properties.TryGetValue(key, out T? value) ? value : null;
 			}
 			catch(Exception e)
 			{

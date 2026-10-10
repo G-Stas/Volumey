@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -20,10 +21,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// </summary>
 internal static class AudioModelFactory
 {
-	private static ILog logger;
-	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(AudioModelFactory));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(AudioModelFactory));
 
-	internal static OutputDeviceModel CreateOutputDeviceModel(AudioDevice device, IDeviceStateNotificationHandler deviceStateNotificationHandler, IHotkeyService hotkeys)
+	/// <returns>Null if the device's audio objects can't be read</returns>
+	internal static OutputDeviceModel? CreateOutputDeviceModel(AudioDevice device, IDeviceStateNotificationHandler deviceStateNotificationHandler, IHotkeyService hotkeys)
 	{
 		try
 		{
@@ -53,7 +54,7 @@ internal static class AudioModelFactory
 			var masterVolume = new MasterAudioSessionVolume(endpointVolume);
 			float volume = masterVolume.GetVolume();
 			bool muteState = masterVolume.GetMute();
-			Icon icon = device.GetIcon();
+			Icon? icon = device.GetIcon();
 			string deviceName = device.GetFriendlyName();
 			string deviceDesc = device.GetDeviceDesc();
 			string id = device.GetId();
@@ -83,7 +84,7 @@ internal static class AudioModelFactory
 			try
 			{
 				AudioSessionControl sessionControl = sessions[i];
-				AudioSessionModel session = CreateSessionModel(sessionControl);
+				AudioSessionModel? session = CreateSessionModel(sessionControl);
 
 				if(session == null)
 				{
@@ -98,7 +99,7 @@ internal static class AudioModelFactory
 				}
 				else
 				{
-					AudioProcessModel newProcess = CreateProcessModel(session, sessionControl, hotkeys, out bool isSystemSounds);
+					AudioProcessModel? newProcess = CreateProcessModel(session, sessionControl, hotkeys, out bool isSystemSounds);
 
 					if(newProcess == null)
 						continue;
@@ -118,24 +119,23 @@ internal static class AudioModelFactory
 		return processes;
 	}
 
-	internal static AudioProcessModel CreateProcessModel(AudioSessionModel session, AudioSessionControl sControl, IHotkeyService hotkeys, out bool isSystemSounds)
+	internal static AudioProcessModel? CreateProcessModel(AudioSessionModel session, AudioSessionControl sControl, IHotkeyService hotkeys, out bool isSystemSounds)
 	{
-		Process proc = null;
+		//null if the process can't be opened (e.g. it has exited already)
+		Process? proc = null;
 		isSystemSounds = false;
 		string processName = session.Name;
 
 		try
 		{
 			proc = Process.GetProcessById((int)session.ProcessId);
-			FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(proc.MainModule.FileName);
-			if(!string.IsNullOrEmpty(fileInfo.FileDescription))
-				processName = fileInfo.FileDescription;
-			else
-				processName = proc.ProcessName;
+			processName = proc.ProcessName;
+			if(proc.MainModule?.FileName is string file && FileVersionInfo.GetVersionInfo(file).FileDescription is { Length: > 0 } description)
+				processName = description;
 		}
 		catch { }
 
-		Icon icon = null;
+		Icon? icon = null;
 
 		try
 		{
@@ -145,7 +145,7 @@ internal static class AudioModelFactory
 				//check if the system language was changed to get a new localized name for the system sounds session
 				var systemLanguage = TranslationSource.GetSystemLanguage();
 				var settings = SettingsProvider.Settings;
-				string systemSoundsName = settings.General.SystemSoundsName;
+				string? systemSoundsName = settings.General.SystemSoundsName;
 				if(systemSoundsName == null || settings.General.SystemSoundsLanguage != systemLanguage)
 				{
 					//returns resources "DllPath,index"
@@ -183,7 +183,8 @@ internal static class AudioModelFactory
 	/// <summary>
 	/// Creates the session model. The model takes ownership of the session control.
 	/// </summary>
-	internal static AudioSessionModel CreateSessionModel(AudioSessionControl sControl)
+	/// <returns>Null if the session's volume or events can't be read</returns>
+	internal static AudioSessionModel? CreateSessionModel(AudioSessionControl sControl)
 	{
 		uint processId = sControl.GetProcessID;
 
@@ -195,7 +196,7 @@ internal static class AudioModelFactory
 			//disposed: every new session opened a process handle that was never closed
 			using Process proc = Process.GetProcessById((int)processId);
 			name = proc.ProcessName;
-			filePath = proc.MainModule.FileName;
+			filePath = proc.MainModule?.FileName ?? filePath;
 		}
 		catch { }
 
@@ -227,12 +228,15 @@ internal static class AudioModelFactory
 		return null;
 	}
 
-	private static Icon ExtractSessionIcon(Process proc, AudioSessionControl sc)
+	private static Icon ExtractSessionIcon(Process? proc, AudioSessionControl sc)
 	{
-		Icon icon = null;
+		Icon? icon = null;
 		try
 		{
-			string path = NativeMethods.GetProcessImagePath(proc.Id, out int error);
+			//without the process (it has exited, or can't be opened) the session's own icon path is the only source
+			if(proc == null)
+				return TryExtractIconAlternatively(proc, sc) ?? IconHelper.CreateGenericExeIcon();
+			string? path = NativeMethods.GetProcessImagePath(proc.Id, out int error);
 			if(path != null)
 				icon = Icon.ExtractAssociatedIcon(path);
 			else if(error == (int)WIN32_ERROR.ERROR_ACCESS_DENIED)
@@ -251,10 +255,10 @@ internal static class AudioModelFactory
 		return icon ?? IconHelper.CreateGenericExeIcon();
 	}
 
-	private static Icon TryExtractIconAlternatively(Process proc, AudioSessionControl sc)
+	private static Icon? TryExtractIconAlternatively(Process? proc, AudioSessionControl sc)
 	{
 		//it's possible to get system process icon from its IAudioSessionControl interface
-		string iconPath = null;
+		string? iconPath = null;
 		try { iconPath = sc.IconPath; }
 		catch { }
 		if(string.IsNullOrEmpty(iconPath))

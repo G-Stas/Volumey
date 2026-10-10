@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using log4net;
 using NAudio.CoreAudioApi;
@@ -9,8 +10,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 
 public sealed class DeviceEnumerator : IDeviceEnumerator
 {
-	private ILog logger;
-	private ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceEnumerator));
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(DeviceEnumerator));
 
 	internal MMDeviceEnumerator Enumerator { get; }
 
@@ -39,7 +39,7 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 		return 0;
 	}
 
-	public string GetDefaultDeviceId()
+	public string? GetDefaultDeviceId()
 	{
 		if(GetDeviceCount() == 0)
 			return null;
@@ -98,13 +98,13 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 		return devices;
 	}
 
-	public OutputDeviceModel CreateDeviceModel(string deviceId, IDeviceStateNotificationHandler dsn)
+	public OutputDeviceModel? CreateDeviceModel(string deviceId, IDeviceStateNotificationHandler dsn)
 	{
-		AudioDevice device = null;
+		AudioDevice? device = null;
 		try
 		{
 			device = new AudioDevice(Enumerator.GetDevice(deviceId));
-			OutputDeviceModel model = null;
+			OutputDeviceModel? model = null;
 			if(device.GetDataFlow() == DataFlow.Render && device.GetState() == DeviceState.Active)
 				model = AudioModelFactory.CreateOutputDeviceModel(device, dsn, Hotkeys);
 			if(model == null)
@@ -120,7 +120,7 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 	}
 
 	//a COM release waits for running audio callbacks, which may wait for the UI thread
-	private static void ReleaseLater(AudioDevice device)
+	private static void ReleaseLater(AudioDevice? device)
 	{
 		if(device != null)
 			_ = System.Threading.Tasks.Task.Run(device.Dispose);
