@@ -4,6 +4,7 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:pages="clr-namespace:Volumey.View.SettingsPage"
                  xmlns:lc="clr-namespace:Volumey.Localization"
+                 xmlns:converters="clr-namespace:Volumey.View.Converters"
                  Title="{lc:Localization SettingsWindow_Title}"
                  Width="800"
                  Height="880"
@@ -13,6 +14,9 @@
                  DataContext="{StaticResource SettingsViewModel}"
                  Closing="OnClosing">
     <!-- mockups Settings*.dc.html: a title bar, the pages on the left, Source code and Support at the bottom -->
+    <ui:FluentWindow.Resources>
+        <converters:CollectionCountToVisibilityConverter x:Key="NoneToCollapsed" CountLimit="0" />
+    </ui:FluentWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -41,14 +45,14 @@
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavNotifications" Content="{lc:Localization Nav_Notifications}" Icon="{ui:SymbolIcon Alert24}"
                                        TargetPageType="{x:Type pages:NotificationsPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavAbout" Content="{lc:Localization Nav_About}" Icon="{ui:SymbolIcon Info24}"
-                                       TargetPageType="{x:Type pages:PlaceholderPage}" />
+                                       TargetPageType="{x:Type pages:AboutPage}" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavSourceCode" Content="{lc:Localization Nav_SourceCode}" Icon="{ui:SymbolIcon Code24}"
-                                       Command="{Binding GitHubCommand}" />
+                                       Command="{Binding About.OpenSourceCodeCommand}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavSupport" Content="{lc:Localization Nav_Support}" Icon="{ui:SymbolIcon Heart24}"
-                                       Command="{Binding TipCommand}"
-                                       CommandParameter="{Binding TipSource.Item2}" />
+                                       Visibility="{Binding About.SupportLinks.Count, Converter={StaticResource NoneToCollapsed}}"
+                                       Click="OnSupportClick" />
             </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
 

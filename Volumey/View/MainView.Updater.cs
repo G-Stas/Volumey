@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
-using AutoUpdaterDotNET;
 using Volumey.Helper;
 using Volumey.View.DialogContent;
 
@@ -30,12 +29,7 @@ public partial class MainView
 	{
 		try
 		{
-			AutoUpdater.ShowSkipButton = false;
-			AutoUpdater.ReportErrors = false;
-			AutoUpdater.LetUserSelectRemindLater = false;
-			AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
-			AutoUpdater.RemindLaterAt = 1;
-			AutoUpdater.Start("https://raw.githubusercontent.com/G-Stas/Volumey/main/LatestUpdateInfo.xml");
+			UpdateHelper.StartAutoUpdater(userAsked: false);
 		}
 		catch(Exception e)
 		{

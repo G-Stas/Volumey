@@ -26,7 +26,7 @@ public partial class UpdateDialog
 	private static async Task OnReviewResult(string param)
 	{
 		if(param.Equals("Y"))
-			await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-windows-store://pdp/?productid=9MZCQ03MX0S3"));
+			await Windows.System.Launcher.LaunchUriAsync(new Uri(UpdateHelper.StorePage));
 		Logger.Info($"Displaying an update request. Result: [{param}]");
 	}
 }

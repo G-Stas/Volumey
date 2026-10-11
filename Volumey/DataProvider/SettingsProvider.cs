@@ -28,7 +28,7 @@ public static class SettingsProvider
 	//use LocalApplicationData path to access local app data store instead of using Windows.Storage because
 	//it's unstable when certain applications like GIMP are launched as described in this issue:
 	//https://github.com/microsoft/ProjectReunion/issues/101
-	private static readonly string SettingsDir = Environment.GetEnvironmentVariable(SettingsDirVariable) is string dir && dir.Length > 0
+	internal static readonly string SettingsDir = Environment.GetEnvironmentVariable(SettingsDirVariable) is string dir && dir.Length > 0
 		? dir
 		: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ConfigFolderName);
 

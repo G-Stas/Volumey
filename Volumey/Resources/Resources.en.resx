@@ -795,4 +795,43 @@
   <data name="Notifications_ShowOnScreen" xml:space="preserve">
     <value>Show on screen</value>
   </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Version {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>GitHub release</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>Development build</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>You have the latest version</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>An update is available in the Microsoft Store</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>Couldn&apos;t check for updates</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>Report a problem or suggest a feature</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub issues</value>
+  </data>
 </root>
