@@ -250,43 +250,69 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
+	/// <summary>
+	/// Writes the volume (hotkeys, volume sync) and takes it over at once: the change doesn't wait for Windows' notification, which may come
+	/// late or (with Volumey's own event context) not at all
+	/// </summary>
 	public void SetVolume(int newVol, bool notify, Guid guid)
 	{
-		SetVolume(newVol, guid);
+		newVol = Math.Clamp(newVol, 0, 100);
+		if(SetVolume(newVol, guid) && _volume != newVol)
+		{
+			_volume = newVol;
+			OnPropertyChanged(nameof(Volume));
+		}
 		if(notify)
 			StateNotificationMediator?.NotifyAudioStateChange(this);
 	}
 
+	/// <summary>
+	/// Writes the mute state (hotkeys) and takes it over at once. The mute hotkey toggles <see cref="IsMuted"/>, so it must be current:
+	/// it used to wait for Windows' notification, which never came (the write always carried Volumey's own context), so the hotkey muted
+	/// but never unmuted (owner found it)
+	/// </summary>
 	public void SetMute(bool muteState, bool notify, Guid context)
 	{
-		SetMute(muteState, context);
+		if(SetMute(muteState, context) && _isMuted != muteState)
+		{
+			_isMuted = muteState;
+			OnPropertyChanged(nameof(IsMuted));
+		}
 		if(notify)
 			StateNotificationMediator?.NotifyAudioStateChange(this);
 	}
 
 
-	//only writes; the public overloads notify (when asked to). Notifying here as well showed the OSD twice for every hotkey press
-	private void SetVolume(int newVol, Guid context)
+	//only write (true if they did); the public overloads notify (when asked to). Notifying here as well showed the OSD twice for every hotkey press
+	private bool SetVolume(int newVol, Guid context)
 	{
+		if(masterVolume == null)
+			return false;
 		try
 		{
-			masterVolume?.SetVolume(newVol, context);
+			masterVolume.SetVolume(newVol, context);
+			return true;
 		}
 		catch(Exception e)
 		{
 			LogStateException(e);
+			return false;
 		}
 	}
 
-	private void SetMute(bool muteState, Guid context)
+	private bool SetMute(bool muteState, Guid context)
 	{
+		if(masterVolume == null)
+			return false;
 		try
 		{
-			masterVolume?.SetMute(muteState);
+			masterVolume.SetMute(muteState, context);
+			return true;
 		}
 		catch(Exception e)
 		{
 			LogStateException(e);
+			return false;
 		}
 	}
 
