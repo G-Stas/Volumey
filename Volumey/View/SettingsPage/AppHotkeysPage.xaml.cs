@@ -24,10 +24,4 @@ public partial class AppHotkeysPage
 		vm.PrepareAddApp();
 		new AddAppDialog(vm) { DialogHostEx = window.DialogHost }.ShowAsync().Forget(Logger, "Failed to show the add app dialog");
 	}
-
-	private void OnOpenGeneralClick(object sender, RoutedEventArgs e)
-	{
-		if(Window.GetWindow(this) is SettingsWindow window)
-			window.Navigation.Navigate(typeof(GeneralPage));
-	}
 }

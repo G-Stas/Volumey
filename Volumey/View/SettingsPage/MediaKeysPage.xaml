@@ -5,6 +5,7 @@
       xmlns:lc="clr-namespace:Volumey.Localization"
       xmlns:converters="clr-namespace:Volumey.View.Converters"
       xmlns:controls="clr-namespace:Volumey.Controls"
+      xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_MediaKeys}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=SystemHotkeysViewModel}">
@@ -97,5 +98,6 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <viewControls:HotkeyModeNote />
     </StackPanel>
 </Page>

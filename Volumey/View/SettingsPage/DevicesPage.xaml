@@ -5,6 +5,7 @@
       xmlns:lc="clr-namespace:Volumey.Localization"
       xmlns:converters="clr-namespace:Volumey.View.Converters"
       xmlns:controls="clr-namespace:Volumey.Controls"
+      xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_Devices}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       DataContext="{StaticResource SettingsViewModel}">
@@ -360,5 +361,6 @@
                     </ui:CardExpander>
                 </StackPanel>
             </StackPanel>
+            <viewControls:HotkeyModeNote />
         </StackPanel>
 </Page>

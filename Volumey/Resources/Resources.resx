@@ -549,13 +549,13 @@
   <data name="AppHotkeys_Cancel" xml:space="preserve">
     <value />
   </data>
-  <data name="AppHotkeys_BlockedInfo" xml:space="preserve">
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
     <value />
   </data>
-  <data name="AppHotkeys_SharedInfo" xml:space="preserve">
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value />
   </data>
-  <data name="AppHotkeys_OpenGeneral" xml:space="preserve">
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
     <value />
   </data>
   <data name="Error_NeedsBoth" xml:space="preserve">

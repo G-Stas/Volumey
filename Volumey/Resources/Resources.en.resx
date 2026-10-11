@@ -549,13 +549,13 @@
   <data name="AppHotkeys_Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="AppHotkeys_BlockedInfo" xml:space="preserve">
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
     <value>Other apps don&apos;t get these keys. You can change this in General.</value>
   </data>
-  <data name="AppHotkeys_SharedInfo" xml:space="preserve">
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Other apps get these keys too. Hotkeys don&apos;t work while an admin app is in focus.</value>
   </data>
-  <data name="AppHotkeys_OpenGeneral" xml:space="preserve">
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
     <value>Open General</value>
   </data>
   <data name="Error_NeedsBoth" xml:space="preserve">

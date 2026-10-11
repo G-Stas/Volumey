@@ -5,6 +5,7 @@
       xmlns:lc="clr-namespace:Volumey.Localization"
       xmlns:converters="clr-namespace:Volumey.View.Converters"
       xmlns:controls="clr-namespace:Volumey.Controls"
+      xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_AppHotkeys}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       DataContext="{StaticResource SettingsViewModel}">
@@ -199,28 +200,6 @@
                 </ItemsControl>
             </StackPanel>
 
-            <!-- what the hotkey mode (General) means for these hotkeys; a card as in the mockup (WPF-UI's InfoBar doesn't show content, so no link) -->
-            <ui:CardControl Margin="0 12 0 0">
-                <ui:CardControl.Icon>
-                    <ui:SymbolIcon Symbol="Info24" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
-                </ui:CardControl.Icon>
-                <ui:CardControl.Header>
-                    <TextBlock>
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                <Setter Property="Text" Value="{lc:Localization AppHotkeys_BlockedInfo}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding BlockHotkeysInSystem}" Value="False">
-                                        <Setter Property="Text" Value="{lc:Localization AppHotkeys_SharedInfo}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </ui:CardControl.Header>
-                <ui:HyperlinkButton Content="{lc:Localization AppHotkeys_OpenGeneral}"
-                                    Click="OnOpenGeneralClick"
-                                    AutomationProperties.AutomationId="OpenGeneralLink" />
-            </ui:CardControl>
+            <viewControls:HotkeyModeNote />
         </StackPanel>
 </Page>
