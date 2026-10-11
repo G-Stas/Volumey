@@ -26,9 +26,9 @@ public interface INotificationService : IAudioProcessStateMediator
 	void CloseNotificationExample();
 
 	/// <summary>
-	/// The work area of the OSD's screen, in device-independent units of that screen
+	/// The work area of the OSD's screen, in physical pixels
 	/// </summary>
-	void SetWindowWorkArea(double left, double top, double width, double height);
+	void SetWindowWorkArea(int left, int top, int width, int height);
 
 	void ChangePosition(NotificationPosition newPosition);
 

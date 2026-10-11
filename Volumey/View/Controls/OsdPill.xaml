@@ -8,64 +8,66 @@
              AutomationProperties.Name="{Binding Name}">
     <!-- the OSD (mockup Osd.dc.html): one pill like the Windows 11 volume flyout for an app or a device; the icon tells which.
          It stays usable as before (owner): the bar is a slider, the number (or the mute icon while muted) a mute button.
-         The margin leaves room for the shadow inside the OSD window. -->
-    <Border Margin="12"
-            Height="48"
-            MinWidth="220"
-            Padding="16 0 6 0"
-            CornerRadius="24"
-            Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}"
-            BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
-            BorderThickness="1">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.3" />
-        </Border.Effect>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Image Source="{Binding IconSource}"
-                   Width="20"
-                   Height="20"
-                   VerticalAlignment="Center"
-                   RenderOptions.BitmapScalingMode="HighQuality" />
-            <controls:VolumeSlider Grid.Column="1"
-                                   Margin="12 0 8 0"
-                                   MinWidth="100"
-                                   VerticalAlignment="Center"
-                                   Minimum="0"
-                                   Maximum="100"
-                                   Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                                   AutomationProperties.Name="{Binding Name}" />
-            <ui:Button Grid.Column="2"
-                       MinWidth="40"
-                       Height="36"
-                       Padding="6 0"
+         The margin leaves room for the shadow inside the OSD window. The shadow is its own element behind the pill: an effect on the
+         pill itself renders the text as a bitmap, which was blurry on a 125% screen (owner found it). -->
+    <Grid Margin="12" Height="48" MinWidth="220" UseLayoutRounding="True">
+        <Border CornerRadius="24" Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.3" />
+            </Border.Effect>
+        </Border>
+        <Border Padding="16 0 6 0"
+                CornerRadius="24"
+                Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}"
+                BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Source="{Binding IconSource}"
+                       Width="20"
+                       Height="20"
                        VerticalAlignment="Center"
-                       Appearance="Transparent"
-                       BorderThickness="0"
-                       Command="{Binding MuteCommand}">
-                <AutomationProperties.Name>
-                    <MultiBinding Converter="{StaticResource MuteButtonName}">
-                        <Binding Path="IsMuted" />
-                        <Binding Path="Name" />
-                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                    </MultiBinding>
-                </AutomationProperties.Name>
-                <Grid>
-                    <TextBlock Text="{Binding Volume}"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               Visibility="{Binding IsMuted, Converter={StaticResource InverseBoolToVisibility}}" />
-                    <ui:SymbolIcon Symbol="SpeakerMute24"
-                                   FontSize="18"
-                                   Visibility="{Binding IsMuted, Converter={StaticResource BoolToVisibility}}" />
-                </Grid>
-            </ui:Button>
-        </Grid>
-    </Border>
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <controls:VolumeSlider Grid.Column="1"
+                                       Margin="12 0 8 0"
+                                       MinWidth="100"
+                                       VerticalAlignment="Center"
+                                       Minimum="0"
+                                       Maximum="100"
+                                       Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                       AutomationProperties.Name="{Binding Name}" />
+                <ui:Button Grid.Column="2"
+                           MinWidth="40"
+                           Height="36"
+                           Padding="6 0"
+                           VerticalAlignment="Center"
+                           Appearance="Transparent"
+                           BorderThickness="0"
+                           Command="{Binding MuteCommand}">
+                    <AutomationProperties.Name>
+                        <MultiBinding Converter="{StaticResource MuteButtonName}">
+                            <Binding Path="IsMuted" />
+                            <Binding Path="Name" />
+                            <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                        </MultiBinding>
+                    </AutomationProperties.Name>
+                    <Grid>
+                        <TextBlock Text="{Binding Volume}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Visibility="{Binding IsMuted, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <ui:SymbolIcon Symbol="SpeakerMute24"
+                                       FontSize="18"
+                                       Visibility="{Binding IsMuted, Converter={StaticResource BoolToVisibility}}" />
+                    </Grid>
+                </ui:Button>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

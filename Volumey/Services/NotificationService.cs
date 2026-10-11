@@ -65,7 +65,7 @@ internal sealed class NotificationService : INotificationService
 
 	public void CloseNotificationExample() => Try(() => window?.Close(ExampleKey), "Failed to close example notification");
 
-	public void SetWindowWorkArea(double left, double top, double width, double height) => Window.SetWorkArea(left, top, width, height);
+	public void SetWindowWorkArea(int left, int top, int width, int height) => Window.SetWorkArea(left, top, width, height);
 
 	public void ChangePosition(NotificationPosition newPosition) => Window.SetPosition(newPosition);
 

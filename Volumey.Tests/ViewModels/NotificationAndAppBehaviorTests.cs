@@ -54,20 +54,20 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Notifications.Verify(m => m.ChangePosition(NotificationPosition.BottomCenter));
 		Notifications.Verify(m => m.SetIndents(30, 40));
 		Notifications.Verify(m => m.SetNotificationDisplayTime(5));
-		Notifications.Verify(m => m.SetWindowWorkArea(Second.WorkingAreaLeft, Second.WorkingAreaTop, Second.Width, Second.Height));
+		Notifications.Verify(m => m.SetWindowWorkArea((int)Second.WorkingAreaLeft, (int)Second.WorkingAreaTop, (int)Second.Width, (int)Second.Height));
 	}
 
 	[TestMethod]
-	public void TheOsdAreaOfAScaledScreenIsInDeviceIndependentUnits()
+	public void TheOsdAreaOfAScaledScreenIsInPhysicalPixels()
 	{
-		//#76: a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them
+		//#76: a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them; the OSD window takes them as they are
 		var scaled = new ScreenInfo(@"\\.\DISPLAY2", false, 1920, 1020, 1920, 1080, 2560, 4480, 0, 1020, 1.25);
 		screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary, scaled });
 		Settings.Notifications.ScreenName = scaled.Name;
 
 		CreateNotifications();
 
-		Notifications.Verify(m => m.SetWindowWorkArea(2048, 0, 1536, 816));
+		Notifications.Verify(m => m.SetWindowWorkArea(2560, 0, 1920, 1020));
 	}
 
 	[TestMethod]
@@ -84,7 +84,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.AreEqual(Primary, window.SelectedScreen);
 		Assert.AreEqual(@".//DISPLAY3", Settings.Notifications.ScreenName);
 		Assert.AreEqual(@".//DISPLAY3", Settings.Window.ScreenName);
-		Notifications.Verify(m => m.SetWindowWorkArea(Primary.WorkingAreaLeft, Primary.WorkingAreaTop, Primary.Width, Primary.Height));
+		Notifications.Verify(m => m.SetWindowWorkArea((int)Primary.WorkingAreaLeft, (int)Primary.WorkingAreaTop, (int)Primary.Width, (int)Primary.Height));
 	}
 
 	[TestMethod]

@@ -170,10 +170,9 @@ public partial class NotificationViewModel : ObservableObject
 	private void OnScreenShown(ScreenInfo screen)
 	{
 		OnPropertyChanged(nameof(SelectedScreen));
-		//the OSD window takes device-independent units of the screen it's on: the screen's values are physical pixels,
-		//so all four are divided by its scale factor (only the size was before, which put the OSD off a scaled screen, #76)
-		double scale = screen.ScaleFactor > 0 ? screen.ScaleFactor : 1;
-		_notifications.SetWindowWorkArea(screen.WorkingAreaLeft / scale, screen.WorkingAreaTop / scale, screen.Width / scale, screen.Height / scale);
+		//the screen's work area in physical pixels; the OSD window places itself with them (#76: dividing them by the scale
+		//as WPF units still put the OSD off when it moved between screens with different scales)
+		_notifications.SetWindowWorkArea((int)screen.WorkingAreaLeft, (int)screen.WorkingAreaTop, (int)screen.Width, (int)screen.Height);
 	}
 
 	public ObservableCollection<ScreenInfo> AllScreens => screens.All;

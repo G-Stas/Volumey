@@ -39,6 +39,8 @@ public partial class OsdWindow
 	{
 		InitializeComponent();
 		SourceInitialized += OnSourceInitialized;
+		//WPF resizes the window to the suggested rectangle when it lands on a screen with another scale; put it back over the work area
+		DpiChanged += (_, _) => Dispatcher.InvokeAsync(ApplyWorkArea);
 	}
 
 	//never activated, not even by a click on a pill (a game in front keeps the focus), and not in Alt+Tab
@@ -48,17 +50,28 @@ public partial class OsdWindow
 		var style = PInvoke.GetWindowLongPtr(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
 		style |= (nint)(WINDOW_EX_STYLE.WS_EX_NOACTIVATE | WINDOW_EX_STYLE.WS_EX_TOOLWINDOW);
 		PInvoke.SetWindowLongPtr(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, style);
+		ApplyWorkArea();
 	}
 
+	private (int left, int top, int width, int height)? workArea;
+
 	/// <summary>
-	/// The work area of the OSD's screen, in device-independent units of that screen
+	/// The work area of the OSD's screen, in physical pixels. Set with SetWindowPos, not Left/Top: WPF converts those with the scale
+	/// of the screen the window is on now, which put the OSD off on a screen with another scale
 	/// </summary>
-	public void SetWorkArea(double left, double top, double width, double height)
+	public void SetWorkArea(int left, int top, int width, int height)
 	{
-		Left = left;
-		Top = top;
-		Width = width;
-		Height = height;
+		workArea = (left, top, width, height);
+		ApplyWorkArea();
+	}
+
+	private void ApplyWorkArea()
+	{
+		var hwnd = new WindowInteropHelper(this).Handle;
+		if(hwnd == IntPtr.Zero || workArea is not { } area)
+			return;
+		PInvoke.SetWindowPos(new HWND(hwnd), HWND.Null, area.left, area.top, area.width, area.height,
+			SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
 	}
 
 	public void SetPosition(NotificationPosition newPosition)
