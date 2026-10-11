@@ -1,5 +1,4 @@
-﻿using System.Windows.Media;
-using Notification.Wpf.Controls;
+﻿using Volumey.DataProvider.Settings;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
 
@@ -18,15 +17,17 @@ public interface INotificationService : IAudioProcessStateMediator
 
 	void CloseNotificationExample();
 
+	/// <summary>
+	/// The work area of the OSD's screen, in device-independent units of that screen
+	/// </summary>
 	void SetWindowWorkArea(double left, double top, double width, double height);
 
 	void ChangePosition(NotificationPosition newPosition);
 
-	void SetVerticalIndent(int indent);
-
-	void SetHorizontalIndent(int indent);
+	/// <summary>
+	/// The distances from the screen edges, in pixels at 100% scaling
+	/// </summary>
+	void SetIndents(int horizontal, int vertical);
 
 	void SetNotificationDisplayTime(int timeInSeconds);
-
-	void UpdateColors(Brush background, Brush foreground, Brush hover);
 }

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Notification.Wpf.Controls;
 using Nucs.JsonSettings.NotifyChanges;
 using Volumey.Controls;
-using Volumey.Helper;
 
 namespace Volumey.DataProvider.Settings;
 
@@ -64,9 +62,13 @@ public sealed class HotkeySettings : SettingsSection
 [NotifyChanges]
 public sealed class NotificationSettings : SettingsSection
 {
+	/// <summary>The range of the OSD's distance from the screen edges, in pixels at 100% scaling</summary>
+	public const int MinIndent = 15;
+	public const int MaxIndent = 500;
+
 	public bool Enabled { get; set; }
-	public int VerticalIndent { get; set; } = NotificationManagerHelper.MinIndent;
-	public int HorizontalIndent { get; set; } = NotificationManagerHelper.MinIndent;
+	public int VerticalIndent { get; set; } = MinIndent;
+	public int HorizontalIndent { get; set; } = MinIndent;
 	public NotificationPosition Position { get; set; } = NotificationPosition.TopLeft;
 	public int DisplayTimeSeconds { get; set; } = 3;
 	public bool ReactToAllVolumeChanges { get; set; }

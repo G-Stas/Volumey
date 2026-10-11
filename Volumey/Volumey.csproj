@@ -178,12 +178,6 @@
   </Target>
 
   <ItemGroup>
-    <Reference Include="Notification.Wpf, Version=6.1.0.1, Culture=neutral, PublicKeyToken=1acac493089262b5">
-      <HintPath>Resources\Notification.Wpf.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Resources\Icons\ButtonIcon\boosty.png" />
   </ItemGroup>
 </Project>

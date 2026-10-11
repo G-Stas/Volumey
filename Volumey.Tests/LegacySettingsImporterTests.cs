@@ -1,7 +1,6 @@
 using System.IO;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Notification.Wpf.Controls;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;

@@ -2,7 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:Volumey.ViewModel"
-             xmlns:system="clr-namespace:System;assembly=System.Runtime"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              StartupUri="View/MainView.xaml">
     <Application.Resources>
@@ -32,9 +31,6 @@
             <BitmapImage x:Key="TrayMuteDark" UriSource="/Resources/Icons/TrayDark/mute.ico" />
             <BitmapImage x:Key="TrayNoDeviceDark" UriSource="Resources/Icons/TrayDark/no-device.ico" />
 
-            <!-- the OSD (VolumeNotificationContent), until its redesign -->
-            <system:Double x:Key="SliderHeight">35</system:Double>
-            <system:Double x:Key="ImageSize">24</system:Double>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -2,8 +2,8 @@ using System;
 using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Notification.Wpf.Controls;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Model;
 using Volumey.Services;
 using Volumey.ViewModel;
@@ -51,8 +51,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.IsTrue(vm.NotificationsPositionIsCentered);
 		Assert.AreEqual(Second, vm.SelectedScreen);
 		Notifications.Verify(m => m.ChangePosition(NotificationPosition.BottomCenter));
-		Notifications.Verify(m => m.SetVerticalIndent(40));
-		Notifications.Verify(m => m.SetHorizontalIndent(30));
+		Notifications.Verify(m => m.SetIndents(30, 40));
 		Notifications.Verify(m => m.SetNotificationDisplayTime(5));
 		Notifications.Verify(m => m.SetWindowWorkArea(Second.WorkingAreaLeft, Second.WorkingAreaTop, Second.Width, Second.Height));
 	}
@@ -145,7 +144,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		bool enabled = vm.NotificationsEnabled;
 
 		Notifications.Verify(m => m.ChangePosition(NotificationPosition.TopRight));
-		Notifications.Verify(m => m.SetVerticalIndent(25));
+		Notifications.Verify(m => m.SetIndents(NotificationSettings.MinIndent, 25));
 		Notifications.Verify(m => m.SetNotificationDisplayTime(7));
 		Assert.AreEqual(25, Settings.Notifications.VerticalIndent);
 		Assert.AreEqual(7, Settings.Notifications.DisplayTimeSeconds);

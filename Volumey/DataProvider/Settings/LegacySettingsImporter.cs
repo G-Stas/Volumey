@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Formats.Nrbf;
 using System.IO;
 using System.Windows.Input;
-using Notification.Wpf.Controls;
 using Volumey.Controls;
 using Volumey.Model;
 

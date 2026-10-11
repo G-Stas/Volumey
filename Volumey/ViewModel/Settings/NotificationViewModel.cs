@@ -5,9 +5,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using log4net;
 using Microsoft.Win32;
-using Notification.Wpf.Controls;
-using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Helper;
+using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.Services;
 
@@ -104,7 +104,7 @@ public partial class NotificationViewModel : ObservableObject
 			}
 			_verticalIndent = value;
 			SettingsProvider.Settings.Notifications.VerticalIndent = value;
-			_notifications.SetVerticalIndent(value);
+			_notifications.SetIndents(_horizontalIndent, value);
 			OnPropertyChanged();
 		}
 	}
@@ -123,7 +123,7 @@ public partial class NotificationViewModel : ObservableObject
 			}
 			_horizontalIndent = value;
 			SettingsProvider.Settings.Notifications.HorizontalIndent = value;
-			_notifications.SetHorizontalIndent(value);
+			_notifications.SetIndents(value, _verticalIndent);
 			OnPropertyChanged();
 		}
 	}
@@ -147,8 +147,8 @@ public partial class NotificationViewModel : ObservableObject
 	public int MaxDisplayTime { get; } = 10;
 	public int MinDisplayTime { get; } = 1;
 
-	public static int MinIndent => NotificationManagerHelper.MinIndent;
-	public static int MaxIndent => NotificationManagerHelper.MaxIndent;
+	public static int MinIndent => NotificationSettings.MinIndent;
+	public static int MaxIndent => NotificationSettings.MaxIndent;
 
 	private readonly ScreenSelection screens;
 
