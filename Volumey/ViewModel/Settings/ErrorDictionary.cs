@@ -5,7 +5,7 @@ using Volumey.Localization;
 
 namespace Volumey.ViewModel.Settings;
 
-public enum ErrorMessageType { VolumeReg, Diff, OpenReg, HotkeyExists, F12, None }
+public enum ErrorMessageType { VolumeReg, Diff, OpenReg, HotkeyExists, F12, Missing, NeedsBoth, FormatRefused, SettingFailed, None }
 
 public static class ErrorDictionary
 {

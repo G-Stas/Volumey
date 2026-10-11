@@ -98,6 +98,55 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
 		=> Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
+	/// <param name="failed">The hotkey the system refused, null otherwise</param>
+	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey failed)
+		=> Master.SetVolumeHotkeys(volUp, volDown, out failed);
+
+	/// <summary>
+	/// The device's format when the model was made (a format change makes a new model, see <see cref="Invalidated"/>); null if it couldn't be read
+	/// </summary>
+	internal DeviceFormat? Format => currentStreamFormat;
+
+	/// <summary>
+	/// The formats the device can run at (makes COM calls: call it off the UI thread); empty if they can't be read
+	/// </summary>
+	internal IReadOnlyList<DeviceFormatOption> GetSupportedFormats()
+		=> disposed ? Array.Empty<DeviceFormatOption>() : device.GetSupportedFormats();
+
+	/// <summary>
+	/// The level of each channel (0..1): the device's balance; empty if they can't be read
+	/// </summary>
+	internal IReadOnlyList<float> GetChannelVolumes() => disposed ? Array.Empty<float>() : device.GetChannelVolumes();
+
+	internal void SetChannelVolume(int channel, float level)
+	{
+		if(!disposed)
+			device.SetChannelVolume(channel, level);
+	}
+
+	private Action channelVolumesChanged;
+	/// <summary>
+	/// A channel level or the device volume changed; raised on the UI thread
+	/// </summary>
+	internal event Action ChannelVolumesChanged
+	{
+		add
+		{
+			if(channelVolumesChanged == null && !disposed)
+				device.ChannelVolumesChanged += OnChannelVolumesChanged;
+			channelVolumesChanged += value;
+		}
+		remove
+		{
+			channelVolumesChanged -= value;
+			if(channelVolumesChanged == null && !disposed)
+				device.ChannelVolumesChanged -= OnChannelVolumesChanged;
+		}
+	}
+
+	//a COM thread: passed on without waiting (see DeviceStateNotificationsHandler)
+	private void OnChannelVolumesChanged() => dispatcher.InvokeAsync(() => channelVolumesChanged?.Invoke());
+
 	internal void ResetVolumeHotkeys() => Master.ResetVolumeHotkeys();
 
 	internal void SetStateNotificationMediator(IAudioProcessStateMediator mediator)
@@ -324,6 +373,8 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		_disabled = null;
 		ProcessCreated = null;
 		Invalidated = null;
+		//the device unsubscribes from Windows when it's released
+		channelVolumesChanged = null;
 		ReleaseAsync().Forget(Logger, $"Failed to release the device [{Master.DeviceFriendlyName}]");
 	}
 

@@ -9,6 +9,47 @@ namespace Volumey.Tests;
 public class ControlsTests
 {
 	[TestMethod]
+	public void DigitsOnlyLetsOnlyDigitsIn()
+	{
+		Assert.IsTrue(DigitsOnly.IsAllowed("5"));
+		Assert.IsTrue(DigitsOnly.IsAllowed("100"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("-"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("-1"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("1.5"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("1e2"));
+		Assert.IsFalse(DigitsOnly.IsAllowed("٣")); //non-ASCII digits
+		Assert.IsFalse(DigitsOnly.IsAllowed(""));
+	}
+
+	[STATestMethod]
+	public void NumberBoxCommitsAClampedValueWhenItLosesFocus()
+	{
+		var box = new Wpf.Ui.Controls.NumberBox { Minimum = 1, Maximum = 100, Value = 5 };
+		var scope = new System.Windows.Controls.StackPanel();
+		System.Windows.Input.FocusManager.SetIsFocusScope(scope, true);
+		scope.Children.Add(box);
+		System.Windows.Input.FocusManager.SetFocusedElement(scope, box);
+		box.Text = "150";
+
+		NumberBoxCommit.TakeLogicalFocus(box);
+
+		Assert.AreEqual(100d, box.Value, $"text {box.Text}");
+		Assert.IsFalse(box.IsFocused);
+	}
+
+	[STATestMethod]
+	public void NumberBoxShowsTheClampedValueWhenItEqualsTheCurrentOne()
+	{
+		//WPF-UI doesn't update the text when the clamped value doesn't change the value
+		var box = new Wpf.Ui.Controls.NumberBox { Minimum = 1, Maximum = 100, Value = 100 };
+		box.Text = "150";
+
+		NumberBoxCommit.ShowValue(box);
+
+		Assert.AreEqual("100", box.Text);
+	}
+
+	[TestMethod]
 	public void HotkeysWithSameKeysAreEqual()
 	{
 		var hotkey = new HotKey(Key.F5, ModifierKeys.Control | ModifierKeys.Shift);

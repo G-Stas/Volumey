@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
@@ -11,119 +8,89 @@ using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
 
-public partial class SystemHotkeysViewModel : HotkeyViewModel
+/// <summary>
+/// The Media keys page: one hotkey per media key, which Volumey answers by pressing that media key
+/// </summary>
+public class SystemHotkeysViewModel : HotkeyViewModel
 {
-	[ObservableProperty]
-	public partial SystemHotkey SelectedHotkey { get; set; }
+	private static readonly Key[] MediaKeys = { Key.MediaPlayPause, Key.MediaPreviousTrack, Key.MediaNextTrack, Key.MediaStop };
 
-	[ObservableProperty]
-	public partial SystemHotkey SelectedRegisteredHotkey { get; set; }
-
-	[ObservableProperty]
-	public partial HotKey ReplacementHotKey { get; set; }
-
-	public ObservableCollection<SystemHotkey> Hotkeys { get; set; } = new ObservableCollection<SystemHotkey>();
-	public ObservableCollection<SystemHotkey> RegisteredHotkeys { get; set; }
+	/// <summary>
+	/// Every media key in a fixed order, with or without a hotkey
+	/// </summary>
+	public IReadOnlyList<MediaKeyItem> Keys { get; }
 
 	internal SystemHotkeysViewModel(IHotkeyService hotkeys) : base(hotkeys)
 	{
-		var mediaHotkeys = GetMediaHotkeys();
+		var saved = SettingsProvider.Settings.Hotkeys.System;
+		Keys = MediaKeys
+			   .Select(key => new MediaKeyItem(this, new SystemHotkey(key, saved.FirstOrDefault(h => h.SystemKey == key)?.Replacement)))
+			   .ToList();
 
-		RegisteredHotkeys = new ObservableCollection<SystemHotkey>(SettingsProvider.Settings.Hotkeys.System.Select(h => new SystemHotkey(h.SystemKey, h.Replacement)));
-
-		foreach(var hotkey in mediaHotkeys)
+		ErrorDictionary.LanguageChanged += () =>
 		{
-			if(!RegisteredHotkeys.Contains(hotkey))
-				Hotkeys.Add(hotkey);
-		}
+			foreach(var item in Keys)
+				item.RefreshTexts();
+		};
 
-		if(RegisteredHotkeys.Count > 0)
+		if(Keys.Any(k => k.Hotkey != null))
 			RegisterWhenHotkeysActive(RegisterHotkeys);
 	}
 
 	private void RegisterHotkeys()
 	{
 		//shows an error instead of silently doing nothing; the hotkeys stay saved and are tried again on the next start
-		bool allRegistered = true;
-		foreach(var hotkey in RegisteredHotkeys)
+		foreach(var item in Keys.Where(k => k.Hotkey != null))
 		{
-			allRegistered &= hotkeys.RegisterHotkey(hotkey.Replacement);
-			hotkey.RegisterHotkeyHandler(hotkeys);
+			item.IsRegistered = hotkeys.RegisterHotkey(item.Hotkey);
+			item.Model.RegisterHotkeyHandler(hotkeys);
+			if(!item.IsRegistered)
+				item.SetError(ErrorMessageType.OpenReg);
 		}
-		if(!allRegistered)
-			SetErrorMessage(ErrorMessageType.OpenReg);
 	}
 
-	[RelayCommand]
-	private void AddHotkey()
+	/// <summary>
+	/// Takes a hotkey typed into a media key's box (null: cleared); a rejected one leaves the old hotkey in place
+	/// </summary>
+	internal void ChangeHotkey(MediaKeyItem item, HotKey hotkey)
 	{
-		//the lists below are bound to the selection, so it's read once
-		var selected = SelectedHotkey;
-		var replacement = ReplacementHotKey;
-		if(selected == null || replacement == null)
+		var old = item.Hotkey;
+		if(Equals(hotkey, old))
 			return;
 
-		if(!IsValid(hotkeys.HotkeyIsValid(replacement)))
-			return;
-
-		if(!hotkeys.RegisterHotkey(replacement))
+		if(hotkey != null)
 		{
-			SetErrorMessage(ErrorMessageType.VolumeReg);
-			return;
+			var error = hotkeys.HotkeyIsValid(hotkey);
+			if(error == ErrorMessageType.None && !hotkeys.RegisterHotkey(hotkey))
+				error = ErrorMessageType.OpenReg;
+			if(error != ErrorMessageType.None)
+			{
+				//the box shows the old hotkey again, so the error names the rejected one
+				item.SetError(error, hotkey);
+				item.SetHotkey(old);
+				return;
+			}
 		}
 
-		SetErrorMessage(ErrorMessageType.None);
+		if(old != null && item.IsRegistered)
+			hotkeys.UnregisterHotkey(old);
+		item.IsRegistered = hotkey != null;
+		if(old == null)
+			item.Model.RegisterHotkeyHandler(hotkeys);
+		else if(hotkey == null)
+			item.Model.UnregisterHotkeyHandler(hotkeys);
 
-		selected.Replacement = replacement;
-		selected.RegisterHotkeyHandler(hotkeys);
-
-		RegisteredHotkeys.Add(selected);
-
-		SaveRegisteredHotkeys();
-
-		Hotkeys.Remove(selected);
-
-		SelectedHotkey = null;
-		ReplacementHotKey = null;
-
+		item.SetError(ErrorMessageType.None);
+		item.SetHotkey(hotkey);
+		Logger.Info($"Changed media key hotkey. Key: [{item.MediaKey}] Hotkey: [{hotkey}]");
+		SaveHotkeys();
 	}
 
-	[RelayCommand]
-	private void RemoveHotkey()
+	private void SaveHotkeys()
 	{
-		if(SelectedRegisteredHotkey == null)
-			return;
-
-		var hotkey = SelectedRegisteredHotkey;
-
-		hotkeys.UnregisterHotkey(hotkey.Replacement);
-		RegisteredHotkeys.Remove(hotkey);
-		SaveRegisteredHotkeys();
-
-		hotkey.UnregisterHotkeyHandler(hotkeys);
-
-		hotkey.Replacement = null;
-		Hotkeys.Add(hotkey);
-
-	}
-
-	private void SaveRegisteredHotkeys()
-	{
-		var entries = RegisteredHotkeys
-					  .Select(h => new SystemHotkeyEntry { SystemKey = h.SystemKey, Replacement = h.Replacement })
-					  .ToArray();
-		SettingsProvider.Settings.Hotkeys.System = entries;
-	}
-
-	private static List<SystemHotkey> GetMediaHotkeys()
-	{
-		return new List<SystemHotkey>
-		{
-			new SystemHotkey(Key.MediaPlayPause),
-			new SystemHotkey(Key.MediaPreviousTrack),
-			new SystemHotkey(Key.MediaNextTrack),
-			new SystemHotkey(Key.MediaStop)
-		};
+		SettingsProvider.Settings.Hotkeys.System = Keys
+												   .Where(k => k.Hotkey != null)
+												   .Select(k => new SystemHotkeyEntry { SystemKey = k.MediaKey, Replacement = k.Hotkey })
+												   .ToArray();
 	}
 }
-

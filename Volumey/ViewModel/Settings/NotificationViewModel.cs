@@ -5,9 +5,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using log4net;
 using Microsoft.Win32;
-using Notification.Wpf.Controls;
-using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Helper;
+using Volumey.DataProvider;
 using Volumey.Model;
 using Volumey.Services;
 
@@ -37,6 +37,7 @@ public partial class NotificationViewModel : ObservableObject
 
 			NotificationsPositionIsCentered = value == NotificationPosition.TopCenter || value == NotificationPosition.BottomCenter;
 			OnPropertyChanged(nameof(NotificationsPositionIsCentered));
+			OnPropertyChanged(nameof(SelectedPositionKey));
 
 			_notifications.ChangePosition(value);
 			OnPropertyChanged();
@@ -47,6 +48,11 @@ public partial class NotificationViewModel : ObservableObject
 	}
 
 	public bool NotificationsPositionIsCentered { get; set; }
+
+	/// <summary>
+	/// The localization key of the position's name ("Top right")
+	/// </summary>
+	public string SelectedPositionKey => $"Position_{SelectedPosition}";
 
 	[ObservableProperty]
 	public partial bool NotificationsEnabled { get; set; }
@@ -75,20 +81,16 @@ public partial class NotificationViewModel : ObservableObject
 		}
 	}
 
-	private bool _previewIsOn;
-	public bool PreviewIsOn
-	{
-		get => _previewIsOn;
-		set
-		{
-			_previewIsOn = value;
-			if(value)
-				_notifications.ShowNotificationExample();
-			else
-				_notifications.CloseNotificationExample();
-			OnPropertyChanged();
-		}
-	}
+	/// <summary>
+	/// The sample app the page's preview and "Show on screen" show
+	/// </summary>
+	public IManagedMasterAudioSession PreviewSession => _notifications.Example;
+
+	/// <summary>
+	/// Shows the sample OSD where the real one would show, for the display time
+	/// </summary>
+	[RelayCommand]
+	private void ShowPreview() => _notifications.ShowNotificationExample();
 
 	private int _verticalIndent;
 	public int VerticalIndent
@@ -104,7 +106,7 @@ public partial class NotificationViewModel : ObservableObject
 			}
 			_verticalIndent = value;
 			SettingsProvider.Settings.Notifications.VerticalIndent = value;
-			_notifications.SetVerticalIndent(value);
+			_notifications.SetIndents(_horizontalIndent, value);
 			OnPropertyChanged();
 		}
 	}
@@ -123,7 +125,7 @@ public partial class NotificationViewModel : ObservableObject
 			}
 			_horizontalIndent = value;
 			SettingsProvider.Settings.Notifications.HorizontalIndent = value;
-			_notifications.SetHorizontalIndent(value);
+			_notifications.SetIndents(value, _verticalIndent);
 			OnPropertyChanged();
 		}
 	}
@@ -145,10 +147,14 @@ public partial class NotificationViewModel : ObservableObject
 	}
 
 	public int MaxDisplayTime { get; } = 10;
+	/// <summary>
+	/// The display times to choose from, in seconds
+	/// </summary>
+	public int[] DisplayTimes { get; } = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 	public int MinDisplayTime { get; } = 1;
 
-	public static int MinIndent => NotificationManagerHelper.MinIndent;
-	public static int MaxIndent => NotificationManagerHelper.MaxIndent;
+	public static int MinIndent => NotificationSettings.MinIndent;
+	public static int MaxIndent => NotificationSettings.MaxIndent;
 
 	private readonly ScreenSelection screens;
 
@@ -164,10 +170,9 @@ public partial class NotificationViewModel : ObservableObject
 	private void OnScreenShown(ScreenInfo screen)
 	{
 		OnPropertyChanged(nameof(SelectedScreen));
-		//the OSD window takes device-independent units of the screen it's on: the screen's values are physical pixels,
-		//so all four are divided by its scale factor (only the size was before, which put the OSD off a scaled screen, #76)
-		double scale = screen.ScaleFactor > 0 ? screen.ScaleFactor : 1;
-		_notifications.SetWindowWorkArea(screen.WorkingAreaLeft / scale, screen.WorkingAreaTop / scale, screen.Width / scale, screen.Height / scale);
+		//the screen's work area in physical pixels; the OSD window places itself with them (#76: dividing them by the scale
+		//as WPF units still put the OSD off when it moved between screens with different scales)
+		_notifications.SetWindowWorkArea((int)screen.WorkingAreaLeft, (int)screen.WorkingAreaTop, (int)screen.Width, (int)screen.Height);
 	}
 
 	public ObservableCollection<ScreenInfo> AllScreens => screens.All;
@@ -186,8 +191,7 @@ public partial class NotificationViewModel : ObservableObject
 			name => SettingsProvider.Settings.Notifications.ScreenName = name, () => App.Current?.Dispatcher, OnScreenShown, Logger);
 		screens.ScreensChanging += () =>
 		{
-			if(PreviewIsOn)
-				PreviewIsOn = false;
+			_notifications.CloseNotificationExample();
 		};
 		NotificationsEnabled = SettingsProvider.Settings.Notifications.Enabled;
 		HorizontalIndent = SettingsProvider.Settings.Notifications.HorizontalIndent;
@@ -209,7 +213,7 @@ public partial class NotificationViewModel : ObservableObject
 	private void Loaded() => screens.Refresh();
 
 	[RelayCommand]
-	private void Unloaded() => PreviewIsOn = false;
+	private void Unloaded() => _notifications.CloseNotificationExample();
 
 	private async Task SetStateMediatorForDefaultDeviceProcesses()
 	{

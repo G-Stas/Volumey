@@ -32,3 +32,6 @@ GetWindowRect
 MonitorFromWindow
 GetMonitorInfo
 GetMessageTime
+GetWindowLongPtr
+SetWindowLongPtr
+WINDOW_EX_STYLE

@@ -66,7 +66,8 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 
 		ActivateHotkeys();
 
-		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.ErrorMessage);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.Errors.VolumeDown);
+		Assert.AreEqual(string.Empty, vm.Errors.VolumeUp);
 		//the first hotkey of the pair isn't left registered
 		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
 		//and the pair stays saved for the next start

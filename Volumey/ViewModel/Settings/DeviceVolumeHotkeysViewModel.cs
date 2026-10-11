@@ -21,6 +21,31 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 	[ObservableProperty]
 	public partial HotKey MuteKey { get; set; }
 
+	/// <summary>
+	/// Why turning the volume hotkeys on failed, under the box that has the problem; a box's error goes away when it changes
+	/// </summary>
+	public HotkeyPairErrors VolumeErrors { get; } = new HotkeyPairErrors();
+
+	partial void OnVolumeUpChanged(HotKey value) => VolumeErrors.ClearUp();
+
+	partial void OnVolumeDownChanged(HotKey value) => VolumeErrors.ClearDown();
+
+	/// <summary>
+	/// Why turning the mute hotkey on failed (its own error, so it isn't mistaken for the volume hotkeys')
+	/// </summary>
+	[ObservableProperty]
+	public partial string MuteError { get; private set; }
+
+	private ErrorMessageType muteErrorType = ErrorMessageType.None;
+
+	private void SetMuteError(ErrorMessageType type)
+	{
+		muteErrorType = type;
+		MuteError = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
+	}
+
+	partial void OnMuteKeyChanged(HotKey value) => SetMuteError(ErrorMessageType.None);
+
 	private bool volumeHotkeysRegistered;
 	public bool VolumeHotkeysRegistered
 	{
@@ -72,6 +97,11 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		: base(hotkeys)
 	{
 		this.notifications = notifications;
+		ErrorDictionary.LanguageChanged += () =>
+		{
+			VolumeErrors.Refresh();
+			SetMuteError(muteErrorType);
+		};
 		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 		defaultDevice = deviceProvider.DefaultDevice;
 
@@ -127,12 +157,13 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		var up = VolumeUp;
 		var down = VolumeDown;
 
-		if(!IsValid(hotkeys.HotkeysAreValid(up, down)))
+		VolumeErrors.Set(hotkeys.CheckHotkeysPair(up, down));
+		if(VolumeErrors.Any)
 			return false;
 
 		if(defaultDevice != null)
 		{
-			if(defaultDevice.SetVolumeHotkeys(up, down))
+			if(defaultDevice.SetVolumeHotkeys(up, down, out var failed))
 			{
 				if(SettingsProvider.Settings.Notifications.Enabled)
 					defaultDevice.SetStateNotificationMediator(notifications);
@@ -140,12 +171,12 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 			}
 			else
 			{
-				SetErrorMessage(ErrorMessageType.VolumeReg);
+				//the hotkey service logs why
+				VolumeErrors.SetFor(failed, up, ErrorMessageType.VolumeReg);
 				return false;
 			}
 		}
 
-		SetErrorMessage(ErrorMessageType.None);
 		SettingsProvider.Settings.Hotkeys.DeviceVolumeUp = VolumeUp;
 		SettingsProvider.Settings.Hotkeys.DeviceVolumeDown = VolumeDown;
 		Logger.Info($"Registered device hotkeys, +vol: [{VolumeUp}], -vol: [{VolumeDown}]");
@@ -154,6 +185,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 
 	private void ResetVolumeHotkeys()
 	{
+		VolumeErrors.Clear();
 		if(defaultDevice != null)
 		{
 			defaultDevice.ResetVolumeHotkeys();
@@ -170,7 +202,9 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 	private bool SaveMuteHotkey()
 	{
 		var key = MuteKey;
-		if(!IsValid(hotkeys.HotkeyIsValid(key)))
+		var error = key == null ? ErrorMessageType.Missing : hotkeys.HotkeyIsValid(key);
+		SetMuteError(error);
+		if(error != ErrorMessageType.None)
 			return false;
 
 		if(defaultDevice != null)
@@ -183,12 +217,10 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 			}
 			else
 			{
-				SetErrorMessage(ErrorMessageType.OpenReg);
+				SetMuteError(ErrorMessageType.OpenReg);
 				return false;
 			}
 		}
-
-		SetErrorMessage(ErrorMessageType.None);
 
 		SettingsProvider.Settings.Hotkeys.DeviceMute = key;
 		Logger.Info($"Registered device mute hotkey: [{key}]");
@@ -197,6 +229,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 
 	private void ResetMuteHotkey()
 	{
+		SetMuteError(ErrorMessageType.None);
 		if(defaultDevice != null)
 		{
 			defaultDevice.ResetMuteHotkeys();

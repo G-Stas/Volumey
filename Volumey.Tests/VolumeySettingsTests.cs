@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Notification.Wpf.Controls;
 using Nucs.JsonSettings;
 using Nucs.JsonSettings.Autosave;
 using Nucs.JsonSettings.Modulation.Recovery;

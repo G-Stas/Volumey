@@ -56,7 +56,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="ModernWpfUI" Version="0.9.4" />
+    <!-- Fluent (Windows 11) controls and themes -->
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
     <!-- Core Audio (devices, endpoint volume, audio sessions) -->
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
     <!-- Non-blocking global hotkeys (low-level keyboard hook); ships the native uiohook.dll -->
@@ -175,12 +176,6 @@
   <Target Name="ReportNoLogglyKey" BeforeTargets="CoreCompile" Condition="'$(Configuration)' != 'Debug' And '$(LogglyInputKey)' == ''">
     <Message Importance="high" Text="No Loggly input key (VOLUMEY_LOGGLY_INPUT_KEY or loggly.key): this build doesn't send logs" />
   </Target>
-
-  <ItemGroup>
-    <Reference Include="Notification.Wpf, Version=6.1.0.1, Culture=neutral, PublicKeyToken=1acac493089262b5">
-      <HintPath>Resources\Notification.Wpf.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\Icons\ButtonIcon\boosty.png" />

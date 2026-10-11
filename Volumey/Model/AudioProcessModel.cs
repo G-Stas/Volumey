@@ -213,11 +213,15 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) => SetVolumeHotkeys(volUp, volDown, out _);
+
+	/// <param name="failed">The hotkey the system refused, null otherwise</param>
+	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey failed)
 	{
+		failed = null;
 		try
 		{
-			if(volUp != null && volDown != null && _hotkeys.RegisterHotkeysPair(volUp, volDown))
+			if(volUp != null && volDown != null && _hotkeys.RegisterHotkeysPair(volUp, volDown, out failed))
 			{
 				_volumeUp = volUp;
 				_volumeDown = volDown;

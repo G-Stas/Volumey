@@ -2,8 +2,8 @@ using System;
 using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Notification.Wpf.Controls;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Model;
 using Volumey.Services;
 using Volumey.ViewModel;
@@ -49,25 +49,25 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 
 		Assert.AreEqual(NotificationPosition.BottomCenter, vm.SelectedPosition);
 		Assert.IsTrue(vm.NotificationsPositionIsCentered);
+		Assert.AreEqual("Position_BottomCenter", vm.SelectedPositionKey);
 		Assert.AreEqual(Second, vm.SelectedScreen);
 		Notifications.Verify(m => m.ChangePosition(NotificationPosition.BottomCenter));
-		Notifications.Verify(m => m.SetVerticalIndent(40));
-		Notifications.Verify(m => m.SetHorizontalIndent(30));
+		Notifications.Verify(m => m.SetIndents(30, 40));
 		Notifications.Verify(m => m.SetNotificationDisplayTime(5));
-		Notifications.Verify(m => m.SetWindowWorkArea(Second.WorkingAreaLeft, Second.WorkingAreaTop, Second.Width, Second.Height));
+		Notifications.Verify(m => m.SetWindowWorkArea((int)Second.WorkingAreaLeft, (int)Second.WorkingAreaTop, (int)Second.Width, (int)Second.Height));
 	}
 
 	[TestMethod]
-	public void TheOsdAreaOfAScaledScreenIsInDeviceIndependentUnits()
+	public void TheOsdAreaOfAScaledScreenIsInPhysicalPixels()
 	{
-		//#76: a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them
+		//#76: a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them; the OSD window takes them as they are
 		var scaled = new ScreenInfo(@"\\.\DISPLAY2", false, 1920, 1020, 1920, 1080, 2560, 4480, 0, 1020, 1.25);
 		screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary, scaled });
 		Settings.Notifications.ScreenName = scaled.Name;
 
 		CreateNotifications();
 
-		Notifications.Verify(m => m.SetWindowWorkArea(2048, 0, 1536, 816));
+		Notifications.Verify(m => m.SetWindowWorkArea(2560, 0, 1920, 1020));
 	}
 
 	[TestMethod]
@@ -84,7 +84,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.AreEqual(Primary, window.SelectedScreen);
 		Assert.AreEqual(@".//DISPLAY3", Settings.Notifications.ScreenName);
 		Assert.AreEqual(@".//DISPLAY3", Settings.Window.ScreenName);
-		Notifications.Verify(m => m.SetWindowWorkArea(Primary.WorkingAreaLeft, Primary.WorkingAreaTop, Primary.Width, Primary.Height));
+		Notifications.Verify(m => m.SetWindowWorkArea((int)Primary.WorkingAreaLeft, (int)Primary.WorkingAreaTop, (int)Primary.Width, (int)Primary.Height));
 	}
 
 	[TestMethod]
@@ -145,7 +145,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		bool enabled = vm.NotificationsEnabled;
 
 		Notifications.Verify(m => m.ChangePosition(NotificationPosition.TopRight));
-		Notifications.Verify(m => m.SetVerticalIndent(25));
+		Notifications.Verify(m => m.SetIndents(NotificationSettings.MinIndent, 25));
 		Notifications.Verify(m => m.SetNotificationDisplayTime(7));
 		Assert.AreEqual(25, Settings.Notifications.VerticalIndent);
 		Assert.AreEqual(7, Settings.Notifications.DisplayTimeSeconds);
@@ -172,12 +172,11 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	{
 		var vm = CreateNotifications();
 
-		vm.PreviewIsOn = true;
+		vm.ShowPreviewCommand.Execute(null);
 		vm.UnloadedCommand.Execute(null);
 
 		Notifications.Verify(m => m.ShowNotificationExample(), Times.Once);
 		Notifications.Verify(m => m.CloseNotificationExample(), Times.Once);
-		Assert.IsFalse(vm.PreviewIsOn);
 	}
 
 	[TestMethod]
@@ -253,13 +252,29 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		shell.Setup(m => m.StartMinimized).Returns(true);
 		var vm = CreateAppBehavior();
 		int requests = 0;
-		vm.DisplayAppRequested += (settingsPage, visible, popup) => requests++;
+		vm.DisplayAppRequested += (visible, popup) => requests++;
 
 		vm.TrayClickCommand.Execute(null);
 		Assert.IsTrue(vm.WindowIsVisible);
 		Assert.AreEqual(1, requests);
 
 		vm.TrayClickCommand.Execute(null);
+		Assert.IsFalse(vm.WindowIsVisible);
+	}
+
+	[TestMethod]
+	public void SettingsOpenTheirOwnWindowWithoutTheMixer()
+	{
+		shell.Setup(m => m.StartMinimized).Returns(true);
+		var vm = CreateAppBehavior();
+		int settingsRequests = 0, mixerRequests = 0;
+		vm.SettingsRequested += () => settingsRequests++;
+		vm.DisplayAppRequested += (visible, popup) => mixerRequests++;
+
+		vm.TraySettingsCommand.Execute(null);
+
+		Assert.AreEqual(1, settingsRequests);
+		Assert.AreEqual(0, mixerRequests);
 		Assert.IsFalse(vm.WindowIsVisible);
 	}
 
@@ -284,7 +299,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		var vm = CreateAppBehavior();
 		vm.PopupEnabled = true;
 		bool? openedAsPopup = null;
-		vm.DisplayAppRequested += (settingsPage, visible, popup) => openedAsPopup = popup;
+		vm.DisplayAppRequested += (visible, popup) => openedAsPopup = popup;
 
 		vm.OnShowRequestedBySecondInstance();
 
@@ -304,7 +319,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		shell.Setup(m => m.StartMinimized).Returns(true);
 		var vm = CreateAppBehavior();
 		bool? openedAsPopup = null;
-		vm.DisplayAppRequested += (settingsPage, visible, popup) => openedAsPopup = popup;
+		vm.DisplayAppRequested += (visible, popup) => openedAsPopup = popup;
 
 		vm.OnShowRequestedBySecondInstance();
 		vm.OnShowRequestedBySecondInstance();
@@ -345,11 +360,15 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		var vm = CreateAppBehavior(hotkeys.Object);
 		vm.WindowLeft = 123;
 		vm.WindowTop = 45;
+		vm.WindowWidth = 520;
+		vm.WindowHeight = 540;
 
 		shell.Raise(m => m.SessionEnding += null);
 
 		Assert.AreEqual(123, Settings.Window.Left);
 		Assert.AreEqual(45, Settings.Window.Top);
+		Assert.AreEqual(520, Settings.Window.Width);
+		Assert.AreEqual(540, Settings.Window.Height);
 		hotkeys.Verify(m => m.Dispose(), Times.Once);
 		shell.Verify(m => m.Shutdown(), Times.Once);
 	}

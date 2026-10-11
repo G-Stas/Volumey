@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -6,12 +7,16 @@ using CommunityToolkit.Mvvm.Input;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
-using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
+/// <summary>
+/// Volume hotkeys for single apps, stored by process name (App hotkeys page). The hotkeys are registered while the app runs
+/// on the default device. <see cref="SelectedProcess"/>, <see cref="VolumeUp"/>, <see cref="VolumeDown"/> and <see cref="AddErrors"/>
+/// are the "Add app" dialog's; each saved app is an <see cref="AppHotkeysItem"/> whose hotkeys can be changed in place.
+/// </summary>
 public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 {
 	[ObservableProperty]
@@ -23,8 +28,19 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	[ObservableProperty]
 	public partial HotKey VolumeDown { get; set; }
 
-	[ObservableProperty]
-	public partial KeyValuePair<string, VolumeHotkeysPair>? SelectedRegApp { get; set; }
+	/// <summary>
+	/// The "Add app" dialog's errors, under the hotkey box that has one; a box's error goes away when it changes
+	/// </summary>
+	public HotkeyPairErrors AddErrors { get; } = new HotkeyPairErrors();
+
+	partial void OnVolumeUpChanged(HotKey value) => AddErrors.ClearUp();
+
+	partial void OnVolumeDownChanged(HotKey value) => AddErrors.ClearDown();
+
+	/// <summary>
+	/// The running apps the "Add app" dialog offers: the default device's apps that have no hotkeys yet (see <see cref="PrepareAddApp"/>)
+	/// </summary>
+	public ObservableCollection<AudioProcessModel> AddableProcesses { get; } = new ObservableCollection<AudioProcessModel>();
 
 	private int volumeStep = 1;
 	public int VolumeStep
@@ -45,7 +61,10 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
-	public ObservableConcurrentDictionary<string, VolumeHotkeysPair> RegisteredProcesses { get; }
+	/// <summary>
+	/// The apps with hotkeys, in the order they were added
+	/// </summary>
+	public ObservableCollection<AppHotkeysItem> Apps { get; }
 
 	/// <summary>
 	/// Containts registered processes that are currently launched
@@ -67,10 +86,16 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 
 
 		VolumeStep = SettingsProvider.Settings.General.VolumeStep;
-		RegisteredProcesses = LoadRegisteredProcesses();
-		if(RegisteredProcesses.Keys.Count > 0)
+		Apps = LoadApps();
+		if(Apps.Count > 0)
 			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 		SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
+		ErrorDictionary.LanguageChanged += () =>
+		{
+			AddErrors.Refresh();
+			foreach(var app in Apps)
+				app.Errors.Refresh();
+		};
 	}
 
 	/// <summary>
@@ -78,7 +103,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	/// </summary>
 	private void RegisterLoadedHotkeys()
 	{
-		if(RegisteredProcesses == null || DefaultDevice == null)
+		if(DefaultDevice == null)
 			return;
 		//-= first: a default device change may have subscribed already
 		DefaultDevice.ProcessCreated -= OnProcessStarted;
@@ -92,22 +117,15 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			DefaultDevice.ProcessCreated -= OnProcessStarted;
 
 		//Reset hotkeys for all currently launched processes
-		var launchedProcessesCount = LaunchedProcesses.Count;
-		for(int i = launchedProcessesCount - 1; i >= 0; i--)
-		{
-			var process = LaunchedProcesses[i];
-			process.Exited -= OnProcessExited;
-			process.ResetVolumeHotkeys();
-			process.ResetStateMediator();
-			LaunchedProcesses.Remove(process);
-		}
+		for(int i = LaunchedProcesses.Count - 1; i >= 0; i--)
+			Release(LaunchedProcesses[i]);
 
 		DefaultDevice = newDevice;
 
 		if(newDevice == null)
 			return;
 
-		if(RegisteredProcesses.Keys.Count != 0)
+		if(Apps.Count != 0)
 		{
 			DefaultDevice.ProcessCreated -= OnProcessStarted;
 			DefaultDevice.ProcessCreated += OnProcessStarted;
@@ -125,148 +143,194 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		foreach(AudioProcessModel process in DefaultDevice.GetImmutableProcesses())
 		{
 			//an app that is set up already would get its hotkeys registered twice
-			if(RegisteredProcesses.TryGetValue(process.Name, out var hotkeys) && !LaunchedProcesses.Contains(process))
-			{
-				process.SetVolumeHotkeys(hotkeys.VolumeUp, hotkeys.VolumeDown);
-				process.Exited += OnProcessExited;
-				LaunchedProcesses.Add(process);
-				if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
-					process.SetStateMediator(notifications);
-			}
+			if(FindApp(process.Name) is { } app && !LaunchedProcesses.Contains(process))
+				SetUp(process, app);
+		}
+	}
+
+	private AppHotkeysItem FindApp(string processName) => Apps.FirstOrDefault(app => app.ProcessName == processName);
+
+	private bool SetUp(AudioProcessModel process, AppHotkeysItem app) => SetUp(process, app, out _);
+
+	/// <summary>
+	/// Registers the app's hotkeys for a running process
+	/// </summary>
+	/// <param name="failed">The hotkey the system refused, null otherwise</param>
+	private bool SetUp(AudioProcessModel process, AppHotkeysItem app, out HotKey failed)
+	{
+		if(!process.SetVolumeHotkeys(app.VolumeUp, app.VolumeDown, out failed))
+			return false;
+		process.Exited += OnProcessExited;
+		LaunchedProcesses.Add(process);
+		app.Icon = process.IconSource;
+		if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
+			process.SetStateMediator(notifications);
+		return true;
+	}
+
+	/// <summary>
+	/// Releases a running process's hotkeys (it exited, its app was removed or the default device changed)
+	/// </summary>
+	private void Release(AudioProcessModel process)
+	{
+		process.ResetVolumeHotkeys();
+		process.ResetStateMediator();
+		process.Exited -= OnProcessExited;
+		LaunchedProcesses.Remove(process);
+		if(FindApp(process.Name) is { } app && !LaunchedProcesses.Any(p => p.Name == app.ProcessName))
+			app.Icon = null;
+	}
+
+	/// <summary>
+	/// Clears the "Add app" dialog and fills its list of apps; called when the dialog opens
+	/// </summary>
+	internal void PrepareAddApp()
+	{
+		SelectedProcess = null;
+		VolumeUp = VolumeDown = null;
+		AddErrors.Clear();
+		AddableProcesses.Clear();
+		if(DefaultDevice == null)
+			return;
+		foreach(var process in DefaultDevice.GetImmutableProcesses())
+		{
+			if(FindApp(process.Name) == null && AddableProcesses.All(p => p.Name != process.Name))
+				AddableProcesses.Add(process);
 		}
 	}
 
 	[RelayCommand]
-	private void AddApp()
+	private void AddApp() => TryAddApp();
+
+	/// <summary>
+	/// Adds the selected app with the two hotkeys. False, with <see cref="AddErrors"/> set, if they can't be used.
+	/// </summary>
+	internal bool TryAddApp()
 	{
 		var process = SelectedProcess;
-		if(RegisteredProcesses.ContainsKey(process.Name))
-			return;
+		if(process == null || FindApp(process.Name) != null)
+			return false;
 
-		if(!IsValid(this.hotkeys.HotkeysAreValid(VolumeUp, VolumeDown)))
-			return;
+		AddErrors.Set(hotkeys.CheckHotkeysPair(VolumeUp, VolumeDown));
+		if(AddErrors.Any)
+			return false;
 
-		if(!process.SetVolumeHotkeys(VolumeUp, VolumeDown))
+		var app = new AppHotkeysItem(this, process.Name, VolumeUp, VolumeDown);
+		if(!SetUp(process, app, out var failed))
 		{
-			SetErrorMessage(ErrorMessageType.VolumeReg);
-			return;
+			//the hotkey service logs why
+			AddErrors.SetFor(failed, VolumeUp, ErrorMessageType.VolumeReg);
+			return false;
 		}
 
-		process.Exited += OnProcessExited;
-
-		if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
-			process.SetStateMediator(notifications);
-		SetErrorMessage(ErrorMessageType.None);
-
-		var hotkeys = new VolumeHotkeysPair(VolumeUp, VolumeDown);
-
 		//Subscribe to ProcessCreated event to search for registered processes amongst new processes
-		if(RegisteredProcesses.Keys.Count == 0 && DefaultDevice != null)
+		if(Apps.Count == 0 && DefaultDevice != null)
 			DefaultDevice.ProcessCreated += OnProcessStarted;
-		RegisteredProcesses.Add(process.Name, hotkeys);
-		LaunchedProcesses.Add(process);
+		Apps.Add(app);
 
-		Logger.Info($"Registered app hotkeys. App: [{process.Name}] +vol: [{VolumeUp}] -vol: [{VolumeDown}], count: [{RegisteredProcesses.Keys.Count.ToString()}]");
+		Logger.Info($"Registered app hotkeys. App: [{process.Name}] +vol: [{VolumeUp}] -vol: [{VolumeDown}], count: [{Apps.Count.ToString()}]");
 
 		VolumeUp = VolumeDown = null;
 		SelectedProcess = null;
-
-		try
-		{
-			SaveRegisteredProcesses();
-		}
-		catch { }
+		SaveApps();
+		return true;
 	}
 
-	[RelayCommand]
-	private void RemoveApp()
+	/// <summary>
+	/// A hotkey box of a saved app changed. The new hotkeys are checked and, while the app runs, registered; if that fails,
+	/// the old ones stay (registered and saved), the box shows them again and the error shows under it.
+	/// </summary>
+	internal void ChangeHotkey(AppHotkeysItem app, HotKey up, HotKey down)
 	{
-		if(SelectedRegApp == null)
+		if(Equals(up, app.VolumeUp) && Equals(down, app.VolumeDown))
 			return;
+		bool upChanged = !Equals(up, app.VolumeUp);
+		HotKey changed = upChanged ? up : down;
+		HotKey other = upChanged ? down : up;
 
-		var processName = SelectedRegApp.Value.Key;
+		ErrorMessageType error;
+		if(changed == null)
+			error = ErrorMessageType.NeedsBoth;
+		else if(changed.Equals(other))
+			error = ErrorMessageType.Diff;
+		else
+			error = hotkeys.HotkeyIsValid(changed);
 
-		AudioProcessModel process = LaunchedProcesses.FirstOrDefault(p => p.Name.Equals(processName));
-
-		if(process != null)
+		var process = LaunchedProcesses.FirstOrDefault(p => p.Name == app.ProcessName);
+		if(error == ErrorMessageType.None && process != null)
 		{
 			process.ResetVolumeHotkeys();
-			process.ResetStateMediator();
-			process.Exited -= OnProcessExited;
-			LaunchedProcesses.Remove(process);
+			if(!process.SetVolumeHotkeys(up, down))
+			{
+				//the hotkey service logs why; the unchanged hotkey was registered until now, so it's the changed one
+				process.SetVolumeHotkeys(app.VolumeUp, app.VolumeDown);
+				error = ErrorMessageType.VolumeReg;
+			}
 		}
 
-		RegisteredProcesses.Remove(processName);
+		if(error != ErrorMessageType.None)
+		{
+			//the box shows the old hotkey again, so the error names the rejected one (owner's decision)
+			app.Errors.SetRejected(upChanged, changed, error);
+			app.SetHotkeys(app.VolumeUp, app.VolumeDown);
+			return;
+		}
+		app.Errors.Clear();
+		app.SetHotkeys(up, down);
+		Logger.Info($"Changed app hotkeys. App: [{app.ProcessName}] +vol: [{up}] -vol: [{down}]");
+		SaveApps();
+	}
+
+	internal void RemoveApp(AppHotkeysItem app)
+	{
+		foreach(var process in LaunchedProcesses.Where(p => p.Name == app.ProcessName).ToList())
+			Release(process);
+
+		Apps.Remove(app);
 
 		//no need to handle this event if there are no registered hotkeys anymore
-		if(RegisteredProcesses.Keys.Count == 0 && DefaultDevice != null)
+		if(Apps.Count == 0 && DefaultDevice != null)
 			DefaultDevice.ProcessCreated -= OnProcessStarted;
-		try
-		{
-			SaveRegisteredProcesses();
-		}
-		catch { }
+		SaveApps();
 	}
 
-	private static ObservableConcurrentDictionary<string, VolumeHotkeysPair> LoadRegisteredProcesses()
+	private ObservableCollection<AppHotkeysItem> LoadApps()
 	{
-		var processes = new ObservableConcurrentDictionary<string, VolumeHotkeysPair>();
+		var apps = new ObservableCollection<AppHotkeysItem>();
 		foreach(var app in SettingsProvider.Settings.Hotkeys.Apps)
 		{
-			if(app.ProcessName != null && app.VolumeUp != null && app.VolumeDown != null)
-				processes.Add(app.ProcessName, new VolumeHotkeysPair(app.VolumeUp, app.VolumeDown));
+			if(app.ProcessName != null && app.VolumeUp != null && app.VolumeDown != null && apps.All(a => a.ProcessName != app.ProcessName))
+				apps.Add(new AppHotkeysItem(this, app.ProcessName, app.VolumeUp, app.VolumeDown));
 		}
-		return processes;
+		return apps;
 	}
 
-	private void SaveRegisteredProcesses()
+	private void SaveApps()
 	{
-		var apps = RegisteredProcesses
-					   .Select(p => new AppHotkeysEntry { ProcessName = p.Key, VolumeUp = p.Value.VolumeUp, VolumeDown = p.Value.VolumeDown })
-					   .ToArray();
-		SettingsProvider.Settings.Hotkeys.Apps = apps;
+		SettingsProvider.Settings.Hotkeys.Apps = Apps
+			.Select(app => new AppHotkeysEntry { ProcessName = app.ProcessName, VolumeUp = app.VolumeUp, VolumeDown = app.VolumeDown })
+			.ToArray();
 	}
 
 	private void OnNotificationSettingsChanged(object sender, PropertyChangedEventArgs e)
 	{
 		if(e.PropertyName == nameof(NotificationSettings.Enabled))
 		{
-			if(SettingsProvider.Settings.Notifications.Enabled)
-				SetVolumeStateMediatorForActiveProcesses();
-			else
-				ResetVolumeStateMediatorForActiveProcesses();
+			foreach(var process in LaunchedProcesses)
+			{
+				if(SettingsProvider.Settings.Notifications.Enabled)
+					process.SetStateMediator(notifications);
+				else
+					process.ResetStateMediator();
+			}
 		}
 	}
 
-	private void SetVolumeStateMediatorForActiveProcesses()
-	{
-		foreach(var process in LaunchedProcesses)
-			process.SetStateMediator(notifications);
-	}
-
-	private void ResetVolumeStateMediatorForActiveProcesses()
-	{
-		foreach(var process in LaunchedProcesses)
-			process.ResetStateMediator();
-	}
-
-	private void OnProcessExited(AudioProcessModel process)
-	{
-		process.ResetVolumeHotkeys();
-		process.ResetStateMediator();
-		process.Exited -= OnProcessExited;
-		LaunchedProcesses.Remove(process);
-	}
+	private void OnProcessExited(AudioProcessModel process) => Release(process);
 
 	private void OnProcessStarted(AudioProcessModel process)
 	{
-		if(RegisteredProcesses.TryGetValue(process.Name, out var hotkeys))
-		{
-			process.SetVolumeHotkeys(volUp: hotkeys.VolumeUp, volDown: hotkeys.VolumeDown);
-			process.Exited += OnProcessExited;
-			LaunchedProcesses.Add(process);
-			if(SettingsProvider.Settings.Notifications.Enabled)
-				process.SetStateMediator(notifications);
-		}
+		if(FindApp(process.Name) is { } app)
+			SetUp(process, app);
 	}
 }

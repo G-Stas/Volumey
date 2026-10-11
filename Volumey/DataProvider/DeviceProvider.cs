@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using log4net;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -128,6 +129,54 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			Logger.Error("Failed to change default device", e);
 		}
 	}
+
+	public Task<bool> SetDeviceFormatAsync(string deviceId, DeviceFormatOption format) => Task.Run(() =>
+	{
+		try
+		{
+			PolicyClient.SetDeviceFormat(deviceId, format);
+			Logger.Info($"Device format set: {format.Bits} bit, {format.SamplesPerSec} Hz (container {format.ContainerBits})");
+			return true;
+		}
+		catch(Exception e)
+		{
+			//undocumented interface: Windows may refuse the format or the call may stop working with an update
+			Logger.Error($"Failed to set the device format {format.Bits} bit, {format.SamplesPerSec} Hz", e);
+			return false;
+		}
+	});
+
+	private DeviceFeatures features;
+	private DeviceFeatures Features => features ??= new DeviceFeatures(PolicyClient);
+
+	public Task<DeviceFeatureState> GetDeviceFeaturesAsync(string deviceId) => Task.Run(() =>
+	{
+		try
+		{
+			return Features.Read(deviceId);
+		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to read the device's features", e);
+			return DeviceFeatureState.Unknown;
+		}
+	});
+
+	public Task<bool> SetDeviceSwitchAsync(string deviceId, DeviceSwitch setting, bool on) => Task.Run(() =>
+	{
+		try
+		{
+			Features.Set(deviceId, setting, on);
+			Logger.Info($"Device setting changed: {setting} {(on ? "on" : "off")}");
+			return true;
+		}
+		catch(Exception e)
+		{
+			//undocumented interface: it may stop working with a Windows update
+			Logger.Error($"Failed to turn {setting} {(on ? "on" : "off")}", e);
+			return false;
+		}
+	});
 
 	private void OnDeviceDisabled(OutputDeviceModel device)
 	{

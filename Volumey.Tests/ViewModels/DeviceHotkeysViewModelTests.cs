@@ -29,7 +29,7 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 		vm.VolumeHotkeysRegistered = true;
 
 		Assert.IsTrue(vm.VolumeHotkeysRegistered);
-		Assert.AreEqual(string.Empty, vm.ErrorMessage);
+		Assert.IsFalse(vm.VolumeErrors.Any);
 		Assert.AreEqual(Up, Settings.Hotkeys.DeviceVolumeUp);
 		Assert.AreEqual(Down, Settings.Hotkeys.DeviceVolumeDown);
 		HotkeyManager.Verify(m => m.RegisterHotkey(Up), Times.Once);
@@ -49,7 +49,8 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 		vm.VolumeHotkeysRegistered = true;
 
 		Assert.IsFalse(vm.VolumeHotkeysRegistered);
-		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.Diff], vm.ErrorMessage);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.Diff], vm.VolumeErrors.VolumeDown);
+		Assert.AreEqual(string.Empty, vm.VolumeErrors.VolumeUp);
 		Assert.IsNull(Settings.Hotkeys.DeviceVolumeUp);
 		HotkeyManager.Verify(m => m.RegisterHotkey(It.IsAny<HotKey>()), Times.Never);
 	}
@@ -65,7 +66,8 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 		vm.VolumeHotkeysRegistered = true;
 
 		Assert.IsFalse(vm.VolumeHotkeysRegistered);
-		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.HotkeyExists], vm.ErrorMessage);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.HotkeyExists], vm.VolumeErrors.VolumeUp);
+		Assert.AreEqual(string.Empty, vm.VolumeErrors.VolumeDown);
 	}
 
 	[TestMethod]
@@ -101,6 +103,24 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 		vm.MuteHotkeyRegistered = false;
 		Assert.IsNull(Settings.Hotkeys.DeviceMute);
 		HotkeyManager.Verify(m => m.UnregisterHotkey(Mute), Times.Once);
+	}
+
+	[TestMethod]
+	public void ARejectedMuteHotkeyShowsItsOwnError()
+	{
+		ActivateHotkeys();
+		Settings.Hotkeys.OpenMixer = Mute;
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { MuteKey = Mute };
+
+		vm.MuteHotkeyRegistered = true;
+
+		Assert.IsFalse(vm.MuteHotkeyRegistered);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.HotkeyExists], vm.MuteError);
+		Assert.IsFalse(vm.VolumeErrors.Any);
+		//a new hotkey clears it
+		vm.MuteKey = Up;
+		Assert.AreEqual(string.Empty, vm.MuteError);
 	}
 
 	[TestMethod]

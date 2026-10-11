@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Services;
@@ -22,7 +20,7 @@ sealed partial class SettingsViewModel : ObservableObject
 	public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
 	public LangSettings LangSettings { get; }
 
-	public Tuple<string, string> TipSource { get; } = new Tuple<string, string>("Boosty", "https://boosty.to/stasg");
+	public AboutViewModel About { get; }
 
 	private IntPtr windowHandle;
 
@@ -63,6 +61,7 @@ sealed partial class SettingsViewModel : ObservableObject
 		ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, hotkeys, notifications);
 		NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
 		SystemHotkeysViewModel = new SystemHotkeysViewModel(hotkeys);
+		About = new AboutViewModel(new SupportLinks());
 
 		blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;
 	}
@@ -111,20 +110,5 @@ sealed partial class SettingsViewModel : ObservableObject
 			manager = new SharpHookHotkeyManager();
 		}
 		hotkeys.SetHotkeyManager(manager);
-	}
-
-	[RelayCommand]
-	private Task GitHub() => OpenWebPage("https://github.com/G-Stas/Volumey");
-
-	/// <param name="param">The page's URL (<see cref="TipSource"/>)</param>
-	[RelayCommand]
-	private Task Tip(object param) => OpenWebPage(param as string);
-
-	private static async Task OpenWebPage(string url)
-	{
-		if(string.IsNullOrEmpty(url))
-			return;
-		try { await Windows.System.Launcher.LaunchUriAsync(new Uri(url)); }
-		catch { }
 	}
 }

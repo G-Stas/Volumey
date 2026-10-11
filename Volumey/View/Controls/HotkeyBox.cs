@@ -20,6 +20,8 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -198,9 +200,35 @@ public class HotKeyBox : TextBox
 		return modifier;
 	}
 
+	private static readonly DependencyPropertyKey KeyNamesPropertyKey
+		= DependencyProperty.RegisterReadOnly(nameof(KeyNames), typeof(IReadOnlyList<string>), typeof(HotKeyBox),
+											  new PropertyMetadata(Array.Empty<string>()));
+
+	public static readonly DependencyProperty KeyNamesProperty = KeyNamesPropertyKey.DependencyProperty;
+
+	/// <summary>
+	/// The hotkey's keys, which the template shows as key caps. The text stays the whole combination ("Ctrl+Shift+Up"),
+	/// so screen readers and UI Automation still read it.
+	/// </summary>
+	public IReadOnlyList<string> KeyNames => (IReadOnlyList<string>)GetValue(KeyNamesProperty);
+
+	public static readonly DependencyProperty PlaceholderTextProperty
+		= DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(HotKeyBox), new PropertyMetadata(null));
+
+	/// <summary>
+	/// Shown in the empty box (the settings style sets it for every box)
+	/// </summary>
+	public string PlaceholderText
+	{
+		get => (string)GetValue(PlaceholderTextProperty);
+		set => SetValue(PlaceholderTextProperty, value);
+	}
+
 	private void UpdateText()
 	{
 		var hotkey = HotKey;
-		Text = hotkey is null || hotkey.Key == Key.None ? string.Empty : hotkey.ToString();
+		bool none = hotkey is null || hotkey.Key == Key.None;
+		Text = none ? string.Empty : hotkey.ToString();
+		SetValue(KeyNamesPropertyKey, none ? Array.Empty<string>() : hotkey.GetKeyNames());
 	}
 }
