@@ -55,7 +55,8 @@ public sealed class AudioSessionVolume : IAudioSessionVolume
 	/// <summary>
 	/// Set the mute state of the current audio client.
 	/// </summary>
-	public void SetMute(bool newState)
+	//the context is ignored: NAudio drops it from session events, the echo filter recognizes Volumey's own writes instead
+	public void SetMute(bool newState, Guid context)
 	{
 		EchoFilter.OnMuteWritten(newState);
 		sAudioVol.Mute = newState;

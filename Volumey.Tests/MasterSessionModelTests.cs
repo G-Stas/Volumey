@@ -148,7 +148,7 @@ public class MasterSessionModelTests
 		hManagerMock.Raise(m => m.HotkeyPressed += null, muteKey);
 
 		//assert
-		sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Once);
+		sessionVolumeMock.Verify(m => m.SetMute(!muteState, It.IsAny<System.Guid>()), Times.Once);
 		mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(model.Volume, !muteState));
 		Assert.AreEqual(!muteState, model.IsMuted);
 	}
@@ -164,7 +164,7 @@ public class MasterSessionModelTests
 
 		hManagerMock.Raise(m => m.HotkeyPressed += null, new HotKey(Key.Space));
 
-		sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Never);
+		sessionVolumeMock.Verify(m => m.SetMute(!muteState, It.IsAny<System.Guid>()), Times.Never);
 		Assert.AreEqual(muteState, model.IsMuted);
 	}
 
@@ -250,7 +250,7 @@ public class MasterSessionModelTests
 
 		//assert
 		sessionVolumeMock.Verify(m => m.SetVolume(volume - SettingsProvider.Settings.General.VolumeStep, GuidValue.Internal.VolumeGUID), Times.Never);
-		sessionVolumeMock.Verify(m => m.SetMute(!muteState), Times.Once);
+		sessionVolumeMock.Verify(m => m.SetMute(!muteState, It.IsAny<System.Guid>()), Times.Once);
 
 		mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(volume, !muteState));
 		Assert.AreEqual(!muteState, model.IsMuted);

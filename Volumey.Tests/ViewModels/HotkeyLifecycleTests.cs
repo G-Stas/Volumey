@@ -51,7 +51,7 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 		Assert.AreEqual(30, process.Volume);
 		CollectionAssert.AreEqual(new[] { 30 }, shown, "the OSD should show the new volume, once");
 		sessionVolume.Verify(m => m.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
-		sessionVolume.Verify(m => m.SetMute(It.IsAny<bool>()), Times.Never);
+		sessionVolume.Verify(m => m.SetMute(It.IsAny<bool>(), It.IsAny<Guid>()), Times.Never);
 	}
 
 	[TestMethod]

@@ -11,5 +11,7 @@ public interface IAudioSessionVolume
 
 	bool GetMute();
 
-	void SetMute(bool newState);
+	/// <param name="context">The event context of the write (the device volume: Volumey's own changes carry <see cref="GuidValue.Internal.VolumeGUID"/>
+	/// and its notification is skipped, hotkey changes carry <see cref="GuidValue.Internal.Empty"/>); sessions ignore it (see SessionEchoFilter)</param>
+	void SetMute(bool newState, Guid context);
 }

@@ -98,7 +98,7 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 		Assert.IsTrue(vm.MuteHotkeyRegistered);
 		Assert.AreEqual(Mute, Settings.Hotkeys.DeviceMute);
 		PressHotkey(Mute);
-		masterVolume.Verify(m => m.SetMute(true), Times.Once);
+		masterVolume.Verify(m => m.SetMute(true, It.IsAny<Guid>()), Times.Once);
 
 		vm.MuteHotkeyRegistered = false;
 		Assert.IsNull(Settings.Hotkeys.DeviceMute);
@@ -121,6 +121,43 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 		//a new hotkey clears it
 		vm.MuteKey = Up;
 		Assert.AreEqual(string.Empty, vm.MuteError);
+	}
+
+	[TestMethod]
+	public void TheMuteHotkeyMutesAndUnmutes()
+	{
+		//it used to mute only: the model waited for Windows' notification, which was skipped as Volumey's own change (owner found it)
+		ActivateHotkeys();
+		var device = CreateDevice("1", "Speakers", out var masterVolume);
+		SetDefaultDevice(device);
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { MuteKey = Mute, MuteHotkeyRegistered = true };
+
+		PressHotkey(Mute);
+		Assert.IsTrue(device.Master.IsMuted);
+		PressHotkey(Mute);
+		Assert.IsFalse(device.Master.IsMuted);
+
+		//hotkey changes carry the empty context, so Windows' notification comes back (the mixer and the OSD follow it)
+		masterVolume.Verify(m => m.SetMute(true, GuidValue.Internal.Empty), Times.Once);
+		masterVolume.Verify(m => m.SetMute(false, GuidValue.Internal.Empty), Times.Once);
+	}
+
+	[TestMethod]
+	public void MutingInsteadOfZeroUnmutesOnVolumeUp()
+	{
+		ActivateHotkeys();
+		Settings.Hotkeys.PreventResettingVolumeBalance = true;
+		var device = CreateDevice("1", "Speakers", out var masterVolume, volume: Hotkeys.VolumeStep);
+		SetDefaultDevice(device);
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
+
+		PressHotkey(Down);
+		Assert.IsTrue(device.Master.IsMuted);
+		masterVolume.Verify(m => m.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+
+		PressHotkey(Up);
+		Assert.IsFalse(device.Master.IsMuted);
+		masterVolume.Verify(m => m.SetMute(false, GuidValue.Internal.Empty), Times.Once);
 	}
 
 	[TestMethod]
