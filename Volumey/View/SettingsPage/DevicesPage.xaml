@@ -16,7 +16,6 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:HotkeysRegisteredToEnabledConverter x:Key="NotRegisteredToEnabled" />
             <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
-            <converters:SpatialFormatNameConverter x:Key="SpatialFormatName" />
             <!-- a row's label lines up with its hotkey box, also when an error shows under the box -->
             <Style x:Key="HotkeyRowLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="VerticalAlignment" Value="Top" />
@@ -288,48 +287,6 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
                         </Grid>
-                    </ui:CardControl>
-
-                    <!-- spatial sound: Off and the formats the device supports (picking one reconfigures the device); hidden without support -->
-                    <ui:CardControl Icon="{ui:SymbolIcon HeadphonesSoundWave24}"
-                                    Visibility="{Binding CanChooseSpatialSound, Converter={StaticResource BoolToVisibility}}">
-                        <ui:CardControl.Header>
-                            <StackPanel>
-                                <TextBlock Text="{lc:Localization Devices_SpatialSound}" />
-                                <TextBlock Text="{lc:Localization Devices_SpatialSoundHint}" Style="{StaticResource Caption}" />
-                            </StackPanel>
-                        </ui:CardControl.Header>
-                        <ComboBox ItemsSource="{Binding SpatialFormats}"
-                                  SelectedItem="{Binding SelectedSpatialFormat}"
-                                  IsSynchronizedWithCurrentItem="False"
-                                  IsEnabled="{Binding IsBusy, Converter={StaticResource NotRegisteredToEnabled}}"
-                                  AutomationProperties.Name="{lc:Localization Devices_SpatialSound}"
-                                  AutomationProperties.AutomationId="SpatialSoundBox">
-                            <ComboBox.ItemContainerStyle>
-                                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
-                                    <Setter Property="AutomationProperties.Name">
-                                        <Setter.Value>
-                                            <MultiBinding Converter="{StaticResource SpatialFormatName}">
-                                                <Binding />
-                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                                            </MultiBinding>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ComboBox.ItemContainerStyle>
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
-                                        <TextBlock.Text>
-                                            <MultiBinding Converter="{StaticResource SpatialFormatName}">
-                                                <Binding />
-                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                                            </MultiBinding>
-                                        </TextBlock.Text>
-                                    </TextBlock>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
                     </ui:CardControl>
 
                     <!-- exclusive mode, as Windows' sound settings show it: priority only matters while apps may take the device -->

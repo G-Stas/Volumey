@@ -642,33 +642,6 @@
   <data name="Error_SettingFailed" xml:space="preserve">
     <value>Couldn't change this setting</value>
   </data>
-  <data name="Devices_SpatialSound" xml:space="preserve">
-    <value>Spatial sound</value>
-  </data>
-  <data name="Devices_SpatialSoundHint" xml:space="preserve">
-    <value>Surround sound that apps can position around you</value>
-  </data>
-  <data name="Devices_SpatialOff" xml:space="preserve">
-    <value>Off</value>
-  </data>
-  <data name="Devices_Spatial_WindowsSonic" xml:space="preserve">
-    <value>Windows Sonic for Headphones</value>
-  </data>
-  <data name="Devices_Spatial_DolbyAtmosHeadphones" xml:space="preserve">
-    <value>Dolby Atmos for Headphones</value>
-  </data>
-  <data name="Devices_Spatial_DolbyAtmosHomeTheater" xml:space="preserve">
-    <value>Dolby Atmos for home theater</value>
-  </data>
-  <data name="Devices_Spatial_DolbyAtmosSpeakers" xml:space="preserve">
-    <value>Dolby Atmos for built-in speakers</value>
-  </data>
-  <data name="Devices_Spatial_DtsHeadphoneX" xml:space="preserve">
-    <value>DTS Headphone:X</value>
-  </data>
-  <data name="Devices_Spatial_DtsXUltra" xml:space="preserve">
-    <value>DTS:X Ultra</value>
-  </data>
   <data name="Devices_AllowExclusive" xml:space="preserve">
     <value>Let apps take exclusive control</value>
   </data>
@@ -692,9 +665,6 @@
   </data>
   <data name="Devices_Right" xml:space="preserve">
     <value>Right</value>
-  </data>
-  <data name="Error_SpatialNotLicensed" xml:space="preserve">
-    <value>{0} isn't licensed for this device</value>
   </data>
   <data name="Media_Description" xml:space="preserve">
     <value>Play, pause and skip tracks with your own hotkeys, for keyboards without media keys.</value>

@@ -13,8 +13,8 @@ using Volumey.Model;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// The audio features of a connected device on the Devices page: format, spatial sound, exclusive mode and balance.
-/// One per device model: a change that reconfigures the device (format, spatial sound) rebuilds the model, and the new model
+/// The audio features of a connected device on the Devices page: format, exclusive mode and balance.
+/// One per device model: a change that reconfigures the device (format) rebuilds the model, and the new model
 /// gets new settings that read the new state. Read when the device is selected (<see cref="Load"/>).
 /// </summary>
 public sealed partial class DeviceSettings : ObservableObject
@@ -41,20 +41,14 @@ public sealed partial class DeviceSettings : ObservableObject
 	public partial string Error { get; private set; }
 
 	private ErrorMessageType errorType = ErrorMessageType.None;
-	private SpatialSoundFormat? errorFormat;
 
-	/// <param name="format">The spatial format the message names ({0} of <see cref="ErrorMessageType.SpatialNotLicensed"/>)</param>
-	internal void SetError(ErrorMessageType type, SpatialSoundFormat? format = null)
+	internal void SetError(ErrorMessageType type)
 	{
 		errorType = type;
-		errorFormat = format;
-		if(type == ErrorMessageType.None)
-			Error = string.Empty;
-		else
-			Error = format is { } named ? string.Format(ErrorDictionary.Instance[type], SpatialSoundNames.Of(named)) : ErrorDictionary.Instance[type];
+		Error = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
 	}
 
-	internal void RefreshError() => SetError(errorType, errorFormat);
+	internal void RefreshError() => SetError(errorType);
 
 	/// <summary>
 	/// Reads the device's state off the UI thread, once
@@ -174,69 +168,19 @@ public sealed partial class DeviceSettings : ObservableObject
 
 	#endregion
 
-	#region Spatial sound, exclusive mode
+	#region Exclusive mode
 
 	private DeviceFeatureState features = DeviceFeatureState.Unknown;
 
 	private void ShowFeatures(DeviceFeatureState state)
 	{
 		features = state;
-		SpatialFormats = state.SpatialFormats;
-		selectedSpatialFormat = state.SpatialFormat;
 		allowExclusive = state.AllowExclusive ?? false;
 		exclusivePriority = state.ExclusivePriority ?? false;
-		OnPropertyChanged(nameof(SelectedSpatialFormat));
 		OnPropertyChanged(nameof(HasExclusiveMode));
 		OnPropertyChanged(nameof(AllowExclusive));
 		OnPropertyChanged(nameof(ExclusivePriority));
 		OnPropertyChanged(nameof(CanSetExclusivePriority));
-	}
-
-	/// <summary>
-	/// Off and the spatial sound formats the device supports; empty if it doesn't support spatial sound (the row is hidden)
-	/// </summary>
-	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(CanChooseSpatialSound))]
-	public partial IReadOnlyList<SpatialSoundFormat> SpatialFormats { get; private set; } = Array.Empty<SpatialSoundFormat>();
-
-	public bool CanChooseSpatialSound => SpatialFormats.Count > 0;
-
-	private SpatialSoundFormat? selectedSpatialFormat;
-	/// <summary>
-	/// The device's spatial sound format (Off included); picking another one sets it (Windows reconfigures the device)
-	/// </summary>
-	public SpatialSoundFormat? SelectedSpatialFormat
-	{
-		get => selectedSpatialFormat;
-		set
-		{
-			if(Equals(value, selectedSpatialFormat))
-				return;
-			selectedSpatialFormat = value;
-			OnPropertyChanged();
-			if(value is { } format && !Equals(value, features.SpatialFormat))
-				SetSpatialFormatAsync(format).Forget(Logger, "Failed to set spatial sound");
-		}
-	}
-
-	private async Task SetSpatialFormatAsync(SpatialSoundFormat format)
-	{
-		IsBusy = true;
-		SetError(ErrorMessageType.None);
-		var result = await provider.SetSpatialFormatAsync(model.Id, format);
-		IsBusy = false;
-		if(result == SpatialSoundResult.Set)
-			return;
-		if(result == SpatialSoundResult.NotLicensed)
-		{
-			//installed (e.g. Dolby Access) but not licensed for this device: it leaves the list (the provider keeps it out until a restart)
-			SpatialFormats = SpatialFormats.Where(f => f != format).ToList();
-			SetError(ErrorMessageType.SpatialNotLicensed, format);
-		}
-		else
-			SetError(ErrorMessageType.SettingFailed);
-		selectedSpatialFormat = features.SpatialFormat;
-		OnPropertyChanged(nameof(SelectedSpatialFormat));
 	}
 
 	public bool HasExclusiveMode => features.AllowExclusive != null && features.ExclusivePriority != null;

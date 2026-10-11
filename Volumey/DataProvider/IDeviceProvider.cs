@@ -30,7 +30,7 @@ public interface IDeviceProvider : IDisposable
 	public Task<bool> SetDeviceFormatAsync(string deviceId, DeviceFormatOption format);
 
 	/// <summary>
-	/// The device's exclusive mode switches and its spatial sound (read on the thread pool)
+	/// The device's exclusive mode switches (read on the thread pool)
 	/// </summary>
 	public Task<DeviceFeatureState> GetDeviceFeaturesAsync(string deviceId);
 
@@ -38,11 +38,4 @@ public interface IDeviceProvider : IDisposable
 	/// Turns a switch of the device on or off (on the thread pool); false if it failed (logged).
 	/// </summary>
 	public Task<bool> SetDeviceSwitchAsync(string deviceId, DeviceSwitch setting, bool on);
-
-	/// <summary>
-	/// Sets the device's spatial sound format or turns it off (on the thread pool). On success Windows reconfigures the device (its model is
-	/// rebuilt). A format Windows refuses for its license is left out of the device's list until Volumey restarts (owner's decision);
-	/// failures are logged.
-	/// </summary>
-	public Task<SpatialSoundResult> SetSpatialFormatAsync(string deviceId, SpatialSoundFormat format);
 }
