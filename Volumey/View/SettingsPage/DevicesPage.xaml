@@ -227,6 +227,7 @@
                                          AutomationProperties.AutomationId="DeviceHotkeyToggle" />
                     </StackPanel>
                 </ui:CardControl>
+                <viewControls:HotkeyModeNote />
 
                 <!-- the device's audio features, read from Windows (DeviceSettings); only while it's connected. Every control is disabled
                      while a change runs; a failed change shows its error under the title and the control shows the real state again -->
@@ -361,6 +362,5 @@
                     </ui:CardExpander>
                 </StackPanel>
             </StackPanel>
-            <viewControls:HotkeyModeNote />
         </StackPanel>
 </Page>
