@@ -32,6 +32,7 @@
                            PaneDisplayMode="Left"
                            IsBackButtonVisible="Collapsed"
                            IsPaneToggleVisible="False"
+                           IsFooterSeparatorVisible="False"
                            OpenPaneLength="280">
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavGeneral" Content="{lc:Localization Nav_General}" Icon="{ui:SymbolIcon Home24}"
