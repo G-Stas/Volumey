@@ -52,6 +52,8 @@
                                      AutomationProperties.AutomationId="OpenHotkeyToggle" />
                 </StackPanel>
             </ui:CardControl>
+            <!-- spaced like the cards around it (the note keeps 12 above itself for the end of a page) -->
+            <viewControls:HotkeyModeNote Margin="0 -12 0 4" />
             <ui:CardControl Icon="{ui:SymbolIcon WindowArrowUp24}">
                 <ui:CardControl.Header>
                     <StackPanel>
@@ -148,6 +150,5 @@
                                  AutomationProperties.Name="{lc:Localization MixerPage_Sync}"
                                  AutomationProperties.AutomationId="SyncToggle" />
             </ui:CardControl>
-            <viewControls:HotkeyModeNote />
         </StackPanel>
 </Page>
