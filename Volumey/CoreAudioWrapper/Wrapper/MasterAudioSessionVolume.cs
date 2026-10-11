@@ -52,11 +52,12 @@ class MasterAudioSessionVolume : IAudioSessionVolume
 	/// <summary>
 	/// Set the mute state for the master volume.
 	/// </summary>
-	public void SetMute(bool muteState)
+	public void SetMute(bool muteState, Guid context)
 	{
 		lock(writeLock)
 		{
-			audioVolume.NotificationGuid = GuidValue.Internal.VolumeGUID;
+			//the caller's context: hotkey changes must come back as notifications (they used to be skipped like the UI's own changes)
+			audioVolume.NotificationGuid = context;
 			audioVolume.Mute = muteState;
 		}
 	}

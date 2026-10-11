@@ -160,7 +160,7 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	private void SetMute(bool mute)
 	{
-		try { sessionVolume?.SetMute(mute); }
+		try { sessionVolume?.SetMute(mute, GuidValue.Internal.VolumeGUID); }
 		catch(Exception e)
 		{
 			LogStateException(e);
