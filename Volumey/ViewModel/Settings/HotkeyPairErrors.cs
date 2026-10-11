@@ -68,7 +68,7 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 		VolumeDown = Message(downType, rejectedDown);
 	}
 
-	private static string Message(ErrorMessageType type, HotKey rejected)
+	internal static string Message(ErrorMessageType type, HotKey rejected)
 	{
 		if(type == ErrorMessageType.None)
 			return string.Empty;

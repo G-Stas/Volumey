@@ -702,4 +702,28 @@
   <data name="Error_SpatialNotLicensed" xml:space="preserve">
     <value>{0} isn't licensed for this device</value>
   </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>Play, pause and skip tracks with your own hotkeys, for keyboards without media keys.</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>Hotkeys</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>Play / pause</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>Previous track</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>Next track</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>Clear the hotkey for {0}</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>Press a key combination</value>
+  </data>
 </root>

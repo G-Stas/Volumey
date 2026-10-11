@@ -633,45 +633,90 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void SystemHotkeyMovesBetweenTheListsAndIsSaved()
+	public void MediaKeyHotkeyIsSetChangedAndCleared()
 	{
 		ActivateHotkeys();
 		var vm = new SystemHotkeysViewModel(Hotkeys);
-		Assert.HasCount(4, vm.Hotkeys);
-		var playPause = vm.Hotkeys.Single(h => h.SystemKey == Key.MediaPlayPause);
+		CollectionAssert.AreEqual(new[] { Key.MediaPlayPause, Key.MediaPreviousTrack, Key.MediaNextTrack, Key.MediaStop }, vm.Keys.Select(k => k.MediaKey).ToArray());
+		var playPause = vm.Keys[0];
 
-		vm.SelectedHotkey = playPause;
-		vm.ReplacementHotKey = Switch;
-		vm.AddHotkeyCommand.Execute(null);
-
-		Assert.HasCount(3, vm.Hotkeys);
-		Assert.AreSame(playPause, Assert.ContainsSingle(vm.RegisteredHotkeys));
+		playPause.Hotkey = Switch;
+		Assert.AreEqual(Switch, playPause.Hotkey);
 		var saved = Assert.ContainsSingle(Settings.Hotkeys.System);
 		Assert.AreEqual(Key.MediaPlayPause, saved.SystemKey);
 		Assert.AreEqual(Switch, saved.Replacement);
 		HotkeyManager.Verify(m => m.RegisterHotkey(Switch), Times.Once);
 
-		vm.SelectedRegisteredHotkey = playPause;
-		vm.RemoveHotkeyCommand.Execute(null);
-
-		Assert.HasCount(4, vm.Hotkeys);
-		Assert.IsEmpty(vm.RegisteredHotkeys);
-		Assert.IsEmpty(Settings.Hotkeys.System);
-		Assert.IsNull(playPause.Replacement);
+		playPause.Hotkey = Up;
+		Assert.AreEqual(Up, Assert.ContainsSingle(Settings.Hotkeys.System).Replacement);
 		HotkeyManager.Verify(m => m.UnregisterHotkey(Switch), Times.Once);
+		HotkeyManager.Verify(m => m.RegisterHotkey(Up), Times.Once);
+
+		playPause.ClearCommand.Execute(null);
+		Assert.IsNull(playPause.Hotkey);
+		Assert.IsEmpty(Settings.Hotkeys.System);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
 	}
 
 	[TestMethod]
-	public void SavedSystemHotkeysAreRegisteredWhenHotkeysActivate()
+	public void MediaKeyRejectsAHotkeyInUseAndKeepsItsOwn()
 	{
-		Settings.Hotkeys.System = new[] { new SystemHotkeyEntry { SystemKey = Key.MediaNextTrack, Replacement = Switch } };
+		ActivateHotkeys();
+		var vm = new SystemHotkeysViewModel(Hotkeys);
+		vm.Keys[0].Hotkey = Switch;
+		vm.Keys[1].Hotkey = Up;
+
+		vm.Keys[1].Hotkey = Switch;
+
+		Assert.AreEqual(Up, vm.Keys[1].Hotkey);
+		StringAssert.StartsWith(vm.Keys[1].Error, Switch.ToString());
+		Assert.HasCount(2, Settings.Hotkeys.System);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(It.IsAny<HotKey>()), Times.Never);
+
+		vm.Keys[1].Hotkey = Down;
+		Assert.AreEqual(string.Empty, vm.Keys[1].Error);
+	}
+
+	[TestMethod]
+	public void MediaKeyKeepsItsHotkeyWhenTheSystemRefusesTheNewOne()
+	{
+		ActivateHotkeys();
+		var vm = new SystemHotkeysViewModel(Hotkeys);
+		vm.Keys[2].Hotkey = Up;
+		HotkeyManager.Setup(m => m.RegisterHotkey(Down)).Throws(new System.InvalidOperationException("taken by another app"));
+
+		vm.Keys[2].Hotkey = Down;
+
+		Assert.AreEqual(Up, vm.Keys[2].Hotkey);
+		Assert.IsFalse(string.IsNullOrEmpty(vm.Keys[2].Error));
+		Assert.AreEqual(Up, Assert.ContainsSingle(Settings.Hotkeys.System).Replacement);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Never);
+	}
+
+	[TestMethod]
+	public void SavedMediaKeyHotkeysAreRegisteredWhenHotkeysActivate()
+	{
+		var refused = new HotKey(Key.F9, ModifierKeys.Control);
+		Settings.Hotkeys.System = new[]
+		{
+			new SystemHotkeyEntry { SystemKey = Key.MediaNextTrack, Replacement = Switch },
+			new SystemHotkeyEntry { SystemKey = Key.MediaStop, Replacement = refused }
+		};
+		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new System.InvalidOperationException("taken by another app"));
 
 		var vm = new SystemHotkeysViewModel(Hotkeys);
 		ActivateHotkeys();
 
-		Assert.HasCount(3, vm.Hotkeys);
-		Assert.AreEqual(Key.MediaNextTrack, Assert.ContainsSingle(vm.RegisteredHotkeys).SystemKey);
+		Assert.AreEqual(Switch, vm.Keys[2].Hotkey);
+		Assert.AreEqual(string.Empty, vm.Keys[2].Error ?? string.Empty);
 		HotkeyManager.Verify(m => m.RegisterHotkey(Switch), Times.Once);
+		Assert.AreEqual(refused, vm.Keys[3].Hotkey);
+		Assert.IsFalse(string.IsNullOrEmpty(vm.Keys[3].Error));
+
+		//a hotkey that never registered isn't unregistered when it's cleared
+		vm.Keys[3].ClearCommand.Execute(null);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(refused), Times.Never);
+		Assert.AreEqual(Key.MediaNextTrack, Assert.ContainsSingle(Settings.Hotkeys.System).SystemKey);
 	}
 
 	[TestMethod]

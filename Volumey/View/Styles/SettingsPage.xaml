@@ -60,6 +60,14 @@
                                 CornerRadius="{TemplateBinding Border.CornerRadius}">
                             <Grid Margin="6 0">
                                 <ScrollViewer x:Name="PART_ContentHost" Opacity="0" IsHitTestVisible="False" Focusable="False" />
+                                <TextBlock x:Name="Placeholder"
+                                           Text="{TemplateBinding PlaceholderText}"
+                                           Margin="4 0 0 0"
+                                           VerticalAlignment="Center"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextControlPlaceholderForeground}"
+                                           Visibility="Collapsed" />
                                 <ItemsControl ItemsSource="{TemplateBinding KeyNames}" VerticalAlignment="Center" Focusable="False">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -85,6 +93,9 @@
                                 CornerRadius="{TemplateBinding Border.CornerRadius}" />
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                        </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="AccentBorder" Property="BorderThickness" Value="0 0 0 2" />
                             <Setter TargetName="AccentBorder" Property="BorderBrush" Value="{DynamicResource TextControlFocusedBorderBrush}" />

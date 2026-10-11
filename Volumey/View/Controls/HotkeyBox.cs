@@ -212,6 +212,18 @@ public class HotKeyBox : TextBox
 	/// </summary>
 	public IReadOnlyList<string> KeyNames => (IReadOnlyList<string>)GetValue(KeyNamesProperty);
 
+	public static readonly DependencyProperty PlaceholderTextProperty
+		= DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(HotKeyBox), new PropertyMetadata(null));
+
+	/// <summary>
+	/// Shown in the empty box (the template shows it while there are no <see cref="KeyNames"/>)
+	/// </summary>
+	public string PlaceholderText
+	{
+		get => (string)GetValue(PlaceholderTextProperty);
+		set => SetValue(PlaceholderTextProperty, value);
+	}
+
 	private void UpdateText()
 	{
 		var hotkey = HotKey;
