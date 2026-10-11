@@ -35,17 +35,103 @@ public class PolicyClient
 	/// </summary>
 	/// <exception cref="COMException">Windows refused the format (e.g. AUDCLNT_E_UNSUPPORTED_FORMAT)</exception>
 	public void SetDeviceFormat(string deviceId, DeviceFormatOption option)
+		//runs on the thread pool: an object of the calling thread (see WithPolicy)
+		=> WithPolicy(policy =>
+		{
+			SetDeviceFormat(policy, deviceId, option);
+			return 0;
+		});
+
+	/// <summary>
+	/// Reads a numeric (VT_UI4) property of the device's endpoint store, e.g. the enhancements or exclusive mode switches; null if it isn't set
+	/// or has another type. Works from any thread (an own object per call).
+	/// </summary>
+	/// <exception cref="COMException">Windows refused the read</exception>
+	public uint? GetEndpointValue(string deviceId, EndpointProperty property)
+		=> WithPolicy(policy => WithKey(property, key =>
+		{
+			IntPtr value = Marshal.AllocCoTaskMem(PropVariantSize);
+			try
+			{
+				Clear(value, PropVariantSize);
+				Marshal.ThrowExceptionForHR(policy.GetPropertyValue(deviceId, false, key, value));
+				ushort type = (ushort)Marshal.ReadInt16(value);
+				uint? result = type == VtUi4 ? (uint)Marshal.ReadInt32(value, 8) : null;
+				PropVariantClear(value);
+				return result;
+			}
+			finally
+			{
+				Marshal.FreeCoTaskMem(value);
+			}
+		}));
+
+	/// <summary>
+	/// Writes a numeric (VT_UI4) property of the device's endpoint store, as Windows' sound settings do (no admin rights needed).
+	/// Works from any thread (an own object per call).
+	/// </summary>
+	/// <exception cref="COMException">Windows refused the change</exception>
+	public void SetEndpointValue(string deviceId, EndpointProperty property, uint newValue)
+		=> WithPolicy(policy => WithKey(property, key =>
+		{
+			IntPtr value = Marshal.AllocCoTaskMem(PropVariantSize);
+			try
+			{
+				Clear(value, PropVariantSize);
+				Marshal.WriteInt16(value, (short)VtUi4);
+				Marshal.WriteInt32(value, 8, (int)newValue);
+				Marshal.ThrowExceptionForHR(policy.SetPropertyValue(deviceId, false, key, value));
+				return 0;
+			}
+			finally
+			{
+				Marshal.FreeCoTaskMem(value);
+			}
+		}));
+
+	//PROPVARIANT: vt (2), reserved (6), value (16 on x64)
+	private const int PropVariantSize = 24;
+	private const ushort VtUi4 = 19;
+
+	[DllImport("ole32.dll")]
+	private static extern int PropVariantClear(IntPtr value);
+
+	private static void Clear(IntPtr memory, int size)
 	{
-		//an object of the calling thread: this runs on the thread pool, and the interface can't be marshalled from the UI thread's
-		//object (there's no proxy for it: E_NOINTERFACE)
+		for(int i = 0; i < size; i++)
+			Marshal.WriteByte(memory, i, 0);
+	}
+
+	/// <summary>
+	/// Runs the call on an IPolicyConfig object of the calling thread: the interface has no proxy, so the UI thread's object can't be
+	/// called from another thread (E_NOINTERFACE)
+	/// </summary>
+	private static T WithPolicy<T>(Func<IPolicyConfig, T> call)
+	{
 		var policy = (IPolicyConfig)new PolicyClientCOM();
 		try
 		{
-			SetDeviceFormat(policy, deviceId, option);
+			return call(policy);
 		}
 		finally
 		{
 			Marshal.ReleaseComObject(policy);
+		}
+	}
+
+	//PROPERTYKEY: fmtid (16), pid (4)
+	private static T WithKey<T>(EndpointProperty property, Func<IntPtr, T> call)
+	{
+		IntPtr key = Marshal.AllocCoTaskMem(20);
+		try
+		{
+			Marshal.Copy(property.FormatId.ToByteArray(), 0, key, 16);
+			Marshal.WriteInt32(key, 16, (int)property.PropertyId);
+			return call(key);
+		}
+		finally
+		{
+			Marshal.FreeCoTaskMem(key);
 		}
 	}
 

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -438,20 +439,33 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	private static readonly DeviceFormatOption Option16At44 = new DeviceFormatOption(16, 16, 44100);
 	private static readonly DeviceFormatOption Option24At48 = new DeviceFormatOption(24, 32, 48000);
 	private static readonly DeviceFormatOption Option24At96 = new DeviceFormatOption(24, 32, 96000);
+	private static readonly SpatialSoundFormat Sonic = new SpatialSoundFormat(Guid.Parse("{B53D940C-B846-4831-9F76-D102B9B725A0}"));
+
+	/// <summary>
+	/// The selected (default) device's settings, once they're read
+	/// </summary>
+	private DeviceSettings LoadedSettings(DefaultDeviceHotkeysViewModel vm)
+	{
+		var settings = vm.SelectedDevice.Settings;
+		WaitFor(() => settings.CanChooseFormat, "the device's settings weren't read");
+		return settings;
+	}
+
+	private void SetUpFeatures(string id, DeviceFeatureState state)
+		=> DeviceProvider.Setup(m => m.GetDeviceFeaturesAsync(id)).ReturnsAsync(state);
 
 	[TestMethod]
 	public void TheSelectedDevicesFormatsAreListedWithTheCurrentOneSelected()
 	{
 		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option16At44, Option24At48, Option24At96));
 		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
-		var speakers = vm.SelectedDevice;
 
-		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+		var settings = LoadedSettings(vm);
 
-		Assert.HasCount(3, speakers.SupportedFormats);
-		Assert.AreEqual(Option24At48, speakers.SelectedFormat);
+		Assert.HasCount(3, settings.SupportedFormats);
+		Assert.AreEqual(Option24At48, settings.SelectedFormat);
 		//the real bits, not the 32-bit container
-		Assert.AreEqual("24 bit, 48000 Hz", speakers.Format);
+		Assert.AreEqual("24 bit, 48000 Hz", settings.Format);
 		DeviceProvider.Verify(m => m.SetDeviceFormatAsync(It.IsAny<string>(), It.IsAny<DeviceFormatOption>()), Times.Never);
 	}
 
@@ -460,16 +474,14 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	{
 		DeviceProvider.Setup(m => m.SetDeviceFormatAsync("1", Option24At96)).ReturnsAsync(true);
 		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48, Option24At96));
-		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
-		var speakers = vm.SelectedDevice;
-		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
 
-		speakers.SelectedFormat = Option24At96;
+		settings.SelectedFormat = Option24At96;
 
-		WaitFor(() => !speakers.IsChangingFormat, "the format change didn't finish");
+		WaitFor(() => !settings.IsBusy, "the format change didn't finish");
 		DeviceProvider.Verify(m => m.SetDeviceFormatAsync("1", Option24At96), Times.Once);
-		Assert.AreEqual(string.Empty, speakers.FormatError ?? string.Empty);
-		Assert.AreEqual(Option24At96, speakers.SelectedFormat);
+		Assert.AreEqual(string.Empty, settings.Error ?? string.Empty);
+		Assert.AreEqual(Option24At96, settings.SelectedFormat);
 	}
 
 	[TestMethod]
@@ -477,25 +489,23 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	{
 		DeviceProvider.Setup(m => m.SetDeviceFormatAsync("1", Option24At96)).ReturnsAsync(false);
 		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48, Option24At96));
-		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
-		var speakers = vm.SelectedDevice;
-		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
 
-		speakers.SelectedFormat = Option24At96;
+		settings.SelectedFormat = Option24At96;
 
-		WaitFor(() => speakers.FormatError == ErrorDictionary.Instance[ErrorMessageType.FormatRefused], "no error shown");
-		Assert.AreEqual(Option24At48, speakers.SelectedFormat);
-		Assert.IsFalse(speakers.IsChangingFormat);
+		WaitFor(() => settings.Error == ErrorDictionary.Instance[ErrorMessageType.FormatRefused], "no error shown");
+		Assert.AreEqual(Option24At48, settings.SelectedFormat);
+		Assert.IsFalse(settings.IsBusy);
 	}
 
 	[TestMethod]
-	public void ARebuiltDeviceShowsItsNewFormat()
+	public void ARebuiltDeviceShowsItsNewState()
 	{
 		var old = CreateDevice("1", "Speakers", At48, Option24At48, Option24At96);
 		SetDefaultDevice(old);
 		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
 		var speakers = vm.SelectedDevice;
-		WaitFor(() => speakers.CanChooseFormat, "the formats weren't read");
+		LoadedSettings(vm);
 
 		//Windows reconfigured the device: the provider inserts the new model, then removes the old one
 		var rebuilt = CreateDevice("1", "Speakers", new DeviceFormat(2, 96000, 768000, 8, 32, 24, 3), Option24At48, Option24At96);
@@ -503,9 +513,123 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActiveDevices.Remove(old);
 
 		Assert.AreSame(rebuilt, speakers.Model);
-		WaitFor(() => speakers.CanChooseFormat, "the new model's formats weren't read");
-		Assert.AreEqual(Option24At96, speakers.SelectedFormat);
-		Assert.AreEqual("24 bit, 96000 Hz", speakers.Format);
+		var settings = LoadedSettings(vm);
+		Assert.AreEqual(Option24At96, settings.SelectedFormat);
+		Assert.AreEqual("24 bit, 96000 Hz", settings.Format);
+	}
+
+	[TestMethod]
+	public void TheDevicesSwitchesAndSpatialSoundAreShown()
+	{
+		SetUpFeatures("1", new DeviceFeatureState(Enhancements: false, AllowExclusive: true, ExclusivePriority: false,
+			new[] { SpatialSoundFormat.Off, Sonic }, Sonic));
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48));
+
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
+
+		WaitFor(() => settings.CanChooseSpatialSound, "spatial sound wasn't read");
+		Assert.IsTrue(settings.HasEnhancements);
+		Assert.IsFalse(settings.Enhancements);
+		Assert.IsTrue(settings.HasExclusiveMode);
+		Assert.IsTrue(settings.AllowExclusive);
+		Assert.IsFalse(settings.ExclusivePriority);
+		Assert.AreEqual(Sonic, settings.SelectedSpatialFormat);
+		//nothing is written while the state is shown
+		DeviceProvider.Verify(m => m.SetDeviceSwitchAsync(It.IsAny<string>(), It.IsAny<DeviceSwitch>(), It.IsAny<bool>()), Times.Never);
+		DeviceProvider.Verify(m => m.SetSpatialFormatAsync(It.IsAny<string>(), It.IsAny<SpatialSoundFormat>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void FeaturesThatCantBeReadAreHidden()
+	{
+		SetUpFeatures("1", DeviceFeatureState.Unknown);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48));
+
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
+
+		Assert.IsFalse(settings.HasEnhancements);
+		Assert.IsFalse(settings.HasExclusiveMode);
+		Assert.IsFalse(settings.CanChooseSpatialSound);
+		Assert.IsFalse(settings.HasBalance);
+	}
+
+	[TestMethod]
+	public void SwitchesAreSetAndAFailureTurnsThemBack()
+	{
+		SetUpFeatures("1", new DeviceFeatureState(true, true, true, Array.Empty<SpatialSoundFormat>(), null));
+		DeviceProvider.Setup(m => m.SetDeviceSwitchAsync("1", DeviceSwitch.AllowExclusive, false)).ReturnsAsync(true);
+		DeviceProvider.Setup(m => m.SetDeviceSwitchAsync("1", DeviceSwitch.Enhancements, false)).ReturnsAsync(false);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48));
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
+		WaitFor(() => settings.HasEnhancements, "the switches weren't read");
+
+		settings.AllowExclusive = false;
+		WaitFor(() => !settings.IsBusy, "the change didn't finish");
+		Assert.IsFalse(settings.AllowExclusive);
+		//priority only matters while apps may take exclusive control
+		Assert.IsFalse(settings.CanSetExclusivePriority);
+		DeviceProvider.Verify(m => m.SetDeviceSwitchAsync("1", DeviceSwitch.AllowExclusive, false), Times.Once);
+
+		settings.Enhancements = false;
+		WaitFor(() => settings.Error == ErrorDictionary.Instance[ErrorMessageType.SettingFailed], "no error shown");
+		Assert.IsTrue(settings.Enhancements);
+	}
+
+	[TestMethod]
+	public void PickingASpatialFormatSetsIt()
+	{
+		SetUpFeatures("1", new DeviceFeatureState(null, null, null, new[] { SpatialSoundFormat.Off, Sonic }, SpatialSoundFormat.Off));
+		DeviceProvider.Setup(m => m.SetSpatialFormatAsync("1", Sonic)).ReturnsAsync(SpatialSoundResult.Set);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48));
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
+		WaitFor(() => settings.CanChooseSpatialSound, "spatial sound wasn't read");
+
+		settings.SelectedSpatialFormat = Sonic;
+
+		WaitFor(() => !settings.IsBusy, "the change didn't finish");
+		DeviceProvider.Verify(m => m.SetSpatialFormatAsync("1", Sonic), Times.Once);
+		Assert.AreEqual(Sonic, settings.SelectedSpatialFormat);
+	}
+
+	[TestMethod]
+	public void AnUnlicensedSpatialFormatLeavesTheListWithAMessage()
+	{
+		var atmos = new SpatialSoundFormat(Guid.Parse("{1459AC38-3875-49BF-BB59-0FE80F4D395D}"));
+		SetUpFeatures("1", new DeviceFeatureState(null, null, null, new[] { SpatialSoundFormat.Off, Sonic, atmos }, SpatialSoundFormat.Off));
+		DeviceProvider.Setup(m => m.SetSpatialFormatAsync("1", atmos)).ReturnsAsync(SpatialSoundResult.NotLicensed);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, Option24At48));
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
+		WaitFor(() => settings.CanChooseSpatialSound, "spatial sound wasn't read");
+
+		settings.SelectedSpatialFormat = atmos;
+
+		WaitFor(() => !settings.IsBusy && !string.IsNullOrEmpty(settings.Error), "no error shown");
+		Assert.AreEqual(string.Format(ErrorDictionary.Instance[ErrorMessageType.SpatialNotLicensed], "Dolby Atmos for Headphones"), settings.Error);
+		CollectionAssert.AreEqual(new[] { SpatialSoundFormat.Off, Sonic }, settings.SpatialFormats.ToArray());
+		Assert.AreEqual(SpatialSoundFormat.Off, settings.SelectedSpatialFormat);
+	}
+
+	[TestMethod]
+	public void TheBalanceShowsAndSetsTheFirstTwoChannels()
+	{
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, out var device, Option24At48));
+		device.Setup(m => m.GetChannelVolumes()).Returns(new[] { 0.7f, 0.5f, 0.7f, 0.7f });
+		var settings = LoadedSettings(new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys));
+		WaitFor(() => settings.HasBalance, "the balance wasn't read");
+
+		Assert.AreEqual(70d, settings.Left);
+		Assert.AreEqual(50d, settings.Right);
+
+		settings.Left = 35;
+		device.Verify(m => m.SetChannelVolume(0, 0.35f), Times.Once);
+		device.Verify(m => m.SetChannelVolume(1, It.IsAny<float>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void TheSpatialSoundIdIsWhatWinRtTakes()
+	{
+		Assert.AreEqual("\\\\?\\SWD#MMDEVAPI#{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}#{e6327cad-dcec-4949-ae8a-991e976a79d2}",
+			DeviceFeatures.WinRtId("{0.0.0.00000000}.{11111111-2222-3333-4444-555555555555}"));
 	}
 
 	[TestMethod]

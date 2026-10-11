@@ -183,6 +183,10 @@ public class AudioLayerTests
 		var supported = device.GetSupportedFormats();
 		Assert.IsNotEmpty(supported);
 		Assert.IsTrue(supported.Any(option => option.Matches(format.Value)), $"{format} isn't in the supported formats");
+		//the balance: one level per channel, the loudest one is the device volume
+		var channels = device.GetChannelVolumes();
+		Assert.IsNotEmpty(channels);
+		Assert.AreEqual(endpointVolume, channels.Max(), 0.01f);
 
 		using var devices = new LoadedDevices();
 		var model = devices.Get(id);

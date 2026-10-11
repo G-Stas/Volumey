@@ -122,6 +122,51 @@ public sealed class AudioDevice : IDevice
 		return supported.OrderBy(f => f.Bits).ThenBy(f => f.SamplesPerSec).ToList();
 	}
 
+	public IReadOnlyList<float> GetChannelVolumes()
+	{
+		try
+		{
+			var channels = Device.AudioEndpointVolume.Channels;
+			var levels = new float[channels.Count];
+			for(int i = 0; i < levels.Length; i++)
+				levels[i] = channels[i].VolumeLevelScalar;
+			return levels;
+		}
+		catch(Exception e)
+		{
+			Logger.Error("Couldn't read the device's channel volumes", e);
+			return Array.Empty<float>();
+		}
+	}
+
+	public void SetChannelVolume(int channel, float level)
+	{
+		var target = Device.AudioEndpointVolume.Channels[channel];
+		//Volumey's own change: the device volume listener skips it (see MasterVolumeNotificationHandler)
+		target.NotificationGuid = GuidValue.Internal.VolumeGUID;
+		target.VolumeLevelScalar = Math.Clamp(level, 0f, 1f);
+	}
+
+	private Action? channelVolumesChanged;
+	public event Action ChannelVolumesChanged
+	{
+		add
+		{
+			//listen to Windows only while someone listens here (the Devices page)
+			if(channelVolumesChanged == null)
+				Device.AudioEndpointVolume.OnVolumeNotification += OnVolumeNotification;
+			channelVolumesChanged += value;
+		}
+		remove
+		{
+			channelVolumesChanged -= value;
+			if(channelVolumesChanged == null && !disposed)
+				Device.AudioEndpointVolume.OnVolumeNotification -= OnVolumeNotification;
+		}
+	}
+
+	private void OnVolumeNotification(AudioVolumeNotificationData data) => channelVolumesChanged?.Invoke();
+
 	/// <summary>
 	/// Reads a property from a freshly opened property store: NAudio keeps the store open, and a kept store doesn't show later changes
 	/// (the device properties are read again when Windows reports that they changed).
@@ -149,6 +194,12 @@ public sealed class AudioDevice : IDevice
 		if(disposed)
 			return;
 		disposed = true;
+		if(channelVolumesChanged != null)
+		{
+			channelVolumesChanged = null;
+			try { Device.AudioEndpointVolume.OnVolumeNotification -= OnVolumeNotification; }
+			catch { }
+		}
 		Device.Dispose();
 	}
 }

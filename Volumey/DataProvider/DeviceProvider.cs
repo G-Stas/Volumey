@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -143,6 +144,66 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			//undocumented interface: Windows may refuse the format or the call may stop working with an update
 			Logger.Error($"Failed to set the device format {format.Bits} bit, {format.SamplesPerSec} Hz", e);
 			return false;
+		}
+	});
+
+	private DeviceFeatures features;
+	private DeviceFeatures Features => features ??= new DeviceFeatures(PolicyClient);
+
+	//spatial sound formats Windows refused for their license, per device: left out of the list until Volumey restarts
+	private readonly ConcurrentDictionary<(string deviceId, Guid format), bool> unlicensedSpatialFormats = new();
+
+	public Task<DeviceFeatureState> GetDeviceFeaturesAsync(string deviceId) => Task.Run(() =>
+	{
+		try
+		{
+			var state = Features.Read(deviceId);
+			return state with
+			{
+				SpatialFormats = state.SpatialFormats.Where(f => !unlicensedSpatialFormats.ContainsKey((deviceId, f.Id))).ToList()
+			};
+		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to read the device's features", e);
+			return DeviceFeatureState.Unknown;
+		}
+	});
+
+	public Task<bool> SetDeviceSwitchAsync(string deviceId, DeviceSwitch setting, bool on) => Task.Run(() =>
+	{
+		try
+		{
+			Features.Set(deviceId, setting, on);
+			Logger.Info($"Device setting changed: {setting} {(on ? "on" : "off")}");
+			return true;
+		}
+		catch(Exception e)
+		{
+			//undocumented interface: it may stop working with a Windows update
+			Logger.Error($"Failed to turn {setting} {(on ? "on" : "off")}", e);
+			return false;
+		}
+	});
+
+	public Task<SpatialSoundResult> SetSpatialFormatAsync(string deviceId, SpatialSoundFormat format) => Task.Run(() =>
+	{
+		try
+		{
+			var result = Features.SetSpatialFormat(deviceId, format);
+			if(result == SpatialSoundResult.NotLicensed)
+			{
+				unlicensedSpatialFormats[(deviceId, format.Id)] = true;
+				Logger.Info($"Spatial sound {format.Id} isn't licensed for the device: hidden from its list");
+			}
+			else
+				Logger.Info($"Spatial sound set: {(format.IsOff ? "off" : format.Id.ToString())}");
+			return result;
+		}
+		catch(Exception e)
+		{
+			Logger.Error($"Failed to set spatial sound {format.Id}", e);
+			return SpatialSoundResult.Failed;
 		}
 	});
 

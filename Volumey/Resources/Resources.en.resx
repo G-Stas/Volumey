@@ -639,4 +639,67 @@
   <data name="Devices_FormatName" xml:space="preserve">
     <value>{0} bit, {1} Hz</value>
   </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>Couldn't change this setting</value>
+  </data>
+  <data name="Devices_SpatialSound" xml:space="preserve">
+    <value>Spatial sound</value>
+  </data>
+  <data name="Devices_SpatialSoundHint" xml:space="preserve">
+    <value>Surround sound that apps can position around you</value>
+  </data>
+  <data name="Devices_SpatialOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Devices_Spatial_WindowsSonic" xml:space="preserve">
+    <value>Windows Sonic for Headphones</value>
+  </data>
+  <data name="Devices_Spatial_DolbyAtmosHeadphones" xml:space="preserve">
+    <value>Dolby Atmos for Headphones</value>
+  </data>
+  <data name="Devices_Spatial_DolbyAtmosHomeTheater" xml:space="preserve">
+    <value>Dolby Atmos for home theater</value>
+  </data>
+  <data name="Devices_Spatial_DolbyAtmosSpeakers" xml:space="preserve">
+    <value>Dolby Atmos for built-in speakers</value>
+  </data>
+  <data name="Devices_Spatial_DtsHeadphoneX" xml:space="preserve">
+    <value>DTS Headphone:X</value>
+  </data>
+  <data name="Devices_Spatial_DtsXUltra" xml:space="preserve">
+    <value>DTS:X Ultra</value>
+  </data>
+  <data name="Devices_Enhancements" xml:space="preserve">
+    <value>Audio enhancements</value>
+  </data>
+  <data name="Devices_EnhancementsHint" xml:space="preserve">
+    <value>Effects the driver applies to everything you hear</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>Let apps take exclusive control</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>An app can use the device alone, without the Windows mixer</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>Give those apps priority</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>An app in exclusive mode can take the device while others play</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>Balance</value>
+  </data>
+  <data name="Devices_BalanceHint" xml:space="preserve">
+    <value>The level of each side</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Error_SpatialNotLicensed" xml:space="preserve">
+    <value>{0} isn't licensed for this device</value>
+  </data>
 </root>

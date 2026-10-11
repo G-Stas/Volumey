@@ -16,6 +16,7 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:HotkeysRegisteredToEnabledConverter x:Key="NotRegisteredToEnabled" />
             <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
+            <converters:SpatialFormatNameConverter x:Key="SpatialFormatName" />
             <!-- a row's label lines up with its hotkey box, also when an error shows under the box -->
             <Style x:Key="HotkeyRowLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="VerticalAlignment" Value="Top" />
@@ -26,12 +27,12 @@
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="Margin" Value="0 4 0 0" />
             </Style>
-            <!-- shown only while the selected device is connected -->
+            <!-- shown only while the selected device is connected: its DataContext is the device's settings, which only a connected device has -->
             <Style x:Key="WhenConnected" TargetType="FrameworkElement">
-                <Setter Property="Visibility" Value="Collapsed" />
+                <Setter Property="Visibility" Value="Visible" />
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding SelectedDevice.IsConnected}" Value="True">
-                        <Setter Property="Visibility" Value="Visible" />
+                    <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed" />
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
@@ -228,20 +229,22 @@
                     </StackPanel>
                 </ui:CardControl>
 
-                <!-- the device's audio features, read from Windows; only while it's connected -->
-                <StackPanel Style="{StaticResource WhenConnected}">
+                <!-- the device's audio features, read from Windows (DeviceSettings); only while it's connected. Every control is disabled
+                     while a change runs; a failed change shows its error under the title and the control shows the real state again -->
+                <StackPanel Style="{StaticResource WhenConnected}" DataContext="{Binding SelectedDevice.Settings}">
                     <StackPanel Margin="0 20 0 8">
                         <TextBlock Text="{lc:Localization Devices_Features}" FontWeight="SemiBold" />
                         <TextBlock Text="{lc:Localization Devices_FeaturesHint}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding Error}" Style="{StaticResource SettingError}" />
                     </StackPanel>
-                    <!-- the format: Windows' list of what the device supports (picking one reconfigures the device), or the current one as
-                         text while the list is read or if it can't be -->
-                    <ui:CardControl Icon="{ui:SymbolIcon Pulse24}" DataContext="{Binding SelectedDevice}">
+
+                    <!-- the format: what the device supports (picking one reconfigures the device), or the current one as text while the
+                         list is read or if it can't be -->
+                    <ui:CardControl Icon="{ui:SymbolIcon Pulse24}">
                         <ui:CardControl.Header>
                             <StackPanel>
                                 <TextBlock Text="{lc:Localization Devices_Format}" />
                                 <TextBlock Text="{lc:Localization Devices_FormatHint}" Style="{StaticResource Caption}" />
-                                <TextBlock Text="{Binding FormatError}" Style="{StaticResource SettingError}" />
                             </StackPanel>
                         </ui:CardControl.Header>
                         <Grid>
@@ -253,7 +256,7 @@
                             <ComboBox ItemsSource="{Binding SupportedFormats}"
                                       SelectedItem="{Binding SelectedFormat}"
                                       IsSynchronizedWithCurrentItem="False"
-                                      IsEnabled="{Binding IsChangingFormat, Converter={StaticResource NotRegisteredToEnabled}}"
+                                      IsEnabled="{Binding IsBusy, Converter={StaticResource NotRegisteredToEnabled}}"
                                       Visibility="{Binding CanChooseFormat, Converter={StaticResource BoolToVisibility}}"
                                       AutomationProperties.Name="{lc:Localization Devices_Format}"
                                       AutomationProperties.AutomationId="DeviceFormatBox">
@@ -286,6 +289,136 @@
                             </ComboBox>
                         </Grid>
                     </ui:CardControl>
+
+                    <!-- spatial sound: Off and the formats the device supports (picking one reconfigures the device); hidden without support -->
+                    <ui:CardControl Icon="{ui:SymbolIcon HeadphonesSoundWave24}"
+                                    Visibility="{Binding CanChooseSpatialSound, Converter={StaticResource BoolToVisibility}}">
+                        <ui:CardControl.Header>
+                            <StackPanel>
+                                <TextBlock Text="{lc:Localization Devices_SpatialSound}" />
+                                <TextBlock Text="{lc:Localization Devices_SpatialSoundHint}" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                        </ui:CardControl.Header>
+                        <ComboBox ItemsSource="{Binding SpatialFormats}"
+                                  SelectedItem="{Binding SelectedSpatialFormat}"
+                                  IsSynchronizedWithCurrentItem="False"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource NotRegisteredToEnabled}}"
+                                  AutomationProperties.Name="{lc:Localization Devices_SpatialSound}"
+                                  AutomationProperties.AutomationId="SpatialSoundBox">
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                    <Setter Property="AutomationProperties.Name">
+                                        <Setter.Value>
+                                            <MultiBinding Converter="{StaticResource SpatialFormatName}">
+                                                <Binding />
+                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource SpatialFormatName}">
+                                                <Binding />
+                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </ui:CardControl>
+
+                    <!-- the driver's enhancements (turning them on or off reconfigures the device) -->
+                    <ui:CardControl Icon="{ui:SymbolIcon Sparkle24}"
+                                    Visibility="{Binding HasEnhancements, Converter={StaticResource BoolToVisibility}}">
+                        <ui:CardControl.Header>
+                            <StackPanel>
+                                <TextBlock Text="{lc:Localization Devices_Enhancements}" />
+                                <TextBlock Text="{lc:Localization Devices_EnhancementsHint}" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                        </ui:CardControl.Header>
+                        <ui:ToggleSwitch IsChecked="{Binding Enhancements}"
+                                         IsEnabled="{Binding IsBusy, Converter={StaticResource NotRegisteredToEnabled}}"
+                                         AutomationProperties.Name="{lc:Localization Devices_Enhancements}"
+                                         AutomationProperties.AutomationId="EnhancementsToggle" />
+                    </ui:CardControl>
+
+                    <!-- exclusive mode, as Windows' sound settings show it: priority only matters while apps may take the device -->
+                    <ui:CardExpander Icon="{ui:SymbolIcon LockClosed24}" IsExpanded="True" Margin="0 0 0 4"
+                                     Visibility="{Binding HasExclusiveMode, Converter={StaticResource BoolToVisibility}}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{lc:Localization Devices_AllowExclusive}" />
+                                    <TextBlock Text="{lc:Localization Devices_AllowExclusiveHint}" Style="{StaticResource Caption}" />
+                                </StackPanel>
+                                <ui:ToggleSwitch Grid.Column="1"
+                                                 Margin="16 0"
+                                                 IsChecked="{Binding AllowExclusive}"
+                                                 IsEnabled="{Binding IsBusy, Converter={StaticResource NotRegisteredToEnabled}}"
+                                                 AutomationProperties.Name="{lc:Localization Devices_AllowExclusive}"
+                                                 AutomationProperties.AutomationId="AllowExclusiveToggle" />
+                            </Grid>
+                        </ui:CardExpander.Header>
+                        <Grid Margin="40 0 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{lc:Localization Devices_ExclusivePriority}" />
+                                <TextBlock Text="{lc:Localization Devices_ExclusivePriorityHint}" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1"
+                                             IsChecked="{Binding ExclusivePriority}"
+                                             IsEnabled="{Binding CanSetExclusivePriority}"
+                                             AutomationProperties.Name="{lc:Localization Devices_ExclusivePriority}"
+                                             AutomationProperties.AutomationId="ExclusivePriorityToggle" />
+                        </Grid>
+                    </ui:CardExpander>
+
+                    <!-- left/right balance (the first two channels), live: the device volume and Windows change it too -->
+                    <ui:CardExpander Icon="{ui:SymbolIcon ArrowSwap24}" IsExpanded="True" Margin="0 0 0 4"
+                                     Visibility="{Binding HasBalance, Converter={StaticResource BoolToVisibility}}">
+                        <ui:CardExpander.Header>
+                            <StackPanel>
+                                <TextBlock Text="{lc:Localization Devices_Balance}" />
+                                <TextBlock Text="{lc:Localization Devices_BalanceHint}" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                        </ui:CardExpander.Header>
+                        <Grid Margin="40 0 0 0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{lc:Localization Devices_Left}" VerticalAlignment="Center" Margin="0 0 16 0" />
+                            <controls:VolumeSlider Grid.Column="1"
+                                                   Value="{Binding Left}"
+                                                   AutomationProperties.Name="{lc:Localization Devices_Left}"
+                                                   AutomationProperties.AutomationId="BalanceLeft" />
+                            <TextBlock Grid.Column="2" Text="{Binding Left}" Style="{StaticResource VolumeValue}" Margin="12 0 0 0" />
+                            <TextBlock Grid.Row="1" Text="{lc:Localization Devices_Right}" VerticalAlignment="Center" Margin="0 0 16 0" />
+                            <controls:VolumeSlider Grid.Row="1"
+                                                   Grid.Column="1"
+                                                   Value="{Binding Right}"
+                                                   AutomationProperties.Name="{lc:Localization Devices_Right}"
+                                                   AutomationProperties.AutomationId="BalanceRight" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding Right}" Style="{StaticResource VolumeValue}" Margin="12 0 0 0" />
+                        </Grid>
+                    </ui:CardExpander>
                 </StackPanel>
             </StackPanel>
         </StackPanel>

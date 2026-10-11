@@ -639,4 +639,67 @@
   <data name="Devices_FormatName" xml:space="preserve">
     <value />
   </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_SpatialSound" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_SpatialSoundHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_SpatialOff" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Spatial_WindowsSonic" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Spatial_DolbyAtmosHeadphones" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Spatial_DolbyAtmosHomeTheater" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Spatial_DolbyAtmosSpeakers" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Spatial_DtsHeadphoneX" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Spatial_DtsXUltra" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Enhancements" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_EnhancementsHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_BalanceHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Error_SpatialNotLicensed" xml:space="preserve">
+    <value />
+  </data>
 </root>

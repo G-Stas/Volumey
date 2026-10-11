@@ -74,13 +74,21 @@ public abstract class ViewModelTestBase
 	/// A device running at <paramref name="format"/> that supports <paramref name="supported"/>
 	/// </summary>
 	protected OutputDeviceModel CreateDevice(string id, string name, DeviceFormat format, params DeviceFormatOption[] supported)
+		=> CreateDevice(id, name, format, out _, supported);
+
+	/// <summary>
+	/// A device running at <paramref name="format"/> that supports <paramref name="supported"/>; <paramref name="device"/> fakes the rest
+	/// (e.g. its channel volumes)
+	/// </summary>
+	protected OutputDeviceModel CreateDevice(string id, string name, DeviceFormat format, out Mock<IDevice> device, params DeviceFormatOption[] supported)
 	{
 		var master = new MasterSessionModel(name, name, 70, false, id, null, new Mock<IAudioSessionVolume>().Object,
 			new Mock<IMasterVolumeNotificationHandler>().Object, Hotkeys);
-		var device = new Mock<IDevice>();
+		device = new Mock<IDevice>();
 		device.Setup(m => m.GetId()).Returns(id);
 		device.Setup(m => m.GetDeviceFormat()).Returns(format);
 		device.Setup(m => m.GetSupportedFormats()).Returns(supported);
+		device.Setup(m => m.GetChannelVolumes()).Returns(Array.Empty<float>());
 		return new OutputDeviceModel(device.Object, new Mock<IDeviceStateNotificationHandler>().Object, new Mock<ISessionProvider>().Object,
 									 master, new List<AudioProcessModel>());
 	}
