@@ -4,7 +4,6 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:pages="clr-namespace:Volumey.View.SettingsPage"
                  xmlns:lc="clr-namespace:Volumey.Localization"
-                 xmlns:converters="clr-namespace:Volumey.View.Converters"
                  Title="{lc:Localization SettingsWindow_Title}"
                  Width="800"
                  MinWidth="800"
@@ -14,11 +13,8 @@
                  WindowCornerPreference="Round"
                  DataContext="{StaticResource SettingsViewModel}"
                  Closing="OnClosing">
-    <!-- mockups Settings*.dc.html: a title bar, the pages on the left, Support at the bottom. MinWidth: narrower than 800 the cards break
+    <!-- mockups Settings*.dc.html: a title bar and the pages on the left (no footer items: Source code and Support were removed, owner). MinWidth: narrower than 800 the cards break
          (titles wrap letter by letter, e.g. "Distance from the edges"); WPF-UI's default minimum is 460 (owner) -->
-    <ui:FluentWindow.Resources>
-        <converters:CollectionCountToVisibilityConverter x:Key="NoneToCollapsed" CountLimit="0" />
-    </ui:FluentWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -50,11 +46,6 @@
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavAbout" Content="{lc:Localization Nav_About}" Icon="{ui:SymbolIcon Info24}"
                                        TargetPageType="{x:Type pages:AboutPage}" />
             </ui:NavigationView.MenuItems>
-            <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem AutomationProperties.AutomationId="NavSupport" Content="{lc:Localization Nav_Support}" Icon="{ui:SymbolIcon Heart24}"
-                                       Visibility="{Binding About.SupportLinks.Count, Converter={StaticResource NoneToCollapsed}}"
-                                       Click="OnSupportClick" />
-            </ui:NavigationView.FooterMenuItems>
         </ui:NavigationView>
 
         <!-- dialogs of the settings pages (App hotkeys: Add app) -->
