@@ -669,12 +669,6 @@
   <data name="Devices_Spatial_DtsXUltra" xml:space="preserve">
     <value>DTS:X Ultra</value>
   </data>
-  <data name="Devices_Enhancements" xml:space="preserve">
-    <value>Audio enhancements</value>
-  </data>
-  <data name="Devices_EnhancementsHint" xml:space="preserve">
-    <value>Effects the driver applies to everything you hear</value>
-  </data>
   <data name="Devices_AllowExclusive" xml:space="preserve">
     <value>Let apps take exclusive control</value>
   </data>

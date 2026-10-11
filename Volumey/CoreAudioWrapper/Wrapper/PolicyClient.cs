@@ -43,7 +43,7 @@ public class PolicyClient
 		});
 
 	/// <summary>
-	/// Reads a numeric (VT_UI4) property of the device's endpoint store, e.g. the enhancements or exclusive mode switches; null if it isn't set
+	/// Reads a numeric (VT_UI4) property of the device's endpoint store, e.g. the exclusive mode switches; null if it isn't set
 	/// or has another type. Works from any thread (an own object per call).
 	/// </summary>
 	/// <exception cref="COMException">Windows refused the read</exception>

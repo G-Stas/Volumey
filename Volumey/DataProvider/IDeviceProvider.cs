@@ -30,13 +30,12 @@ public interface IDeviceProvider : IDisposable
 	public Task<bool> SetDeviceFormatAsync(string deviceId, DeviceFormatOption format);
 
 	/// <summary>
-	/// The device's enhancements and exclusive mode switches and its spatial sound (read on the thread pool)
+	/// The device's exclusive mode switches and its spatial sound (read on the thread pool)
 	/// </summary>
 	public Task<DeviceFeatureState> GetDeviceFeaturesAsync(string deviceId);
 
 	/// <summary>
-	/// Turns a switch of the device on or off (on the thread pool); false if it failed (logged). Audio enhancements reconfigure the device
-	/// (its model is rebuilt).
+	/// Turns a switch of the device on or off (on the thread pool); false if it failed (logged).
 	/// </summary>
 	public Task<bool> SetDeviceSwitchAsync(string deviceId, DeviceSwitch setting, bool on);
 

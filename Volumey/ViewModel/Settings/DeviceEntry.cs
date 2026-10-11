@@ -34,7 +34,7 @@ public sealed partial class DeviceEntry : ObservableObject
 	public ImageSource IconSource => Model?.Master.IconSource;
 
 	/// <summary>
-	/// The audio features of the connected device (format, spatial sound, enhancements, exclusive mode, balance); null while it isn't connected.
+	/// The audio features of the connected device (format, spatial sound, exclusive mode, balance); null while it isn't connected.
 	/// A new model (plugged in, or rebuilt after a change that reconfigured the device) gets new settings, which read the new state.
 	/// </summary>
 	[ObservableProperty]

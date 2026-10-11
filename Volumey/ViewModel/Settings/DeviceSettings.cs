@@ -13,8 +13,8 @@ using Volumey.Model;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// The audio features of a connected device on the Devices page: format, spatial sound, audio enhancements, exclusive mode and balance.
-/// One per device model: a change that reconfigures the device (format, spatial sound, enhancements) rebuilds the model, and the new model
+/// The audio features of a connected device on the Devices page: format, spatial sound, exclusive mode and balance.
+/// One per device model: a change that reconfigures the device (format, spatial sound) rebuilds the model, and the new model
 /// gets new settings that read the new state. Read when the device is selected (<see cref="Load"/>).
 /// </summary>
 public sealed partial class DeviceSettings : ObservableObject
@@ -174,7 +174,7 @@ public sealed partial class DeviceSettings : ObservableObject
 
 	#endregion
 
-	#region Spatial sound, enhancements, exclusive mode
+	#region Spatial sound, exclusive mode
 
 	private DeviceFeatureState features = DeviceFeatureState.Unknown;
 
@@ -183,12 +183,9 @@ public sealed partial class DeviceSettings : ObservableObject
 		features = state;
 		SpatialFormats = state.SpatialFormats;
 		selectedSpatialFormat = state.SpatialFormat;
-		enhancements = state.Enhancements ?? false;
 		allowExclusive = state.AllowExclusive ?? false;
 		exclusivePriority = state.ExclusivePriority ?? false;
 		OnPropertyChanged(nameof(SelectedSpatialFormat));
-		OnPropertyChanged(nameof(HasEnhancements));
-		OnPropertyChanged(nameof(Enhancements));
 		OnPropertyChanged(nameof(HasExclusiveMode));
 		OnPropertyChanged(nameof(AllowExclusive));
 		OnPropertyChanged(nameof(ExclusivePriority));
@@ -242,18 +239,6 @@ public sealed partial class DeviceSettings : ObservableObject
 		OnPropertyChanged(nameof(SelectedSpatialFormat));
 	}
 
-	public bool HasEnhancements => features.Enhancements != null;
-
-	private bool enhancements;
-	/// <summary>
-	/// The driver's audio enhancements (Windows reconfigures the device when they're turned on or off)
-	/// </summary>
-	public bool Enhancements
-	{
-		get => enhancements;
-		set => SetSwitch(ref enhancements, value, DeviceSwitch.Enhancements, nameof(Enhancements));
-	}
-
 	public bool HasExclusiveMode => features.AllowExclusive != null && features.ExclusivePriority != null;
 
 	private bool allowExclusive;
@@ -292,7 +277,6 @@ public sealed partial class DeviceSettings : ObservableObject
 			if(changed)
 				features = setting switch
 				{
-					DeviceSwitch.Enhancements => features with { Enhancements = value },
 					DeviceSwitch.AllowExclusive => features with { AllowExclusive = value },
 					_ => features with { ExclusivePriority = value }
 				};
@@ -304,7 +288,6 @@ public sealed partial class DeviceSettings : ObservableObject
 	{
 		switch(setting)
 		{
-			case DeviceSwitch.Enhancements: enhancements = value; break;
 			case DeviceSwitch.AllowExclusive: allowExclusive = value; break;
 			default: exclusivePriority = value; break;
 		}

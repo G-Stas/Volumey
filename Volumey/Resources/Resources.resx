@@ -669,12 +669,6 @@
   <data name="Devices_Spatial_DtsXUltra" xml:space="preserve">
     <value />
   </data>
-  <data name="Devices_Enhancements" xml:space="preserve">
-    <value />
-  </data>
-  <data name="Devices_EnhancementsHint" xml:space="preserve">
-    <value />
-  </data>
   <data name="Devices_AllowExclusive" xml:space="preserve">
     <value />
   </data>
