@@ -39,7 +39,7 @@
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavMediaKeys" Content="{lc:Localization Nav_MediaKeys}" Icon="{ui:SymbolIcon Keyboard24}"
                                        TargetPageType="{x:Type pages:MediaKeysPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavNotifications" Content="{lc:Localization Nav_Notifications}" Icon="{ui:SymbolIcon Alert24}"
-                                       TargetPageType="{x:Type pages:PlaceholderPage}" />
+                                       TargetPageType="{x:Type pages:NotificationsPage}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavAbout" Content="{lc:Localization Nav_About}" Icon="{ui:SymbolIcon Info24}"
                                        TargetPageType="{x:Type pages:PlaceholderPage}" />
             </ui:NavigationView.MenuItems>

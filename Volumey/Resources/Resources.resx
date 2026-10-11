@@ -726,4 +726,73 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value />
   </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_ScreenHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value />
+  </data>
 </root>

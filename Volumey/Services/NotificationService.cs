@@ -58,12 +58,10 @@ internal sealed class NotificationService : INotificationService
 	public void CloseNotification(IManagedMasterAudioSession session)
 		=> Try(() => window?.Close(session.Id), "Failed to close notification");
 
-	public void ShowNotificationExample()
-		=> Try(() =>
-		{
-			example ??= new AudioProcessModel(50, false, "Application", default, string.Empty, IconHelper.CreateGenericExeIcon(), null, AppServices.Current.Hotkeys);
-			Window.Show(ExampleKey, example, null);
-		}, "Failed to display example notification");
+	public IManagedMasterAudioSession Example
+		=> example ??= new AudioProcessModel(85, false, "Application", default, string.Empty, IconHelper.CreateGenericExeIcon(), null, AppServices.Current.Hotkeys);
+
+	public void ShowNotificationExample() => Try(() => Window.Show(ExampleKey, Example, displayTime), "Failed to display example notification");
 
 	public void CloseNotificationExample() => Try(() => window?.Close(ExampleKey), "Failed to close example notification");
 

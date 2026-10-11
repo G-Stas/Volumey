@@ -49,6 +49,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 
 		Assert.AreEqual(NotificationPosition.BottomCenter, vm.SelectedPosition);
 		Assert.IsTrue(vm.NotificationsPositionIsCentered);
+		Assert.AreEqual("Position_BottomCenter", vm.SelectedPositionKey);
 		Assert.AreEqual(Second, vm.SelectedScreen);
 		Notifications.Verify(m => m.ChangePosition(NotificationPosition.BottomCenter));
 		Notifications.Verify(m => m.SetIndents(30, 40));
@@ -171,12 +172,11 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	{
 		var vm = CreateNotifications();
 
-		vm.PreviewIsOn = true;
+		vm.ShowPreviewCommand.Execute(null);
 		vm.UnloadedCommand.Execute(null);
 
 		Notifications.Verify(m => m.ShowNotificationExample(), Times.Once);
 		Notifications.Verify(m => m.CloseNotificationExample(), Times.Once);
-		Assert.IsFalse(vm.PreviewIsOn);
 	}
 
 	[TestMethod]

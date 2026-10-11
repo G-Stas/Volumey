@@ -726,4 +726,73 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value>Press a key combination</value>
   </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>A small on-screen display when a volume changes.</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>On-screen display</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>Show volume changes made with Volumey hotkeys</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>React to all volume changes</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>Also show changes made by other apps and the Windows mixer</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="Notifications_ScreenHint" xml:space="preserve">
+    <value>Remembered by name, so it survives a reboot</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>Corner</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>Top left</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>Top center</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>Top right</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>Bottom left</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>Bottom center</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>Bottom right</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>Distance from the edges</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>In pixels at 100% scaling</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>Horizontal</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>Vertical</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>Display time</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 second</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} seconds</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>Show on screen</value>
+  </data>
 </root>

@@ -1,0 +1,232 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.NotificationsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization"
+      xmlns:converters="clr-namespace:Volumey.View.Converters"
+      xmlns:controls="clr-namespace:Volumey.Controls"
+      xmlns:viewControls="clr-namespace:Volumey.View.Controls"
+      Title="{lc:Localization Nav_Notifications}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=NotificationsViewModel}">
+    <!-- the Foreground: see GeneralPage -->
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:CollectionCountToVisibilityConverter x:Key="SeveralToVisibility" CountLimit="1" />
+            <converters:InverseBoolConverter x:Key="InverseBool" />
+            <converters:EqualsParameterConverter x:Key="EqualsParameter" />
+            <converters:LocalizationKeyConverter x:Key="LocalizationKey" />
+            <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
+            <converters:ScreenNameConverter x:Key="ScreenName" />
+            <!-- a place in the corner picker: a dot, the chosen one a bar in the accent color (mockup) -->
+            <Style x:Key="CornerButton" TargetType="RadioButton">
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="Back" Background="Transparent" CornerRadius="3">
+                                <Border x:Name="Mark"
+                                        Width="6"
+                                        Height="6"
+                                        CornerRadius="3"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Background="{DynamicResource TextFillColorTertiaryBrush}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Back" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Mark" Property="Width" Value="36" />
+                                    <Setter TargetName="Mark" Property="Height" Value="12" />
+                                    <Setter TargetName="Mark" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="DistanceBox" TargetType="ui:NumberBox" BasedOn="{StaticResource {x:Type ui:NumberBox}}">
+                <Setter Property="Width" Value="80" />
+                <Setter Property="SmallChange" Value="1" />
+                <Setter Property="LargeChange" Value="10" />
+                <Setter Property="MaxDecimalPlaces" Value="0" />
+                <Setter Property="SpinButtonPlacementMode" Value="Hidden" />
+                <Setter Property="ClearButtonEnabled" Value="False" />
+                <Setter Property="controls:DigitsOnly.IsEnabled" Value="True" />
+                <Setter Property="controls:NumberBoxCommit.IsEnabled" Value="True" />
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- mockup SettingsNotifications.dc.html, with six places to choose from instead of nine (owner) -->
+    <!-- no ScrollViewer here: see GeneralPage -->
+    <StackPanel Margin="16 4 40 32">
+        <TextBlock Text="{lc:Localization Nav_Notifications}" Style="{StaticResource PageTitle}" />
+        <TextBlock Text="{lc:Localization Notifications_Description}" Style="{StaticResource PageDescription}" />
+
+        <ui:CardControl Margin="0 20 0 4" Icon="{ui:SymbolIcon Alert24}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_Osd}" />
+                    <TextBlock Text="{lc:Localization Notifications_OsdHint}" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl.Header>
+            <ui:ToggleSwitch IsChecked="{Binding NotificationsEnabled}"
+                             AutomationProperties.Name="{lc:Localization Notifications_Osd}"
+                             AutomationProperties.AutomationId="OsdToggle" />
+        </ui:CardControl>
+        <ui:CardControl Icon="{ui:SymbolIcon Speaker224}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_ReactAllTitle}" />
+                    <TextBlock Text="{lc:Localization Notifications_ReactAllHint}" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl.Header>
+            <ui:ToggleSwitch IsChecked="{Binding ReactToAllVolumeChanges}"
+                             AutomationProperties.Name="{lc:Localization Notifications_ReactAllTitle}"
+                             AutomationProperties.AutomationId="ReactAllToggle" />
+        </ui:CardControl>
+
+        <TextBlock Text="{lc:Localization Notifications_PositionHeader}" Style="{StaticResource SectionHeader}" />
+        <!-- only with several screens, as before -->
+        <ui:CardControl Icon="{ui:SymbolIcon Desktop24}"
+                        Visibility="{Binding AllScreens.Count, Converter={StaticResource SeveralToVisibility}}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization MixerPage_Screen}" />
+                    <TextBlock Text="{lc:Localization Notifications_ScreenHint}" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl.Header>
+            <ComboBox Width="260"
+                      ItemsSource="{Binding AllScreens}"
+                      SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
+                      IsSynchronizedWithCurrentItem="True"
+                      AutomationProperties.Name="{lc:Localization MixerPage_Screen}"
+                      AutomationProperties.AutomationId="OsdScreenBox">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource ScreenName}">
+                                    <Binding />
+                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </ui:CardControl>
+        <ui:CardControl Icon="{ui:SymbolIcon ResizeSmall24}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_Corner}" />
+                    <TextBlock Style="{StaticResource Caption}">
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource LocalizationKey}">
+                                <Binding Path="SelectedPositionKey" />
+                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </ui:CardControl.Header>
+            <!-- a screen with its places; no GroupName: see the page rules (the buttons are grouped by their panel) -->
+            <Border Width="176"
+                    Height="76"
+                    Padding="6"
+                    BorderThickness="2"
+                    CornerRadius="6"
+                    BorderBrush="{DynamicResource TextFillColorTertiaryBrush}"
+                    AutomationProperties.Name="{lc:Localization Notifications_Corner}"
+                    AutomationProperties.AutomationId="CornerPicker">
+                <UniformGrid Rows="2" Columns="3">
+                    <RadioButton Style="{StaticResource CornerButton}" AutomationProperties.Name="{lc:Localization Position_TopLeft}"
+                                 IsChecked="{Binding SelectedPosition, Converter={StaticResource EqualsParameter}, ConverterParameter=TopLeft}" />
+                    <RadioButton Style="{StaticResource CornerButton}" AutomationProperties.Name="{lc:Localization Position_TopCenter}"
+                                 IsChecked="{Binding SelectedPosition, Converter={StaticResource EqualsParameter}, ConverterParameter=TopCenter}" />
+                    <RadioButton Style="{StaticResource CornerButton}" AutomationProperties.Name="{lc:Localization Position_TopRight}"
+                                 IsChecked="{Binding SelectedPosition, Converter={StaticResource EqualsParameter}, ConverterParameter=TopRight}" />
+                    <RadioButton Style="{StaticResource CornerButton}" AutomationProperties.Name="{lc:Localization Position_BottomLeft}"
+                                 IsChecked="{Binding SelectedPosition, Converter={StaticResource EqualsParameter}, ConverterParameter=BottomLeft}" />
+                    <RadioButton Style="{StaticResource CornerButton}" AutomationProperties.Name="{lc:Localization Position_BottomCenter}"
+                                 IsChecked="{Binding SelectedPosition, Converter={StaticResource EqualsParameter}, ConverterParameter=BottomCenter}" />
+                    <RadioButton Style="{StaticResource CornerButton}" AutomationProperties.Name="{lc:Localization Position_BottomRight}"
+                                 IsChecked="{Binding SelectedPosition, Converter={StaticResource EqualsParameter}, ConverterParameter=BottomRight}" />
+                </UniformGrid>
+            </Border>
+        </ui:CardControl>
+        <ui:CardControl Icon="{ui:SymbolIcon ArrowAutofitWidth24}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_Distance}" />
+                    <TextBlock Text="{lc:Localization Notifications_DistanceHint}" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl.Header>
+            <StackPanel Orientation="Horizontal">
+                <!-- as before, the distance from the side doesn't apply to a centered OSD -->
+                <TextBlock Text="{lc:Localization Notifications_HorizontalShort}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0 0 8 0" />
+                <ui:NumberBox Style="{StaticResource DistanceBox}"
+                              Minimum="{Binding MinIndent, Mode=OneTime}"
+                              Maximum="{Binding MaxIndent, Mode=OneTime}"
+                              Value="{Binding HorizontalIndent}"
+                              IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}"
+                              AutomationProperties.Name="{lc:Localization Notifications_HorizontalShort}"
+                              AutomationProperties.AutomationId="HorizontalDistanceBox" />
+                <TextBlock Text="{lc:Localization Notifications_VerticalShort}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="16 0 8 0" />
+                <ui:NumberBox Style="{StaticResource DistanceBox}"
+                              Minimum="{Binding MinIndent, Mode=OneTime}"
+                              Maximum="{Binding MaxIndent, Mode=OneTime}"
+                              Value="{Binding VerticalIndent}"
+                              AutomationProperties.Name="{lc:Localization Notifications_VerticalShort}"
+                              AutomationProperties.AutomationId="VerticalDistanceBox" />
+            </StackPanel>
+        </ui:CardControl>
+        <ui:CardControl Icon="{ui:SymbolIcon Clock24}" Header="{lc:Localization Notifications_DisplayTime}">
+            <ComboBox ItemsSource="{Binding DisplayTimes}"
+                      SelectedItem="{Binding DisplayTime}"
+                      AutomationProperties.Name="{lc:Localization Notifications_DisplayTime}"
+                      AutomationProperties.AutomationId="DisplayTimeBox">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="Notifications_Seconds">
+                                                <Binding />
+                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding}" Value="1">
+                                            <Setter Property="Text" Value="{lc:Localization Notifications_OneSecond}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </ui:CardControl>
+
+        <TextBlock Text="{lc:Localization Notifications_PreviewHeader}" Style="{StaticResource SectionHeader}" />
+        <!-- the sample pill (usable like the real one, but not a real app) and the real OSD with it -->
+        <ui:CardControl Padding="4 0 16 0">
+            <ui:CardControl.Header>
+                <viewControls:OsdPill DataContext="{Binding PreviewSession}" HorizontalAlignment="Left" />
+            </ui:CardControl.Header>
+            <ui:Button Content="{lc:Localization Notifications_ShowOnScreen}"
+                       Command="{Binding ShowPreviewCommand}"
+                       AutomationProperties.AutomationId="ShowPreviewButton" />
+        </ui:CardControl>
+    </StackPanel>
+</Page>

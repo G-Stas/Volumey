@@ -13,6 +13,14 @@ public interface INotificationService : IAudioProcessStateMediator
 
 	void CloseNotification(IManagedMasterAudioSession session);
 
+	/// <summary>
+	/// A sample app for the preview (not a real session: changing it changes nothing)
+	/// </summary>
+	IManagedMasterAudioSession Example { get; }
+
+	/// <summary>
+	/// Shows the OSD of <see cref="Example"/> for the display time
+	/// </summary>
 	void ShowNotificationExample();
 
 	void CloseNotificationExample();

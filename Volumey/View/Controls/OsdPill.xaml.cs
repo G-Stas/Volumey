@@ -3,7 +3,7 @@
 namespace Volumey.View.Controls;
 
 /// <summary>
-/// One app's or device's volume in the OSD (<see cref="OsdWindow"/>); its data context is the session
+/// One app's or device's volume in the OSD (<see cref="OsdWindow"/>) and the Notifications page's preview; its data context is the session
 /// </summary>
 public partial class OsdPill
 {
@@ -12,12 +12,13 @@ public partial class OsdPill
 	/// </summary>
 	public const double ShadowMargin = 12;
 
-	public IManagedMasterAudioSession Session { get; }
-
-	public OsdPill(IManagedMasterAudioSession session)
+	public OsdPill()
 	{
 		InitializeComponent();
-		Session = session;
+	}
+
+	public OsdPill(IManagedMasterAudioSession session) : this()
+	{
 		DataContext = session;
 	}
 }
