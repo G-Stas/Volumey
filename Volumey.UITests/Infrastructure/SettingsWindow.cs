@@ -71,7 +71,15 @@ internal sealed class SettingsWindow
 	/// </summary>
 	public void LeaveBox()
 	{
-		Find("NavGeneral").Focus();
+		try
+		{
+			Find("NavGeneral").Focus();
+		}
+		catch(InvalidOperationException)
+		{
+			//a dialog is open (the navigation can't take the focus then): move on to its next control
+			Keyboard.Type(VirtualKeyShort.TAB);
+		}
 		Wait.UntilInputIsProcessed();
 	}
 

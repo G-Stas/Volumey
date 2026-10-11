@@ -12,8 +12,13 @@ internal sealed class TestAudioApp : IDisposable
 
 	public Process Process { get; }
 
-	/// <summary>The process name Volumey saves app hotkeys under</summary>
+	/// <summary>The exe's name (TestAudioApp copies the app under it)</summary>
 	public string Name { get; }
+
+	/// <summary>
+	/// The app's name in Volumey (mixer rows, the Add app list, saved app hotkeys): the exe's file description, else its process name
+	/// </summary>
+	public string DisplayName => FileVersionInfo.GetVersionInfo(Process.MainModule!.FileName).FileDescription is { Length: > 0 } d ? d : Name;
 
 	private TestAudioApp(string name)
 	{
