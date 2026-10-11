@@ -48,8 +48,6 @@
                                        TargetPageType="{x:Type pages:AboutPage}" />
             </ui:NavigationView.MenuItems>
             <ui:NavigationView.FooterMenuItems>
-                <ui:NavigationViewItem AutomationProperties.AutomationId="NavSourceCode" Content="{lc:Localization Nav_SourceCode}" Icon="{ui:SymbolIcon Code24}"
-                                       Command="{Binding About.OpenSourceCodeCommand}" />
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavSupport" Content="{lc:Localization Nav_Support}" Icon="{ui:SymbolIcon Heart24}"
                                        Visibility="{Binding About.SupportLinks.Count, Converter={StaticResource NoneToCollapsed}}"
                                        Click="OnSupportClick" />
