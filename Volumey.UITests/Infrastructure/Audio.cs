@@ -29,6 +29,8 @@ internal static class Audio
 
 	public static bool DeviceMuted => WithDefaultDevice(d => d.AudioEndpointVolume.Mute);
 
+	public static void SetDeviceVolume(int volume) => WithDefaultDevice(d => d.AudioEndpointVolume.MasterVolumeLevelScalar = volume / 100f);
+
 	/// <summary>
 	/// Remembers the default device's volume and mute and puts them back when disposed (the tests change them, owner's permission)
 	/// </summary>

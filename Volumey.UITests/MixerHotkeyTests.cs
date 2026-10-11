@@ -1,4 +1,3 @@
-using FlaUI.Core.Tools;
 using Volumey.UITests.Infrastructure;
 
 namespace Volumey.UITests;
@@ -31,9 +30,9 @@ public class MixerHotkeyTests : UiTest
 		//each press flips the mixer (whether it's shown now depends on the focus: a mixer the test showed never had it, so it didn't hide)
 		bool shown = App.MixerIsVisible;
 		combo.Press();
-		Assert.IsTrue(Retry.WhileFalse(() => App.MixerIsVisible == !shown, TimeSpan.FromSeconds(3)).Result, "the first press didn't flip the mixer");
+		Assert.IsTrue(Eventually(() => App.MixerIsVisible == !shown), "the first press didn't flip the mixer");
 		combo.Press();
-		Assert.IsTrue(Retry.WhileFalse(() => App.MixerIsVisible == shown, TimeSpan.FromSeconds(3)).Result, "the second press didn't flip it back");
+		Assert.IsTrue(Eventually(() => App.MixerIsVisible == shown), "the second press didn't flip it back");
 
 		Settings.SetSwitch("OpenHotkeyToggle", false);
 		App.WaitForSettings(s => s["Hotkeys"]?["OpenMixer"] == null, "the open-mixer hotkey removed");

@@ -56,6 +56,13 @@ public abstract class UiTest
 		App?.Dispose();
 	}
 
+	/// <summary>
+	/// Whether <paramref name="condition"/> becomes true within <paramref name="timeoutMs"/> (FlaUI's Retry.WhileTrue/WhileFalse report
+	/// success, not the last value, which is easy to misread)
+	/// </summary>
+	internal static bool Eventually(Func<bool> condition, int timeoutMs = 3000)
+		=> FlaUI.Core.Tools.Retry.WhileFalse(condition, TimeSpan.FromMilliseconds(timeoutMs)).Result;
+
 	/// <summary>A hotkey as settings.json stores it</summary>
 	internal static bool IsHotkey(JsonNode? node, Combo combo)
 		=> node?["Key"]?.GetValue<string>() == combo.JsonKey && node?["ModifierKeys"]?.GetValue<string>() == combo.JsonModifiers;
