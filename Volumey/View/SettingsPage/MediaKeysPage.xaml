@@ -59,7 +59,6 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center">
                                 <controls:HotKeyBox HotKey="{Binding Hotkey}"
-                                                    PlaceholderText="{lc:Localization HotkeyBox_Placeholder}"
                                                     AutomationProperties.Name="{Binding Name}" />
                                 <TextBlock Text="{Binding Error}" Style="{StaticResource SettingError}" MaxWidth="180" HorizontalAlignment="Left" Margin="0 4 0 0" />
                             </StackPanel>

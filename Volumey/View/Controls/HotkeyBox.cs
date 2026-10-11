@@ -216,7 +216,7 @@ public class HotKeyBox : TextBox
 		= DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(HotKeyBox), new PropertyMetadata(null));
 
 	/// <summary>
-	/// Shown in the empty box (the template shows it while there are no <see cref="KeyNames"/>)
+	/// Shown in the empty box (the settings style sets it for every box)
 	/// </summary>
 	public string PlaceholderText
 	{
