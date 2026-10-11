@@ -83,7 +83,6 @@
                     <ui:CardControl.Header>
                         <StackPanel>
                             <TextBlock Text="{lc:Localization General_StartMenu}" />
-                            <TextBlock Text="{lc:Localization General_StartMenuHint}" Style="{StaticResource Caption}" />
                         </StackPanel>
                     </ui:CardControl.Header>
                     <ui:ToggleSwitch IsChecked="{Binding AddToStartMenu}"
@@ -98,7 +97,6 @@
                 <ui:CardExpander.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization General_HotkeyMode}" />
-                        <TextBlock Text="{lc:Localization General_HotkeyModeHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardExpander.Header>
                 <!-- no GroupName: WPF then groups the buttons by their panel. With a GroupName, the old and the new page instance

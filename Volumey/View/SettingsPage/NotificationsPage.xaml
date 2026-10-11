@@ -99,7 +99,6 @@
             <ui:CardControl.Header>
                 <StackPanel>
                     <TextBlock Text="{lc:Localization MixerPage_Screen}" />
-                    <TextBlock Text="{lc:Localization Notifications_ScreenHint}" Style="{StaticResource Caption}" />
                 </StackPanel>
             </ui:CardControl.Header>
             <ComboBox Width="260"

@@ -212,7 +212,6 @@
                     <ui:CardControl.Header>
                         <StackPanel>
                             <TextBlock Text="{lc:Localization Devices_Hotkey}" />
-                            <TextBlock Text="{lc:Localization Devices_HotkeyHint}" Style="{StaticResource Caption}" />
                             <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource SettingError}" />
                         </StackPanel>
                     </ui:CardControl.Header>
@@ -233,7 +232,6 @@
                 <StackPanel Style="{StaticResource WhenConnected}" DataContext="{Binding SelectedDevice.Settings}">
                     <StackPanel Margin="0 20 0 8">
                         <TextBlock Text="{lc:Localization Devices_Features}" FontWeight="SemiBold" />
-                        <TextBlock Text="{lc:Localization Devices_FeaturesHint}" Style="{StaticResource Caption}" />
                         <TextBlock Text="{Binding Error}" Style="{StaticResource SettingError}" />
                     </StackPanel>
 
@@ -333,7 +331,6 @@
                         <ui:CardExpander.Header>
                             <StackPanel>
                                 <TextBlock Text="{lc:Localization Devices_Balance}" />
-                                <TextBlock Text="{lc:Localization Devices_BalanceHint}" Style="{StaticResource Caption}" />
                             </StackPanel>
                         </ui:CardExpander.Header>
                         <Grid Margin="40 0 0 0">

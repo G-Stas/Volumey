@@ -73,7 +73,6 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization MixerPage_Screen}" />
-                        <TextBlock Text="{lc:Localization MixerPage_ScreenHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ComboBox Width="260"
@@ -102,7 +101,6 @@
                 <ui:CardControl.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization MixerPage_DeviceBottom}" />
-                        <TextBlock Text="{lc:Localization MixerPage_DeviceBottomHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=DeviceViewAtTheBottom}"

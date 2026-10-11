@@ -405,16 +405,10 @@
   <data name="General_StartMenu" xml:space="preserve">
     <value />
   </data>
-  <data name="General_StartMenuHint" xml:space="preserve">
-    <value />
-  </data>
   <data name="General_Hotkeys" xml:space="preserve">
     <value />
   </data>
   <data name="General_HotkeyMode" xml:space="preserve">
-    <value />
-  </data>
-  <data name="General_HotkeyModeHint" xml:space="preserve">
     <value />
   </data>
   <data name="General_KeepKeys" xml:space="preserve">
@@ -474,9 +468,6 @@
   <data name="MixerPage_Screen" xml:space="preserve">
     <value />
   </data>
-  <data name="MixerPage_ScreenHint" xml:space="preserve">
-    <value />
-  </data>
   <data name="MixerPage_MainScreen" xml:space="preserve">
     <value />
   </data>
@@ -484,9 +475,6 @@
     <value />
   </data>
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
-    <value />
-  </data>
-  <data name="MixerPage_DeviceBottomHint" xml:space="preserve">
     <value />
   </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
@@ -514,9 +502,6 @@
     <value />
   </data>
   <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
-    <value />
-  </data>
-  <data name="AppHotkeys_ForegroundHint" xml:space="preserve">
     <value />
   </data>
   <data name="AppHotkeys_VolumeUp" xml:space="preserve">
@@ -618,13 +603,7 @@
   <data name="Devices_Hotkey" xml:space="preserve">
     <value />
   </data>
-  <data name="Devices_HotkeyHint" xml:space="preserve">
-    <value />
-  </data>
   <data name="Devices_Features" xml:space="preserve">
-    <value />
-  </data>
-  <data name="Devices_FeaturesHint" xml:space="preserve">
     <value />
   </data>
   <data name="Devices_Format" xml:space="preserve">
@@ -655,9 +634,6 @@
     <value />
   </data>
   <data name="Devices_Balance" xml:space="preserve">
-    <value />
-  </data>
-  <data name="Devices_BalanceHint" xml:space="preserve">
     <value />
   </data>
   <data name="Devices_Left" xml:space="preserve">
@@ -706,9 +682,6 @@
     <value />
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
-    <value />
-  </data>
-  <data name="Notifications_ScreenHint" xml:space="preserve">
     <value />
   </data>
   <data name="Notifications_Corner" xml:space="preserve">

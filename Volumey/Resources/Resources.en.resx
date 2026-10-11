@@ -367,7 +367,7 @@
     <value>This page isn&apos;t redesigned yet.</value>
   </data>
   <data name="General_Description" xml:space="preserve">
-    <value>Language, look, startup and how hotkeys behave.</value>
+    <value>Language, theme, startup and hotkeys.</value>
   </data>
   <data name="General_Appearance" xml:space="preserve">
     <value>Appearance</value>
@@ -400,13 +400,10 @@
     <value>Start with Windows</value>
   </data>
   <data name="General_StartWithWindowsHint" xml:space="preserve">
-    <value>Volumey starts in the tray when you sign in</value>
+    <value>Starts in the tray when you sign in</value>
   </data>
   <data name="General_StartMenu" xml:space="preserve">
     <value>Show in the Start menu</value>
-  </data>
-  <data name="General_StartMenuHint" xml:space="preserve">
-    <value>Only in the version from GitHub; the Store version is always there</value>
   </data>
   <data name="General_Hotkeys" xml:space="preserve">
     <value>Hotkeys</value>
@@ -414,26 +411,23 @@
   <data name="General_HotkeyMode" xml:space="preserve">
     <value>When you press a Volumey hotkey</value>
   </data>
-  <data name="General_HotkeyModeHint" xml:space="preserve">
-    <value>Applies to every hotkey</value>
-  </data>
   <data name="General_KeepKeys" xml:space="preserve">
     <value>Keep the keys to Volumey</value>
   </data>
   <data name="General_KeepKeysHint" xml:space="preserve">
-    <value>Other apps don&apos;t get the key combination. Works in every window, also while an app running as administrator is in focus.</value>
+    <value>Other apps don&apos;t get these keys. Works even when an admin app is in focus.</value>
   </data>
   <data name="General_ShareKeys" xml:space="preserve">
     <value>Let other apps get the keys too</value>
   </data>
   <data name="General_ShareKeysHint" xml:space="preserve">
-    <value>For a game or app that uses the same combination. Hotkeys don&apos;t work while an app running as administrator is in focus.</value>
+    <value>For games that use the same keys. Doesn&apos;t work while an admin app is in focus.</value>
   </data>
   <data name="General_VolumeStep" xml:space="preserve">
     <value>Volume step</value>
   </data>
   <data name="General_VolumeStepHint" xml:space="preserve">
-    <value>How much one press of a volume hotkey changes the volume</value>
+    <value>Per hotkey press</value>
   </data>
   <data name="Toggle_On" xml:space="preserve">
     <value>On</value>
@@ -451,7 +445,7 @@
     <value>Open mixer</value>
   </data>
   <data name="MixerPage_Description" xml:space="preserve">
-    <value>How the mixer opens, what it shows, and rules for app volumes.</value>
+    <value>How the mixer opens and what it shows.</value>
   </data>
   <data name="MixerPage_Opening" xml:space="preserve">
     <value>Opening the mixer</value>
@@ -460,22 +454,19 @@
     <value>Hotkey to open the mixer</value>
   </data>
   <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
-    <value>Opens it from anywhere; press again to close it</value>
+    <value>Press again to close it</value>
   </data>
   <data name="MixerPage_Popup" xml:space="preserve">
     <value>Pop-up mode</value>
   </data>
   <data name="MixerPage_PopupHint" xml:space="preserve">
-    <value>Opens above the tray like a Windows flyout and hides when you click elsewhere. Off: a normal window you can move and resize.</value>
+    <value>Opens above the tray and hides when you click away. Off: a normal window.</value>
   </data>
   <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
     <value>Always on top</value>
   </data>
   <data name="MixerPage_Screen" xml:space="preserve">
     <value>Screen</value>
-  </data>
-  <data name="MixerPage_ScreenHint" xml:space="preserve">
-    <value>The screen the mixer opens on; remembered by name, so it survives a reboot</value>
   </data>
   <data name="MixerPage_MainScreen" xml:space="preserve">
     <value>(main)</value>
@@ -486,9 +477,6 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Show the device at the bottom</value>
   </data>
-  <data name="MixerPage_DeviceBottomHint" xml:space="preserve">
-    <value>Puts the device picker and its slider below the apps</value>
-  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App volumes</value>
   </data>
@@ -496,28 +484,25 @@
     <value>Lower apps that start at full volume</value>
   </data>
   <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
-    <value>An app that starts at 100% is set to this volume instead</value>
+    <value>They start at this volume instead</value>
   </data>
   <data name="MixerPage_Sync" xml:space="preserve">
     <value>Keep app volumes in sync with the device</value>
   </data>
   <data name="MixerPage_SyncHint" xml:space="preserve">
-    <value>Moving the device volume sets every app to the same value, new apps included</value>
+    <value>Changing the device volume sets every app to it</value>
   </data>
   <data name="Error_Missing" xml:space="preserve">
     <value>Set a hotkey</value>
   </data>
   <data name="AppHotkeys_Description" xml:space="preserve">
-    <value>Change one app's volume from anywhere, even while it's in the background.</value>
+    <value>Change an app&apos;s volume from anywhere.</value>
   </data>
   <data name="AppHotkeys_Foreground" xml:space="preserve">
     <value>Foreground app</value>
   </data>
   <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
     <value>Control the app in focus</value>
-  </data>
-  <data name="AppHotkeys_ForegroundHint" xml:space="preserve">
-    <value>Hotkeys change the volume of whichever app is in front</value>
   </data>
   <data name="AppHotkeys_VolumeUp" xml:space="preserve">
     <value>Volume up</value>
@@ -532,7 +517,7 @@
     <value>Add app</value>
   </data>
   <data name="AppHotkeys_NoApps" xml:space="preserve">
-    <value>No apps yet. Add one to change its volume with hotkeys.</value>
+    <value>No apps yet.</value>
   </data>
   <data name="AppHotkeys_Remove" xml:space="preserve">
     <value>Remove</value>
@@ -553,10 +538,10 @@
     <value>App</value>
   </data>
   <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Apps that use the default device right now</value>
+    <value>Apps playing on the default device</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
-    <value>No other app uses the default device right now. Start the app, then try again.</value>
+    <value>No other apps are playing on the default device.</value>
   </data>
   <data name="AppHotkeys_Add" xml:space="preserve">
     <value>Add</value>
@@ -565,10 +550,10 @@
     <value>Cancel</value>
   </data>
   <data name="AppHotkeys_BlockedInfo" xml:space="preserve">
-    <value>Hotkeys are blocked for other apps. Turn that off in General if a game needs the same keys.</value>
+    <value>Other apps don&apos;t get these keys. You can change this in General.</value>
   </data>
   <data name="AppHotkeys_SharedInfo" xml:space="preserve">
-    <value>Other apps get the keys too, and hotkeys don't work while an app running as administrator is in focus. You can change that in General.</value>
+    <value>Other apps get these keys too. Hotkeys don&apos;t work while an admin app is in focus.</value>
   </data>
   <data name="AppHotkeys_OpenGeneral" xml:space="preserve">
     <value>Open General</value>
@@ -580,13 +565,13 @@
     <value>{0}: {1}</value>
   </data>
   <data name="Devices_Description" xml:space="preserve">
-    <value>Hotkeys for the default device, and each device's own settings.</value>
+    <value>Hotkeys and settings for your devices.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
     <value>Volume hotkeys</value>
   </data>
   <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>They control whichever device is the default, also after you switch it</value>
+    <value>For the current default device</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Volume up and down</value>
@@ -598,7 +583,7 @@
     <value>Mute instead of turning down to 0</value>
   </data>
   <data name="Devices_KeepBalanceHint" xml:space="preserve">
-    <value>Keeps the left/right balance, which Windows resets at 0</value>
+    <value>Keeps the balance, which Windows resets at 0</value>
   </data>
   <data name="Devices_YourDevices" xml:space="preserve">
     <value>Your devices</value>
@@ -618,20 +603,14 @@
   <data name="Devices_Hotkey" xml:space="preserve">
     <value>Hotkey to make this the default device</value>
   </data>
-  <data name="Devices_HotkeyHint" xml:space="preserve">
-    <value>Still works after the device is renamed</value>
-  </data>
   <data name="Devices_Features" xml:space="preserve">
     <value>Audio features</value>
-  </data>
-  <data name="Devices_FeaturesHint" xml:space="preserve">
-    <value>Read from Windows</value>
   </data>
   <data name="Devices_Format" xml:space="preserve">
     <value>Format</value>
   </data>
   <data name="Devices_FormatHint" xml:space="preserve">
-    <value>What the audio engine runs at</value>
+    <value>Bit depth and sample rate</value>
   </data>
   <data name="Error_FormatRefused" xml:space="preserve">
     <value>Couldn't change the format</value>
@@ -646,19 +625,16 @@
     <value>Let apps take exclusive control</value>
   </data>
   <data name="Devices_AllowExclusiveHint" xml:space="preserve">
-    <value>An app can use the device alone, without the Windows mixer</value>
+    <value>An app can use the device alone</value>
   </data>
   <data name="Devices_ExclusivePriority" xml:space="preserve">
     <value>Give those apps priority</value>
   </data>
   <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
-    <value>An app in exclusive mode can take the device while others play</value>
+    <value>They can take the device while others play</value>
   </data>
   <data name="Devices_Balance" xml:space="preserve">
     <value>Balance</value>
-  </data>
-  <data name="Devices_BalanceHint" xml:space="preserve">
-    <value>The level of each side</value>
   </data>
   <data name="Devices_Left" xml:space="preserve">
     <value>Left</value>
@@ -667,7 +643,7 @@
     <value>Right</value>
   </data>
   <data name="Media_Description" xml:space="preserve">
-    <value>Play, pause and skip tracks with your own hotkeys, for keyboards without media keys.</value>
+    <value>Your own hotkeys for play, pause and skip.</value>
   </data>
   <data name="Media_Hotkeys" xml:space="preserve">
     <value>Hotkeys</value>
@@ -691,25 +667,22 @@
     <value>Press a key combination</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
-    <value>A small on-screen display when a volume changes.</value>
+    <value>Show volume changes on screen.</value>
   </data>
   <data name="Notifications_Osd" xml:space="preserve">
     <value>On-screen display</value>
   </data>
   <data name="Notifications_OsdHint" xml:space="preserve">
-    <value>Show volume changes made with Volumey hotkeys</value>
+    <value>For changes made with Volumey hotkeys</value>
   </data>
   <data name="Notifications_ReactAllTitle" xml:space="preserve">
     <value>React to all volume changes</value>
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
-    <value>Also show changes made by other apps and the Windows mixer</value>
+    <value>Also changes from other apps and Windows</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Position</value>
-  </data>
-  <data name="Notifications_ScreenHint" xml:space="preserve">
-    <value>Remembered by name, so it survives a reboot</value>
   </data>
   <data name="Notifications_Corner" xml:space="preserve">
     <value>Corner</value>

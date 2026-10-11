@@ -49,7 +49,6 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{lc:Localization AppHotkeys_ForegroundTitle}" />
-                            <TextBlock Text="{lc:Localization AppHotkeys_ForegroundHint}" Style="{StaticResource Caption}" />
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1"
                                          Margin="16 0"
