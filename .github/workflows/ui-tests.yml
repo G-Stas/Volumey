@@ -1,0 +1,33 @@
+name: UI tests
+
+# Started by hand (Actions -> UI tests -> Run workflow). The runner has a desktop but no audio device,
+# so the tests that need one (category Audio) are skipped; run everything locally with scripts/run-ui-tests.ps1.
+on:
+  workflow_dispatch:
+
+jobs:
+  ui-tests:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      # the tests keep failed tests' data folders under %TEMP%\Volumey-uitests; the artifact step uploads them from here
+      TEMP: ${{ runner.temp }}
+      TMP: ${{ runner.temp }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: UI tests
+        shell: pwsh
+        run: ./scripts/run-ui-tests.ps1 -NoAudio
+
+      - name: Data folders of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-data
+          path: ${{ runner.temp }}/Volumey-uitests
+          if-no-files-found: ignore
