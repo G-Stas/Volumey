@@ -12,10 +12,6 @@ jobs:
   ui-tests:
     runs-on: windows-latest
     timeout-minutes: 20
-    env:
-      # the tests keep failed tests' data folders under %TEMP%\Volumey-uitests; the artifact step uploads them from here
-      TEMP: ${{ runner.temp }}
-      TMP: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v7
 
@@ -25,6 +21,11 @@ jobs:
 
       - name: UI tests
         shell: pwsh
+        env:
+          # failed tests keep their data folders under %TEMP%\Volumey-uitests; the artifact step uploads them from here.
+          # (runner.temp is only available in steps, not in the job's env)
+          TEMP: ${{ runner.temp }}
+          TMP: ${{ runner.temp }}
         run: ./scripts/run-ui-tests.ps1 -NoAudio
 
       - name: Data folders of failed tests
