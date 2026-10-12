@@ -37,6 +37,26 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		=> new AppBehaviorViewModel(hotkeys ?? Hotkeys, screens.Object, shell.Object, systemIntegration.Object);
 
 	[TestMethod]
+	public void AChangedDistanceShowsTheSampleOsdWhereItLands()
+	{
+		Settings.Notifications.HorizontalIndent = 30;
+		Settings.Notifications.VerticalIndent = 40;
+		var vm = CreateNotifications();
+		//loading the saved distances shows nothing
+		Notifications.Verify(m => m.ShowNotificationExample(), Times.Never);
+
+		vm.HorizontalIndent = 120;
+		Notifications.Verify(m => m.SetIndents(120, 40));
+		Notifications.Verify(m => m.ShowNotificationExample(), Times.Once);
+
+		vm.VerticalIndent = 60;
+		Notifications.Verify(m => m.SetIndents(120, 60));
+		Notifications.Verify(m => m.ShowNotificationExample(), Times.Exactly(2));
+		Assert.AreEqual(120, Settings.Notifications.HorizontalIndent);
+		Assert.AreEqual(60, Settings.Notifications.VerticalIndent);
+	}
+
+	[TestMethod]
 	public void SavedNotificationSettingsAreAppliedOnStart()
 	{
 		Settings.Notifications.Position = NotificationPosition.BottomCenter;

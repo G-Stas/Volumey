@@ -50,6 +50,16 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style x:Key="DistanceSlider" TargetType="controls:VolumeSlider" BasedOn="{StaticResource {x:Type controls:VolumeSlider}}">
+                <Setter Property="Margin" Value="12 0 12 0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Minimum" Value="{Binding MinIndent, Mode=OneTime}" />
+                <Setter Property="Maximum" Value="{Binding MaxIndent, Mode=OneTime}" />
+                <Setter Property="SmallChange" Value="1" />
+                <Setter Property="LargeChange" Value="10" />
+                <Setter Property="TickFrequency" Value="1" />
+                <Setter Property="IsSnapToTickEnabled" Value="True" />
+            </Style>
             <Style x:Key="DistanceBox" TargetType="ui:NumberBox" BasedOn="{StaticResource {x:Type ui:NumberBox}}">
                 <Setter Property="Width" Value="80" />
                 <Setter Property="SmallChange" Value="1" />
@@ -160,36 +170,52 @@
                 </UniformGrid>
             </Border>
         </ui:CardControl>
+        <!-- the title on top and one row per direction (slider + box) under it, owner's choice; the whole layout is in the header,
+             which takes the card's width. Changing a distance shows the sample OSD where it lands (NotificationViewModel) -->
         <ui:CardControl Icon="{ui:SymbolIcon ArrowAutofitWidth24}">
             <ui:CardControl.Header>
                 <StackPanel>
                     <TextBlock Text="{lc:Localization Notifications_Distance}" />
                     <TextBlock Text="{lc:Localization Notifications_DistanceHint}" Style="{StaticResource Caption}" />
+                    <Grid Margin="0 12 0 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <!-- as before, the distance from the side doesn't apply to a centered OSD -->
+                        <TextBlock Grid.Row="0" Text="{lc:Localization Notifications_HorizontalShort}" VerticalAlignment="Center"
+                                   IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}" />
+                        <controls:VolumeSlider Grid.Row="0" Grid.Column="1" Style="{StaticResource DistanceSlider}"
+                                               Value="{Binding HorizontalIndent}"
+                                               IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}"
+                                               AutomationProperties.Name="{lc:Localization Notifications_HorizontalShort}"
+                                               AutomationProperties.AutomationId="HorizontalDistanceSlider" />
+                        <ui:NumberBox Grid.Row="0" Grid.Column="2" Style="{StaticResource DistanceBox}"
+                                      Minimum="{Binding MinIndent, Mode=OneTime}"
+                                      Maximum="{Binding MaxIndent, Mode=OneTime}"
+                                      Value="{Binding HorizontalIndent}"
+                                      IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}"
+                                      AutomationProperties.Name="{lc:Localization Notifications_HorizontalShort}"
+                                      AutomationProperties.AutomationId="HorizontalDistanceBox" />
+                        <TextBlock Grid.Row="1" Text="{lc:Localization Notifications_VerticalShort}" VerticalAlignment="Center" />
+                        <controls:VolumeSlider Grid.Row="1" Grid.Column="1" Style="{StaticResource DistanceSlider}"
+                                               Value="{Binding VerticalIndent}"
+                                               AutomationProperties.Name="{lc:Localization Notifications_VerticalShort}"
+                                               AutomationProperties.AutomationId="VerticalDistanceSlider" />
+                        <ui:NumberBox Grid.Row="1" Grid.Column="2" Margin="0 8 0 0" Style="{StaticResource DistanceBox}"
+                                      Minimum="{Binding MinIndent, Mode=OneTime}"
+                                      Maximum="{Binding MaxIndent, Mode=OneTime}"
+                                      Value="{Binding VerticalIndent}"
+                                      AutomationProperties.Name="{lc:Localization Notifications_VerticalShort}"
+                                      AutomationProperties.AutomationId="VerticalDistanceBox" />
+                    </Grid>
                 </StackPanel>
             </ui:CardControl.Header>
-            <!-- each label above its box: side by side, the labels took the title's room in longer languages (owner) -->
-            <StackPanel Orientation="Horizontal">
-                <!-- as before, the distance from the side doesn't apply to a centered OSD -->
-                <StackPanel>
-                    <TextBlock Text="{lc:Localization Notifications_HorizontalShort}" Style="{StaticResource Caption}" Margin="0 0 0 4" />
-                    <ui:NumberBox Style="{StaticResource DistanceBox}"
-                                  Minimum="{Binding MinIndent, Mode=OneTime}"
-                                  Maximum="{Binding MaxIndent, Mode=OneTime}"
-                                  Value="{Binding HorizontalIndent}"
-                                  IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}"
-                                  AutomationProperties.Name="{lc:Localization Notifications_HorizontalShort}"
-                                  AutomationProperties.AutomationId="HorizontalDistanceBox" />
-                </StackPanel>
-                <StackPanel Margin="12 0 0 0">
-                    <TextBlock Text="{lc:Localization Notifications_VerticalShort}" Style="{StaticResource Caption}" Margin="0 0 0 4" />
-                    <ui:NumberBox Style="{StaticResource DistanceBox}"
-                                  Minimum="{Binding MinIndent, Mode=OneTime}"
-                                  Maximum="{Binding MaxIndent, Mode=OneTime}"
-                                  Value="{Binding VerticalIndent}"
-                                  AutomationProperties.Name="{lc:Localization Notifications_VerticalShort}"
-                                  AutomationProperties.AutomationId="VerticalDistanceBox" />
-                </StackPanel>
-            </StackPanel>
         </ui:CardControl>
         <ui:CardControl Icon="{ui:SymbolIcon Clock24}" Header="{lc:Localization Notifications_DisplayTime}">
             <ComboBox ItemsSource="{Binding DisplayTimes}"
