@@ -261,7 +261,8 @@ internal sealed class VolumeyApp : IDisposable
 	/// </summary>
 	public AutomationElement TrayIcon()
 	{
-		string prefix = Audio.DefaultDeviceName + ":";
+		//without an output device (a CI runner) the tooltip says so instead
+		string prefix = Audio.HasOutputDevice ? Audio.DefaultDeviceName + ":" : "No output device detected";
 		AutomationElement? Find(AutomationElement root)
 			=> root.FindFirstDescendant(cf => cf.ByAutomationId("NotifyItemIcon").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)))
 			   is { } first && first.Name.StartsWith(prefix)
