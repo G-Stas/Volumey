@@ -164,7 +164,8 @@ static class Startup
 			var assembly = Assembly.GetExecutingAssembly();
 			var repo = LogManager.GetRepository(assembly);
 			BasicConfigurator.Configure(repo, RemoteLogging.CreateAppender(inputKey));
-			((Hierarchy)repo).Root.Level = Level.All;
+			//info and above: info gives the context of a crash (devices, sleep and wake); debug stays local (owner, 2026-10-12)
+			((Hierarchy)repo).Root.Level = Level.Info;
 			try
 			{
 #if(STORE)
