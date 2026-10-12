@@ -45,11 +45,11 @@ public class MixerTests : UiTest
 		var expand = App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName(app)))
 		             ?? throw new AssertFailedException("No expand button for the app");
 		expand.Patterns.Toggle.Pattern.Toggle();
-		//each session is named after its process
-		var sessions = Retry.WhileFalse(() => App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(first.Name))).Length == 2,
-			TimeSpan.FromSeconds(5)).Success
-			? App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(first.Name)))
-			: throw new AssertFailedException("Expanding didn't show the two sessions");
+		//the sessions are named like the app (the exe's description): the app's slider comes first, then one per session
+		AutomationElement[] Sliders() => App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(app)));
+		if(!Eventually(() => Sliders().Length == 3, 5000))
+			throw new AssertFailedException($"Expanding didn't show the two sessions ({Sliders().Length} sliders named {app})");
+		var sessions = Sliders().Skip(1).ToArray();
 
 		SetSlider(sessions[0], 40);
 		Assert.IsTrue(Eventually(() => new[] { first.Volume, second.Volume }.Count(v => v == 40) == 1), "one session's slider didn't change only its session");
@@ -59,8 +59,7 @@ public class MixerTests : UiTest
 		Assert.IsTrue(Eventually(() => first.Volume == 70 && second.Volume == 70), $"the app's slider didn't set both sessions: {first.Volume}, {second.Volume}");
 
 		expand.Patterns.Toggle.Pattern.Toggle();
-		Assert.IsTrue(Eventually(() => App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(first.Name))).Length == 0),
-			"collapsing didn't hide the sessions");
+		Assert.IsTrue(Eventually(() => Sliders().Length == 1), "collapsing didn't hide the sessions");
 	}
 
 	[TestMethod]

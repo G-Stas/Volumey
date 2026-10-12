@@ -1,9 +1,12 @@
 name: UI tests
 
-# Started by hand (Actions -> UI tests -> Run workflow). The runner has a desktop but no audio device,
+# Started by hand (Actions -> UI tests -> Run workflow, once the workflow is on main), or by pushing to ci/ui-tests
+# (git push origin release/2.0:ci/ui-tests). The runner has a desktop but no audio device,
 # so the tests that need one (category Audio) are skipped; run everything locally with scripts/run-ui-tests.ps1.
 on:
   workflow_dispatch:
+  push:
+    branches: [ ci/ui-tests ]
 
 jobs:
   ui-tests:

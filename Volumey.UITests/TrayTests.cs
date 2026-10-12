@@ -11,6 +11,7 @@ namespace Volumey.UITests;
 
 /// <summary>
 /// The tray icon and its menu. The Output device list is only looked at: picking a device would switch the default device.
+/// They work without an output device too (the icon is found by its "no device" tooltip then).
 /// </summary>
 [TestClass]
 public class TrayTests : UiTest
