@@ -80,7 +80,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	partial void OnAlwaysOnTopChanged(bool value) => SettingsProvider.Settings.Window.AlwaysOnTop = value;
 
 	/// <summary>
-	/// The mixer opens where it was last, in both modes (the popup can then be dragged); off: next to the tray on the chosen screen
+	/// The mixer opens where it was last, in both modes; off: next to the tray on the chosen screen (dragging works either way)
 	/// </summary>
 	[ObservableProperty]
 	public partial bool RememberPosition { get; set; }

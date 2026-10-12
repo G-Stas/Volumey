@@ -569,6 +569,6 @@
     <value>Recordar la posición del mezclador</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>Se abre donde lo dejaste; arrastra la ventana emergente desde un espacio vacío. Desactivado: junto a la bandeja.</value>
+    <value>Se abre donde lo dejaste. Desactivado: junto a la bandeja.</value>
   </data>
 </root>

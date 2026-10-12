@@ -254,20 +254,18 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// The mixer is dragged by any spot that isn't a control (owner): the window mode always (its position is saved by LocationChanged),
-	/// the popup (it has no title bar) while its position is remembered.
+	/// The mixer is dragged by any spot that isn't a control, in both modes, whether its position is remembered or not (owner).
+	/// The new position is always noted (window mode: LocationChanged; popup: below) but used for the next opening only while it's remembered.
 	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reached the window there.
 	/// </summary>
 	protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 	{
 		base.OnPreviewMouseLeftButtonDown(e);
-		bool popup = vm.DisplayMinimalistic;
-		if(e.Handled || (popup && !vm.RememberPosition) || e.ButtonState != MouseButtonState.Pressed
-		   || IsInControl(e.OriginalSource as DependencyObject))
+		if(e.Handled || e.ButtonState != MouseButtonState.Pressed || IsInControl(e.OriginalSource as DependencyObject))
 			return;
 		e.Handled = true;
 		DragMove();
-		if(popup)
+		if(vm.DisplayMinimalistic)
 		{
 			vm.PopupLeft = Left;
 			vm.PopupTop = Top;

@@ -569,6 +569,6 @@
     <value>Mémoriser la position du mélangeur</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>S'ouvre là où vous l'avez laissé ; faites glisser la fenêtre contextuelle par un espace vide. Désactivé : près de la zone de notification.</value>
+    <value>S'ouvre là où vous l'avez laissé. Désactivé : près de la zone de notification.</value>
   </data>
 </root>

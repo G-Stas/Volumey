@@ -569,6 +569,6 @@
     <value>Position des Mixers merken</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>Öffnet sich dort, wo Sie ihn verlassen haben; das Pop-up lässt sich an einer freien Stelle ziehen. Aus: neben dem Infobereich.</value>
+    <value>Öffnet sich dort, wo Sie ihn verlassen haben. Aus: neben dem Infobereich.</value>
   </data>
 </root>

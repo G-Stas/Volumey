@@ -569,6 +569,6 @@
     <value>Ricorda la posizione del mixer</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>Si apre dove l'hai lasciato; trascina il popup da un punto vuoto. Disattivata: accanto all'area di notifica.</value>
+    <value>Si apre dove l'hai lasciato. Disattivata: accanto all'area di notifica.</value>
   </data>
 </root>
