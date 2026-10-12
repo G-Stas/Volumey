@@ -55,7 +55,7 @@ public class MixerPositionTests : UiTest
 	}
 
 	[TestMethod]
-	public void ADraggedPopupOpensWhereItWasDropped() => DragPopupBy("Apps");
+	public void ADraggedPopupOpensWhereItWasDropped() => DragPopupBy("Apps", remember: true);
 
 	[TestMethod]
 	public void WindowModeIsDraggedByASpotThatIsntAControl()
@@ -83,20 +83,22 @@ public class MixerPositionTests : UiTest
 	}
 
 	/// <summary>
-	/// Inside the apps list, whose ScrollViewer takes mouse presses itself (dragging didn't work there at first)
+	/// Inside the apps list, whose ScrollViewer takes mouse presses itself (dragging didn't work there at first); dragging works while
+	/// the position isn't remembered too, the popup just opens by the tray again
 	/// </summary>
 	[TestMethod]
 	[TestCategory("Audio")]
-	public void ThePopupIsDraggedByAnAppsName()
+	public void ThePopupIsDraggedByAnAppsNameAlsoWhenNotRemembered()
 	{
 		using var testApp = Later(TestAudioApp.Start());
-		DragPopupBy(testApp.DisplayName);
+		DragPopupBy(testApp.DisplayName, remember: false);
 	}
 
 	/// <param name="text">a text in the popup that isn't a control: where it's grabbed</param>
-	private void DragPopupBy(string text)
+	/// <param name="remember">"Remember the mixer's position": the popup opens where it was dropped, else where it was before</param>
+	private void DragPopupBy(string text, bool remember)
 	{
-		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = true, ["RememberPosition"] = true } });
+		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = true, ["RememberPosition"] = remember } });
 		//the app shows a normal window at its first start; a second start opens the popup
 		App.HideMixer();
 		App.ShowMixer();
@@ -114,6 +116,9 @@ public class MixerPositionTests : UiTest
 		App.HideMixer();
 		App.ShowMixer();
 		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the popup didn't open again");
-		Assert.AreEqual(dropped, MixerPosition(), "the popup didn't open where it was dropped");
+		if(remember)
+			Assert.AreEqual(dropped, MixerPosition(), "the popup didn't open where it was dropped");
+		else
+			Assert.AreEqual(before, MixerPosition(), "the popup didn't open by the tray again");
 	}
 }
