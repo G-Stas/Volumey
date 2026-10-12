@@ -362,10 +362,7 @@
     <value>デバイスのホットキーと設定。</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>音量のホットキー</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>現在の既定のデバイスが対象です</value>
+    <value>既定のデバイスの音量のホットキー</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>音量を上げる/下げる</value>

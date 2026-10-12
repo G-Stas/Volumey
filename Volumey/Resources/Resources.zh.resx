@@ -362,10 +362,7 @@
     <value>设备的快捷键和设置。</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>音量快捷键</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>适用于当前默认设备</value>
+    <value>默认设备的音量快捷键</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>增大和减小音量</value>

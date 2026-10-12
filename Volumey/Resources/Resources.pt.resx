@@ -362,10 +362,7 @@
     <value>Teclas de atalho e configurações dos seus dispositivos.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Teclas de atalho de volume</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Para o dispositivo padrão atual</value>
+    <value>Teclas de atalho de volume do dispositivo padrão</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Aumentar e diminuir volume</value>

@@ -362,10 +362,7 @@
     <value>Tastenkombinationen und Einstellungen für Ihre Geräte.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Lautstärke-Tastenkombinationen</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Für das aktuelle Standardgerät</value>
+    <value>Lautstärke-Tastenkombinationen für das Standardgerät</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Lauter und leiser</value>

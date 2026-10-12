@@ -362,10 +362,7 @@
     <value>Atajos de teclado y configuración de tus dispositivos.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Atajos de volumen</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Para el dispositivo predeterminado actual</value>
+    <value>Atajos de volumen del dispositivo predeterminado</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Subir y bajar volumen</value>

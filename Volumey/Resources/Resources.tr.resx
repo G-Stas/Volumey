@@ -362,10 +362,7 @@
     <value>Aygıtlarınız için kısayol tuşları ve ayarlar.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Ses düzeyi kısayol tuşları</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Geçerli varsayılan aygıt için</value>
+    <value>Varsayılan aygıtın ses düzeyi kısayol tuşları</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Sesi artır ve azalt</value>

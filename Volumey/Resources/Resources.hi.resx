@@ -362,10 +362,7 @@
     <value>आपके डिवाइस के लिए हॉटकी और सेटिंग्स।</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>वॉल्यूम हॉटकी</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>वर्तमान डिफ़ॉल्ट डिवाइस के लिए</value>
+    <value>डिफ़ॉल्ट डिवाइस के लिए वॉल्यूम हॉटकी</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>वॉल्यूम बढ़ाएँ और घटाएँ</value>

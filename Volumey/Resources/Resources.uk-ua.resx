@@ -362,10 +362,7 @@
     <value>Сполучення клавіш і параметри ваших пристроїв.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Клавіші гучності</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Для поточного пристрою за замовчуванням</value>
+    <value>Клавіші гучності пристрою за замовчуванням</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Збільшення та зменшення гучності</value>

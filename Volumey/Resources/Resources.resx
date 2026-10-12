@@ -423,9 +423,6 @@
   <data name="Devices_VolumeSection" xml:space="preserve">
     <value />
   </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value />
-  </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value />
   </data>

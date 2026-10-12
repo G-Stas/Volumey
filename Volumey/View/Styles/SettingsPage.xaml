@@ -25,6 +25,7 @@
     <Style x:Key="SectionHeader" TargetType="TextBlock">
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0 20 0 8" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style TargetType="ui:CardControl" BasedOn="{StaticResource {x:Type ui:CardControl}}">
         <Setter Property="Margin" Value="0 0 0 4" />

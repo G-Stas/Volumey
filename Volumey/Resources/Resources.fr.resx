@@ -362,10 +362,7 @@
     <value>Raccourcis clavier et paramètres de vos périphériques.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Raccourcis clavier du volume</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Pour le périphérique par défaut actuel</value>
+    <value>Raccourcis clavier du volume du périphérique par défaut</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Augmenter et baisser le volume</value>

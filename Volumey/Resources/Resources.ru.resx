@@ -362,10 +362,7 @@
     <value>Сочетания клавиш и параметры ваших устройств.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Сочетания клавиш громкости</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Для текущего устройства по умолчанию</value>
+    <value>Сочетания клавиш громкости для устройства по умолчанию</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Увеличение и уменьшение громкости</value>

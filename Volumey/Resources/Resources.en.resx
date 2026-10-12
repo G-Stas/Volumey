@@ -421,10 +421,7 @@
     <value>Hotkeys and settings for your devices.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Volume hotkeys</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>For the current default device</value>
+    <value>Volume hotkeys for the default device</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Volume up and down</value>
