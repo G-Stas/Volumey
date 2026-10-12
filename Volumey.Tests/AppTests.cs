@@ -48,10 +48,12 @@ public class AppTests
 	{
 		const int compositionDisabled = unchecked((int)0x80263001);
 		Assert.IsTrue(App.IsCompositionChangeFailure(new CompositionException(compositionDisabled, WindowChromeStack)));
+		//the same call failed with another code in the 1.5.4 logs
+		Assert.IsTrue(App.IsCompositionChangeFailure(new CompositionException(unchecked((int)0xD0000701), WindowChromeStack)));
 
-		//other errors, or the same error elsewhere, still crash the app as before
-		Assert.IsFalse(App.IsCompositionChangeFailure(new CompositionException(unchecked((int)0x80004005), WindowChromeStack)));
+		//the same error elsewhere, or another exception there, still crashes the app as before
 		Assert.IsFalse(App.IsCompositionChangeFailure(new CompositionException(compositionDisabled, "   at Volumey.Helper.NativeMethods.Something()")));
+		Assert.IsFalse(App.IsCompositionChangeFailure(new TabletException(WindowChromeStack)));
 		Assert.IsFalse(App.IsCompositionChangeFailure(new WindowUpdateException(1816, WpfStack)));
 		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new CompositionException(compositionDisabled, WindowChromeStack)));
 	}

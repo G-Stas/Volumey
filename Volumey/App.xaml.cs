@@ -48,9 +48,10 @@ public partial class App
 	/// <item>Updating a window's render target can fail with "Not enough quota is available to process this command"
 	/// (Win32 error 1816), e.g. under a fullscreen game or while the window grows with many apps (GitHub issues #58, #66).</item>
 	/// <item>WindowChrome (the windows' own title bar and backdrop) extends the window frame again on WM_DWMCOMPOSITIONCHANGED,
-	/// which fails with "Desktop composition is disabled" (0x80263001) while DWM is briefly unavailable (graphics driver reset,
-	/// Remote Desktop, sleep and wake). It was the most common 1.5.4 crash in Loggly. DWM sends the message again once it's back,
-	/// and the frame is extended then.</item>
+	/// which fails while DWM is briefly unavailable (graphics driver reset, Remote Desktop, sleep and wake): usually "Desktop composition
+	/// is disabled" (0x80263001), also other codes (0xD0000701 seen), so any COMException of that call. It was the most common 1.5.4 crash
+	/// in Loggly. DWM sends the message again once it's back, and the frame is extended then. When a window gets its chrome
+	/// (<c>_ApplyNewCustomChrome</c>, also a 1.5.4 crash, at start), WPF-UI's <c>FluentWindow.SetWindowChrome</c> already ignores it.</item>
 	/// <item>A popup (tray menu, combo box drop-down, tooltip) whose window is resized before WPF positioned it: WPF's
 	/// <c>Popup.OnWindowResize</c> throws a NullReferenceException on purpose (still in .NET 10). 12 crashes on 10 PCs in 6 days of 1.5.4 logs.
 	/// Skipped, the popup is positioned again the next time it opens.</item>
@@ -65,7 +66,7 @@ public partial class App
 		if(IsWindowUpdateQuotaFailure(e.Exception))
 			(guard, failure) = (windowUpdateFailures, "failed window update(s) (not enough quota)");
 		else if(IsCompositionChangeFailure(e.Exception))
-			(guard, failure) = (compositionChangeFailures, "failed window frame update(s) (desktop composition disabled)");
+			(guard, failure) = (compositionChangeFailures, "failed window frame update(s) (DWM unavailable)");
 		else if(IsPopupResizeFailure(e.Exception))
 			(guard, failure) = (popupResizeFailures, "failed popup resize(s)");
 		else if(IsTabletRefreshFailure(e.Exception))
@@ -82,11 +83,8 @@ public partial class App
 	internal static bool IsWindowUpdateQuotaFailure(Exception exception)
 		=> exception is Win32Exception { NativeErrorCode: 1816 } && exception.StackTrace?.Contains("System.Windows.Interop.HwndTarget") == true;
 
-	/// <summary>DWM_E_COMPOSITIONDISABLED</summary>
-	private const int CompositionDisabled = unchecked((int)0x80263001);
-
 	internal static bool IsCompositionChangeFailure(Exception exception)
-		=> exception is COMException { HResult: CompositionDisabled } && exception.StackTrace?.Contains("System.Windows.Shell.WindowChromeWorker") == true;
+		=> exception is COMException && exception.StackTrace?.Contains("System.Windows.Shell.WindowChromeWorker._ExtendGlassFrame") == true;
 
 	/// <summary>Thrown by the popup itself (its first frame), not by app code that runs during the layout</summary>
 	internal static bool IsPopupResizeFailure(Exception exception)
