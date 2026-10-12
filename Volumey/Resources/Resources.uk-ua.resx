@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Програма</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Запам'ятовувати положення мікшера</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Відкривається там, де його залишили; спливне вікно можна перетягнути за порожнє місце. Вимк.: біля області сповіщень.</value>
+  </data>
 </root>

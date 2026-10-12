@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>应用程序</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>记住合成器的位置</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>在上次离开的位置打开；拖动弹出窗口的空白处即可移动。关闭时在托盘旁打开。</value>
+  </data>
 </root>

@@ -624,4 +624,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value></value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

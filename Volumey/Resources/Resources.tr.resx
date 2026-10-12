@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Uygulama</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Karıştırıcının konumunu hatırla</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Bıraktığınız yerde açılır; açılır pencereyi boş bir yerinden sürükleyin. Kapalı: tepsinin yanında.</value>
+  </data>
 </root>

@@ -624,4 +624,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Application</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Remember the mixer's position</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Opens where you left it; drag the pop-up by an empty spot. Off: next to the tray.</value>
+  </data>
 </root>

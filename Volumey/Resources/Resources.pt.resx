@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Aplicativo</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Lembrar a posição do mixer</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Abre onde você o deixou; arraste o pop-up por um espaço vazio. Desativado: ao lado da bandeja.</value>
+  </data>
 </root>

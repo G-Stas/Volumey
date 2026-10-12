@@ -98,6 +98,18 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </ui:CardControl>
+            <!-- next to the screen choice (owner); shown with one screen too -->
+            <ui:CardControl Icon="{ui:SymbolIcon Location24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_RememberPosition}" />
+                        <TextBlock Text="{lc:Localization MixerPage_RememberPositionHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=RememberPosition}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_RememberPosition}"
+                                 AutomationProperties.AutomationId="RememberPositionToggle" />
+            </ui:CardControl>
 
             <TextBlock Text="{lc:Localization MixerPage_Layout}" Style="{StaticResource SectionHeader}" />
             <ui:CardControl Icon="{ui:SymbolIcon PanelBottom20}">

@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>アプリケーション</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>ミキサーの位置を記憶する</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>最後に置いた場所に開きます。ポップアップは空いている部分をドラッグして移動できます。オフの場合は通知領域の横に開きます。</value>
+  </data>
 </root>

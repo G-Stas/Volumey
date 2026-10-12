@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>ऐप्लिकेशन</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>मिक्सर की स्थिति याद रखें</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>जहाँ छोड़ा था वहीं खुलता है; पॉप-अप को किसी खाली जगह से खींचें। बंद: ट्रे के पास।</value>
+  </data>
 </root>

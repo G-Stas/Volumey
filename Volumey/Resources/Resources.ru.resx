@@ -565,4 +565,10 @@
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Приложение</value>
   </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Запоминать положение микшера</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Открывается там, где его оставили; всплывающее окно можно перетащить за пустое место. Если выключено — над областью уведомлений.</value>
+  </data>
 </root>

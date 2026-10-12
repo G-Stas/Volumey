@@ -362,6 +362,8 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.WindowTop = 45;
 		vm.WindowWidth = 520;
 		vm.WindowHeight = 540;
+		vm.PopupLeft = 300;
+		vm.PopupTop = 200;
 
 		shell.Raise(m => m.SessionEnding += null);
 
@@ -369,8 +371,23 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.AreEqual(45, Settings.Window.Top);
 		Assert.AreEqual(520, Settings.Window.Width);
 		Assert.AreEqual(540, Settings.Window.Height);
+		Assert.AreEqual(300, Settings.Window.PopupLeft);
+		Assert.AreEqual(200, Settings.Window.PopupTop);
 		hotkeys.Verify(m => m.Dispose(), Times.Once);
 		shell.Verify(m => m.Shutdown(), Times.Once);
+	}
+
+	[TestMethod]
+	public void RememberPositionIsOffByDefaultAndSaved()
+	{
+		var vm = CreateAppBehavior(new Mock<IHotkeyService>().Object);
+		Assert.IsFalse(vm.RememberPosition);
+		Assert.IsNull(vm.PopupLeft, "a popup position before it was ever dragged");
+
+		vm.RememberPosition = true;
+
+		Assert.IsTrue(Settings.Window.RememberPosition);
+		Assert.IsTrue(CreateAppBehavior(new Mock<IHotkeyService>().Object).RememberPosition, "not read back");
 	}
 
 	[TestMethod]
