@@ -48,7 +48,14 @@ public sealed partial class DeviceSettings : ObservableObject
 		Error = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
 	}
 
-	internal void RefreshError() => SetError(errorType);
+	/// <summary>
+	/// Puts the texts into the current language
+	/// </summary>
+	internal void RefreshTexts()
+	{
+		SetError(errorType);
+		OnPropertyChanged(nameof(Format));
+	}
 
 	/// <summary>
 	/// Reads the device's state off the UI thread, once
