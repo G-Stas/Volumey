@@ -11,13 +11,13 @@
          The margin leaves room for the shadow inside the OSD window. The shadow is its own element behind the pill: an effect on the
          pill itself renders the text as a bitmap, which was blurry on a 125% screen (owner found it). -->
     <Grid Margin="12" Height="48" MinWidth="220" UseLayoutRounding="True">
-        <Border CornerRadius="24" Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}">
+        <Border CornerRadius="8" Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.3" />
             </Border.Effect>
         </Border>
         <Border Padding="16 0 6 0"
-                CornerRadius="24"
+                CornerRadius="8"
                 Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}"
                 BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
                 BorderThickness="1">
@@ -58,7 +58,6 @@
                     <Grid>
                         <TextBlock Text="{Binding Volume}"
                                    FontSize="14"
-                                   FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Center"
                                    Visibility="{Binding IsMuted, Converter={StaticResource InverseBoolToVisibility}}" />
