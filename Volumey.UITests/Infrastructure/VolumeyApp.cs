@@ -271,12 +271,13 @@ internal sealed class VolumeyApp : IDisposable
 		var desktop = Automation.GetDesktop();
 		var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
 		var icon = Retry.WhileNull(() => taskbar == null ? null : Find(taskbar), TimeSpan.FromSeconds(5)).Result;
-		if(icon != null)
+		if(icon is { IsOffscreen: false })
 			return icon;
-		//hidden icons: open the flyout
-		taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))?.AsButton().Invoke();
-		return Retry.WhileNull(() => Find(desktop), TimeSpan.FromSeconds(5)).Result
-		       ?? throw new InvalidOperationException($"No tray icon whose tooltip starts with \"{prefix}\"");
+		//a new icon may be among the hidden ones (always on a fresh PC like a CI runner): open their flyout and click it there
+		taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))?.Click();
+		return Retry.WhileNull(() => desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon"))
+		                                    .FirstOrDefault(e => e.Name.StartsWith(prefix) && !e.IsOffscreen), TimeSpan.FromSeconds(5)).Result
+		       ?? throw new InvalidOperationException($"No visible tray icon whose tooltip starts with \"{prefix}\"");
 	}
 
 	/// <summary>

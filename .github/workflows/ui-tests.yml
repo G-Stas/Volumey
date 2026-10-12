@@ -19,6 +19,15 @@ jobs:
         with:
           global-json-file: global.json
 
+      # the runner's screen is 1024x768: the 880 px settings window wouldn't fit, and its lower controls were off-screen
+      - name: Screen resolution
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Set-DisplayResolution -Width 1920 -Height 1080 -Force
+          Add-Type -AssemblyName System.Windows.Forms
+          "Screen: $([System.Windows.Forms.Screen]::PrimaryScreen.Bounds)"
+
       - name: UI tests
         shell: pwsh
         env:
@@ -38,7 +47,9 @@ jobs:
           for($i = 0; $i -lt $lines.Count; $i++) {
             if($lines[$i] -match '^failed (\S+)') {
               $test = $Matches[1]
-              $next = $lines[($i + 1)..([Math]::Min($i + 6, $lines.Count - 1))]
+              #the test's message: its indented lines up to the next result (without the stack trace)
+              $next = @()
+              for($j = $i + 1; $j -lt $lines.Count -and $lines[$j] -notmatch '^(passed|failed|skipped) ' -and $next.Count -lt 60; $j++) { $next += $lines[$j] }
               $details = (@($next | Where-Object { $_ -match '^\s+\S' -and $_ -notmatch '^\s+at ' }) | ForEach-Object { $_.Trim() }) -join ' / '
               $failed += [pscustomobject]@{ Test = $test; Details = $details }
             }

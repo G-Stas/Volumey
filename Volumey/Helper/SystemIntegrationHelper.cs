@@ -46,7 +46,8 @@ internal static class SystemIntegrationHelper
 		try
 		{
 			using(var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64))
-			using(var key = baseKey.OpenSubKey(StartupRegistryPath, true))
+			//created if missing: a fresh user profile has no Run key yet, and opening it then did nothing while reporting success
+			using(var key = baseKey.CreateSubKey(StartupRegistryPath, true))
 			{
 				if(CheckIfStartupRegistryKeyExists())
 					DisableLaunchAtStartup();
@@ -54,7 +55,7 @@ internal static class SystemIntegrationHelper
 				if(string.IsNullOrEmpty(StartupRegistryValue))
 					return false;
 
-				key?.SetValue(StartupRegistryKeyName, StartupRegistryValue);
+				key.SetValue(StartupRegistryKeyName, StartupRegistryValue);
 				return true;
 			}
 		}
