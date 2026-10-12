@@ -93,6 +93,7 @@
                 <ui:Button
                     Style="{StaticResource IconButton}"
                     Tag="{Binding SelectedDevice.Master.IsMuted}"
+                    AutomationProperties.AutomationId="DeviceMuteButton"
                     Command="{Binding SelectedDevice.Master.MuteCommand}">
                     <AutomationProperties.Name>
                         <MultiBinding Converter="{StaticResource MuteButtonName}">
@@ -107,7 +108,9 @@
                     Grid.Column="1"
                     Margin="8 0"
                     Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
-                    IsMuted="{Binding SelectedDevice.Master.IsMuted}" />
+                    IsMuted="{Binding SelectedDevice.Master.IsMuted}"
+                    AutomationProperties.Name="{Binding SelectedDevice.Master.DeviceFriendlyName}"
+                    AutomationProperties.AutomationId="DeviceVolumeSlider" />
                 <TextBlock
                     Grid.Column="2"
                     Style="{StaticResource VolumeValue}"
