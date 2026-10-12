@@ -26,7 +26,28 @@ jobs:
           # (runner.temp is only available in steps, not in the job's env)
           TEMP: ${{ runner.temp }}
           TMP: ${{ runner.temp }}
-        run: ./scripts/run-ui-tests.ps1 -NoAudio
+        # each failed test also becomes an annotation and a line in the run's summary: both can be read without signing in,
+        # the step's log can't
+        run: |
+          ./scripts/run-ui-tests.ps1 -NoAudio 2>&1 | Tee-Object -Variable log
+          $code = $LASTEXITCODE
+          $lines = @($log | ForEach-Object { "$_" })
+          $failed = @()
+          for($i = 0; $i -lt $lines.Count; $i++) {
+            if($lines[$i] -match '^failed (\S+)') {
+              $test = $Matches[1]
+              $next = $lines[($i + 1)..([Math]::Min($i + 6, $lines.Count - 1))]
+              $details = (@($next | Where-Object { $_ -match '^\s+\S' -and $_ -notmatch '^\s+at ' }) | ForEach-Object { $_.Trim() }) -join ' / '
+              $failed += [pscustomobject]@{ Test = $test; Details = $details }
+            }
+          }
+          foreach($f in $failed) {
+            Write-Output ("::error title={0}::{1}" -f $f.Test, ($f.Details -replace '%', '%25'))
+          }
+          $counts = ($lines | Where-Object { $_ -match '^\s+(total|failed|succeeded|skipped):' } | ForEach-Object { $_.Trim() }) -join ', '
+          Add-Content $env:GITHUB_STEP_SUMMARY "## UI tests without audio`n`n$counts`n"
+          foreach($f in $failed) { Add-Content $env:GITHUB_STEP_SUMMARY "- **$($f.Test)**: $($f.Details)" }
+          exit $code
 
       - name: Data folders of failed tests
         if: failure()

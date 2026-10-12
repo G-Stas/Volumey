@@ -60,7 +60,7 @@ public class TrayTests : UiTest
 		var devices = App.TrayMenuItem("Output device");
 		devices.Patterns.ExpandCollapse.Pattern.Expand();
 
-		var listed = Retry.WhileEmpty(() => devices.FindAllChildren(cf => cf.ByControlType(ControlType.MenuItem)), TimeSpan.FromSeconds(5)).Result
+		var listed = (Retry.WhileEmpty(() => devices.FindAllChildren(cf => cf.ByControlType(ControlType.MenuItem)), TimeSpan.FromSeconds(5)).Result ?? Array.Empty<AutomationElement>())
 		                  .Select(i => i.Name).ToList();
 		CloseMenu();
 
