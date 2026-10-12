@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Threading;
 using log4net;
@@ -36,26 +37,45 @@ public partial class App
 	}
 
 	private readonly WindowUpdateFailureGuard windowUpdateFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
+	private readonly WindowUpdateFailureGuard compositionChangeFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 
 	/// <summary>
-	/// Keeps the app alive on a known WPF failure: updating a window's render target can fail with
-	/// "Not enough quota is available to process this command" (Win32 error 1816), e.g. under a fullscreen game
-	/// or while the window grows with many apps (GitHub issues #58, #66). Only that one update is skipped;
+	/// Keeps the app alive on two known WPF failures. Only the failed window update is skipped;
 	/// <see cref="WindowUpdateFailureGuard"/> limits the logging and refreshes the windows afterwards.
+	/// <list type="bullet">
+	/// <item>Updating a window's render target can fail with "Not enough quota is available to process this command"
+	/// (Win32 error 1816), e.g. under a fullscreen game or while the window grows with many apps (GitHub issues #58, #66).</item>
+	/// <item>WindowChrome (the windows' own title bar and backdrop) extends the window frame again on WM_DWMCOMPOSITIONCHANGED,
+	/// which fails with "Desktop composition is disabled" (0x80263001) while DWM is briefly unavailable (graphics driver reset,
+	/// Remote Desktop, sleep and wake). It was the most common 1.5.4 crash in Loggly. DWM sends the message again once it's back,
+	/// and the frame is extended then.</item>
+	/// </list>
 	/// </summary>
 	private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
 	{
-		if(!IsWindowUpdateQuotaFailure(e.Exception))
+		WindowUpdateFailureGuard guard;
+		string failure;
+		if(IsWindowUpdateQuotaFailure(e.Exception))
+			(guard, failure) = (windowUpdateFailures, "failed window update(s) (not enough quota)");
+		else if(IsCompositionChangeFailure(e.Exception))
+			(guard, failure) = (compositionChangeFailures, "failed window frame update(s) (desktop composition disabled)");
+		else
 			return;
 		e.Handled = true;
-		int count = windowUpdateFailures.CountFailure();
+		int count = guard.CountFailure();
 		if(count > 0)
-			Logger.Warn($"Ignored {count} failed window update(s) (not enough quota) since the last report", e.Exception);
-		windowUpdateFailures.ScheduleRefresh(Dispatcher);
+			Logger.Warn($"Ignored {count} {failure} since the last report", e.Exception);
+		guard.ScheduleRefresh(Dispatcher);
 	}
 
 	internal static bool IsWindowUpdateQuotaFailure(Exception exception)
 		=> exception is Win32Exception { NativeErrorCode: 1816 } && exception.StackTrace?.Contains("System.Windows.Interop.HwndTarget") == true;
+
+	/// <summary>DWM_E_COMPOSITIONDISABLED</summary>
+	private const int CompositionDisabled = unchecked((int)0x80263001);
+
+	internal static bool IsCompositionChangeFailure(Exception exception)
+		=> exception is COMException { HResult: CompositionDisabled } && exception.StackTrace?.Contains("System.Windows.Shell.WindowChromeWorker") == true;
 
 	internal static void InitializeExecutionTimer()
 	{
