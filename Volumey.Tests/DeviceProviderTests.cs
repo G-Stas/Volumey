@@ -203,4 +203,51 @@ public class DeviceProviderTests
 		return new DeviceProvider(deviceEnum, deviceState);
 	}
 
+	[TestMethod]
+	public void RetryDelaysDoubleUpToTheMaximum()
+	{
+		Assert.AreEqual(TimeSpan.FromSeconds(1), DeviceProvider.RetryDelay(0));
+		Assert.AreEqual(TimeSpan.FromSeconds(2), DeviceProvider.RetryDelay(1));
+		Assert.AreEqual(TimeSpan.FromSeconds(4), DeviceProvider.RetryDelay(2));
+		Assert.AreEqual(TimeSpan.FromSeconds(256), DeviceProvider.RetryDelay(8));
+		Assert.AreEqual(DeviceProvider.MaxRetryDelay, DeviceProvider.RetryDelay(9));
+		Assert.AreEqual(DeviceProvider.MaxRetryDelay, DeviceProvider.RetryDelay(1000));
+	}
+
+	[TestMethod]
+	public void AProviderConnectedLaterShowsTheDevicesLikeAPluggedInDevice()
+	{
+		//Windows audio couldn't be reached at start
+		var provider = new DeviceProvider();
+		Assert.IsTrue(provider.NoOutputDevices);
+		Assert.IsNull(provider.DefaultDevice);
+		OutputDeviceModel announced = null;
+		bool noDevicesWhenAnnounced = false;
+		provider.DefaultDeviceChanged += device =>
+		{
+			announced = device;
+			noDevicesWhenAnnounced = provider.NoOutputDevices;
+		};
+
+		var deviceEnum = new Mock<IDeviceEnumerator>();
+		var state = new Mock<IDeviceStateNotificationHandler>();
+		var other = OutputDeviceModelTests.GetDeviceMock("123", "device", state.Object);
+		var speakers = OutputDeviceModelTests.GetDeviceMock("111", "speakers", state.Object);
+		deviceEnum.Setup(m => m.GetCurrentActiveDevices(state.Object)).Returns(new List<OutputDeviceModel> { other, speakers });
+		deviceEnum.Setup(m => m.GetDefaultDeviceId()).Returns(speakers.Id);
+
+		provider.Connect(deviceEnum.Object, state.Object);
+
+		Assert.AreEqual(speakers, provider.DefaultDevice);
+		Assert.AreEqual(speakers, announced);
+		Assert.IsTrue(noDevicesWhenAnnounced, "the listeners switch to the device before the placeholder goes away");
+		Assert.IsFalse(provider.NoOutputDevices);
+		Assert.HasCount(2, provider.ActiveDevices);
+
+		//and it listens to Windows from now on
+		var headphones = OutputDeviceModelTests.GetDeviceMock("222", "headphones", state.Object);
+		state.Raise(m => m.ActiveDeviceAdded += null, headphones);
+		Assert.Contains(headphones, provider.ActiveDevices);
+	}
+
 }

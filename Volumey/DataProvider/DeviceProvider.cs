@@ -47,8 +47,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		}
 	}
 
-	private readonly IDeviceStateNotificationHandler deviceStateNotificationHandler;
-	private readonly IDeviceEnumerator deviceEnumerator;
+	//null until Windows audio could be reached (see Create)
+	private IDeviceStateNotificationHandler deviceStateNotificationHandler;
+	private IDeviceEnumerator deviceEnumerator;
 
 	/// <summary>Delays of the attempts to rebuild a reconfigured device: Windows may still be busy right after the notification</summary>
 	private static readonly TimeSpan[] RebuildDelays =
@@ -60,54 +61,115 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
 	internal DeviceProvider(IDeviceEnumerator deviceEnumerator, IDeviceStateNotificationHandler deviceStateHandler)
+		=> Connect(deviceEnumerator, deviceStateHandler);
+
+	/// <summary>Not connected to Windows audio yet: no devices until <see cref="Connect"/></summary>
+	internal DeviceProvider() => NoOutputDevices = true;
+
+	/// <summary>
+	/// Reads the devices and starts listening to Windows. On the UI thread. Called by the constructor, or later when
+	/// Windows audio couldn't be reached at start (<see cref="Create"/>); then the listeners learn the default device
+	/// through <see cref="DefaultDeviceChanged"/>, as when the first device is plugged in.
+	/// </summary>
+	internal void Connect(IDeviceEnumerator enumerator, IDeviceStateNotificationHandler deviceStateHandler)
 	{
 		deviceStateNotificationHandler = deviceStateHandler;
-		this.deviceEnumerator = deviceEnumerator;
+		deviceEnumerator = enumerator;
 		deviceStateNotificationHandler.DefaultDeviceChanged += OnDefaultDeviceChanged;
 		deviceStateNotificationHandler.ActiveDeviceAdded += OnActiveDeviceAdded;
 
 		string defaultDeviceId = deviceEnumerator.GetDefaultDeviceId();
 		var devices = deviceEnumerator.GetCurrentActiveDevices(deviceStateNotificationHandler);
-		if(devices.Count > 0)
+		if(devices.Count == 0)
 		{
-			foreach(var device in devices)
-			{
-				device.Disabled += OnDeviceDisabled;
-				device.Invalidated += OnDeviceInvalidated;
-				ActiveDevices.Add(device);
-
-				if(device.CompareId(defaultDeviceId))
-				{
-					DefaultDevice = device;
-				}
-			}
-
-			if(DefaultDevice == null)
-			{
-				DefaultDevice = ActiveDevices[0];
-			}
-		}
-		else
 			NoOutputDevices = true;
+			return;
+		}
+		OutputDeviceModel newDefault = null;
+		foreach(var device in devices)
+		{
+			device.Disabled += OnDeviceDisabled;
+			device.Invalidated += OnDeviceInvalidated;
+			ActiveDevices.Add(device);
+			if(device.CompareId(defaultDeviceId))
+				newDefault = device;
+		}
+		DefaultDevice = newDefault ?? ActiveDevices[0];
+		//show the default device in the mixer before the NoOutputDevices placeholder goes away
+		DefaultDeviceChanged?.Invoke(DefaultDevice);
+		NoOutputDevices = false;
 	}
 
-	private DeviceProvider() => NoOutputDevices = true;
+	/// <summary>Attempts at start, one right after the other (on the UI thread), before the app starts without devices</summary>
+	internal const int QuickAttempts = 3;
+	private static readonly TimeSpan QuickAttemptPause = TimeSpan.FromMilliseconds(200);
+	private static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(1);
+	internal static readonly TimeSpan MaxRetryDelay = TimeSpan.FromMinutes(5);
+
+	/// <summary>The delay before background retry number <paramref name="retry"/> (0-based): 1 s, doubling, at most <see cref="MaxRetryDelay"/></summary>
+	internal static TimeSpan RetryDelay(int retry)
+		=> retry >= 20 ? MaxRetryDelay : TimeSpan.FromTicks(Math.Min(FirstRetryDelay.Ticks << retry, MaxRetryDelay.Ticks));
 
 	/// <summary>
-	/// Creates the provider of the app's audio devices. If Windows audio can't be reached, the provider has no devices.
+	/// Creates the provider of the app's audio devices. Windows audio can refuse at start for a moment (seen in 1.5.4:
+	/// the device enumerator's class factory failed with 0x80070020, "the file is in use"), so it's tried <see cref="QuickAttempts"/>
+	/// times; after that the app starts without devices and keeps trying in the background with growing delays (<see cref="RetryDelay"/>).
 	/// </summary>
 	internal static IDeviceProvider Create(IHotkeyService hotkeys)
 	{
-		try
+		for(int attempt = 1; ; attempt++)
 		{
-			var devEnum = new DeviceEnumerator(hotkeys);
-			return new DeviceProvider(devEnum, new DeviceStateNotificationsHandler(devEnum));
+			try
+			{
+				var devEnum = new DeviceEnumerator(hotkeys);
+				return new DeviceProvider(devEnum, new DeviceStateNotificationsHandler(devEnum));
+			}
+			catch(Exception e) when(attempt < QuickAttempts)
+			{
+				Logger.Warn($"Couldn't reach Windows audio (attempt {attempt}), trying again", e);
+				System.Threading.Thread.Sleep(QuickAttemptPause);
+			}
+			catch(Exception e)
+			{
+				//everything depends on this object: start without devices (the mixer shows that) and keep trying
+				Logger.Error($"Couldn't reach Windows audio after {QuickAttempts} attempts, trying again in the background", e);
+				var provider = new DeviceProvider();
+				provider.RetryConnectAsync(hotkeys).Forget(Logger, "Failed to retry reaching Windows audio");
+				return provider;
+			}
 		}
-		catch(Exception e)
+	}
+
+	private async Task RetryConnectAsync(IHotkeyService hotkeys)
+	{
+		Exception lastError = null;
+		for(int retry = 0; ; retry++)
 		{
-			//everything depends on this object, so create an empty one which shows that there are no output devices
-			Logger.Fatal("Failed to get device provider object", e);
-			return new DeviceProvider();
+			await Task.Delay(RetryDelay(retry)).ConfigureAwait(false);
+			if(disposed)
+				return;
+			bool connected = await dispatcher.InvokeAsync(() =>
+			{
+				if(disposed)
+					return true;
+				try
+				{
+					var devEnum = new DeviceEnumerator(hotkeys);
+					Connect(devEnum, new DeviceStateNotificationsHandler(devEnum));
+					Logger.Info($"Reached Windows audio after {QuickAttempts + retry + 1} attempts");
+					return true;
+				}
+				catch(Exception e)
+				{
+					lastError = e;
+					return false;
+				}
+			});
+			if(connected)
+				return;
+			//every 12th retry (once an hour after the delay reached 5 minutes), so a lasting failure can't flood Loggly
+			if((retry + 1) % 12 == 0)
+				Logger.Error($"Still can't reach Windows audio after {QuickAttempts + retry + 1} attempts", lastError);
 		}
 	}
 	public void SetDefaultDevice(string id)
