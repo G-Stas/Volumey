@@ -5,6 +5,7 @@ using log4net;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
 using Volumey.Helper;
+using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View;
 
@@ -59,7 +60,21 @@ internal sealed class NotificationService : INotificationService
 		=> Try(() => window?.Close(session.Id), "Failed to close notification");
 
 	public IManagedMasterAudioSession Example
-		=> example ??= new AudioProcessModel(85, false, "Application", default, string.Empty, IconHelper.CreateGenericExeIcon(), null, AppServices.Current.Hotkeys);
+	{
+		get
+		{
+			if(example == null)
+			{
+				var model = new AudioProcessModel(85, false, ExampleName, default, string.Empty, IconHelper.CreateGenericExeIcon(), null, AppServices.Current.Hotkeys);
+				//the sample app's name follows the language
+				TranslationSource.Instance.PropertyChanged += (_, _) => model.Name = ExampleName;
+				example = model;
+			}
+			return example;
+		}
+	}
+
+	private static string ExampleName => TranslationSource.Instance["Notifications_ExampleApp"];
 
 	public void ShowNotificationExample() => Try(() => Window.Show(ExampleKey, Example, displayTime), "Failed to display example notification");
 

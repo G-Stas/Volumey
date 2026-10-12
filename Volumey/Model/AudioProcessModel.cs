@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -33,7 +33,19 @@ public class AudioProcessModel : IManagedMasterAudioSession
 	public ObservableCollection<AudioSessionModel> Sessions { get; }
 
 	public readonly string RawProcessName = string.Empty;
-	public string Name { get; set; }
+	private string name;
+	public string Name
+	{
+		get => name;
+		set
+		{
+			if(name != value)
+			{
+				name = value;
+				OnPropertyChanged();
+			}
+		}
+	}
 
 	private string _id;
 	public string Id => _id ??= _processId.ToString(CultureInfo.InvariantCulture);

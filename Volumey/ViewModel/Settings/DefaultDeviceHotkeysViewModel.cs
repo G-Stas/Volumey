@@ -56,7 +56,7 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 			foreach(var entry in Devices)
 			{
 				entry.SetError(entry.ErrorType);
-				entry.Settings?.RefreshError();
+				entry.Settings?.RefreshTexts();
 			}
 		};
 
