@@ -41,5 +41,7 @@ $arguments = @('test', '--project', (Join-Path $repo 'Volumey.UITests\Volumey.UI
 if ($filters) { $arguments += @('--filter', ($filters -join '&')) }
 
 Write-Host 'UI tests running: hands off the keyboard and mouse.' -ForegroundColor Yellow
+#failing tests write to stderr: with 'Stop', a caller that redirects it (the GitHub workflow) would end the run at the first one
+$ErrorActionPreference = 'Continue'
 dotnet @arguments
 exit $LASTEXITCODE

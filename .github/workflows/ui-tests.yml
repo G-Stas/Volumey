@@ -29,9 +29,11 @@ jobs:
         # each failed test also becomes an annotation and a line in the run's summary: both can be read without signing in,
         # the step's log can't
         run: |
+          # GitHub starts pwsh steps with $ErrorActionPreference = 'stop': the test run's first line on stderr would end the step
+          $ErrorActionPreference = 'Continue'
           ./scripts/run-ui-tests.ps1 -NoAudio 2>&1 | Tee-Object -Variable log
           $code = $LASTEXITCODE
-          $lines = @($log | ForEach-Object { "$_" })
+          $lines = @($log | ForEach-Object { "$_" -replace "`e\[[0-9;]*[A-Za-z]", '' })
           $failed = @()
           for($i = 0; $i -lt $lines.Count; $i++) {
             if($lines[$i] -match '^failed (\S+)') {
