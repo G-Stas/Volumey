@@ -49,6 +49,14 @@ internal sealed class VolumeyApp : IDisposable
 	public static VolumeyApp Start(JsonObject? settings = null, string? dataDir = null)
 	{
 		var volumey = new VolumeyApp(dataDir);
+		//the tests find controls by their English names, and a first start takes the Windows display language
+		if(dataDir == null)
+		{
+			settings ??= new JsonObject();
+			var general = settings["General"] as JsonObject ?? new JsonObject();
+			general["Language"] ??= "en";
+			settings["General"] = general;
+		}
 		if(settings != null)
 			File.WriteAllText(volumey.SettingsFile, settings.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 		volumey.Launch();
