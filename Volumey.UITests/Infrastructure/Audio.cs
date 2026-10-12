@@ -36,14 +36,30 @@ internal static class Audio
 	/// </summary>
 	public static IDisposable KeepDeviceState()
 	{
-		var (volume, mute) = WithDefaultDevice(d => (d.AudioEndpointVolume.MasterVolumeLevelScalar, d.AudioEndpointVolume.Mute));
+		var (volume, mute, channels) = WithDefaultDevice(d => (d.AudioEndpointVolume.MasterVolumeLevelScalar, d.AudioEndpointVolume.Mute,
+			Enumerable.Range(0, d.AudioEndpointVolume.Channels.Count).Select(i => d.AudioEndpointVolume.Channels[i].VolumeLevelScalar).ToArray()));
 		return new Restore(() => WithDefaultDevice(d =>
 		{
 			d.AudioEndpointVolume.MasterVolumeLevelScalar = volume;
+			//the balance (the Devices page's balance test changes it)
+			for(int i = 0; i < channels.Length && i < d.AudioEndpointVolume.Channels.Count; i++)
+				d.AudioEndpointVolume.Channels[i].VolumeLevelScalar = channels[i];
 			d.AudioEndpointVolume.Mute = mute;
 			return 0;
 		}));
 	}
+
+	/// <summary>The default device's channel levels, 0–100 (left, right, …)</summary>
+	public static int[] ChannelVolumes => WithDefaultDevice(d => Enumerable.Range(0, d.AudioEndpointVolume.Channels.Count)
+	                                                                       .Select(i => (int)Math.Round(d.AudioEndpointVolume.Channels[i].VolumeLevelScalar * 100))
+	                                                                       .ToArray());
+
+	/// <summary>The default device's format as Windows has it (PKEY_AudioEngine_DeviceFormat): sample rate and bits</summary>
+	public static (int SampleRate, int Bits) DeviceFormat => WithDefaultDevice(d =>
+	{
+		var blob = (byte[])d.Properties[PropertyKeys.PKEY_AudioEngine_DeviceFormat].Value;
+		return (BitConverter.ToInt32(blob, 4), BitConverter.ToInt16(blob, 14));
+	});
 
 	/// <summary>
 	/// Remembers the volume and mute of every app (session) on the default device and puts them back when disposed:

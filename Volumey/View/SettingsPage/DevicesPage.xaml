@@ -144,6 +144,15 @@
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                <!-- the tag next to the name ("Default", "Not connected") for screen readers: the template's text isn't exposed -->
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDefault}" Value="True">
+                                        <Setter Property="AutomationProperties.ItemStatus" Value="{lc:Localization Devices_DefaultTag}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                        <Setter Property="AutomationProperties.ItemStatus" Value="{lc:Localization Devices_NotConnected}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </ComboBox.ItemContainerStyle>
                         <ComboBox.ItemTemplate>

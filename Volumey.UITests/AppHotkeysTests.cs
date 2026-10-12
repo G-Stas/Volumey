@@ -1,7 +1,9 @@
 using System.Text.Json.Nodes;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Input;
 using FlaUI.Core.Tools;
+using FlaUI.Core.WindowsAPI;
 using Volumey.UITests.Infrastructure;
 
 namespace Volumey.UITests;
@@ -68,6 +70,119 @@ public class AppHotkeysTests : UiTest
 		var upBox = Retry.WhileNull(() => row.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName(testApp.DisplayName + " volume up"))),
 			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException("No volume up box in the app's row");
 		Assert.IsFalse(string.IsNullOrEmpty(upBox.AsTextBox().Text), "the app's volume up box is empty after the restart");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void TheAddAppDialogNeedsAnAppAndBothHotkeysAndCancelSavesNothing()
+	{
+		using var testApp = Later(TestAudioApp.Start());
+		OpenPage();
+		var up = Combo.F(13);
+		var down = Combo.F(14);
+		bool AddEnabled() => Settings.Find("PrimaryButton").IsEnabled;
+
+		Settings.Find("AddAppButton").AsButton().Invoke();
+		Assert.IsFalse(AddEnabled(), "Add is enabled with nothing chosen");
+		var apps = Settings.Find("AddAppBox").AsComboBox();
+		apps.Expand();
+		Retry.WhileNull(() => apps.Items.FirstOrDefault(i => i.Name == testApp.DisplayName), TimeSpan.FromSeconds(5)).Result!.Select();
+		apps.Collapse();
+		Assert.IsFalse(AddEnabled(), "Add is enabled without hotkeys");
+		Settings.TypeHotkey("AddAppUpBox", up);
+		Assert.IsFalse(AddEnabled(), "Add is enabled with one hotkey");
+		Settings.TypeHotkey("AddAppDownBox", down);
+		Assert.IsTrue(Eventually(AddEnabled), "Add isn't enabled with an app and both hotkeys");
+
+		Settings.Find("CloseButton").AsButton().Invoke();
+		Thread.Sleep(800);
+		Assert.IsNull(SavedApp(App.ReadSettings(), testApp.DisplayName), "Cancel saved the app");
+		Assert.IsFalse(up.IsHeldByAnotherApp(), "Cancel registered the hotkey");
+
+		//once added, the app isn't offered again
+		AddInDialog(testApp, up, down);
+		App.WaitForSettings(s => SavedApp(s, testApp.DisplayName) != null, "the app added");
+		Settings.Find("AddAppButton").AsButton().Invoke();
+		var again = Settings.Find("AddAppBox").AsComboBox();
+		again.Expand();
+		Thread.Sleep(500);
+		Assert.IsFalse(again.Items.Any(i => i.Name == testApp.DisplayName), "an app that has hotkeys is offered again");
+		again.Collapse();
+		Settings.Find("CloseButton").AsButton().Invoke();
+	}
+
+	/// <summary>The saved app's row, expanded, and one of its hotkey boxes</summary>
+	private AutomationElement AppBox(string app, string which)
+	{
+		var row = Settings.Find("AppList").FindFirstDescendant(cf => cf.ByName(app)) ?? throw new AssertFailedException("No row for " + app);
+		row.Patterns.ExpandCollapse.PatternOrDefault?.Expand();
+		return Retry.WhileNull(() => row.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName($"{app} volume {which}"))),
+			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"No volume {which} box for {app}");
+	}
+
+	private static JsonObject SavedAppSettings(string app, Combo up, Combo down, bool shareKeys = false) => new()
+	{
+		["Hotkeys"] = new JsonObject
+		{
+			["BlockInSystem"] = !shareKeys,
+			["Apps"] = new JsonArray(new JsonObject { ["ProcessName"] = app, ["VolumeUp"] = HotkeyJson(up), ["VolumeDown"] = HotkeyJson(down) })
+		}
+	};
+
+	[TestMethod]
+	public void EmptyingAnAppsHotkeySaysItNeedsBothAndKeepsTheOld()
+	{
+		//a saved app that isn't running: its hotkeys are still shown and changed in place
+		const string app = "VolumeyUiNotRunning";
+		var up = Combo.F(15);
+		var down = Combo.F(16);
+		OpenPage(SavedAppSettings(app, up, down));
+
+		var box = AppBox(app, "up");
+		Settings.Window.SetForeground();
+		box.Focus();
+		Keyboard.Type(VirtualKeyShort.BACK);
+		Wait.UntilInputIsProcessed();
+		Settings.LeaveBox();
+
+		Assert.IsTrue(Settings.ShowsText("An app needs both hotkeys"), "no error for an emptied box");
+		Assert.IsTrue(IsHotkey(SavedApp(App.ReadSettings(), app)?["VolumeUp"], up), "the saved hotkey was removed");
+		Assert.IsFalse(string.IsNullOrEmpty(AppBox(app, "up").AsTextBox().Text), "the old hotkey isn't back in the box");
+	}
+
+	[TestMethod]
+	public void ARejectedChangeNamesTheHotkeyAndPutsTheOldOneBack()
+	{
+		const string app = "VolumeyUiNotRunning";
+		var up = Combo.F(17);
+		var down = Combo.F(18);
+		var mediaKey = Combo.F(19);
+		//shared mode: a duplicate reaches the box as keys and is rejected by the check, not by Windows
+		var settings = SavedAppSettings(app, up, down, shareKeys: true);
+		settings["Hotkeys"]!["System"] = new JsonArray(new JsonObject { ["SystemKey"] = "MediaPlayPause", ["Replacement"] = HotkeyJson(mediaKey) });
+		OpenPage(settings);
+
+		Settings.TypeHotkey(AppBox(app, "up"), mediaKey);
+
+		Assert.IsTrue(Settings.ShowsText("F19: " + ErrorExists), "no error naming the duplicate");
+		Assert.IsTrue(IsHotkey(SavedApp(App.ReadSettings(), app)?["VolumeUp"], up), "the duplicate was saved");
+		Assert.IsTrue(Eventually(() => AppBox(app, "up").AsTextBox().Text.EndsWith("F17")), "the old hotkey isn't back in the box");
+	}
+
+	[TestMethod]
+	public void TheForegroundBoxesAreLockedWhileTheSwitchIsOn()
+	{
+		OpenPage(new JsonObject
+		{
+			["Hotkeys"] = new JsonObject { ["ForegroundVolumeUp"] = HotkeyJson(Combo.F(19)), ["ForegroundVolumeDown"] = HotkeyJson(Combo.F(20)) }
+		});
+
+		Assert.IsTrue(Settings.IsOn("ForegroundToggle"));
+		Assert.IsFalse(Settings.IsEnabled("ForegroundUpBox") || Settings.IsEnabled("ForegroundDownBox"), "the boxes can be edited while on");
+
+		Settings.SetSwitch("ForegroundToggle", false);
+		Assert.IsTrue(Eventually(() => Settings.IsEnabled("ForegroundUpBox") && Settings.IsEnabled("ForegroundDownBox")),
+			"the boxes are still locked while off");
 	}
 
 	[TestMethod]
