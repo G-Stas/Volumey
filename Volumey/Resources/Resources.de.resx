@@ -58,30 +58,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>Schritt zur Lautstärkeregelung</value>
-  </data>
-  <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>Öffnen Sie den Lautstärke Mischer (Hotkey)</value>
-  </data>
-  <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>Lautstärke erhöhen (hotkey)</value>
-  </data>
-  <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>Lautstärke verringern (hotkey)</value>
-  </data>
-  <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>Hotkeys (gestartete App erforderlich)</value>
-  </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>Farbthema</value>
-  </data>
-  <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>Verschiedenes</value>
-  </data>
-  <data name="Settings_Lang" xml:space="preserve">
-    <value>Sprache</value>
-  </data>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
     <value>Sound-Bedienfeld</value>
   </data>
@@ -91,14 +67,8 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Ausgang</value>
   </data>
-  <data name="TabHeader_Mixer" xml:space="preserve">
-    <value>Volumenmischer</value>
-  </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>Einstellungen</value>
-  </data>
-  <data name="Settings_MusicApp" xml:space="preserve">
-    <value>Anwendung</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
     <value>Stellen Sie verschiedene hotkeys ein</value>
@@ -111,9 +81,6 @@
   </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Okay</value>
-  </data>
-  <data name="Notification_No" xml:space="preserve">
-    <value>Nein</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>Später</value>
@@ -130,71 +97,8 @@
   <data name="Error_F12" xml:space="preserve">
     <value>F12 ist vom Betriebssystem reserviert</value>
   </data>
-  <data name="Settings_AddApp" xml:space="preserve">
-    <value>App hinzufügen</value>
-  </data>
-  <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>Apps-Hotkeys</value>
-  </data>
-  <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Verringern Sie die Lautstärke des Ausgabegeräts</value>
-  </data>
-  <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Erhöhen Sie die Lautstärke des Ausgabegeräts</value>
-  </data>
-  <data name="Settings_RemoveApp" xml:space="preserve">
-    <value>App entfernen</value>
-  </data>
-  <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>Begrenzen Sie das Volumen der gestarteten App auf 100%</value>
-  </data>
-  <data name="Settings_Tip" xml:space="preserve">
-    <value>Kauf mir einen Kaffee :)</value>
-  </data>
-  <data name="Settings_AddDevice" xml:space="preserve">
-    <value>Gerät hinzufügen</value>
-  </data>
-  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>Standardgerät per Hotkey ändern</value>
-  </data>
-  <data name="Settings_Device" xml:space="preserve">
-    <value>Ausgabegerät</value>
-  </data>
-  <data name="Settings_RemoveDevice" xml:space="preserve">
-    <value>Gerät entfernen</value>
-  </data>
-  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
-    <value>Ändern Sie das Standardgerät</value>
-  </data>
-  <data name="Settings_Hotkey" xml:space="preserve">
-    <value>Hotkey</value>
-  </data>
-  <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>Blockieren Sie registrierte Hotkeys im Betriebssystem</value>
-  </data>
-  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
-    <value>Wenn aus, erreichen die Tasten eines Hotkeys auch andere Apps, aber Hotkeys funktionieren nicht, solange eine als Administrator ausgeführte App aktiv ist.</value>
-  </data>
-  <data name="Settings_Duplicates" xml:space="preserve">
-    <value>Doppelte hotkeys zulassen</value>
-  </data>
-  <data name="Settings_MuteDevice" xml:space="preserve">
-    <value>Schalten Sie das Ausgabegerät stumm</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Hotkeys zur Steuerung des Ausgabegeräts</value>
-  </data>
-  <data name="Settings_Popup" xml:space="preserve">
-    <value>Popup-Fenstermodus</value>
-  </data>
-  <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>Immer oben</value>
-  </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>Stummgeschaltet</value>
-  </data>
-  <data name="Notifications_Header" xml:space="preserve">
-    <value>OSD-Benachrichtigungen</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
     <value>Horizontaler Einzug</value>
@@ -207,48 +111,6 @@
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
     <value>Vertikaler Einzug</value>
-  </data>
-  <data name="Notifications_Time" xml:space="preserve">
-    <value>Anzeigezeit in Sekunden</value>
-  </data>
-  <data name="Settings_DeviceBottom" xml:space="preserve">
-    <value>Steuerung des Ausgabegeräts unten anzeigen</value>
-  </data>
-  <data name="Settings_DeviceIcon" xml:space="preserve">
-    <value>Zeigt das Symbol des Ausgabegeräts in der Taskleiste an</value>
-  </data>
-  <data name="Settings_WindowBehavior" xml:space="preserve">
-    <value>Fensterverhalten</value>
-  </data>
-  <data name="Settings_MixerSettings" xml:space="preserve">
-    <value>Lautstärkemixer-Einstellungen</value>
-  </data>
-  <data name="Settings_LaunchStartup" xml:space="preserve">
-    <value>App beim Start des Betriebssystems starten</value>
-  </data>
-  <data name="Settings_StartMenu" xml:space="preserve">
-    <value>App zum Startmenü hinzufügen</value>
-  </data>
-  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
-    <value>Erhöhen Sie die Lautstärke der Vordergrundanwendung</value>
-  </data>
-  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
-    <value>Verringern Sie die Lautstärke der Vordergrundanwendung</value>
-  </data>
-  <data name="Settings_LastPosition" xml:space="preserve">
-    <value>Denken Sie an die letzte Position</value>
-  </data>
-  <data name="Settings_AddHotkey" xml:space="preserve">
-    <value>Hotkey hinzufügen</value>
-  </data>
-  <data name="Settings_MediaHotkeys" xml:space="preserve">
-    <value>Medien-Hotkeys</value>
-  </data>
-  <data name="Settings_MediaReplace" xml:space="preserve">
-    <value>Ersatz-Hotkey</value>
-  </data>
-  <data name="Settings_RemoveHotkey" xml:space="preserve">
-    <value>Hotkey entfernen</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>Anzeige bei allen Lautstärkeänderungen</value>

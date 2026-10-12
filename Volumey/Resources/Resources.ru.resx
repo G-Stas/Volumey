@@ -58,30 +58,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>Шаг регулировки громкости</value>
-  </data>
-  <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>Открыть микшер (хоткей)</value>
-  </data>
-  <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>Повысить громкость (хоткей)</value>
-  </data>
-  <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>Понизить громкость (хоткей)</value>
-  </data>
-  <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>Хоткеи (необходимо запущенное приложение)</value>
-  </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>Тема</value>
-  </data>
-  <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>Разное</value>
-  </data>
-  <data name="Settings_Lang" xml:space="preserve">
-    <value>Язык</value>
-  </data>
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
     <value>Параметры звука</value>
   </data>
@@ -91,14 +67,8 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Выход</value>
   </data>
-  <data name="TabHeader_Mixer" xml:space="preserve">
-    <value>Микшер</value>
-  </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>Настройки</value>
-  </data>
-  <data name="Settings_MusicApp" xml:space="preserve">
-    <value>Приложение</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
     <value>Установите разные хоткеи</value>
@@ -111,9 +81,6 @@
   </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Ок</value>
-  </data>
-  <data name="Notification_No" xml:space="preserve">
-    <value>Нет</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>Позже</value>
@@ -130,71 +97,8 @@
   <data name="Error_HotkeyExists" xml:space="preserve">
     <value>Хоткей уже добавлен</value>
   </data>
-  <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Понизить громкость устройства вывода</value>
-  </data>
-  <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Повысить громкость устройства вывода</value>
-  </data>
-  <data name="Settings_AddApp" xml:space="preserve">
-    <value>Добавить приложение</value>
-  </data>
-  <data name="Settings_RemoveApp" xml:space="preserve">
-    <value>Удалить приложение</value>
-  </data>
-  <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>Ограничить громкость запущенного приложения, если она установлена на 100%</value>
-  </data>
-  <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>Хоткеи для приложений</value>
-  </data>
-  <data name="Settings_Tip" xml:space="preserve">
-    <value>Купите мне кофе :)</value>
-  </data>
-  <data name="Settings_AddDevice" xml:space="preserve">
-    <value>Добавить устройство</value>
-  </data>
-  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>Изменить устройство вывода по умолчанию по хоткею</value>
-  </data>
-  <data name="Settings_RemoveDevice" xml:space="preserve">
-    <value>Удалить устройство</value>
-  </data>
-  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
-    <value>Сменить устройство вывода по умолчанию</value>
-  </data>
-  <data name="Settings_Device" xml:space="preserve">
-    <value>Устройство вывода</value>
-  </data>
-  <data name="Settings_Hotkey" xml:space="preserve">
-    <value>Хоткей</value>
-  </data>
-  <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>Блокировать зарегистрированные хоткеи в системе</value>
-  </data>
-  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
-    <value>Если выключено, нажатия горячих клавиш доходят и до других приложений, но горячие клавиши не работают, пока активно приложение, запущенное от имени администратора.</value>
-  </data>
-  <data name="Settings_Duplicates" xml:space="preserve">
-    <value>Разрешить дубликаты хоткеев</value>
-  </data>
-  <data name="Settings_MuteDevice" xml:space="preserve">
-    <value>Заглушить устройство вывода</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Хоткеи для контроля устройства вывода</value>
-  </data>
-  <data name="Settings_Popup" xml:space="preserve">
-    <value>Режим всплывающего окна</value>
-  </data>
-  <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>Отображать поверх других окон</value>
-  </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>Заглушен</value>
-  </data>
-  <data name="Notifications_Header" xml:space="preserve">
-    <value>OSD уведомления</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
     <value>Горизонтальный отступ</value>
@@ -208,55 +112,7 @@
   <data name="Notifications_Vertical" xml:space="preserve">
     <value>Вертикальный отступ</value>
   </data>
-  <data name="Notifications_Time" xml:space="preserve">
-    <value>Время отображения в секундах</value>
-  </data>
-  <data name="Settings_DeviceBottom" xml:space="preserve">
-    <value>Отображать микшер устройства вывода внизу</value>
-  </data>
-  <data name="Settings_DeviceIcon" xml:space="preserve">
-    <value>Отображать иконку устройства вывода в системном трее</value>
-  </data>
-  <data name="Settings_MixerSettings" xml:space="preserve">
-    <value>Настройки микшера</value>
-  </data>
-  <data name="Settings_WindowBehavior" xml:space="preserve">
-    <value>Поведение окна</value>
-  </data>
-  <data name="Settings_LaunchStartup" xml:space="preserve">
-    <value>Запускать приложение на старте системы</value>
-  </data>
-  <data name="Settings_StartMenu" xml:space="preserve">
-    <value>Добавить приложение в меню Пуск</value>
-  </data>
-  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
-    <value>Повысить громкость приложения на переднем плане</value>
-  </data>
-  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
-    <value>Уменьшить громкость приложения на переднем плане</value>
-  </data>
-  <data name="Settings_LastPosition" xml:space="preserve">
-    <value>Запоминать последнюю позицию</value>
-  </data>
-  <data name="Settings_AddHotkey" xml:space="preserve">
-    <value>Добавить хоткей</value>
-  </data>
-  <data name="Settings_MediaHotkeys" xml:space="preserve">
-    <value>Мультимедиа хоткеи</value>
-  </data>
-  <data name="Settings_MediaReplace" xml:space="preserve">
-    <value>Заменить на хоткей</value>
-  </data>
-  <data name="Settings_RemoveHotkey" xml:space="preserve">
-    <value>Удалить хоткей</value>
-  </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>Отображать при любых изменениях звука</value>
-  </data>
-  <data name="Settings_SelectedScreen" xml:space="preserve">
-    <value>Дисплей для отображения</value>
-  </data>
-  <data name="Settings_PreventBalanceReset" xml:space="preserve">
-    <value>Предотвращать сброс баланса звука заглушая устройство вместо установки громкости на 0</value>
   </data>
 </root>

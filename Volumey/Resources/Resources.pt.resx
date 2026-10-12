@@ -58,30 +58,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>Etapa de ajuste de volume</value>
-  </data>
-  <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>Abrir o mixer de volume (tecla de atalho)</value>
-  </data>
-  <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>Aumente o volume (tecla de atalho)</value>
-  </data>
-  <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>Diminuir o volume (tecla de atalho)</value>
-  </data>
-  <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>Teclas de atalho (aplicativo iniciado necessário)</value>
-  </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>Tema de cor</value>
-  </data>
-  <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>Diversos</value>
-  </data>
-  <data name="Settings_Lang" xml:space="preserve">
-    <value>Língua</value>
-  </data>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
     <value>Painel de controle de som</value>
   </data>
@@ -91,14 +67,8 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Sair do aplicativo</value>
   </data>
-  <data name="TabHeader_Mixer" xml:space="preserve">
-    <value>Mixer de volume</value>
-  </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>Configurações</value>
-  </data>
-  <data name="Settings_MusicApp" xml:space="preserve">
-    <value>Aplicação</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
     <value>Defina diferentes teclas de atalho</value>
@@ -111,9 +81,6 @@
   </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Está bem</value>
-  </data>
-  <data name="Notification_No" xml:space="preserve">
-    <value>Não</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>Mais tarde</value>
@@ -130,71 +97,8 @@
   <data name="Error_HotkeyExists" xml:space="preserve">
     <value>A tecla de atalho já foi adicionada</value>
   </data>
-  <data name="Settings_AddApp" xml:space="preserve">
-    <value>Adicionar aplicativo</value>
-  </data>
-  <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>Teclas de atalho para aplicativos</value>
-  </data>
-  <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Diminuir o volume do dispositivo de saída</value>
-  </data>
-  <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Aumentar o volume do dispositivo de saída</value>
-  </data>
-  <data name="Settings_RemoveApp" xml:space="preserve">
-    <value>Remover app</value>
-  </data>
-  <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>Limite o volume do aplicativo iniciado se for 100%</value>
-  </data>
-  <data name="Settings_Tip" xml:space="preserve">
-    <value>Compre-me um café :)</value>
-  </data>
-  <data name="Settings_AddDevice" xml:space="preserve">
-    <value>Adicionar Dispositivo</value>
-  </data>
-  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>Alterar dispositivo padrão por tecla de atalho</value>
-  </data>
-  <data name="Settings_Device" xml:space="preserve">
-    <value>Dispositivo de saída</value>
-  </data>
-  <data name="Settings_RemoveDevice" xml:space="preserve">
-    <value>Remover dispositivo</value>
-  </data>
-  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
-    <value>Alterar o dispositivo padrão</value>
-  </data>
-  <data name="Settings_Hotkey" xml:space="preserve">
-    <value>Tecla de atalho</value>
-  </data>
-  <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>Bloquear entrada de teclas de atalho registradas</value>
-  </data>
-  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
-    <value>Se desativado, as teclas de um atalho também chegam a outros aplicativos, mas os atalhos não funcionam enquanto um aplicativo executado como administrador estiver ativo.</value>
-  </data>
-  <data name="Settings_Duplicates" xml:space="preserve">
-    <value>Permitir teclas de atalho duplicadas</value>
-  </data>
-  <data name="Settings_MuteDevice" xml:space="preserve">
-    <value>Silenciar o dispositivo de saída</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Teclas de atalho para controlar o dispositivo de saída</value>
-  </data>
-  <data name="Settings_Popup" xml:space="preserve">
-    <value>Modo de janela pop-up</value>
-  </data>
-  <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>Sempre no topo</value>
-  </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>Silenciado</value>
-  </data>
-  <data name="Notifications_Header" xml:space="preserve">
-    <value>Notificações OSD</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
     <value>Recuo horizontal</value>
@@ -207,48 +111,6 @@
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
     <value>Recuo vertical</value>
-  </data>
-  <data name="Notifications_Time" xml:space="preserve">
-    <value>Tempo de exibição em segundos</value>
-  </data>
-  <data name="Settings_DeviceBottom" xml:space="preserve">
-    <value>Exibe o controle do dispositivo de saída na parte inferior</value>
-  </data>
-  <data name="Settings_DeviceIcon" xml:space="preserve">
-    <value>Exibir o ícone do dispositivo de saída na bandeja do sistema</value>
-  </data>
-  <data name="Settings_WindowBehavior" xml:space="preserve">
-    <value>Comportamento da janela</value>
-  </data>
-  <data name="Settings_MixerSettings" xml:space="preserve">
-    <value>Configurações do mixer de volume</value>
-  </data>
-  <data name="Settings_LaunchStartup" xml:space="preserve">
-    <value>Iniciar aplicativo na inicialização do sistema operacional</value>
-  </data>
-  <data name="Settings_StartMenu" xml:space="preserve">
-    <value>Adicionar aplicativo ao menu Iniciar</value>
-  </data>
-  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
-    <value>Aumente o volume do aplicativo em primeiro plano</value>
-  </data>
-  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
-    <value>Diminua o volume do aplicativo em primeiro plano</value>
-  </data>
-  <data name="Settings_LastPosition" xml:space="preserve">
-    <value>Lembrar a última posição</value>
-  </data>
-  <data name="Settings_AddHotkey" xml:space="preserve">
-    <value>Adicionar tecla de atalho</value>
-  </data>
-  <data name="Settings_MediaHotkeys" xml:space="preserve">
-    <value>Teclas de atalho de mídia</value>
-  </data>
-  <data name="Settings_MediaReplace" xml:space="preserve">
-    <value>Tecla de atalho de substituição</value>
-  </data>
-  <data name="Settings_RemoveHotkey" xml:space="preserve">
-    <value>Remover tecla de atalho</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>Exibição em todas as alterações de volume</value>

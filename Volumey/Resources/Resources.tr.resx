@@ -79,62 +79,11 @@
   <data name="Notification_Later" xml:space="preserve">
     <value>Daha sonra</value>
   </data>
-  <data name="Notification_No" xml:space="preserve">
-    <value>Hayır</value>
-  </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Tamam</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
     <value>Bir güncelleme mevcut. Uygulamayı güncellemek istiyor musunuz?</value>
-  </data>
-  <data name="Settings_AddApp" xml:space="preserve">
-    <value>Uygulama ekle</value>
-  </data>
-  <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>Uygulamalar için kısayol tuşları</value>
-  </data>
-  <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Çıkış cihazının sesini azalt</value>
-  </data>
-  <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>Sesi azalt (kısayol tuşu)</value>
-  </data>
-  <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>Kısayol tuşları (başlatılan uygulama gerekli)</value>
-  </data>
-  <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>Çeşitli</value>
-  </data>
-  <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Çıkış cihazının sesini artırın</value>
-  </data>
-  <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>Sesi artır (kısayol tuşu)</value>
-  </data>
-  <data name="Settings_Lang" xml:space="preserve">
-    <value>Diller</value>
-  </data>
-  <data name="Settings_MusicApp" xml:space="preserve">
-    <value>Başvuru</value>
-  </data>
-  <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>Açık ses mikseri (kısayol tuşu)</value>
-  </data>
-  <data name="Settings_RemoveApp" xml:space="preserve">
-    <value>Uygulamayı devre dışı bırak</value>
-  </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>Renk teması</value>
-  </data>
-  <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>%100 ise başlatılan uygulama hacmini sınırlayın</value>
-  </data>
-  <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>Ses ayarı adımı</value>
-  </data>
-  <data name="TabHeader_Mixer" xml:space="preserve">
-    <value>Hacim karıştırıcı</value>
   </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>Ayarlar</value>
@@ -148,53 +97,8 @@
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
     <value>Ses ayarları</value>
   </data>
-  <data name="Settings_Tip" xml:space="preserve">
-    <value>Bana bir kahve ısmarla :)</value>
-  </data>
-  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>Kısayol tuşuyla varsayılan cihazı değiştir</value>
-  </data>
-  <data name="Settings_Device" xml:space="preserve">
-    <value>Çıkış aygıtı</value>
-  </data>
-  <data name="Settings_RemoveDevice" xml:space="preserve">
-    <value>Aygıtı kaldır</value>
-  </data>
-  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
-    <value>Varsayılan cihazı değiştir</value>
-  </data>
-  <data name="Settings_AddDevice" xml:space="preserve">
-    <value>Cihaz ekle</value>
-  </data>
-  <data name="Settings_Hotkey" xml:space="preserve">
-    <value>Kısayol tuşu</value>
-  </data>
-  <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>Kayıtlı kısayol tuşlarının girişini engelle</value>
-  </data>
-  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
-    <value>Kapalıyken kısayol tuşları diğer uygulamalara da ulaşır, ancak yönetici olarak çalışan bir uygulama etkinken kısayollar çalışmaz.</value>
-  </data>
-  <data name="Settings_Duplicates" xml:space="preserve">
-    <value>Yinelenen kısayol tuşlarına izin ver</value>
-  </data>
-  <data name="Settings_MuteDevice" xml:space="preserve">
-    <value>Çıkış cihazının sesini kapatın</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Çıkış cihazını kontrol etmek için kısayol tuşları</value>
-  </data>
-  <data name="Settings_Popup" xml:space="preserve">
-    <value>Açılır pencere modu</value>
-  </data>
-  <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>Her zaman üstte</value>
-  </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>Susturuldu</value>
-  </data>
-  <data name="Notifications_Header" xml:space="preserve">
-    <value>OSD bildirimleri</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
     <value>Yatay girinti</value>
@@ -207,48 +111,6 @@
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
     <value>Dikey girinti</value>
-  </data>
-  <data name="Notifications_Time" xml:space="preserve">
-    <value>Zamanı saniye cinsinden göster</value>
-  </data>
-  <data name="Settings_DeviceBottom" xml:space="preserve">
-    <value>Altta çıkış cihazı kontrolünü göster</value>
-  </data>
-  <data name="Settings_DeviceIcon" xml:space="preserve">
-    <value>Çıkış aygıtı simgesini sistem tepsisinde görüntüle</value>
-  </data>
-  <data name="Settings_WindowBehavior" xml:space="preserve">
-    <value>Pencere davranışı</value>
-  </data>
-  <data name="Settings_MixerSettings" xml:space="preserve">
-    <value>Hacim karıştırıcı ayarları</value>
-  </data>
-  <data name="Settings_LaunchStartup" xml:space="preserve">
-    <value>Uygulamayı işletim sistemi başlangıcında başlat</value>
-  </data>
-  <data name="Settings_StartMenu" xml:space="preserve">
-    <value>Başlat menüsüne uygulama ekle</value>
-  </data>
-  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
-    <value>Ön plan uygulamasının sesini artırın</value>
-  </data>
-  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
-    <value>Ön plan uygulamasının sesini azalt</value>
-  </data>
-  <data name="Settings_LastPosition" xml:space="preserve">
-    <value>Son pozisyonu hatırla</value>
-  </data>
-  <data name="Settings_RemoveHotkey" xml:space="preserve">
-    <value>Kısayol tuşunu kaldır</value>
-  </data>
-  <data name="Settings_AddHotkey" xml:space="preserve">
-    <value>Kısayol tuşu ekle</value>
-  </data>
-  <data name="Settings_MediaHotkeys" xml:space="preserve">
-    <value>Medya kısayol tuşları</value>
-  </data>
-  <data name="Settings_MediaReplace" xml:space="preserve">
-    <value>Yedek kısayol tuşu</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>Tüm ses seviyesi değişikliklerinde göster</value>

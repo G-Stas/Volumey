@@ -58,30 +58,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>音量調整ステップ</value>
-  </data>
-  <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>ボリュームミキサーを開く（ホットキー）</value>
-  </data>
-  <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>音量を上げる（ホットキー）</value>
-  </data>
-  <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>音量を下げる（ホットキー）</value>
-  </data>
-  <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>ホットキー（起動したアプリが必要です）</value>
-  </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>カラーテーマ</value>
-  </data>
-  <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>その他</value>
-  </data>
-  <data name="Settings_Lang" xml:space="preserve">
-    <value>言語</value>
-  </data>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
     <value>サウンドコントロールパネル</value>
   </data>
@@ -91,14 +67,8 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>終了</value>
   </data>
-  <data name="TabHeader_Mixer" xml:space="preserve">
-    <value>ボリュームミキサー</value>
-  </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>設定</value>
-  </data>
-  <data name="Settings_MusicApp" xml:space="preserve">
-    <value>アプリケーション</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
     <value>別のホットキーを設定してください</value>
@@ -111,9 +81,6 @@
   </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>はい</value>
-  </data>
-  <data name="Notification_No" xml:space="preserve">
-    <value>いいえ</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>後で</value>
@@ -130,71 +97,8 @@
   <data name="Error_HotkeyExists" xml:space="preserve">
     <value>ホットキーはすでに追加されています</value>
   </data>
-  <data name="Settings_AddApp" xml:space="preserve">
-    <value>アプリを追加</value>
-  </data>
-  <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>アプリのホットキー</value>
-  </data>
-  <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>出力デバイスの音量を下げる</value>
-  </data>
-  <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>出力デバイスの音量を上げる</value>
-  </data>
-  <data name="Settings_RemoveApp" xml:space="preserve">
-    <value>アプリを削除する</value>
-  </data>
-  <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>100％の場合、起動するアプリの音量を制限する</value>
-  </data>
-  <data name="Settings_Tip" xml:space="preserve">
-    <value>私にコーヒーを買ってください:)</value>
-  </data>
-  <data name="Settings_AddDevice" xml:space="preserve">
-    <value>デバイスを追加</value>
-  </data>
-  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>ホットキーでデフォルトのデバイスを変更する</value>
-  </data>
-  <data name="Settings_Device" xml:space="preserve">
-    <value>出力デバイス</value>
-  </data>
-  <data name="Settings_RemoveDevice" xml:space="preserve">
-    <value>デバイスを削除</value>
-  </data>
-  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
-    <value>デフォルトのデバイスを変更する</value>
-  </data>
-  <data name="Settings_Hotkey" xml:space="preserve">
-    <value>ホットキー</value>
-  </data>
-  <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>登録されたホットキー入力をブロックする</value>
-  </data>
-  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
-    <value>オフの場合、ホットキーのキー入力は他のアプリにも届きますが、管理者として実行中のアプリがアクティブな間はホットキーが動作しません。</value>
-  </data>
-  <data name="Settings_Duplicates" xml:space="preserve">
-    <value>重複するホットキーを許可する</value>
-  </data>
-  <data name="Settings_MuteDevice" xml:space="preserve">
-    <value>出力デバイスをミュートする</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>出力デバイスを制御するためのホットキー</value>
-  </data>
-  <data name="Settings_Popup" xml:space="preserve">
-    <value>ポップアップウィンドウモード</value>
-  </data>
-  <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>常にトップに</value>
-  </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>ミュート</value>
-  </data>
-  <data name="Notifications_Header" xml:space="preserve">
-    <value>OSD通知</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
     <value>水平インデント</value>
@@ -207,48 +111,6 @@
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
     <value>垂直インデント</value>
-  </data>
-  <data name="Notifications_Time" xml:space="preserve">
-    <value>秒単位の表示時間</value>
-  </data>
-  <data name="Settings_DeviceBottom" xml:space="preserve">
-    <value>下部に出力デバイスコントロールを表示します</value>
-  </data>
-  <data name="Settings_DeviceIcon" xml:space="preserve">
-    <value>システムトレイに出力デバイスアイコンを表示する</value>
-  </data>
-  <data name="Settings_WindowBehavior" xml:space="preserve">
-    <value>ウィンドウの動作</value>
-  </data>
-  <data name="Settings_MixerSettings" xml:space="preserve">
-    <value>ボリュームミキサーの設定</value>
-  </data>
-  <data name="Settings_LaunchStartup" xml:space="preserve">
-    <value>オペレーティングシステムの起動時にアプリを起動する</value>
-  </data>
-  <data name="Settings_StartMenu" xml:space="preserve">
-    <value>スタートメニューにアプリを追加する</value>
-  </data>
-  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
-    <value>フォアグラウンドアプリケーションのボリュームを増やします</value>
-  </data>
-  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
-    <value>フォアグラウンドアプリケーションのボリュームを減らします</value>
-  </data>
-  <data name="Settings_LastPosition" xml:space="preserve">
-    <value>最後の位置を覚えてください</value>
-  </data>
-  <data name="Settings_AddHotkey" xml:space="preserve">
-    <value>ホットキーを追加</value>
-  </data>
-  <data name="Settings_MediaHotkeys" xml:space="preserve">
-    <value>メディアのホットキー</value>
-  </data>
-  <data name="Settings_MediaReplace" xml:space="preserve">
-    <value>交換用ホットキー</value>
-  </data>
-  <data name="Settings_RemoveHotkey" xml:space="preserve">
-    <value>ホットキーを削除</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>すべてのボリューム変更時に表示</value>

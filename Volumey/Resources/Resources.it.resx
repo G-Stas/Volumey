@@ -58,33 +58,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Settings_MusicApp" xml:space="preserve">
-    <value>Applicazione</value>
-  </data>
-  <data name="Settings_VolumeStep" xml:space="preserve">
-    <value>Fase regolazione volume</value>
-  </data>
-  <data name="Settings_OpenMixer" xml:space="preserve">
-    <value>Apri mixer volume (tasto scelta rapida)</value>
-  </data>
-  <data name="Settings_IncreaseHotkey" xml:space="preserve">
-    <value>Aumenta volume (tasto scelta rapida)</value>
-  </data>
-  <data name="Settings_DecreaseHotkey" xml:space="preserve">
-    <value>Diminuisci volume (tasto scelta rapida)</value>
-  </data>
-  <data name="Settings_HeaderHotkeys" xml:space="preserve">
-    <value>Tasti scelta rapida (richiede app avviata)</value>
-  </data>
-  <data name="Settings_Theme" xml:space="preserve">
-    <value>Tema</value>
-  </data>
-  <data name="Settings_HeaderMisc" xml:space="preserve">
-    <value>Varie</value>
-  </data>
-  <data name="Settings_Lang" xml:space="preserve">
-    <value>Lingua</value>
-  </data>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
     <value>Pannello controllo audio</value>
   </data>
@@ -93,9 +66,6 @@
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Esci</value>
-  </data>
-  <data name="TabHeader_Mixer" xml:space="preserve">
-    <value>Mixer volume</value>
   </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>Impostazioni</value>
@@ -112,9 +82,6 @@
   <data name="Notification_Yes" xml:space="preserve">
     <value>OK</value>
   </data>
-  <data name="Notification_No" xml:space="preserve">
-    <value>No</value>
-  </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>Più tardi</value>
   </data>
@@ -130,71 +97,8 @@
   <data name="Error_HotkeyExists" xml:space="preserve">
     <value>Il tasto rapido è già stato aggiunto</value>
   </data>
-    <data name="Settings_IncreaseDevice" xml:space="preserve">
-    <value>Aumenta volume dispostivo output</value>
-  </data>
-  <data name="Settings_DecreaseDevice" xml:space="preserve">
-    <value>Diminuisci volume dispositivo output</value>
-  </data>
-<data name="Settings_AddApp" xml:space="preserve">
-    <value>Aggiungi app</value>
-  </data>
-  <data name="Settings_RemoveApp" xml:space="preserve">
-    <value>Rimuovi app</value>
-  </data>
-  <data name="Settings_VolumeLimit" xml:space="preserve">
-    <value>Limita volume app eseguita se è al 100%</value>
-  </data>
-  <data name="Settings_AppsHotkeys" xml:space="preserve">
-    <value>Tasti scelta rapida app</value>
-  </data>
-  <data name="Settings_Tip" xml:space="preserve">
-    <value>Offrimi un caffè :)</value>
-  </data>
-  <data name="Settings_AddDevice" xml:space="preserve">
-    <value>Aggiungi dispositivo</value>
-  </data>
-  <data name="Settings_DefaultDeviceHotkey" xml:space="preserve">
-    <value>Cambia dispositivo predefinito tramite tasto scelta rapida</value>
-  </data>
-  <data name="Settings_RemoveDevice" xml:space="preserve">
-    <value>Rimuovi dispositivo</value>
-  </data>
-  <data name="TrayMenu_ChangeDevice" xml:space="preserve">
-    <value>Cambia dispositivo predefinito</value>
-  </data>
-  <data name="Settings_Device" xml:space="preserve">
-    <value>Dispositivo output</value>
-  </data>
-  <data name="Settings_Hotkey" xml:space="preserve">
-    <value>Tasto scelta rapida</value>
-  </data>
-  <data name="Settings_BlockHotkeys" xml:space="preserve">
-    <value>Blocca tasti scelta rapida registrati</value>
-  </data>
-  <data name="Settings_BlockHotkeysHint" xml:space="preserve">
-    <value>Se disattivato, i tasti di una scorciatoia arrivano anche alle altre app, ma le scorciatoie non funzionano mentre è attiva un&apos;app eseguita come amministratore.</value>
-  </data>
-  <data name="Settings_Duplicates" xml:space="preserve">
-    <value>Abilita tasti scelta rapida duplicati</value>
-  </data>
-  <data name="Settings_MuteDevice" xml:space="preserve">
-    <value>Disattiva audio dispositivo output</value>
-  </data>
-  <data name="Settings_DeviceHotkeys" xml:space="preserve">
-    <value>Tasti scelta rapida controllo dispositivo output</value>
-  </data>
-  <data name="Settings_Popup" xml:space="preserve">
-    <value>Modalità finestra popup</value>
-  </data>
-  <data name="Settings_AlwaysTop" xml:space="preserve">
-    <value>Sempre in primo piano</value>
-  </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>Audio OFF</value>
-  </data>
-  <data name="Notifications_Header" xml:space="preserve">
-    <value>Notifiche OSD</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
     <value>Rientro orizzontale</value>
@@ -207,48 +111,6 @@
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
     <value>Rientro verticale</value>
-  </data>
-  <data name="Notifications_Time" xml:space="preserve">
-    <value>Durata visualizzazione (secondi)</value>
-  </data>
-  <data name="Settings_DeviceBottom" xml:space="preserve">
-    <value>Visualizza controllo dispositivo output in basso</value>
-  </data>
-  <data name="Settings_DeviceIcon" xml:space="preserve">
-    <value>Visualizza icona dispositivo output nella barra delle applicazioni</value>
-  </data>
-  <data name="Settings_MixerSettings" xml:space="preserve">
-    <value>Impostazioni mixer volume</value>
-  </data>
-  <data name="Settings_WindowBehavior" xml:space="preserve">
-    <value>Comportamento finestra</value>
-  </data>
-  <data name="Settings_LaunchStartup" xml:space="preserve">
-    <value>Esegui l'app all'avvio del sistema</value>
-  </data>
-  <data name="Settings_StartMenu" xml:space="preserve">
-    <value>Aggiungi l'app al menu Start</value>
-  </data>
-  <data name="Settings_ForegroundVolumeUp" xml:space="preserve">
-    <value>Aumenta volume applicazione in primo piano</value>
-  </data>
-  <data name="Settings_ForegroundVolumeDown" xml:space="preserve">
-    <value>Diminuisci volume applicazione in primo piano</value>
-  </data>
-  <data name="Settings_LastPosition" xml:space="preserve">
-    <value>Ricorda ultima posizione</value>
-  </data>
-  <data name="Settings_MediaHotkeys" xml:space="preserve">
-    <value>Tasti scelta rapida multimediali</value>
-  </data>
-  <data name="Settings_MediaReplace" xml:space="preserve">
-    <value>Sostituzione tasto scelta rapida</value>
-  </data>
-  <data name="Settings_AddHotkey" xml:space="preserve">
-    <value>Aggiungi tasto scelta rapida</value>
-  </data>
-  <data name="Settings_RemoveHotkey" xml:space="preserve">
-    <value>Rimuovi tasto scelta rapida</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
     <value>Visualizza per ogni modifica del volume</value>
