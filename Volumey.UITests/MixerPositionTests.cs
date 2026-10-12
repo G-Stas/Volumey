@@ -57,6 +57,31 @@ public class MixerPositionTests : UiTest
 	[TestMethod]
 	public void ADraggedPopupOpensWhereItWasDropped() => DragPopupBy("Apps");
 
+	[TestMethod]
+	public void WindowModeIsDraggedByASpotThatIsntAControl()
+	{
+		//the window mode can be dragged whether its position is remembered or not
+		StartMixer(WindowMode(remember: false));
+		var before = MixerPosition();
+
+		var grip = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Apps"))),
+			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException("No \"Apps\" header in the mixer");
+		var from = grip.BoundingRectangle.Center();
+		Mouse.Drag(from, new Point(from.X - 300, from.Y - 200));
+		Wait.UntilInputIsProcessed();
+
+		var after = MixerPosition();
+		Assert.AreEqual(new Point(before.X - 300, before.Y - 200), after, "the window didn't follow the drag");
+
+		//the title bar still moves it too
+		var title = App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Volumey")))
+		            ?? throw new AssertFailedException("No title in the title bar");
+		from = title.BoundingRectangle.Center();
+		Mouse.Drag(from, new Point(from.X + 100, from.Y + 50));
+		Wait.UntilInputIsProcessed();
+		Assert.AreEqual(new Point(after.X + 100, after.Y + 50), MixerPosition(), "the title bar doesn't move the window anymore");
+	}
+
 	/// <summary>
 	/// Inside the apps list, whose ScrollViewer takes mouse presses itself (dragging didn't work there at first)
 	/// </summary>
