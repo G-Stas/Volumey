@@ -38,13 +38,13 @@ public partial class MainView
 
 	//popup sizing (mockups FlyoutMin/FlyoutCapped): the height is computed once when it opens and doesn't change while it's
 	//visible; new apps go to the end of the scrolling list
-	private const double PopupWidth = 460; //WPF-UI's minimum window width (owner's decision)
+	private const double PopupWidth = 368; //WPF-UI's minimum window width (460) × 4/5, owner's decision; MainView.xaml lowers MinWidth to it
 	private const double RowHeight = 54;
 	private const int MinRows = 3;
 	private const double MaxShareOfWorkArea = 0.6;
 
-	//window mode before its size was ever saved (mockup MixerWindow)
-	private const double DefaultWindowWidth = 520;
+	//window mode before its size was ever saved
+	private const double DefaultWindowWidth = PopupWidth; //one width for both modes (owner)
 	private const double DefaultWindowHeight = 540;
 
 	public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo), typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
@@ -77,7 +77,7 @@ public partial class MainView
 
 		//size and position before the HWND exists, so a window shown at startup appears at its remembered place right away
 		ApplyMode();
-		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0)
+		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && vm.RememberPosition)
 		{
 			Left = vm.WindowLeft;
 			Top = vm.WindowTop;
@@ -226,11 +226,43 @@ public partial class MainView
 			SizePopup();
 			//update layout before setting windows position to use actual height of the window when calculating its position
 			UpdateLayout();
-			SetWindowPosition();
+			if(vm.RememberPosition && vm.PopupLeft is { } left && vm.PopupTop is { } top && IsOnScreen(left, top))
+				MoveToRemembered(left, top);
+			else
+				SetWindowPosition();
 		}
 		else
 			RestoreWindowPlacement();
 		placed = true;
+	}
+
+	/// <summary>Whether the window at this position would still be on a screen (one may have been unplugged)</summary>
+	private bool IsOnScreen(double left, double top)
+	{
+		var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+			SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+		return screen.IntersectsWith(new Rect(left, top, Width, Height));
+	}
+
+	private void MoveToRemembered(double left, double top)
+	{
+		applyingPlacement = true;
+		Left = left;
+		Top = top;
+		applyingPlacement = false;
+	}
+
+	/// <summary>
+	/// While the position is remembered, the popup (it has no title bar) is dragged by any spot that isn't a control
+	/// </summary>
+	protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+	{
+		base.OnMouseLeftButtonDown(e);
+		if(e.Handled || !vm.DisplayMinimalistic || !vm.RememberPosition || e.ButtonState != MouseButtonState.Pressed)
+			return;
+		DragMove();
+		vm.PopupLeft = Left;
+		vm.PopupTop = Top;
 	}
 
 	/// <summary>
@@ -248,21 +280,13 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// Window mode: the saved position if it's still on a screen, otherwise next to the tray like the popup
+	/// Window mode: its saved size; the saved position while it's remembered and still on a screen, otherwise next to the tray like the popup
 	/// </summary>
 	private void RestoreWindowPlacement()
 	{
 		ApplyMode();
-		var bounds = new Rect(vm.WindowLeft, vm.WindowTop, Width, Height);
-		var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
-			SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
-		if(vm.WindowWidth > 0 && screen.IntersectsWith(bounds))
-		{
-			applyingPlacement = true;
-			Left = vm.WindowLeft;
-			Top = vm.WindowTop;
-			applyingPlacement = false;
-		}
+		if(vm.RememberPosition && vm.WindowWidth > 0 && IsOnScreen(vm.WindowLeft, vm.WindowTop))
+			MoveToRemembered(vm.WindowLeft, vm.WindowTop);
 		else
 		{
 			UpdateLayout();

@@ -37,6 +37,8 @@
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_AppHotkeys}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization AppHotkeys_Description}" Style="{StaticResource PageDescription}" />
+            <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+            <viewControls:HotkeyModeNote />
 
             <TextBlock Text="{lc:Localization AppHotkeys_Foreground}" Style="{StaticResource SectionHeader}" />
             <!-- as before: the hotkeys can be edited while it's off; turning it on registers them -->
@@ -199,7 +201,5 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
-
-            <viewControls:HotkeyModeNote />
         </StackPanel>
 </Page>

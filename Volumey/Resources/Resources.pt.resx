@@ -362,10 +362,7 @@
     <value>Teclas de atalho e configurações dos seus dispositivos.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Teclas de atalho de volume</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Para o dispositivo padrão atual</value>
+    <value>Teclas de atalho de volume do dispositivo padrão</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Aumentar e diminuir volume</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Aplicativo</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Lembrar a posição do mixer</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Abre onde você o deixou; arraste o pop-up por um espaço vazio. Desativado: ao lado da bandeja.</value>
   </data>
 </root>

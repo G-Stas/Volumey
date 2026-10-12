@@ -362,10 +362,7 @@
     <value>आपके डिवाइस के लिए हॉटकी और सेटिंग्स।</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>वॉल्यूम हॉटकी</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>वर्तमान डिफ़ॉल्ट डिवाइस के लिए</value>
+    <value>डिफ़ॉल्ट डिवाइस के लिए वॉल्यूम हॉटकी</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>वॉल्यूम बढ़ाएँ और घटाएँ</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>ऐप्लिकेशन</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>मिक्सर की स्थिति याद रखें</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>जहाँ छोड़ा था वहीं खुलता है; पॉप-अप को किसी खाली जगह से खींचें। बंद: ट्रे के पास।</value>
   </data>
 </root>

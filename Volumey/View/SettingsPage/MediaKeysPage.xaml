@@ -24,6 +24,8 @@
     <StackPanel Margin="16 4 40 32">
         <TextBlock Text="{lc:Localization Nav_MediaKeys}" Style="{StaticResource PageTitle}" />
         <TextBlock Text="{lc:Localization Media_Description}" Style="{StaticResource PageDescription}" />
+        <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+        <viewControls:HotkeyModeNote />
 
         <TextBlock Text="{lc:Localization Media_Hotkeys}" Style="{StaticResource SectionHeader}" />
         <ItemsControl ItemsSource="{Binding Keys}" Focusable="False" AutomationProperties.AutomationId="MediaKeyList">
@@ -98,6 +100,5 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <viewControls:HotkeyModeNote />
     </StackPanel>
 </Page>

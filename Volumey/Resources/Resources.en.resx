@@ -421,10 +421,7 @@
     <value>Hotkeys and settings for your devices.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Volume hotkeys</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>For the current default device</value>
+    <value>Volume hotkeys for the default device</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Volume up and down</value>
@@ -626,5 +623,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Application</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Remember the mixer's position</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Opens where you left it; drag the pop-up by an empty spot. Off: next to the tray.</value>
   </data>
 </root>

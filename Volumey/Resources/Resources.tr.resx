@@ -362,10 +362,7 @@
     <value>Aygıtlarınız için kısayol tuşları ve ayarlar.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Ses düzeyi kısayol tuşları</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Geçerli varsayılan aygıt için</value>
+    <value>Varsayılan aygıtın ses düzeyi kısayol tuşları</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Sesi artır ve azalt</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Uygulama</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Karıştırıcının konumunu hatırla</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Bıraktığınız yerde açılır; açılır pencereyi boş bir yerinden sürükleyin. Kapalı: tepsinin yanında.</value>
   </data>
 </root>

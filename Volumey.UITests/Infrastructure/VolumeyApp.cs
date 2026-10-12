@@ -114,6 +114,15 @@ internal sealed class VolumeyApp : IDisposable
 	public Window Mixer => FindWindow("Volumey") ?? throw new InvalidOperationException("The mixer isn't visible");
 
 	/// <summary>
+	/// Hides the mixer (closing it only hides it, like its close button)
+	/// </summary>
+	public void HideMixer()
+	{
+		Mixer.Patterns.Window.Pattern.Close();
+		Retry.WhileTrue(() => MixerIsVisible, TimeSpan.FromSeconds(5));
+	}
+
+	/// <summary>
 	/// The OSD's pill for an app or device (named after it), or null while none is shown. The OSD window ("Volumey OSD") is created on
 	/// first use and covers the screen's work area; only its pills are visible.
 	/// </summary>

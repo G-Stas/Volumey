@@ -27,6 +27,11 @@ public sealed class WindowSettings : SettingsSection
 	public bool AlwaysOnTop { get; set; }
 	public bool DeviceViewAtTheBottom { get; set; }
 	public bool DisplayDeviceIconAtTray { get; set; }
+	/// <summary>The mixer opens where it was last (window mode: <see cref="Left"/>/<see cref="Top"/>, popup: <see cref="PopupLeft"/>/<see cref="PopupTop"/>), not next to the tray</summary>
+	public bool RememberPosition { get; set; }
+	/// <summary>Where the popup was last dragged to; null = never</summary>
+	public double? PopupLeft { get; set; }
+	public double? PopupTop { get; set; }
 	public double Left { get; set; }
 	public double Top { get; set; }
 	/// <summary>Size of the mixer in window mode (not in popup mode); 0 = not saved yet</summary>

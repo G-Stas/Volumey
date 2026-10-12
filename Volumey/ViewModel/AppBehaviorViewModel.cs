@@ -79,6 +79,14 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnAlwaysOnTopChanged(bool value) => SettingsProvider.Settings.Window.AlwaysOnTop = value;
 
+	/// <summary>
+	/// The mixer opens where it was last, in both modes (the popup can then be dragged); off: next to the tray on the chosen screen
+	/// </summary>
+	[ObservableProperty]
+	public partial bool RememberPosition { get; set; }
+
+	partial void OnRememberPositionChanged(bool value) => SettingsProvider.Settings.Window.RememberPosition = value;
+
 	[ObservableProperty]
 	public partial bool DeviceViewAtTheBottom { get; set; }
 
@@ -147,6 +155,11 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[ObservableProperty]
 	public partial double WindowHeight { get; set; }
 
+	//where the popup was last dragged to (null: never); saved on exit only, like the window mode's position
+	public double? PopupLeft { get; set; }
+
+	public double? PopupTop { get; set; }
+
 	private readonly ScreenSelection screens;
 
 	/// <summary>
@@ -212,6 +225,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 		popupEnabled = SettingsProvider.Settings.Window.PopupMode;
 		AlwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
+		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
 		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
@@ -219,6 +233,8 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		WindowTop = SettingsProvider.Settings.Window.Top;
 		WindowWidth = SettingsProvider.Settings.Window.Width;
 		WindowHeight = SettingsProvider.Settings.Window.Height;
+		PopupLeft = SettingsProvider.Settings.Window.PopupLeft;
+		PopupTop = SettingsProvider.Settings.Window.PopupTop;
 
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
@@ -250,6 +266,8 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		SettingsProvider.Settings.Window.Top = WindowTop;
 		SettingsProvider.Settings.Window.Width = WindowWidth;
 		SettingsProvider.Settings.Window.Height = WindowHeight;
+		SettingsProvider.Settings.Window.PopupLeft = PopupLeft;
+		SettingsProvider.Settings.Window.PopupTop = PopupTop;
 		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
 		hotkeys.Dispose();
 		shell.Shutdown();

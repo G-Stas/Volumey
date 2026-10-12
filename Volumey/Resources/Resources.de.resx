@@ -362,10 +362,7 @@
     <value>Tastenkombinationen und Einstellungen für Ihre Geräte.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Lautstärke-Tastenkombinationen</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Für das aktuelle Standardgerät</value>
+    <value>Lautstärke-Tastenkombinationen für das Standardgerät</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Lauter und leiser</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Anwendung</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Position des Mixers merken</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Öffnet sich dort, wo Sie ihn verlassen haben; das Pop-up lässt sich an einer freien Stelle ziehen. Aus: neben dem Infobereich.</value>
   </data>
 </root>

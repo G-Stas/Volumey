@@ -362,10 +362,7 @@
     <value>Tasti di scelta rapida e impostazioni per i tuoi dispositivi.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Tasti di scelta rapida del volume</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Per il dispositivo predefinito corrente</value>
+    <value>Tasti di scelta rapida del volume per il dispositivo predefinito</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Alza e abbassa volume</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Applicazione</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Ricorda la posizione del mixer</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Si apre dove l'hai lasciato; trascina il popup da un punto vuoto. Disattivata: accanto all'area di notifica.</value>
   </data>
 </root>

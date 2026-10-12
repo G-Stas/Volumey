@@ -23,7 +23,8 @@ public class TranslationSource : INotifyPropertyChanged
 		new CultureInfo("zh").NativeName,
 		new CultureInfo("hi").NativeName,
 		new CultureInfo("tr").NativeName,
-		new CultureInfo("uk-ua").NativeName
+		//the language alone, like the others ("українська", not "українська (Україна)")
+		new CultureInfo("uk").NativeName
 	};
 
 	private static readonly Dictionary<string, string> CultureDictionary = new Dictionary<string, string>
@@ -100,6 +101,11 @@ public class TranslationSource : INotifyPropertyChanged
 		else
 			SetDefaultLanguage();
 	}
+
+	/// <summary>
+	/// The current language's name as the language list shows it
+	/// </summary>
+	internal static string CurrentLanguageName => new CultureInfo(Instance.CurrentCulture.TwoLetterISOLanguageName).NativeName;
 
 	internal static string GetSystemLanguage()
 		=> CultureInfo.CurrentUICulture.Parent.Name;

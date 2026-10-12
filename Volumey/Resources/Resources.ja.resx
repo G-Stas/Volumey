@@ -362,10 +362,7 @@
     <value>デバイスのホットキーと設定。</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>音量のホットキー</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>現在の既定のデバイスが対象です</value>
+    <value>既定のデバイスの音量のホットキー</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>音量を上げる/下げる</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>アプリケーション</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>ミキサーの位置を記憶する</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>最後に置いた場所に開きます。ポップアップは空いている部分をドラッグして移動できます。オフの場合は通知領域の横に開きます。</value>
   </data>
 </root>

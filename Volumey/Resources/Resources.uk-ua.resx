@@ -362,10 +362,7 @@
     <value>Сполучення клавіш і параметри ваших пристроїв.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Клавіші гучності</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Для поточного пристрою за замовчуванням</value>
+    <value>Клавіші гучності пристрою за замовчуванням</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Збільшення та зменшення гучності</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Програма</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Запам'ятовувати положення мікшера</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Відкривається там, де його залишили; спливне вікно можна перетягнути за порожнє місце. Вимк.: біля області сповіщень.</value>
   </data>
 </root>

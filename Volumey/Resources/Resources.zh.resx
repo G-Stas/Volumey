@@ -362,10 +362,7 @@
     <value>设备的快捷键和设置。</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>音量快捷键</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>适用于当前默认设备</value>
+    <value>默认设备的音量快捷键</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>增大和减小音量</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>应用程序</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>记住合成器的位置</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>在上次离开的位置打开；拖动弹出窗口的空白处即可移动。关闭时在托盘旁打开。</value>
   </data>
 </root>

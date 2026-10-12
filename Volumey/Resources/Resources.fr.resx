@@ -362,10 +362,7 @@
     <value>Raccourcis clavier et paramètres de vos périphériques.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Raccourcis clavier du volume</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Pour le périphérique par défaut actuel</value>
+    <value>Raccourcis clavier du volume du périphérique par défaut</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Augmenter et baisser le volume</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Application</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Mémoriser la position du mélangeur</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>S'ouvre là où vous l'avez laissé ; faites glisser la fenêtre contextuelle par un espace vide. Désactivé : près de la zone de notification.</value>
   </data>
 </root>

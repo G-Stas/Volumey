@@ -362,10 +362,7 @@
     <value>Сочетания клавиш и параметры ваших устройств.</value>
   </data>
   <data name="Devices_VolumeSection" xml:space="preserve">
-    <value>Сочетания клавиш громкости</value>
-  </data>
-  <data name="Devices_VolumeSectionHint" xml:space="preserve">
-    <value>Для текущего устройства по умолчанию</value>
+    <value>Сочетания клавиш громкости для устройства по умолчанию</value>
   </data>
   <data name="Devices_VolumeHotkeys" xml:space="preserve">
     <value>Увеличение и уменьшение громкости</value>
@@ -567,5 +564,11 @@
   </data>
   <data name="Notifications_ExampleApp" xml:space="preserve">
     <value>Приложение</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Запоминать положение микшера</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Открывается там, где его оставили; всплывающее окно можно перетащить за пустое место. Если выключено — над областью уведомлений.</value>
   </data>
 </root>
