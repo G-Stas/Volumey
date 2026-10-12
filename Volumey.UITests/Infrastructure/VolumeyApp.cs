@@ -114,6 +114,14 @@ internal sealed class VolumeyApp : IDisposable
 	public Window Mixer => FindWindow("Volumey") ?? throw new InvalidOperationException("The mixer isn't visible");
 
 	/// <summary>
+	/// The OSD's pill for an app or device (named after it), or null while none is shown. The OSD window ("Volumey OSD") is created on
+	/// first use and covers the screen's work area; only its pills are visible.
+	/// </summary>
+	public AutomationElement? FindOsdPill(string name)
+		=> app!.GetAllTopLevelWindows(Automation).FirstOrDefault(w => w.Title == "Volumey OSD")?
+			.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Custom).And(cf.ByName(name)));
+
+	/// <summary>
 	/// Whether the mixer window is shown (Win32 IsWindowVisible: UI Automation's IsOffscreen also counts a covered window)
 	/// </summary>
 	public bool MixerIsVisible => IsTopLevelWindowVisible("Volumey");
