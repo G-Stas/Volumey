@@ -254,19 +254,24 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// While the position is remembered, the popup (it has no title bar) is dragged by any spot that isn't a control.
+	/// The mixer is dragged by any spot that isn't a control (owner): the window mode always (its position is saved by LocationChanged),
+	/// the popup (it has no title bar) while its position is remembered.
 	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reached the window there.
 	/// </summary>
 	protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 	{
 		base.OnPreviewMouseLeftButtonDown(e);
-		if(e.Handled || !vm.DisplayMinimalistic || !vm.RememberPosition || e.ButtonState != MouseButtonState.Pressed
+		bool popup = vm.DisplayMinimalistic;
+		if(e.Handled || (popup && !vm.RememberPosition) || e.ButtonState != MouseButtonState.Pressed
 		   || IsInControl(e.OriginalSource as DependencyObject))
 			return;
 		e.Handled = true;
 		DragMove();
-		vm.PopupLeft = Left;
-		vm.PopupTop = Top;
+		if(popup)
+		{
+			vm.PopupLeft = Left;
+			vm.PopupTop = Top;
+		}
 	}
 
 	/// <summary>Whether the pressed element is (inside) something that takes clicks itself</summary>
