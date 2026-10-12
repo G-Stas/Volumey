@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -106,5 +108,41 @@ public class HotkeyServiceTests
 		{
 			SettingsProvider.UseSettings(previous);
 		}
+	}
+
+	[TestMethod]
+	public void TheOwnerOfATypedCombinationIsVolumeyAnotherAppOrNobody()
+	{
+		var elsewhere = new HashSet<HotKey> { Other };
+		var owners = new HotkeyService(elsewhere.Contains);
+		owners.SetHotkeyManager(manager.Object);
+		manager.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { Shared });
+
+		//Volumey's own is checked first: Windows refuses it to the probe too
+		elsewhere.Add(Shared);
+		Assert.AreEqual(HotkeyOwner.Volumey, owners.FindOwner(Shared));
+		Assert.AreEqual(HotkeyOwner.AnotherApp, owners.FindOwner(Other));
+		Assert.AreEqual(HotkeyOwner.Nobody, owners.FindOwner(Taken));
+	}
+
+	[TestMethod]
+	public void TheProbeReleasesAFreeCombinationAndOnlyCountsAlreadyRegisteredAsTaken()
+	{
+		var hotkey = new HotKey(Key.F9, ModifierKeys.Control | ModifierKeys.Alt);
+		var win32 = new Mock<IWin32>();
+
+		//free: registered for a moment and released again
+		win32.Setup(w => w.RegisterHotKey(IntPtr.Zero, It.IsAny<int>(), It.IsAny<Windows.Win32.UI.Input.KeyboardAndMouse.HOT_KEY_MODIFIERS>(), 0x78u)).Returns(true);
+		Assert.IsFalse(HotkeyProbe.IsRegisteredElsewhere(win32.Object, hotkey));
+		win32.Verify(w => w.UnregisterHotKey(IntPtr.Zero, It.IsAny<int>()), Times.Once);
+
+		//ERROR_HOTKEY_ALREADY_REGISTERED
+		win32.Setup(w => w.RegisterHotKey(IntPtr.Zero, It.IsAny<int>(), It.IsAny<Windows.Win32.UI.Input.KeyboardAndMouse.HOT_KEY_MODIFIERS>(), 0x78u)).Returns(false);
+		win32.Setup(w => w.GetLastError()).Returns(1409);
+		Assert.IsTrue(HotkeyProbe.IsRegisteredElsewhere(win32.Object, hotkey));
+
+		//any other failure isn't proof that someone holds it
+		win32.Setup(w => w.GetLastError()).Returns(5);
+		Assert.IsFalse(HotkeyProbe.IsRegisteredElsewhere(win32.Object, hotkey));
 	}
 }

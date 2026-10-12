@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>Abre onde você o deixou. Desativado: ao lado da bandeja.</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Já está em uso no Volumey</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>Em uso por outro aplicativo</value>
+  </data>
 </root>

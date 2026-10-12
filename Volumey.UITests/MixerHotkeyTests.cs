@@ -1,3 +1,4 @@
+using FlaUI.Core.AutomationElements;
 using Volumey.UITests.Infrastructure;
 
 namespace Volumey.UITests;
@@ -53,6 +54,20 @@ public class MixerHotkeyTests : UiTest
 		Assert.IsTrue(Settings.ShowsText(ErrorFailedToRegister), "no error shown");
 		Assert.IsFalse(Settings.IsOn("OpenHotkeyToggle"), "the switch stayed on");
 		Assert.IsNull(App.ReadSettings()["Hotkeys"]?["OpenMixer"], "a refused hotkey was saved");
+	}
+
+	[TestMethod]
+	public void TypingAHotkeyAnotherAppHoldsSaysSo()
+	{
+		OpenPage();
+		var combo = Combo.F(20);
+		using var held = combo.HoldInThisProcess();
+
+		//the box only sees the key's release: Windows sends the press to the app that holds it
+		Settings.TypeHotkey("OpenHotkeyBox", combo);
+
+		Assert.IsTrue(Settings.BoxSays(Settings.Find("OpenHotkeyBox"), TakenByAnotherApp), "no message under the box");
+		Assert.IsTrue(string.IsNullOrEmpty(Settings.Find("OpenHotkeyBox").AsTextBox().Text), "the box shows the hotkey");
 	}
 
 	[TestMethod]

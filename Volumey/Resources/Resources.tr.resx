@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>Bıraktığınız yerde açılır. Kapalı: tepsinin yanında.</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Volumey&apos;de zaten kullanılıyor</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>Başka bir uygulama tarafından kullanılıyor</value>
+  </data>
 </root>

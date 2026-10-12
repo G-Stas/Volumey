@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Input;
 using log4net;
 using Volumey.Controls;
@@ -247,6 +248,24 @@ public sealed class HotkeyService : IHotkeyService
 	/// The blocking manager doesn't need it (the box swallows WM_HOTKEY), the non-blocking one does.
 	/// </summary>
 	public bool IsEditingHotkey { get; set; }
+
+	private readonly Func<HotKey, bool> isRegisteredElsewhere;
+
+	public HotkeyService() : this(hotkey => HotkeyProbe.IsRegisteredElsewhere(Win32.Instance, hotkey)) { }
+
+	/// <param name="isRegisteredElsewhere">Whether Windows refuses to register the combination because it's taken (tests pass a fake)</param>
+	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere) => this.isRegisteredElsewhere = isRegisteredElsewhere;
+
+	/// <summary>
+	/// Who holds a combination that Windows delivered as a hotkey instead of as keys (a hotkey box only sees its key released).
+	/// </summary>
+	public HotkeyOwner FindOwner(HotKey hotkey)
+	{
+		if(hotkeyManager?.GetRegisteredHotkeys()?.Contains(hotkey) == true)
+			return HotkeyOwner.Volumey;
+		return isRegisteredElsewhere(hotkey) ? HotkeyOwner.AnotherApp : HotkeyOwner.Nobody;
+	}
+
 	private void OnHotkeyPressed(HotKey hotkey)
 	{
 		if(IsEditingHotkey)

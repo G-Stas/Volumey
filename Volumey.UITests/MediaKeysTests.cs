@@ -52,19 +52,25 @@ public class MediaKeysTests : UiTest
 	}
 
 	[TestMethod]
-	public void InBlockingModeAHotkeyInUseCantBeTypedIntoAnotherBox()
+	public void InBlockingModeAHotkeyInUseSaysItsAlreadyUsedInVolumey()
 	{
 		OpenPage();
 		var combo = Combo.F(17);
 		Settings.TypeHotkey(Box(PlayPause), combo);
 		App.WaitForSettings(s => IsHotkey(Saved(s, "MediaPlayPause"), combo), "play/pause saved");
 
-		//Windows delivers a registered combination as Volumey's hotkey, not as keys: the box can't record it
+		//Windows delivers a registered combination as Volumey's hotkey, not as keys: the box can't record it, only its key release
 		Settings.TypeHotkey(Box(Next), combo);
 
-		Thread.Sleep(800);
+		Assert.IsTrue(Settings.BoxSays(Box(Next), TakenInVolumey), "no message under the box");
+		Assert.IsFalse(Settings.BoxSays(Box(Next), TakenByAnotherApp, 500), "Volumey's own hotkey was reported as another app's");
 		Assert.IsNull(Saved(App.ReadSettings(), "MediaNextTrack"), "the same hotkey was saved twice");
 		Assert.IsTrue(string.IsNullOrEmpty(Box(Next).AsTextBox().Text), "the box shows a hotkey");
+
+		//the next key typed into the box clears the message
+		Settings.TypeHotkey(Box(Next), Combo.F(18));
+		App.WaitForSettings(s => IsHotkey(Saved(s, "MediaNextTrack"), Combo.F(18)), "next track saved");
+		Assert.IsFalse(Settings.BoxSays(Box(Next), TakenInVolumey, 500), "the message stayed");
 	}
 
 	[TestMethod]

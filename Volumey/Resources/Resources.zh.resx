@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>在上次离开的位置打开。关闭时在托盘旁打开。</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>已在 Volumey 中使用</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>已被其他应用使用</value>
+  </data>
 </root>

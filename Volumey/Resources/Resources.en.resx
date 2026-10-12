@@ -630,4 +630,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>Opens where you left it. Off: next to the tray.</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Already used in Volumey</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>Used by another app</value>
+  </data>
 </root>

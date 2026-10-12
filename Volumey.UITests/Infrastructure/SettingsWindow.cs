@@ -141,6 +141,12 @@ internal sealed class SettingsWindow
 	/// <summary>
 	/// A text shown in the window (e.g. an error under a hotkey box), within <paramref name="timeoutMs"/>
 	/// </summary>
+	/// <summary>
+	/// The message under a hotkey box ("Ctrl+K: Used by another app"): the box exposes it as its help text
+	/// </summary>
+	public bool BoxSays(AutomationElement box, string text, int timeoutMs = 3000)
+		=> Retry.WhileFalse(() => box.Properties.HelpText.ValueOrDefault?.Contains(text) == true, TimeSpan.FromMilliseconds(timeoutMs)).Result;
+
 	public bool ShowsText(string text, int timeoutMs = 3000)
 		=> Retry.WhileFalse(() => Window.FindAllDescendants(cf => cf.ByControlType(ControlType.Text)).Any(t => t.Name.Contains(text)),
 			TimeSpan.FromMilliseconds(timeoutMs)).Result;

@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>Si apre dove l'hai lasciato. Disattivata: accanto all'area di notifica.</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Già in uso in Volumey</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>In uso da un&apos;altra app</value>
+  </data>
 </root>
