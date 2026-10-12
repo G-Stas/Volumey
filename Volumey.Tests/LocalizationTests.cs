@@ -1,4 +1,7 @@
-﻿using System.Globalization;
+﻿using System.Collections;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.DataProvider;
 using Volumey.Localization;
@@ -67,6 +70,32 @@ public class LocalizationTests
 		TranslationSource.SetLanguage(new CultureInfo("ru"));
 		Assert.IsFalse(string.IsNullOrEmpty(TranslationSource.Instance[TranslationSource.MutedCaptionKey]));
 		Assert.IsNull(TranslationSource.Instance["No_Such_Key"]);
+	}
+
+	[TestMethod]
+	public void EveryLanguageTranslatesEveryString()
+	{
+		var manager = Resources.Resources.ResourceManager;
+		var english = manager.GetResourceSet(new CultureInfo("en"), true, false).Cast<DictionaryEntry>()
+			.ToDictionary(e => (string)e.Key, e => (string)e.Value);
+		foreach(string language in TranslationSource.Languages)
+		{
+			TranslationSource.SetLanguage(language);
+			var culture = TranslationSource.Instance.CurrentCulture;
+			if(culture.Name == "en")
+				continue;
+			//only this language's own strings, no fallback
+			var set = manager.GetResourceSet(culture, true, false);
+			Assert.IsNotNull(set, $"language: {culture.Name}");
+			foreach(var (key, text) in english)
+			{
+				string translated = set.GetString(key);
+				Assert.IsFalse(string.IsNullOrWhiteSpace(translated), $"{culture.Name}: {key} isn't translated");
+				CollectionAssert.AreEquivalent(Placeholders(text), Placeholders(translated), $"{culture.Name}: {key} has other placeholders");
+			}
+		}
+
+		static string[] Placeholders(string text) => Regex.Matches(text, @"\{\d+\}").Select(m => m.Value).Distinct().ToArray();
 	}
 
 	[TestMethod]
