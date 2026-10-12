@@ -628,6 +628,6 @@
     <value>Remember the mixer's position</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>Opens where you left it; drag the pop-up by an empty spot. Off: next to the tray.</value>
+    <value>Opens where you left it. Drag the pop-up by any spot that isn't a button or slider. Off: next to the tray.</value>
   </data>
 </root>
