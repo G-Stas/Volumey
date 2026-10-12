@@ -1,3 +1,4 @@
+using FlaUI.Core.AutomationElements;
 using Volumey.UITests.Infrastructure;
 
 namespace Volumey.UITests;
@@ -68,6 +69,41 @@ public class DeviceHotkeysTests : UiTest
 		//it used to mute but never unmute (fixed in 2.0)
 		mute.Press();
 		Assert.AreEqual(muted, Audio.WaitFor(() => Audio.DeviceMuted, muted), "the second press didn't flip mute back");
+	}
+
+	[TestMethod]
+	public void ThePagesSettingsSurviveARestart()
+	{
+		//nothing is pressed: the device's volume, mute and default stay as they are. Format, exclusive mode and balance
+		//are the device's own state in Windows, not Volumey's settings, and changing them reconfigures the device: left out
+		OpenPage();
+		var up = Combo.F(17);
+		var down = Combo.F(18);
+		var mute = Combo.F(19);
+		var makeDefault = Combo.F(20);
+		Settings.TypeHotkey("DeviceUpBox", up);
+		Settings.TypeHotkey("DeviceDownBox", down);
+		Settings.SetSwitch("DeviceVolumeToggle", true);
+		Settings.TypeHotkey("DeviceMuteBox", mute);
+		Settings.SetSwitch("DeviceMuteToggle", true);
+		Settings.SetSwitch("KeepBalanceToggle", true);
+		Settings.TypeHotkey("DeviceHotkeyBox", makeDefault);
+		Settings.SetSwitch("DeviceHotkeyToggle", true);
+		App.WaitForSettings(s => IsHotkey(s["Hotkeys"]?["DeviceVolumeUp"], up) && IsHotkey(s["Hotkeys"]?["DeviceVolumeDown"], down)
+		                         && IsHotkey(s["Hotkeys"]?["DeviceMute"], mute)
+		                         && s["Hotkeys"]?["PreventResettingVolumeBalance"]?.GetValue<bool>() == true
+		                         && s["Hotkeys"]?["DefaultDevices"]?.AsArray().Any(d => IsHotkey(d?["Hotkey"], makeDefault)) == true,
+			"the Devices page's settings saved");
+
+		Restart();
+		Settings.Open("NavDevices", "DeviceUpBox");
+
+		Assert.IsTrue(Eventually(() => up.IsHeldByAnotherApp() && down.IsHeldByAnotherApp() && mute.IsHeldByAnotherApp() && makeDefault.IsHeldByAnotherApp()),
+			"the hotkeys aren't registered after the restart");
+		foreach(var toggle in new[] { "DeviceVolumeToggle", "DeviceMuteToggle", "KeepBalanceToggle", "DeviceHotkeyToggle" })
+			Assert.IsTrue(Settings.IsOn(toggle), toggle + " is off after the restart");
+		foreach(var box in new[] { "DeviceUpBox", "DeviceDownBox", "DeviceMuteBox", "DeviceHotkeyBox" })
+			Assert.IsFalse(string.IsNullOrEmpty(Settings.Find(box).AsTextBox().Text), box + " is empty after the restart");
 	}
 
 	[TestMethod]

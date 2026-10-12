@@ -74,6 +74,45 @@ public class MediaKeysTests : UiTest
 	}
 
 	[TestMethod]
+	public void EachHotkeySendsItsMediaKey() => SendsEachMediaKey(shareKeys: false);
+
+	[TestMethod]
+	public void InSharedModeEachHotkeySendsItsMediaKey() => SendsEachMediaKey(shareKeys: true);
+
+	private void SendsEachMediaKey(bool shareKeys)
+	{
+		//WPF's key names, as saved
+		var keys = new (string Name, Combo Combo, int VirtualKey)[]
+		{
+			("MediaPlayPause", Combo.F(13), MediaKeyCatcher.PlayPause),
+			("MediaPreviousTrack", Combo.F(14), MediaKeyCatcher.PreviousTrack),
+			("MediaNextTrack", Combo.F(15), MediaKeyCatcher.NextTrack),
+			("MediaStop", Combo.F(16), MediaKeyCatcher.Stop)
+		};
+		StartApp(new JsonObject
+		{
+			["Hotkeys"] = new JsonObject
+			{
+				["BlockInSystem"] = !shareKeys,
+				["System"] = new JsonArray(keys.Select(k => (JsonNode)new JsonObject { ["SystemKey"] = k.Name, ["Replacement"] = HotkeyJson(k.Combo) }).ToArray())
+			}
+		});
+		//a hook can't be checked from outside: in shared mode the presses below show that it works
+		if(shareKeys)
+			Thread.Sleep(1000);
+		else
+			Assert.IsTrue(Eventually(() => keys.All(k => k.Combo.IsHeldByAnotherApp())), "the saved media key hotkeys aren't registered");
+
+		//caught and swallowed before any player gets them
+		using var catcher = new MediaKeyCatcher();
+		foreach(var key in keys)
+		{
+			key.Combo.Press();
+			Assert.IsTrue(catcher.WaitFor(key.VirtualKey), $"{key.Combo} didn't send {key.Name}");
+		}
+	}
+
+	[TestMethod]
 	public void InSharedModeADuplicateIsRejectedWithAnError()
 	{
 		OpenPage(shareKeys: true);

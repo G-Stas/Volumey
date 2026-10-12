@@ -1,4 +1,8 @@
 using System.Diagnostics;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
+using FlaUI.Core.Tools;
+using FlaUI.UIA3;
 
 namespace Volumey.UITests.Infrastructure;
 
@@ -20,23 +24,24 @@ internal sealed class TestAudioApp : IDisposable
 	/// </summary>
 	public string DisplayName => FileVersionInfo.GetVersionInfo(Process.MainModule!.FileName).FileDescription is { Length: > 0 } d ? d : Name;
 
-	private TestAudioApp(string name)
+	private TestAudioApp(string name, bool window)
 	{
 		Name = name;
 		string dir = Path.Combine(Path.GetTempPath(), "Volumey-uitests", "apps", name);
 		Directory.CreateDirectory(dir);
 		foreach(var file in Directory.GetFiles(Build.Value))
 			File.Copy(file, Path.Combine(dir, Path.GetFileName(file) == "testaudio.exe" ? name + ".exe" : Path.GetFileName(file)), true);
-		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), "600") { UseShellExecute = false, CreateNoWindow = true })
+		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), window ? "600 --window" : "600") { UseShellExecute = false, CreateNoWindow = true })
 		          ?? throw new InvalidOperationException("The test audio app didn't start");
 	}
 
 	/// <summary>
-	/// Starts one and waits until its session exists (at 100%: the app sets its own volume when it starts)
+	/// Starts one and waits until its session exists (at 100%: the app sets its own volume when it starts).
+	/// <paramref name="window"/> also shows a small window (<see cref="BringToFront"/>).
 	/// </summary>
-	public static TestAudioApp Start(string name = "VolumeyUiTestApp")
+	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false)
 	{
-		var app = new TestAudioApp(name);
+		var app = new TestAudioApp(name, window);
 		if(Audio.WaitFor(() => Audio.SessionVolume(app.Process.Id), 100, 10000) != 100)
 		{
 			app.Dispose();
@@ -46,6 +51,21 @@ internal sealed class TestAudioApp : IDisposable
 	}
 
 	public int? Volume => Audio.SessionVolume(Process.Id);
+
+	/// <summary>
+	/// Puts the app's window (started with <c>window: true</c>) in front, so it's the foreground app for Volumey
+	/// </summary>
+	public void BringToFront(UIA3Automation automation)
+	{
+		var window = Retry.WhileNull(() => automation.GetDesktop().FindFirstChild(cf => cf.ByProcessId(Process.Id).And(cf.ByControlType(ControlType.Window))),
+			TimeSpan.FromSeconds(10)).Result?.AsWindow() ?? throw new InvalidOperationException("The test app has no window");
+		window.SetForeground();
+		if(!Retry.WhileFalse(() => GetForegroundWindow() == window.Properties.NativeWindowHandle.Value, TimeSpan.FromSeconds(3)).Result)
+			throw new InvalidOperationException("The test app's window didn't come to the front");
+	}
+
+	[System.Runtime.InteropServices.DllImport("user32.dll")]
+	private static extern IntPtr GetForegroundWindow();
 
 	public void Dispose()
 	{
