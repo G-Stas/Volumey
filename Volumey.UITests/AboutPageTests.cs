@@ -58,6 +58,9 @@ public class AboutPageTests : UiTest
 
 	private void OpensInTheBrowser(string linkId, string titleStart)
 	{
+		//a CI runner has no browser set up (it would show its first-run pages, not GitHub's)
+		if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
+			Assert.Inconclusive("No browser on the CI runner");
 		OpenPage();
 		bool wasOpen = BrowserTab(titleStart) != null;
 
