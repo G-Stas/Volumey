@@ -51,21 +51,21 @@
                             </ui:SymbolIcon>
                         </ui:CardControl.Icon>
                         <ui:CardControl.Header>
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap" />
                         </ui:CardControl.Header>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <controls:HotKeyBox HotKey="{Binding Hotkey}"
                                                     AutomationProperties.Name="{Binding Name}" />
                                 <TextBlock Text="{Binding Error}" Style="{StaticResource SettingError}" MaxWidth="180" HorizontalAlignment="Left" Margin="0 4 0 0" />
                             </StackPanel>
-                            <!-- hidden, not collapsed, while there's no hotkey: the boxes stay in line (mockup) -->
-                            <ui:Button Grid.Column="1"
-                                       Margin="8 0 0 0"
+                            <!-- left of the box, so the boxes end at the card's edge like on the other pages;
+                                 hidden, not collapsed, while there's no hotkey: the boxes stay in line -->
+                            <ui:Button Margin="0 0 8 0"
                                        VerticalAlignment="Top"
                                        Appearance="Transparent"
                                        BorderThickness="0"
