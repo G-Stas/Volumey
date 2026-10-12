@@ -25,8 +25,12 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.ComponentModel;
+using System.Windows.Automation;
 using System.Windows.Interop;
+using Volumey.Localization;
 using Volumey.Services;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.Controls;
 
@@ -96,6 +100,8 @@ public class HotKeyBox : TextBox
 		base.OnApplyTemplate();
 
 		PreviewKeyDown += TextBoxOnPreviewKeyDown2;
+		PreviewKeyUp -= OnPreviewKeyUp;
+		PreviewKeyUp += OnPreviewKeyUp;
 		//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
 		//which left every hotkey ignored (and swallowed) until focus moved inside the window again
 		GotKeyboardFocus += TextBoxOnGotFocus;
@@ -121,6 +127,7 @@ public class HotKeyBox : TextBox
 		if(editing)
 			return;
 		editing = true;
+		pressedKeys.Clear();
 		AppServices.Current.Hotkeys.IsEditingHotkey = true;
 		ComponentDispatcher.ThreadPreprocessMessage += ComponentDispatcherOnThreadPreprocessMessage;
 	}
@@ -146,24 +153,22 @@ public class HotKeyBox : TextBox
 	private void TextBoxOnLostFocus(object sender, RoutedEventArgs routedEventArgs)
 		=> StopEditing();
 
+	private static bool IsModifierOrTab(Key key)
+		=> key is Key.Tab or Key.LeftShift or Key.RightShift or Key.LeftCtrl or Key.RightCtrl
+			   or Key.LeftAlt or Key.RightAlt or Key.RWin or Key.LWin;
+
+	/// <summary>Keys pressed while the box has focus: a released key that isn't here was never delivered as a key press</summary>
+	private readonly HashSet<Key> pressedKeys = new HashSet<Key>();
+
 	private void TextBoxOnPreviewKeyDown2(object sender, KeyEventArgs e)
 	{
 		var key = e.Key == Key.System ? e.SystemKey : e.Key;
-		switch(key)
-		{
-			case Key.Tab:
-			case Key.LeftShift:
-			case Key.RightShift:
-			case Key.LeftCtrl:
-			case Key.RightCtrl:
-			case Key.LeftAlt:
-			case Key.RightAlt:
-			case Key.RWin:
-			case Key.LWin:
-				return;
-		}
+		if(IsModifierOrTab(key))
+			return;
 
 		e.Handled = true;
+		pressedKeys.Add(key);
+		SetTaken(null, null);
 
 		var currentModifierKeys = GetCurrentModifierKeys();
 		if(currentModifierKeys == ModifierKeys.None && key == Key.Back)
@@ -172,6 +177,84 @@ public class HotKeyBox : TextBox
 			SetCurrentValue(HotKeyProperty, new HotKey(key, currentModifierKeys));
 
 		UpdateText();
+	}
+
+	/// <summary>
+	/// A combination registered with RegisterHotKey (by Volumey's blocking mode or another app) never reaches the box as a key press:
+	/// Windows sends it to its owner as a hotkey, and only the key's release arrives here. Then the box tells who has it
+	/// (<see cref="TakenMessage"/>), or takes it in shared mode, where Volumey's hook still sees a combination another app holds.
+	/// </summary>
+	private void OnPreviewKeyUp(object sender, KeyEventArgs e)
+	{
+		var key = e.Key == Key.System ? e.SystemKey : e.Key;
+		if(IsModifierOrTab(key) || pressedKeys.Remove(key))
+			return;
+		var combination = new HotKey(key, GetCurrentModifierKeys());
+		//the box's own hotkey (typed again), or a key held down before the box got focus that nobody holds
+		if(combination.Equals(HotKey))
+			return;
+		switch(AppServices.Current.Hotkeys.FindOwner(combination))
+		{
+			case HotkeyOwner.Volumey:
+				SetTaken(combination, "Hotkeys_TakenInVolumey");
+				break;
+			case HotkeyOwner.AnotherApp when DataProvider.SettingsProvider.Settings.Hotkeys.BlockInSystem:
+				SetTaken(combination, "Hotkeys_TakenByAnotherApp");
+				break;
+			case HotkeyOwner.AnotherApp:
+				SetCurrentValue(HotKeyProperty, combination);
+				UpdateText();
+				break;
+			default:
+				return;
+		}
+		e.Handled = true;
+	}
+
+	private static readonly DependencyPropertyKey TakenMessagePropertyKey
+		= DependencyProperty.RegisterReadOnly(nameof(TakenMessage), typeof(string), typeof(HotKeyBox), new PropertyMetadata(null));
+
+	public static readonly DependencyProperty TakenMessageProperty = TakenMessagePropertyKey.DependencyProperty;
+
+	/// <summary>
+	/// "Ctrl+K: Used by another app" after a combination someone else holds was typed (the template shows it under the box);
+	/// null otherwise. Cleared by the next key press.
+	/// </summary>
+	public string TakenMessage => (string)GetValue(TakenMessageProperty);
+
+	private HotKey takenHotkey;
+	private string takenKey;
+
+	private void SetTaken(HotKey hotkey, string messageKey)
+	{
+		if(takenKey == null && messageKey == null)
+			return;
+		takenHotkey = hotkey;
+		takenKey = messageKey;
+		UpdateTakenMessage();
+	}
+
+	private void UpdateTakenMessage()
+	{
+		string message = takenKey == null
+							 ? null
+							 : string.Format(TranslationSource.Instance["Error_RejectedHotkey"], takenHotkey, TranslationSource.Instance[takenKey]);
+		SetValue(TakenMessagePropertyKey, message);
+		//a text box doesn't expose its template's text to UI Automation, so screen readers (and the UI tests) get it as the box's help text
+		if(message == null)
+			ClearValue(AutomationProperties.HelpTextProperty);
+		else
+			AutomationProperties.SetHelpText(this, message);
+	}
+
+	//the message follows a language switch, like the rest of the settings; only while loaded, so the app-wide
+	//language source doesn't keep boxes of closed pages alive
+	private void OnLanguageChanged(object sender, PropertyChangedEventArgs e) => UpdateTakenMessage();
+
+	public HotKeyBox()
+	{
+		Loaded += (s, e) => TranslationSource.Instance.PropertyChanged += OnLanguageChanged;
+		Unloaded += (s, e) => TranslationSource.Instance.PropertyChanged -= OnLanguageChanged;
 	}
 
 	private static ModifierKeys GetCurrentModifierKeys()

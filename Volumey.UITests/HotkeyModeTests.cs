@@ -35,6 +35,22 @@ public class HotkeyModeTests : UiTest
 	}
 
 	[TestMethod]
+	public void InSharedModeAHotkeyAnotherAppHoldsCanBeTyped()
+	{
+		//the box only sees the key's release, but in shared mode Volumey's hook still gets the combination, so the box takes it
+		var combo = Combo.F(21);
+		StartApp(new JsonObject { ["Hotkeys"] = new JsonObject { ["BlockInSystem"] = false } });
+		Settings.Open("NavMixer", "OpenHotkeyBox");
+		using var held = combo.HoldInThisProcess();
+
+		Settings.TypeHotkey("OpenHotkeyBox", combo);
+		Settings.SetSwitch("OpenHotkeyToggle", true);
+
+		App.WaitForSettings(s => IsHotkey(s["Hotkeys"]?["OpenMixer"], combo), "the hotkey saved");
+		Assert.IsFalse(Settings.BoxSays(Settings.Find("OpenHotkeyBox"), TakenByAnotherApp, 500), "a message is shown in shared mode");
+	}
+
+	[TestMethod]
 	public void InSharedModeAHotkeyAnotherAppHoldsStillWorks()
 	{
 		//a hook can't be refused: another app's RegisterHotKey on the same keys doesn't stop it from being saved

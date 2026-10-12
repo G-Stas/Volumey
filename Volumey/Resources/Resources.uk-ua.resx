@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>Відкривається там, де ви його залишили. Вимк.: біля області сповіщень.</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Уже використовується у Volumey</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>Використовується іншою програмою</value>
+  </data>
 </root>

@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>Öffnet sich dort, wo Sie ihn verlassen haben. Aus: neben dem Infobereich.</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Wird bereits in Volumey verwendet</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>Wird von einer anderen App verwendet</value>
+  </data>
 </root>

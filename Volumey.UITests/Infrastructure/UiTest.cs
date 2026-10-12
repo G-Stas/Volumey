@@ -9,6 +9,9 @@ public abstract class UiTest
 {
 	protected const string ErrorFailedToRegister = "Failed to register hotkey";
 	protected const string ErrorExists = "Hotkey has already been added";
+	//under a hotkey box after a combination someone else holds was typed (blocking mode)
+	protected const string TakenInVolumey = "Already used in Volumey";
+	protected const string TakenByAnotherApp = "Used by another app";
 	protected const string ErrorF12 = "F12 is reserved by the OS";
 	protected const string ErrorDiffer = "Set different hotkeys";
 

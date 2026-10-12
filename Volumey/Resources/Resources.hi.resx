@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>जहाँ छोड़ा था वहीं खुलता है। बंद: ट्रे के पास।</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Volumey में पहले से उपयोग में है</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>किसी अन्य ऐप द्वारा उपयोग में है</value>
+  </data>
 </root>

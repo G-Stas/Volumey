@@ -54,52 +54,64 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="controls:HotKeyBox">
-                    <Grid>
-                        <Border x:Name="ContentBorder"
-                                MinHeight="{TemplateBinding MinHeight}"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="{TemplateBinding Border.CornerRadius}">
-                            <Grid Margin="6 0">
-                                <ScrollViewer x:Name="PART_ContentHost" Opacity="0" IsHitTestVisible="False" Focusable="False" />
-                                <!-- a placeholder longer than the box (some translations) gets smaller instead of cut off -->
-                                <Viewbox x:Name="Placeholder"
-                                         Margin="4 0 0 0"
-                                         HorizontalAlignment="Left"
-                                         VerticalAlignment="Center"
-                                         Stretch="Uniform"
-                                         StretchDirection="DownOnly"
-                                         Visibility="Collapsed">
-                                    <TextBlock Text="{TemplateBinding PlaceholderText}"
-                                               TextWrapping="NoWrap"
-                                               Foreground="{DynamicResource TextControlPlaceholderForeground}" />
-                                </Viewbox>
-                                <ItemsControl ItemsSource="{TemplateBinding KeyNames}" VerticalAlignment="Center" Focusable="False">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Style="{StaticResource KeyCap}">
-                                                <!-- the box's Foreground set locally: WPF-UI's TextBlock style switches a disabled
-                                                     TextBlock to its disabled color itself, which ignored the box's -->
-                                                <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap"
-                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=controls:HotKeyBox}}" />
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </Grid>
-                        </Border>
-                        <Border x:Name="AccentBorder"
-                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                BorderThickness="0 0 0 1"
-                                CornerRadius="{TemplateBinding Border.CornerRadius}" />
-                    </Grid>
+                    <!-- the box, and under it the message for a combination someone else holds (HotKeyBox.TakenMessage), styled like SettingError -->
+                    <StackPanel>
+                        <Grid>
+                            <Border x:Name="ContentBorder"
+                                    MinHeight="{TemplateBinding MinHeight}"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{TemplateBinding Border.CornerRadius}">
+                                <Grid Margin="6 0">
+                                    <ScrollViewer x:Name="PART_ContentHost" Opacity="0" IsHitTestVisible="False" Focusable="False" />
+                                    <!-- a placeholder longer than the box (some translations) gets smaller instead of cut off -->
+                                    <Viewbox x:Name="Placeholder"
+                                             Margin="4 0 0 0"
+                                             HorizontalAlignment="Left"
+                                             VerticalAlignment="Center"
+                                             Stretch="Uniform"
+                                             StretchDirection="DownOnly"
+                                             Visibility="Collapsed">
+                                        <TextBlock Text="{TemplateBinding PlaceholderText}"
+                                                   TextWrapping="NoWrap"
+                                                   Foreground="{DynamicResource TextControlPlaceholderForeground}" />
+                                    </Viewbox>
+                                    <ItemsControl ItemsSource="{TemplateBinding KeyNames}" VerticalAlignment="Center" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource KeyCap}">
+                                                    <!-- the box's Foreground set locally: WPF-UI's TextBlock style switches a disabled
+                                                         TextBlock to its disabled color itself, which ignored the box's -->
+                                                    <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap"
+                                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=controls:HotKeyBox}}" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="AccentBorder"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="0 0 0 1"
+                                    CornerRadius="{TemplateBinding Border.CornerRadius}" />
+                        </Grid>
+                        <TextBlock x:Name="TakenMessage"
+                                   Margin="0 4 0 0"
+                                   Text="{TemplateBinding TakenMessage}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                    </StackPanel>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="TakenMessage" Value="{x:Null}">
+                            <Setter TargetName="TakenMessage" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
                         <Trigger Property="Text" Value="">
                             <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
                         </Trigger>

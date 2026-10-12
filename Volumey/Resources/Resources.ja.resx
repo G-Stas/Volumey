@@ -571,4 +571,10 @@
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
     <value>最後に置いた場所に開きます。オフの場合は通知領域の横に開きます。</value>
   </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Volumey で既に使用されています</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>別のアプリで使用されています</value>
+  </data>
 </root>

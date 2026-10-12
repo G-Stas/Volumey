@@ -31,6 +31,11 @@ public interface IHotkeyService : IDisposable
 	/// </summary>
 	bool IsEditingHotkey { get; set; }
 
+	/// <summary>
+	/// Who holds a combination that Windows delivered as a hotkey instead of as keys (see <see cref="HotkeyService.FindOwner"/>)
+	/// </summary>
+	HotkeyOwner FindOwner(HotKey hotkey);
+
 	int VolumeStep { get; }
 
 	void SetVolumeStep(int newValue);
