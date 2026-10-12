@@ -50,6 +50,18 @@ public class LocalizationTests
 	}
 
 	[TestMethod]
+	public void TheLanguageListShowsLanguagesWithoutCountries()
+	{
+		foreach(string language in TranslationSource.Languages)
+		{
+			Assert.IsFalse(language.Contains('('), $"{language} names a country");
+			//the language picker selects the current language by this name
+			TranslationSource.SetLanguage(language);
+			Assert.AreEqual(language, TranslationSource.CurrentLanguageName);
+		}
+	}
+
+	[TestMethod]
 	public void SystemLanguageSelectsTheMatchingTranslation()
 	{
 		//the system language is the parent culture of the UI culture, e.g. "uk" or "zh-Hans"

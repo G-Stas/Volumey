@@ -32,6 +32,6 @@ public class LangSettings : ObservableObject
 	{
 		try { TranslationSource.SetLanguage(new CultureInfo(SettingsProvider.Settings.General.Language ?? TranslationSource.GetSystemLanguage())); }
 		catch { TranslationSource.SetDefaultLanguage(); }
-		finally { SelectedLanguage = TranslationSource.Instance.CurrentCulture.NativeName; }
+		finally { SelectedLanguage = TranslationSource.CurrentLanguageName; }
 	}
 }
