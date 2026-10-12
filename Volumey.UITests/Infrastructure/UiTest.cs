@@ -29,6 +29,11 @@ public abstract class UiTest
 		Settings = App.OpenSettings();
 	}
 
+	/// <summary>
+	/// Starts the app with only its mixer shown (no settings window)
+	/// </summary>
+	internal void StartMixer(JsonObject? settings = null) => App = VolumeyApp.Start(settings);
+
 	/// <summary>Disposed after the test, in reverse order</summary>
 	internal T Later<T>(T disposable) where T : IDisposable
 	{

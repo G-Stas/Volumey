@@ -48,16 +48,31 @@ internal static class Audio
 	/// <summary>
 	/// The volume (0–100) of a process's session on the default device, or null if it has none
 	/// </summary>
-	public static int? SessionVolume(int processId) => WithDefaultDevice(d =>
+	public static int? SessionVolume(int processId) => WithSession(processId, s => (int?)Math.Round(s.SimpleAudioVolume.Volume * 100));
+
+	/// <summary>Whether a process's session on the default device is muted, or null if it has none</summary>
+	public static bool? SessionMuted(int processId) => WithSession(processId, s => (bool?)s.SimpleAudioVolume.Mute);
+
+	/// <summary>
+	/// Changes a process's session volume (0–100) from outside the app, like the Windows volume mixer does
+	/// </summary>
+	public static void SetSessionVolume(int processId, int volume)
+		=> WithSession(processId, s =>
+		{
+			s.SimpleAudioVolume.Volume = volume / 100f;
+			return (bool?)true;
+		});
+
+	private static T? WithSession<T>(int processId, Func<AudioSessionControl, T?> read) => WithDefaultDevice(d =>
 	{
 		var sessions = d.AudioSessionManager.Sessions;
 		for(int i = 0; i < sessions.Count; i++)
 		{
 			using var session = sessions[i];
 			if(session.GetProcessID == processId)
-				return (int?)Math.Round(session.SimpleAudioVolume.Volume * 100);
+				return read(session);
 		}
-		return null;
+		return default;
 	});
 
 	/// <summary>
