@@ -29,6 +29,33 @@ public class AppTests
 		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new System.InvalidOperationException()));
 	}
 
+	private sealed class CompositionException : System.Runtime.InteropServices.COMException
+	{
+		private readonly string stackTrace;
+
+		public CompositionException(int hresult, string stackTrace) : base("composition", hresult) => this.stackTrace = stackTrace;
+
+		public override string StackTrace => stackTrace;
+	}
+
+	//the stack of the 1.5.4 crash in Loggly
+	private const string WindowChromeStack = "   at Standard.NativeMethods.DwmExtendFrameIntoClientArea(IntPtr hwnd, MARGINS& pMarInset)\n" +
+											 "   at System.Windows.Shell.WindowChromeWorker._ExtendGlassFrame()\n" +
+											 "   at System.Windows.Shell.WindowChromeWorker._HandleDwmCompositionChanged(WM uMsg, IntPtr wParam, IntPtr lParam, Boolean& handled)";
+
+	[TestMethod]
+	public void OnlyTheWindowChromeCompositionFailureIsIgnored()
+	{
+		const int compositionDisabled = unchecked((int)0x80263001);
+		Assert.IsTrue(App.IsCompositionChangeFailure(new CompositionException(compositionDisabled, WindowChromeStack)));
+
+		//other errors, or the same error elsewhere, still crash the app as before
+		Assert.IsFalse(App.IsCompositionChangeFailure(new CompositionException(unchecked((int)0x80004005), WindowChromeStack)));
+		Assert.IsFalse(App.IsCompositionChangeFailure(new CompositionException(compositionDisabled, "   at Volumey.Helper.NativeMethods.Something()")));
+		Assert.IsFalse(App.IsCompositionChangeFailure(new WindowUpdateException(1816, WpfStack)));
+		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new CompositionException(compositionDisabled, WindowChromeStack)));
+	}
+
 	[TestMethod]
 	public void IgnoredFailuresAreReportedAtMostOncePerInterval()
 	{
