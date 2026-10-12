@@ -46,6 +46,7 @@
          as key caps (owner's choice); the template follows WPF-UI's TextBox template (its brushes, the accent line at the bottom
          when focused). The text itself stays in the hidden content host: the box still works as a TextBox and screen readers read it. -->
     <Style TargetType="controls:HotKeyBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+        <!-- a wider box squeezes the setting's title next to it (French), so a long placeholder gets smaller instead -->
         <Setter Property="Width" Value="180" />
         <Setter Property="Cursor" Value="Arrow" />
         <Setter Property="PlaceholderText" Value="{lc:Localization HotkeyBox_Placeholder}" />
@@ -61,14 +62,18 @@
                                 CornerRadius="{TemplateBinding Border.CornerRadius}">
                             <Grid Margin="6 0">
                                 <ScrollViewer x:Name="PART_ContentHost" Opacity="0" IsHitTestVisible="False" Focusable="False" />
-                                <TextBlock x:Name="Placeholder"
-                                           Text="{TemplateBinding PlaceholderText}"
-                                           Margin="4 0 0 0"
-                                           VerticalAlignment="Center"
-                                           TextWrapping="NoWrap"
-                                           TextTrimming="CharacterEllipsis"
-                                           Foreground="{DynamicResource TextControlPlaceholderForeground}"
-                                           Visibility="Collapsed" />
+                                <!-- a placeholder longer than the box (some translations) gets smaller instead of cut off -->
+                                <Viewbox x:Name="Placeholder"
+                                         Margin="4 0 0 0"
+                                         HorizontalAlignment="Left"
+                                         VerticalAlignment="Center"
+                                         Stretch="Uniform"
+                                         StretchDirection="DownOnly"
+                                         Visibility="Collapsed">
+                                    <TextBlock Text="{TemplateBinding PlaceholderText}"
+                                               TextWrapping="NoWrap"
+                                               Foreground="{DynamicResource TextControlPlaceholderForeground}" />
+                                </Viewbox>
                                 <ItemsControl ItemsSource="{TemplateBinding KeyNames}" VerticalAlignment="Center" Focusable="False">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
