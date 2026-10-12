@@ -59,10 +59,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
-    <value>サウンドコントロールパネル</value>
+    <value>サウンド コントロール パネル</value>
   </data>
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
-    <value>サウンド設定</value>
+    <value>サウンドの設定</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>終了</value>
@@ -74,45 +74,498 @@
     <value>別のホットキーを設定してください</value>
   </data>
   <data name="Error_VolumeReg" xml:space="preserve">
-    <value>ホットキーの登録に失敗しました</value>
+    <value>ホットキーを登録できませんでした</value>
   </data>
   <data name="Error_OpenReg" xml:space="preserve">
-    <value>ホットキーの登録に失敗しました</value>
+    <value>ホットキーを登録できませんでした</value>
   </data>
   <data name="Notification_Yes" xml:space="preserve">
-    <value>はい</value>
+    <value>OK</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>後で</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>アップデートが利用可能です。 アプリを更新しますか？</value>
+    <value>更新プログラムを利用できます。アプリを更新しますか？</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
-    <value>出力デバイスが検出されません</value>
+    <value>出力デバイスが見つかりません</value>
   </data>
   <data name="Error_F12" xml:space="preserve">
-    <value>F12はオペレーティングシステムによって予約されています</value>
+    <value>F12 は OS で予約されています</value>
   </data>
   <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>ホットキーはすでに追加されています</value>
+    <value>このホットキーは既に追加されています</value>
   </data>
   <data name="Status_Muted" xml:space="preserve">
     <value>ミュート</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
-    <value>水平インデント</value>
+    <value>水平方向の間隔</value>
   </data>
   <data name="Notifications_Position" xml:space="preserve">
-    <value>ポジション</value>
+    <value>位置</value>
   </data>
   <data name="Notifications_Preview" xml:space="preserve">
-    <value>通知例を表示</value>
+    <value>通知の例を表示</value>
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
-    <value>垂直インデント</value>
+    <value>垂直方向の間隔</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
-    <value>すべてのボリューム変更時に表示</value>
+    <value>音量が変わるたびに表示</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>出力デバイス</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>アプリ</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Volumey の設定</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>既定のデバイスに設定</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Volumey の設定</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>全般</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>音量ミキサー</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>アプリのホットキー</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>デバイス</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>メディア キー</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>バージョン情報</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>ソース コード</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>プロジェクトを支援</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>このページはまだ新しいデザインになっていません。</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>言語、テーマ、スタートアップ、ホットキー。</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>システム設定を使用</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>通知領域に既定のデバイスのアイコンを表示</value>
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value>Volumey のアイコンの代わりに表示します</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>スタートアップ</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>Windows の起動時に開始</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>サインイン時に通知領域で起動します</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>スタート メニューに表示</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>ホットキー</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>Volumey のホットキーを押したとき</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>キーを Volumey だけが使う</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>他のアプリにはキーが届きません。管理者として実行中のアプリにフォーカスがあっても動作します。</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>他のアプリにもキーを渡す</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>同じキーを使うゲーム向けです。管理者として実行中のアプリにフォーカスがある間は動作しません。</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>音量の変化量</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>ホットキーを 1 回押すごと</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>オン</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>オフ</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>{0} をミュート</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>{0} のミュートを解除</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>ミキサーを開く</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>ミキサーの開き方と表示内容。</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>ミキサーを開く</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>ミキサーを開くホットキー</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>もう一度押すと閉じます</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>ポップアップ モード</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>通知領域の上に開き、外側をクリックすると隠れます。オフの場合は通常のウィンドウです。</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>常に手前に表示</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>ディスプレイ</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>（メイン）</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>デバイスを下部に表示</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>アプリの音量</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>最大音量で始まるアプリの音量を下げる</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>代わりにこの音量で始まります</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>アプリの音量をデバイスと同期</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>デバイスの音量を変えると、すべてのアプリがその音量になります</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>ホットキーを設定してください</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>どこからでもアプリの音量を変更できます。</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>前面のアプリ</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>フォーカスがあるアプリを操作</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>音量を上げる</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>音量を下げる</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>アプリ</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>アプリを追加</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>アプリはまだありません。</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>{0} の音量を上げる</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>{0} の音量を下げる</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>{0} を削除</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>アプリの追加</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>アプリ</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>既定のデバイスで再生中のアプリ</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>既定のデバイスで再生中のアプリは他にありません。</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>他のアプリにはこれらのキーが届きません。[全般] で変更できます。</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>他のアプリにもこれらのキーが届きます。管理者として実行中のアプリにフォーカスがある間、ホットキーは動作しません。</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>[全般] を開く</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>アプリには両方のホットキーが必要です</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>デバイスのホットキーと設定。</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>音量のホットキー</value>
+  </data>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>現在の既定のデバイスが対象です</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>音量を上げる/下げる</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>ミュート/ミュート解除</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>0 にする代わりにミュートする</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>Windows が 0 でリセットするバランスを保持します</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>お使いのデバイス</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>デバイス</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>既定に設定</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>既定のデバイスにするホットキー</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>オーディオ機能</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>形式</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>ビット深度とサンプル レート</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>形式を変更できませんでした</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} ビット、{1} Hz</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>この設定を変更できませんでした</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>アプリによる排他制御を許可する</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>アプリがデバイスを単独で使用できます</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>排他モードのアプリを優先する</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>他のアプリの再生中でもデバイスを使用できます</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>バランス</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>再生、一時停止、スキップ用の独自のホットキー。</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>ホットキー</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>再生/一時停止</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>前のトラック</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>次のトラック</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>{0} のホットキーをクリア</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>キーの組み合わせを押してください</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>音量の変化を画面に表示します。</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>オンスクリーン表示</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>Volumey のホットキーで変更したとき</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>すべての音量変更に反応</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>他のアプリや Windows による変更も含みます</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>表示位置</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>左上</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>上部中央</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>右上</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>左下</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>下部中央</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>右下</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>端からの距離</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>拡大率 100% 時のピクセル数</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>水平</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>垂直</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>表示時間</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 秒</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>画面に表示</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>バージョン {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>GitHub リリース</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>開発ビルド</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>更新プログラムのチェック</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>更新プログラムを確認しています…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>最新バージョンです</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>Microsoft Store で更新プログラムを利用できます</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>更新プログラムを確認できませんでした</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>リンク</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>問題の報告または機能の提案</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub Issues</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>アプリケーション</value>
   </data>
 </root>

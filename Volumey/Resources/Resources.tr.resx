@@ -62,19 +62,19 @@
     <value>Farklı kısayol tuşları ayarlayın</value>
   </data>
   <data name="Error_F12" xml:space="preserve">
-    <value>İşletim sistemi tarafından ayrılmış F12</value>
+    <value>F12 işletim sistemi tarafından ayrılmıştır</value>
   </data>
   <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>Kısayol tuşu zaten eklendi</value>
+    <value>Bu kısayol tuşu zaten eklendi</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
     <value>Çıkış aygıtı algılanmadı</value>
   </data>
   <data name="Error_OpenReg" xml:space="preserve">
-    <value>Kısayol tuşu etkinleştirilemedi</value>
+    <value>Kısayol tuşu kaydedilemedi</value>
   </data>
   <data name="Error_VolumeReg" xml:space="preserve">
-    <value>Kısayol tuşları etkinleştirilemedi</value>
+    <value>Kısayol tuşları kaydedilemedi</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>Daha sonra</value>
@@ -83,7 +83,7 @@
     <value>Tamam</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>Bir güncelleme mevcut. Uygulamayı güncellemek istiyor musunuz?</value>
+    <value>Bir güncelleştirme var. Uygulamayı güncelleştirmek istiyor musunuz?</value>
   </data>
   <data name="TabHeader_Settings" xml:space="preserve">
     <value>Ayarlar</value>
@@ -92,27 +92,480 @@
     <value>çıkış</value>
   </data>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
-    <value>Ses kontrol paneli</value>
+    <value>Ses Denetim Masası</value>
   </data>
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
     <value>Ses ayarları</value>
   </data>
   <data name="Status_Muted" xml:space="preserve">
-    <value>Susturuldu</value>
+    <value>Sessiz</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
-    <value>Yatay girinti</value>
+    <value>Yatay uzaklık</value>
   </data>
   <data name="Notifications_Position" xml:space="preserve">
     <value>Konum</value>
   </data>
   <data name="Notifications_Preview" xml:space="preserve">
-    <value>Bildirim örneğini göster</value>
+    <value>Örnek bildirim göster</value>
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
-    <value>Dikey girinti</value>
+    <value>Dikey uzaklık</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
-    <value>Tüm ses seviyesi değişikliklerinde göster</value>
+    <value>Her ses düzeyi değişikliğinde göster</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>Çıkış aygıtı</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>Uygulamalar</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Volumey ayarları</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>Bunu varsayılan aygıt yap</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Volumey ayarları</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>Genel</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>Ses karıştırıcı</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>Uygulama kısayolları</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>Aygıtlar</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>Medya tuşları</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>Bildirimler</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>Hakkında</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>Kaynak kodu</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>Projeyi destekleyin</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>Bu sayfa henüz yeniden tasarlanmadı.</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>Dil, tema, başlangıç ve kısayol tuşları.</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>Görünüm</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>Dil</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>Tema</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Açık</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Koyu</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>Sistem ayarını kullan</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>Tepside varsayılan aygıtın simgesini göster</value>
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value>Volumey simgesi yerine</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>Başlangıç</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>Windows ile başlat</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>Oturum açtığınızda tepside başlar</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>Başlat menüsünde göster</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>Kısayol tuşları</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>Bir Volumey kısayol tuşuna bastığınızda</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>Tuşlar yalnızca Volumey'ye gitsin</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>Diğer uygulamalar bu tuşları almaz. Yönetici olarak çalışan bir uygulama odaktayken de çalışır.</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>Diğer uygulamalar da tuşları alsın</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>Aynı tuşları kullanan oyunlar için. Yönetici olarak çalışan bir uygulama odaktayken çalışmaz.</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>Ses düzeyi adımı</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>Kısayol tuşuna her basışta</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>Açık</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>Kapalı</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>Sesi kapat: {0}</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>Sesi aç: {0}</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>Karıştırıcıyı aç</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>Karıştırıcının nasıl açılacağı ve neler göstereceği.</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>Karıştırıcıyı açma</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>Karıştırıcıyı açma kısayol tuşu</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>Kapatmak için yeniden basın</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>Açılır pencere modu</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>Tepsinin üzerinde açılır ve başka bir yere tıkladığınızda gizlenir. Kapalı: normal pencere.</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>Her zaman üstte</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>Ekran</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>(ana)</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>Düzen</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>Aygıtı altta göster</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>Uygulama ses düzeyleri</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>Tam seste başlayan uygulamaların sesini kıs</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>Bunun yerine bu ses düzeyinde başlarlar</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>Uygulama ses düzeylerini aygıtla eşitle</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>Aygıtın ses düzeyini değiştirmek tüm uygulamaları aynı düzeye getirir</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>Bir kısayol tuşu ayarlayın</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>Bir uygulamanın ses düzeyini her yerden değiştirin.</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>Ön plandaki uygulama</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>Odaktaki uygulamayı denetle</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>Sesi artır</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>Sesi azalt</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>Uygulamalar</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>Uygulama ekle</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>Henüz uygulama yok.</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>{0}: sesi artır</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>{0}: sesi azalt</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>Kaldır: {0}</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>Uygulama ekle</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>Uygulama</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>Varsayılan aygıtta ses çalan uygulamalar</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>Varsayılan aygıtta ses çalan başka uygulama yok.</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>Ekle</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>İptal</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>Diğer uygulamalar bu tuşları almaz. Bunu Genel bölümünden değiştirebilirsiniz.</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>Diğer uygulamalar da bu tuşları alır. Yönetici olarak çalışan bir uygulama odaktayken kısayol tuşları çalışmaz.</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>Genel'i aç</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>Bir uygulama için iki kısayol tuşu da gerekir</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>Aygıtlarınız için kısayol tuşları ve ayarlar.</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>Ses düzeyi kısayol tuşları</value>
+  </data>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>Geçerli varsayılan aygıt için</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>Sesi artır ve azalt</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>Sesi kapat ve aç</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>0'a indirmek yerine sesi kapat</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>Windows'un 0'da sıfırladığı ses dengesini korur</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>Aygıtlarınız</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>Aygıt</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>Varsayılan</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>Bağlı değil</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>Varsayılan olarak ayarla</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>Bunu varsayılan aygıt yapma kısayol tuşu</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>Ses özellikleri</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>Biçim</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>Bit derinliği ve örnekleme hızı</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>Biçim değiştirilemedi</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} bit, {1} Hz</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>Bu ayar değiştirilemedi</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>Uygulamaların özel denetim almasına izin ver</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>Bir uygulama aygıtı tek başına kullanabilir</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>Bu uygulamalara öncelik ver</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>Diğerleri ses çalarken aygıtı alabilirler</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>Denge</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>Sol</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>Sağ</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>Oynatma, duraklatma ve atlama için kendi kısayol tuşlarınız.</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>Kısayol tuşları</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>Oynat / duraklat</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>Önceki parça</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>Sonraki parça</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>Durdur</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>Kısayol tuşunu temizle: {0}</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>Bir tuş bileşimine basın</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>Ses düzeyi değişikliklerini ekranda gösterin.</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>Ekran göstergesi</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>Volumey kısayol tuşlarıyla yapılan değişiklikler için</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>Tüm ses düzeyi değişikliklerinde göster</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>Diğer uygulamalardan ve Windows'tan gelen değişiklikler de</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>Konum</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>Köşe</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>Sol üst</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>Üst orta</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>Sağ üst</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>Sol alt</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>Alt orta</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>Sağ alt</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>Kenarlara uzaklık</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>%100 ölçekte piksel cinsinden</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>Yatay</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>Dikey</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>Gösterim süresi</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 saniye</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} saniye</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>Önizleme</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>Ekranda göster</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Sürüm {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>GitHub sürümü</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>Geliştirme derlemesi</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>Güncelleştirmeleri denetle</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>Güncelleştirmeler denetleniyor…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>En son sürümü kullanıyorsunuz</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>Microsoft Store'da bir güncelleştirme var</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>Güncelleştirmeler denetlenemedi</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>Bağlantılar</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>Sorun bildirin veya özellik önerin</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub issues</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>Uygulama</value>
   </data>
 </root>

@@ -62,57 +62,510 @@
     <value>Параметри звуку</value>
   </data>
     <data name="TrayMenu_SoundPanel" xml:space="preserve">
-    <value>Панель керуванням звуку</value>
+    <value>Панель керування звуком</value>
   </data>
     <data name="TrayMenu_Exit" xml:space="preserve">
-    <value>Вихід</value>
+    <value>Вийти</value>
   </data>
     <data name="TabHeader_Settings" xml:space="preserve">
-    <value>Налаштування</value>
+    <value>Параметри</value>
   </data>
     <data name="Error_Diff" xml:space="preserve">
-    <value>Встановіть різні гарячі клавіші</value>
+    <value>Задайте різні сполучення клавіш</value>
   </data>
     <data name="Error_VolumeReg" xml:space="preserve">
-    <value>Не вдалося зареєструвати гарячі клавіші</value>
+    <value>Не вдалося зареєструвати сполучення клавіш</value>
   </data>
     <data name="Error_OpenReg" xml:space="preserve">
-    <value>Не вдалося зареєструвати гарячу клавішу</value>
+    <value>Не вдалося зареєструвати сполучення клавіш</value>
   </data>
     <data name="Notification_Yes" xml:space="preserve">
-    <value>Ок</value>
+    <value>OK</value>
   </data>
     <data name="Notification_Later" xml:space="preserve">
     <value>Пізніше</value>
   </data>
     <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>Доступне оновлення. Ви хочете оновити програму?</value>
+    <value>Доступне оновлення. Оновити програму?</value>
   </data>
     <data name="Error_NoDevice" xml:space="preserve">
-    <value>Пристрій виводу не виявлено</value>
+    <value>Пристрій виведення не виявлено</value>
   </data>
     <data name="Error_F12" xml:space="preserve">
-    <value>F12 зарезервований ОС</value>
+    <value>Клавішу F12 зарезервовано системою</value>
   </data>
     <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>Гаряча клавіша уже додана</value>
+    <value>Це сполучення клавіш уже додано</value>
   </data>
     <data name="Status_Muted" xml:space="preserve">
-    <value>Заглушений</value>
+    <value>Звук вимкнено</value>
   </data>
     <data name="Notifications_Horizontal" xml:space="preserve">
-    <value>Горизонтальний відступ</value>
+    <value>Відступ по горизонталі</value>
   </data>
     <data name="Notifications_Position" xml:space="preserve">
-    <value>Положення</value>
+    <value>Розташування</value>
   </data>
     <data name="Notifications_Preview" xml:space="preserve">
-    <value>Показати приклад повідомлення</value>
+    <value>Показати приклад сповіщення</value>
   </data>
     <data name="Notifications_Vertical" xml:space="preserve">
-    <value>Вертикальний відступ</value>
+    <value>Відступ по вертикалі</value>
   </data>
     <data name="Notifications_ReactAll" xml:space="preserve">
-    <value>Відображати за будь-яких змін звуку</value>
+    <value>Показувати за будь-якої зміни гучності</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>Пристрій виведення</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>Програми</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Параметри Volumey</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>Зробити пристроєм за замовчуванням</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Параметри Volumey</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>Загальні</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>Мікшер гучності</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>Клавіші програм</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>Пристрої</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>Мультимедійні клавіші</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>Сповіщення</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>Про програму</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>Вихідний код</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>Підтримати проєкт</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>Цю сторінку ще не оновлено.</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>Мова, тема, запуск і сполучення клавіш.</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>Вигляд</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>Мова</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Світла</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Темна</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>Використовувати системний параметр</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>Показувати в області сповіщень значок пристрою за замовчуванням</value>
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value>Замість значка Volumey</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>Запуск</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>Запускати разом із Windows</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>Запускається в області сповіщень під час входу</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>Показувати в меню "Пуск"</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>Сполучення клавіш</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>Коли ви натискаєте сполучення клавіш Volumey</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>Залишати клавіші лише для Volumey</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>Інші програми не отримують ці клавіші. Працює, навіть коли у фокусі програма адміністратора.</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>Передавати клавіші й іншим програмам</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>Для ігор, які використовують ті самі клавіші. Не працює, коли у фокусі програма адміністратора.</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>Крок гучності</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>За одне натискання</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>Увімк.</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>Вимк.</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>Вимкнути звук: {0}</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>Увімкнути звук: {0}</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>Відкрити мікшер</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>Як відкривається мікшер і що в ньому показано.</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>Відкриття мікшера</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>Сполучення клавіш для відкриття мікшера</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>Натисніть ще раз, щоб закрити</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>Спливний режим</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>Відкривається над областю сповіщень і ховається, якщо клацнути деінде. Вимк.: звичайне вікно.</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>Поверх інших вікон</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>Екран</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>(основний)</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>Макет</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>Показувати пристрій унизу</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>Гучність програм</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>Зменшувати гучність програм, що запускаються на повну</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>Натомість вони запускатимуться з цією гучністю</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>Синхронізувати гучність програм із пристроєм</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>Зміна гучності пристрою встановлює її для всіх програм</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>Задайте сполучення клавіш</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>Змінюйте гучність програми звідусіль.</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>Активна програма</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>Керувати програмою у фокусі</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>Збільшити гучність</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>Зменшити гучність</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>Програми</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>Додати програму</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>Програм ще немає.</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>Видалити</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>{0}: збільшити гучність</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>{0}: зменшити гучність</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>Видалити: {0}</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>Додати програму</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>Програма</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>Програми, що відтворюють звук на пристрої за замовчуванням</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>Інші програми не відтворюють звук на пристрої за замовчуванням.</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>Додати</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>Скасувати</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>Інші програми не отримують ці клавіші. Це можна змінити в розділі "Загальні".</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>Інші програми теж отримують ці клавіші. Сполучення клавіш не працюють, коли у фокусі програма адміністратора.</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>Відкрити "Загальні"</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>Програмі потрібні обидва сполучення клавіш</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>Сполучення клавіш і параметри ваших пристроїв.</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>Клавіші гучності</value>
+  </data>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>Для поточного пристрою за замовчуванням</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>Збільшення та зменшення гучності</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>Вимкнення та ввімкнення звуку</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>Вимикати звук замість зменшення до 0</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>Зберігає баланс, який Windows скидає на 0</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>Ваші пристрої</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>Пристрій</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>За замовчуванням</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>Не підключено</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>Установити за замовчуванням</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>Сполучення клавіш, щоб зробити цей пристрій пристроєм за замовчуванням</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>Аудіофункції</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>Розрядність і частота дискретизації</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>Не вдалося змінити формат</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} біт, {1} Гц</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>Не вдалося змінити цей параметр</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>Дозволити програмам монопольне керування</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>Програма може використовувати пристрій одна</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>Надати цим програмам пріоритет</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>Вони можуть захопити пристрій, поки інші відтворюють звук</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>Баланс</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>Лівий</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>Правий</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>Власні сполучення клавіш для відтворення, паузи й перемикання треків.</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>Сполучення клавіш</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>Відтворення / пауза</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>Попередній трек</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>Наступний трек</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>Зупинити</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>Очистити сполучення клавіш: {0}</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>Натисніть сполучення клавіш</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>Показувати зміни гучності на екрані.</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>Екранний індикатор</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>Для змін, зроблених сполученнями клавіш Volumey</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>Реагувати на всі зміни гучності</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>Також на зміни з інших програм і Windows</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>Розташування</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>Кут</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>Угорі ліворуч</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>Угорі по центру</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>Угорі праворуч</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>Унизу ліворуч</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>Унизу по центру</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>Унизу праворуч</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>Відстань від країв</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>У пікселях за масштабу 100%</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>По горизонталі</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>По вертикалі</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>Тривалість показу</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 секунда</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>Попередній перегляд</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>Показати на екрані</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Версія {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>Випуск на GitHub</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>Збірка для розробки</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>Перевірити наявність оновлень</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>Перевірка наявності оновлень…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>У вас остання версія</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>У Microsoft Store доступне оновлення</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>Не вдалося перевірити наявність оновлень</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>Посилання</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>Повідомити про проблему або запропонувати функцію</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub Issues</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>Програма</value>
   </data>
 </root>

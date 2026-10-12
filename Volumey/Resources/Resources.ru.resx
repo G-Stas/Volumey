@@ -68,16 +68,16 @@
     <value>Выход</value>
   </data>
   <data name="TabHeader_Settings" xml:space="preserve">
-    <value>Настройки</value>
+    <value>Параметры</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
-    <value>Установите разные хоткеи</value>
+    <value>Задайте разные сочетания клавиш</value>
   </data>
   <data name="Error_VolumeReg" xml:space="preserve">
-    <value>Не удалось зарегистрировать хоткеи</value>
+    <value>Не удалось зарегистрировать сочетания клавиш</value>
   </data>
   <data name="Error_OpenReg" xml:space="preserve">
-    <value>Не удалось зарегистрировать хоткей</value>
+    <value>Не удалось зарегистрировать сочетание клавиш</value>
   </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>Ок</value>
@@ -86,22 +86,22 @@
     <value>Позже</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>Доступно обновление. Вы хотите обновить приложение?</value>
+    <value>Доступно обновление. Обновить приложение?</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
     <value>Устройство вывода не обнаружено</value>
   </data>
   <data name="Error_F12" xml:space="preserve">
-    <value>F12 зарезервирован ОС</value>
+    <value>Клавиша F12 зарезервирована системой</value>
   </data>
   <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>Хоткей уже добавлен</value>
+    <value>Это сочетание клавиш уже добавлено</value>
   </data>
   <data name="Status_Muted" xml:space="preserve">
-    <value>Заглушен</value>
+    <value>Звук отключен</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
-    <value>Горизонтальный отступ</value>
+    <value>Отступ по горизонтали</value>
   </data>
   <data name="Notifications_Position" xml:space="preserve">
     <value>Расположение</value>
@@ -110,9 +110,462 @@
     <value>Показать пример уведомления</value>
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
-    <value>Вертикальный отступ</value>
+    <value>Отступ по вертикали</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
-    <value>Отображать при любых изменениях звука</value>
+    <value>Показывать при любом изменении громкости</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>Устройство вывода</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>Приложения</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Параметры Volumey</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>Сделать устройством по умолчанию</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Параметры Volumey</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>Общие</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>Микшер громкости</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>Клавиши приложений</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>Устройства</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>Клавиши мультимедиа</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>О программе</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>Исходный код</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>Поддержать проект</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>Эта страница ещё не обновлена.</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>Язык, тема, автозагрузка и сочетания клавиш.</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>Оформление</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Темная</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>Как в системе</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>Значок устройства по умолчанию в области уведомлений</value>
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value>Вместо значка Volumey</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>Автозагрузка</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>Запускать вместе с Windows</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>Запускается в области уведомлений при входе в систему</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>Показывать в меню «Пуск»</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>Сочетания клавиш</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>При нажатии сочетания клавиш Volumey</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>Оставлять клавиши только Volumey</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>Другие приложения не получают эти клавиши. Работает, даже если в фокусе приложение администратора.</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>Передавать клавиши и другим приложениям</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>Для игр с теми же клавишами. Не работает, когда в фокусе приложение администратора.</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>Шаг громкости</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>За одно нажатие</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>Вкл.</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>Откл.</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>Отключить звук: {0}</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>Включить звук: {0}</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>Открыть микшер</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>Как открывается микшер и что в нем отображается.</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>Открытие микшера</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>Сочетание клавиш для открытия микшера</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>Нажмите еще раз, чтобы закрыть</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>Всплывающий режим</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>Открывается над областью уведомлений и скрывается при щелчке за его пределами. Если выключено — обычное окно.</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>Поверх других окон</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>Экран</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>(основной)</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>Макет</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>Показывать устройство внизу</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>Громкость приложений</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>Уменьшать громкость приложений, запускающихся на максимуме</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>Вместо этого они запускаются с этой громкостью</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>Синхронизировать громкость приложений с устройством</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>Изменение громкости устройства задает ее всем приложениям</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>Задайте сочетание клавиш</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>Меняйте громкость приложения откуда угодно.</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>Активное приложение</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>Управлять приложением в фокусе</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>Увеличить громкость</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>Уменьшить громкость</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>Приложения</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>Добавить приложение</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>Приложений пока нет.</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>{0}: увеличить громкость</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>{0}: уменьшить громкость</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>Удалить {0}</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>Добавление приложения</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>Приложение</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>Приложения, воспроизводящие звук на устройстве по умолчанию</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>Другие приложения не воспроизводят звук на устройстве по умолчанию.</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>Другие приложения не получают эти клавиши. Это можно изменить в разделе «Общие».</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>Другие приложения тоже получают эти клавиши. Сочетания не работают, когда в фокусе приложение администратора.</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>Открыть «Общие»</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>Для приложения нужны оба сочетания клавиш</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>Сочетания клавиш и параметры ваших устройств.</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>Сочетания клавиш громкости</value>
+  </data>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>Для текущего устройства по умолчанию</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>Увеличение и уменьшение громкости</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>Отключение и включение звука</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>Отключать звук вместо уменьшения до 0</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>Сохраняет баланс, который Windows сбрасывает при 0</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>Ваши устройства</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>Устройство</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>Использовать по умолчанию</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>Сочетание клавиш, чтобы сделать устройством по умолчанию</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>Звуковые функции</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>Разрядность и частота дискретизации</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>Не удалось изменить формат</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} бит, {1} Гц</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>Не удалось изменить этот параметр</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>Разрешить приложениям монопольный режим</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>Приложение может использовать устройство единолично</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>Предоставлять этим приложениям приоритет</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>Они могут захватить устройство, пока другие воспроизводят звук</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>Баланс</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>Левый</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>Правый</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>Свои сочетания клавиш для воспроизведения, паузы и переключения треков.</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>Сочетания клавиш</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>Воспроизведение / пауза</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>Предыдущий трек</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>Следующий трек</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>Стоп</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>Очистить сочетание клавиш: {0}</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>Нажмите сочетание клавиш</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>Показ изменений громкости на экране.</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>Экранный индикатор</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>При изменениях с помощью сочетаний клавиш Volumey</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>Реагировать на все изменения громкости</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>В том числе на изменения из других приложений и Windows</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>Расположение</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>Угол</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>Вверху слева</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>Вверху по центру</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>Вверху справа</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>Внизу слева</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>Внизу по центру</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>Внизу справа</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>Отступ от краев</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>В пикселях при масштабе 100%</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>По горизонтали</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>По вертикали</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>Время отображения</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 сек.</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} сек.</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>Предварительный просмотр</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>Показать на экране</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Версия {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>Выпуск GitHub</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>Сборка для разработки</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>Проверить наличие обновлений</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>Проверка наличия обновлений…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>У вас установлена последняя версия</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>В Microsoft Store доступно обновление</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>Не удалось проверить наличие обновлений</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>Ссылки</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>Сообщить о проблеме или предложить функцию</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub Issues</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>Приложение</value>
   </data>
 </root>

@@ -71,7 +71,7 @@
     <value>设置</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
-    <value>设置不同的快捷键</value>
+    <value>请设置不同的快捷键</value>
   </data>
   <data name="Error_VolumeReg" xml:space="preserve">
     <value>无法注册快捷键</value>
@@ -80,31 +80,31 @@
     <value>无法注册快捷键</value>
   </data>
   <data name="Notification_Yes" xml:space="preserve">
-    <value>是</value>
+    <value>确定</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
-    <value>以后</value>
+    <value>稍后</value>
   </data>
   <data name="NotificationMessage_Update" xml:space="preserve">
-    <value>有可用的更新，您要更新吗？</value>
+    <value>有可用的更新。是否要更新应用？</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
     <value>未检测到输出设备</value>
   </data>
   <data name="Error_F12" xml:space="preserve">
-    <value>F12由操作系统保留</value>
+    <value>F12 已由系统保留</value>
   </data>
   <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>快捷键已被添加</value>
+    <value>已添加此快捷键</value>
   </data>
   <data name="Status_Muted" xml:space="preserve">
-    <value>静音</value>
+    <value>已静音</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
-    <value>水平缩进</value>
+    <value>水平边距</value>
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
-    <value>垂直缩进</value>
+    <value>垂直边距</value>
   </data>
   <data name="Notifications_Position" xml:space="preserve">
     <value>位置</value>
@@ -113,6 +113,459 @@
     <value>显示通知示例</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
-    <value>显示所有音量变化</value>
+    <value>任何音量变化时都显示</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>输出设备</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Volumey 设置</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>设为默认设备</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Volumey 设置</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>音量合成器</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>应用快捷键</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>设备</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>媒体键</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>源代码</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>支持此项目</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>此页面尚未重新设计。</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>语言、主题、启动和快捷键。</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>使用系统设置</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>在托盘中显示默认设备的图标</value>
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value>代替 Volumey 图标</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>启动</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>随 Windows 启动</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>登录时在托盘中启动</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>在“开始”菜单中显示</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>快捷键</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>按下 Volumey 快捷键时</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>仅由 Volumey 接收按键</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>其他应用不会收到这些按键。即使管理员应用处于焦点也有效。</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>其他应用也接收按键</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>适用于使用相同按键的游戏。管理员应用处于焦点时无效。</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>音量步长</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>每按一次快捷键</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>开</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>关</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>将 {0} 静音</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>取消 {0} 的静音</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>打开合成器</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>合成器的打开方式和显示内容。</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>打开合成器</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>打开合成器的快捷键</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>再按一次即可关闭</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>弹出模式</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>在托盘上方打开，点击别处时隐藏。关闭时为普通窗口。</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>始终置顶</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>屏幕</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>（主）</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>在底部显示设备</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>应用音量</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>降低以最大音量启动的应用</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>改为以此音量启动</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>使应用音量与设备保持同步</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>更改设备音量时，所有应用都设为该音量</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>请设置快捷键</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>随时随地更改应用的音量。</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>前台应用</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>控制处于焦点的应用</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>增大音量</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>减小音量</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>添加应用</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>尚无应用。</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>增大 {0} 音量</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>减小 {0} 音量</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>删除 {0}</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>添加应用</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>正在默认设备上播放的应用</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>没有其他应用正在默认设备上播放。</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>其他应用不会收到这些按键。可以在“常规”中更改。</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>其他应用也会收到这些按键。管理员应用处于焦点时，快捷键无效。</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>打开“常规”</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>应用需要两个快捷键</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>设备的快捷键和设置。</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>音量快捷键</value>
+  </data>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>适用于当前默认设备</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>增大和减小音量</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>静音和取消静音</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>静音而不是调到 0</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>保留平衡，Windows 会在音量为 0 时重置平衡</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>你的设备</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>设备</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>设为默认值</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>设为默认设备的快捷键</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>音频功能</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>格式</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>位深度和采样率</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>无法更改格式</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} 位，{1} Hz</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>无法更改此设置</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>允许应用独占控制此设备</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>应用可以单独使用此设备</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>给予这些应用优先权</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>其他应用播放时，它们也能占用此设备</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>平衡</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>为播放、暂停和切换曲目设置快捷键。</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>快捷键</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>播放/暂停</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>上一曲</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>下一曲</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>清除 {0} 的快捷键</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>按下组合键</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>在屏幕上显示音量变化。</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>屏幕显示</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>适用于通过 Volumey 快捷键进行的更改</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>响应所有音量变化</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>包括其他应用和 Windows 进行的更改</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>角落</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>左上</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>顶部居中</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>右上</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>左下</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>底部居中</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>右下</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>与屏幕边缘的距离</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>以 100% 缩放时的像素为单位</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>水平</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>垂直</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>显示时间</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 秒</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>在屏幕上显示</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>版本 {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>GitHub 发行版</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>开发版本</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>正在检查更新…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>你使用的是最新版本</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>Microsoft Store 中有可用的更新</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>无法检查更新</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>链接</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>报告问题或建议功能</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub Issues</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>应用程序</value>
   </data>
 </root>

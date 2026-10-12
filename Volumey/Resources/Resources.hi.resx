@@ -59,25 +59,25 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
-    <value>ध्वनि नियंत्रण खिड़की</value>
+    <value>ध्वनि नियंत्रण पैनल</value>
   </data>
   <data name="TrayMenu_SoundSettings" xml:space="preserve">
-    <value>ध्वनि सेटिंग</value>
+    <value>ध्वनि सेटिंग्स</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
-    <value>ऐप से बाहर निकलें</value>
+    <value>बाहर निकलें</value>
   </data>
   <data name="TabHeader_Settings" xml:space="preserve">
-    <value>विन्यास</value>
+    <value>सेटिंग्स</value>
   </data>
   <data name="Error_Diff" xml:space="preserve">
-    <value>अलग-अलग हॉटकीज़ सेट करें</value>
+    <value>अलग-अलग हॉटकी सेट करें</value>
   </data>
   <data name="Error_VolumeReg" xml:space="preserve">
-    <value>हॉटकी पंजीकृत करने में विफल</value>
+    <value>हॉटकी पंजीकृत नहीं की जा सकीं</value>
   </data>
   <data name="Error_OpenReg" xml:space="preserve">
-    <value>हॉटकी पंजीकृत करने में विफल</value>
+    <value>हॉटकी पंजीकृत नहीं की जा सकी</value>
   </data>
   <data name="Notification_Yes" xml:space="preserve">
     <value>ठीक है</value>
@@ -89,30 +89,483 @@
     <value>एक अपडेट उपलब्ध है। क्या आप ऐप को अपडेट करना चाहते हैं?</value>
   </data>
   <data name="Error_NoDevice" xml:space="preserve">
-    <value>कोई आउटपुट डिवाइस नहीं मिली</value>
+    <value>कोई आउटपुट डिवाइस नहीं मिला</value>
   </data>
   <data name="Error_F12" xml:space="preserve">
-    <value>F12 ऑपरेटिंग सिस्टम द्वारा आरक्षित है</value>
+    <value>F12 ऑपरेटिंग सिस्टम के लिए आरक्षित है</value>
   </data>
   <data name="Error_HotkeyExists" xml:space="preserve">
-    <value>हॉटकी को पहले ही जोड़ा जा चुका है</value>
+    <value>यह हॉटकी पहले ही जोड़ी जा चुकी है</value>
   </data>
   <data name="Status_Muted" xml:space="preserve">
-    <value>म्यूट किए गए</value>
+    <value>म्यूट है</value>
   </data>
   <data name="Notifications_Horizontal" xml:space="preserve">
-    <value>क्षैतिज इंडेंट</value>
+    <value>क्षैतिज दूरी</value>
   </data>
   <data name="Notifications_Position" xml:space="preserve">
-    <value>पोजीशन</value>
+    <value>स्थिति</value>
   </data>
   <data name="Notifications_Preview" xml:space="preserve">
-    <value>अधिसूचना उदाहरण प्रदर्शित करें</value>
+    <value>सूचना का उदाहरण दिखाएँ</value>
   </data>
   <data name="Notifications_Vertical" xml:space="preserve">
-    <value>लंबवत इंडेंट</value>
+    <value>लंबवत दूरी</value>
   </data>
   <data name="Notifications_ReactAll" xml:space="preserve">
-    <value>सभी वॉल्यूम परिवर्तनों पर प्रदर्शित करें</value>
+    <value>किसी भी वॉल्यूम परिवर्तन पर दिखाएँ</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>आउटपुट डिवाइस</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>ऐप्स</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Volumey सेटिंग्स</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>इसे डिफ़ॉल्ट डिवाइस बनाएँ</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Volumey सेटिंग्स</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>सामान्य</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>वॉल्यूम मिक्सर</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>ऐप हॉटकी</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>डिवाइस</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>मीडिया कुंजियाँ</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>सूचनाएँ</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>परिचय</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>स्रोत कोड</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>प्रोजेक्ट का समर्थन करें</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>इस पृष्ठ का नया डिज़ाइन अभी तैयार नहीं है।</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>भाषा, थीम, स्टार्टअप और हॉटकी।</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>रूप</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>भाषा</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>थीम</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>हल्का</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>गहरा</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>सिस्टम सेटिंग का उपयोग करें</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>ट्रे में डिफ़ॉल्ट डिवाइस का आइकन दिखाएँ</value>
+  </data>
+  <data name="General_TrayIconHint" xml:space="preserve">
+    <value>Volumey आइकन के बजाय</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>स्टार्टअप</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>Windows के साथ प्रारंभ करें</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>साइन इन करने पर ट्रे में प्रारंभ होता है</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>प्रारंभ मेनू में दिखाएँ</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>हॉटकी</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>जब आप Volumey हॉटकी दबाते हैं</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>कुंजियाँ केवल Volumey को मिलें</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>अन्य ऐप्स को ये कुंजियाँ नहीं मिलतीं। व्यवस्थापक ऐप फ़ोकस में होने पर भी काम करता है।</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>अन्य ऐप्स को भी कुंजियाँ मिलने दें</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>उन गेम्स के लिए जो यही कुंजियाँ उपयोग करते हैं। व्यवस्थापक ऐप फ़ोकस में होने पर काम नहीं करता।</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>वॉल्यूम चरण</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>हर बार हॉटकी दबाने पर</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>चालू</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>बंद</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>{0} म्यूट करें</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>{0} अनम्यूट करें</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>मिक्सर खोलें</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>मिक्सर कैसे खुलता है और क्या दिखाता है।</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>मिक्सर खोलना</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>मिक्सर खोलने की हॉटकी</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>बंद करने के लिए फिर से दबाएँ</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>पॉप-अप मोड</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>ट्रे के ऊपर खुलता है और कहीं और क्लिक करने पर छिप जाता है। बंद: सामान्य विंडो।</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>हमेशा सबसे ऊपर</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>स्क्रीन</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>(मुख्य)</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>लेआउट</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>डिवाइस को नीचे दिखाएँ</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>ऐप वॉल्यूम</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>पूरे वॉल्यूम पर शुरू होने वाले ऐप्स का वॉल्यूम कम करें</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>वे इसके बजाय इस वॉल्यूम पर शुरू होते हैं</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>ऐप वॉल्यूम को डिवाइस के साथ सिंक रखें</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>डिवाइस का वॉल्यूम बदलने पर हर ऐप उसी पर सेट हो जाता है</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>हॉटकी सेट करें</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>कहीं से भी किसी ऐप का वॉल्यूम बदलें।</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>अग्रभूमि ऐप</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>फ़ोकस वाले ऐप को नियंत्रित करें</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>वॉल्यूम बढ़ाएँ</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>वॉल्यूम घटाएँ</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>ऐप्स</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>ऐप जोड़ें</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>अभी कोई ऐप नहीं है।</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>निकालें</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>{0} वॉल्यूम बढ़ाएँ</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>{0} वॉल्यूम घटाएँ</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>{0} निकालें</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>कोई ऐप जोड़ें</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>ऐप</value>
+  </data>
+  <data name="AppHotkeys_AppHint" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस पर चल रहे ऐप्स</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस पर कोई अन्य ऐप नहीं चल रहा है।</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>जोड़ें</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>रद्द करें</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>अन्य ऐप्स को ये कुंजियाँ नहीं मिलतीं। आप इसे सामान्य में बदल सकते हैं।</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>अन्य ऐप्स को भी ये कुंजियाँ मिलती हैं। व्यवस्थापक ऐप फ़ोकस में होने पर हॉटकी काम नहीं करतीं।</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>सामान्य खोलें</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>ऐप के लिए दोनों हॉटकी आवश्यक हैं</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>आपके डिवाइस के लिए हॉटकी और सेटिंग्स।</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>वॉल्यूम हॉटकी</value>
+  </data>
+  <data name="Devices_VolumeSectionHint" xml:space="preserve">
+    <value>वर्तमान डिफ़ॉल्ट डिवाइस के लिए</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>वॉल्यूम बढ़ाएँ और घटाएँ</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>म्यूट और अनम्यूट</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>0 तक घटाने के बजाय म्यूट करें</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>संतुलन बनाए रखता है, जिसे Windows 0 पर रीसेट कर देता है</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>आपके डिवाइस</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>डिवाइस</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>डिफ़ॉल्ट</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>कनेक्ट नहीं है</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>डिफ़ॉल्ट के रूप में सेट करें</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>इसे डिफ़ॉल्ट डिवाइस बनाने की हॉटकी</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>ऑडियो सुविधाएँ</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>स्वरूप</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>बिट डेप्थ और सैंपल दर</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>स्वरूप नहीं बदला जा सका</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} बिट, {1} Hz</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>यह सेटिंग नहीं बदली जा सकी</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>ऐप्स को अनन्य नियंत्रण लेने दें</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>कोई ऐप डिवाइस का अकेले उपयोग कर सकता है</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>उन ऐप्स को प्राथमिकता दें</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>अन्य ऐप्स के चलते समय भी वे डिवाइस ले सकते हैं</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>संतुलन</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>बायाँ</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>दायाँ</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>चलाने, रोकने और आगे-पीछे जाने के लिए आपकी अपनी हॉटकी।</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>हॉटकी</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>चलाएँ / रोकें</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>पिछला ट्रैक</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>अगला ट्रैक</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>बंद करें</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>{0} की हॉटकी साफ़ करें</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>कोई कुंजी संयोजन दबाएँ</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>स्क्रीन पर वॉल्यूम परिवर्तन दिखाएँ।</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>ऑन-स्क्रीन डिस्प्ले</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>Volumey हॉटकी से किए गए परिवर्तनों के लिए</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>सभी वॉल्यूम परिवर्तनों पर दिखाएँ</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>अन्य ऐप्स और Windows से हुए परिवर्तन भी</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>स्थिति</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>कोना</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>ऊपर बाएँ</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>ऊपर मध्य</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>ऊपर दाएँ</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>नीचे बाएँ</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>नीचे मध्य</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>नीचे दाएँ</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>किनारों से दूरी</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>100% स्केल पर पिक्सेल में</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>क्षैतिज</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>लंबवत</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>दिखाने का समय</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 सेकंड</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} सेकंड</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>पूर्वावलोकन</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>स्क्रीन पर दिखाएँ</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>संस्करण {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>GitHub रिलीज़</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>डेवलपमेंट बिल्ड</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>अपडेट के लिए जाँचें</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>अपडेट के लिए जाँच की जा रही है…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>आपके पास नवीनतम संस्करण है</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>Microsoft Store में एक अपडेट उपलब्ध है</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>अपडेट के लिए जाँच नहीं की जा सकी</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>लिंक</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>समस्या की रिपोर्ट करें या सुविधा सुझाएँ</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>GitHub issues</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>ऐप्लिकेशन</value>
   </data>
 </root>
