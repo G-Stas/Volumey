@@ -108,6 +108,7 @@ public partial class NotificationViewModel : ObservableObject
 			SettingsProvider.Settings.Notifications.VerticalIndent = value;
 			_notifications.SetIndents(_horizontalIndent, value);
 			OnPropertyChanged();
+			ShowIndentPreview();
 		}
 	}
 
@@ -127,7 +128,20 @@ public partial class NotificationViewModel : ObservableObject
 			SettingsProvider.Settings.Notifications.HorizontalIndent = value;
 			_notifications.SetIndents(value, _verticalIndent);
 			OnPropertyChanged();
+			ShowIndentPreview();
 		}
+	}
+
+	/// <summary>Set once the saved settings are loaded: only a distance the user changes shows the preview</summary>
+	private bool _loaded;
+
+	/// <summary>
+	/// A changed distance (slider or box) shows the sample OSD where it now lands; each change restarts its display time (owner, 2026-10-12)
+	/// </summary>
+	private void ShowIndentPreview()
+	{
+		if(_loaded)
+			_notifications.ShowNotificationExample();
 	}
 
 	private int _displayTime;
@@ -204,6 +218,7 @@ public partial class NotificationViewModel : ObservableObject
 		screens.Load();
 
 		SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+		_loaded = true;
 	}
 
 	//e.g. a game switching the resolution, or a monitor that turns on late (#92)
