@@ -36,13 +36,79 @@ internal static class Audio
 	/// </summary>
 	public static IDisposable KeepDeviceState()
 	{
-		var (volume, mute) = WithDefaultDevice(d => (d.AudioEndpointVolume.MasterVolumeLevelScalar, d.AudioEndpointVolume.Mute));
+		var (volume, mute, channels) = WithDefaultDevice(d => (d.AudioEndpointVolume.MasterVolumeLevelScalar, d.AudioEndpointVolume.Mute,
+			Enumerable.Range(0, d.AudioEndpointVolume.Channels.Count).Select(i => d.AudioEndpointVolume.Channels[i].VolumeLevelScalar).ToArray()));
 		return new Restore(() => WithDefaultDevice(d =>
 		{
 			d.AudioEndpointVolume.MasterVolumeLevelScalar = volume;
+			//the balance (the Devices page's balance test changes it)
+			for(int i = 0; i < channels.Length && i < d.AudioEndpointVolume.Channels.Count; i++)
+				d.AudioEndpointVolume.Channels[i].VolumeLevelScalar = channels[i];
 			d.AudioEndpointVolume.Mute = mute;
 			return 0;
 		}));
+	}
+
+	/// <summary>The default device's channel levels, 0–100 (left, right, …)</summary>
+	public static int[] ChannelVolumes => WithDefaultDevice(d => Enumerable.Range(0, d.AudioEndpointVolume.Channels.Count)
+	                                                                       .Select(i => (int)Math.Round(d.AudioEndpointVolume.Channels[i].VolumeLevelScalar * 100))
+	                                                                       .ToArray());
+
+	/// <summary>The default device's format as Windows has it (PKEY_AudioEngine_DeviceFormat): sample rate and bits</summary>
+	public static (int SampleRate, int Bits) DeviceFormat => WithDefaultDevice(d =>
+	{
+		var blob = (byte[])d.Properties[PropertyKeys.PKEY_AudioEngine_DeviceFormat].Value;
+		return (BitConverter.ToInt32(blob, 4), BitConverter.ToInt16(blob, 14));
+	});
+
+	/// <summary>
+	/// Remembers the volume and mute of every app (session) on the default device and puts them back when disposed:
+	/// app volume sync changes all of them, the owner's apps too
+	/// </summary>
+	public static IDisposable KeepSessionVolumes()
+	{
+		var saved = WithDefaultDevice(d =>
+		{
+			var states = new Dictionary<string, (float Volume, bool Mute)>();
+			var sessions = d.AudioSessionManager.Sessions;
+			for(int i = 0; i < sessions.Count; i++)
+			{
+				using var session = sessions[i];
+				states[session.GetSessionInstanceIdentifier] = (session.SimpleAudioVolume.Volume, session.SimpleAudioVolume.Mute);
+			}
+			return states;
+		});
+		return new Restore(() => WithDefaultDevice(d =>
+		{
+			var sessions = d.AudioSessionManager.Sessions;
+			for(int i = 0; i < sessions.Count; i++)
+			{
+				using var session = sessions[i];
+				if(saved.TryGetValue(session.GetSessionInstanceIdentifier, out var state))
+				{
+					session.SimpleAudioVolume.Volume = state.Volume;
+					session.SimpleAudioVolume.Mute = state.Mute;
+				}
+			}
+			return 0;
+		}));
+	}
+
+	/// <summary>The default device's name (Volumey's tray tooltip starts with it)</summary>
+	public static string DefaultDeviceName => WithDefaultDevice(d => d.FriendlyName);
+
+	/// <summary>The default device's endpoint ID (to check that a test didn't switch it)</summary>
+	public static string DefaultDeviceId => WithDefaultDevice(d => d.ID);
+
+	/// <summary>The names of the active output devices</summary>
+	public static List<string> OutputDeviceNames()
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		var names = new List<string>();
+		foreach(var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+			using(device)
+				names.Add(device.FriendlyName);
+		return names;
 	}
 
 	/// <summary>
