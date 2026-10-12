@@ -30,7 +30,16 @@ internal sealed class TestAudioApp : IDisposable
 		string dir = Path.Combine(Path.GetTempPath(), "Volumey-uitests", "apps", name);
 		Directory.CreateDirectory(dir);
 		foreach(var file in Directory.GetFiles(Build.Value))
-			File.Copy(file, Path.Combine(dir, Path.GetFileName(file) == "testaudio.exe" ? name + ".exe" : Path.GetFileName(file)), true);
+		{
+			try
+			{
+				File.Copy(file, Path.Combine(dir, Path.GetFileName(file) == "testaudio.exe" ? name + ".exe" : Path.GetFileName(file)), true);
+			}
+			catch(IOException)
+			{
+				//a second copy of a running app (one exe, two processes): its files are in use and already there
+			}
+		}
 		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), "600" + (window ? " --window" : "") + (reset ? "" : " --no-reset")) { UseShellExecute = false, CreateNoWindow = true })
 		          ?? throw new InvalidOperationException("The test audio app didn't start");
 	}

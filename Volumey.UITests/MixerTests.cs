@@ -32,6 +32,39 @@ public class MixerTests : UiTest
 
 	[TestMethod]
 	[TestCategory("Audio")]
+	public void AnAppWithTwoSessionsExpandsAndEachSessionHasItsOwnVolume()
+	{
+		//two processes of one exe: Volumey groups their sessions into one app (by the exe's path)
+		using var first = Later(TestAudioApp.Start("VolumeyUiTwoSessions"));
+		using var second = Later(TestAudioApp.Start("VolumeyUiTwoSessions"));
+		StartMixer();
+		string app = first.DisplayName;
+		var appSlider = AppSlider(app);
+		Assert.AreEqual(1, App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(app))).Length, "the two sessions got two rows");
+
+		var expand = App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName(app)))
+		             ?? throw new AssertFailedException("No expand button for the app");
+		expand.Patterns.Toggle.Pattern.Toggle();
+		//each session is named after its process
+		var sessions = Retry.WhileFalse(() => App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(first.Name))).Length == 2,
+			TimeSpan.FromSeconds(5)).Success
+			? App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(first.Name)))
+			: throw new AssertFailedException("Expanding didn't show the two sessions");
+
+		SetSlider(sessions[0], 40);
+		Assert.IsTrue(Eventually(() => new[] { first.Volume, second.Volume }.Count(v => v == 40) == 1), "one session's slider didn't change only its session");
+		Assert.IsTrue(new[] { first.Volume, second.Volume }.Contains(100), "the other session changed too");
+
+		SetSlider(appSlider, 70);
+		Assert.IsTrue(Eventually(() => first.Volume == 70 && second.Volume == 70), $"the app's slider didn't set both sessions: {first.Volume}, {second.Volume}");
+
+		expand.Patterns.Toggle.Pattern.Toggle();
+		Assert.IsTrue(Eventually(() => App.Mixer.FindAllDescendants(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(first.Name))).Length == 0),
+			"collapsing didn't hide the sessions");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
 	public void AnAppGetsARowWhenItStartsAndLosesItWhenItExits()
 	{
 		StartMixer();

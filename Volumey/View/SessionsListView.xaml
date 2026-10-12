@@ -60,7 +60,8 @@
                         <ToggleButton x:Name="Expand"
                                       Grid.RowSpan="2"
                                       Style="{StaticResource IconToggle}"
-                                      ToolTip="{Binding Name}">
+                                      ToolTip="{Binding Name}"
+                                      AutomationProperties.Name="{Binding Name}">
                             <Grid Width="40" Height="40">
                                 <Image Source="{Binding IconSource}"
                                        Width="24"
@@ -158,7 +159,8 @@
                                     <controls:VolumeSlider Grid.Column="1"
                                                            Margin="10 0 8 0"
                                                            Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                                                           IsMuted="{Binding IsMuted}" />
+                                                           IsMuted="{Binding IsMuted}"
+                                                           AutomationProperties.Name="{Binding Name}" />
                                     <TextBlock Grid.Column="2"
                                                Style="{StaticResource VolumeValue}"
                                                FontSize="13"
