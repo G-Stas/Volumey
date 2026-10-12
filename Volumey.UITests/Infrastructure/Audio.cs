@@ -46,6 +46,56 @@ internal static class Audio
 	}
 
 	/// <summary>
+	/// Remembers the volume and mute of every app (session) on the default device and puts them back when disposed:
+	/// app volume sync changes all of them, the owner's apps too
+	/// </summary>
+	public static IDisposable KeepSessionVolumes()
+	{
+		var saved = WithDefaultDevice(d =>
+		{
+			var states = new Dictionary<string, (float Volume, bool Mute)>();
+			var sessions = d.AudioSessionManager.Sessions;
+			for(int i = 0; i < sessions.Count; i++)
+			{
+				using var session = sessions[i];
+				states[session.GetSessionInstanceIdentifier] = (session.SimpleAudioVolume.Volume, session.SimpleAudioVolume.Mute);
+			}
+			return states;
+		});
+		return new Restore(() => WithDefaultDevice(d =>
+		{
+			var sessions = d.AudioSessionManager.Sessions;
+			for(int i = 0; i < sessions.Count; i++)
+			{
+				using var session = sessions[i];
+				if(saved.TryGetValue(session.GetSessionInstanceIdentifier, out var state))
+				{
+					session.SimpleAudioVolume.Volume = state.Volume;
+					session.SimpleAudioVolume.Mute = state.Mute;
+				}
+			}
+			return 0;
+		}));
+	}
+
+	/// <summary>The default device's name (Volumey's tray tooltip starts with it)</summary>
+	public static string DefaultDeviceName => WithDefaultDevice(d => d.FriendlyName);
+
+	/// <summary>The default device's endpoint ID (to check that a test didn't switch it)</summary>
+	public static string DefaultDeviceId => WithDefaultDevice(d => d.ID);
+
+	/// <summary>The names of the active output devices</summary>
+	public static List<string> OutputDeviceNames()
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		var names = new List<string>();
+		foreach(var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+			using(device)
+				names.Add(device.FriendlyName);
+		return names;
+	}
+
+	/// <summary>
 	/// The volume (0–100) of a process's session on the default device, or null if it has none
 	/// </summary>
 	public static int? SessionVolume(int processId) => WithSession(processId, s => (int?)Math.Round(s.SimpleAudioVolume.Volume * 100));

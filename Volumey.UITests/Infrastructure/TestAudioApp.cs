@@ -24,14 +24,14 @@ internal sealed class TestAudioApp : IDisposable
 	/// </summary>
 	public string DisplayName => FileVersionInfo.GetVersionInfo(Process.MainModule!.FileName).FileDescription is { Length: > 0 } d ? d : Name;
 
-	private TestAudioApp(string name, bool window)
+	private TestAudioApp(string name, bool window, bool reset = true)
 	{
 		Name = name;
 		string dir = Path.Combine(Path.GetTempPath(), "Volumey-uitests", "apps", name);
 		Directory.CreateDirectory(dir);
 		foreach(var file in Directory.GetFiles(Build.Value))
 			File.Copy(file, Path.Combine(dir, Path.GetFileName(file) == "testaudio.exe" ? name + ".exe" : Path.GetFileName(file)), true);
-		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), window ? "600 --window" : "600") { UseShellExecute = false, CreateNoWindow = true })
+		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), "600" + (window ? " --window" : "") + (reset ? "" : " --no-reset")) { UseShellExecute = false, CreateNoWindow = true })
 		          ?? throw new InvalidOperationException("The test audio app didn't start");
 	}
 
@@ -39,9 +39,19 @@ internal sealed class TestAudioApp : IDisposable
 	/// Starts one and waits until its session exists (at 100%: the app sets its own volume when it starts).
 	/// <paramref name="window"/> also shows a small window (<see cref="BringToFront"/>).
 	/// </summary>
-	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false)
+	/// <param name="atFullVolume">false: only wait for the session (Volumey's volume limit lowers a new app right away)</param>
+	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, bool atFullVolume = true)
 	{
-		var app = new TestAudioApp(name, window);
+		var app = new TestAudioApp(name, window, reset: atFullVolume);
+		if(!atFullVolume)
+		{
+			if(!FlaUI.Core.Tools.Retry.WhileFalse(() => Audio.SessionVolume(app.Process.Id) != null, TimeSpan.FromSeconds(10)).Result)
+			{
+				app.Dispose();
+				throw new InvalidOperationException("The test audio app has no session on the default device");
+			}
+			return app;
+		}
 		if(Audio.WaitFor(() => Audio.SessionVolume(app.Process.Id), 100, 10000) != 100)
 		{
 			app.Dispose();

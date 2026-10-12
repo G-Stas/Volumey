@@ -213,6 +213,72 @@ internal sealed class VolumeyApp : IDisposable
 	}
 
 	/// <summary>
+	/// Starts the exe once more, like a person double-clicking it while it runs: the second process tells the first to show
+	/// itself and exits. Returns whether it exited.
+	/// </summary>
+	public bool StartSecondInstance()
+	{
+		var start = new ProcessStartInfo(ExePath) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(ExePath)! };
+		start.Environment["VOLUMEY_SETTINGS_DIR"] = DataDir;
+		using var second = Process.Start(start) ?? throw new InvalidOperationException("The second instance didn't start");
+		return second.WaitForExit(10000);
+	}
+
+	/// <summary>
+	/// Volumey's tray icon: a taskbar button named after its tooltip ("&lt;default device&gt;: 92%"). Looked up in the hidden icons
+	/// flyout too, where Windows may put a new icon.
+	/// </summary>
+	public AutomationElement TrayIcon()
+	{
+		string prefix = Audio.DefaultDeviceName + ":";
+		AutomationElement? Find(AutomationElement root)
+			=> root.FindFirstDescendant(cf => cf.ByAutomationId("NotifyItemIcon").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)))
+			   is { } first && first.Name.StartsWith(prefix)
+				? first
+				: root.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(e => e.Name.StartsWith(prefix));
+		var desktop = Automation.GetDesktop();
+		var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
+		var icon = Retry.WhileNull(() => taskbar == null ? null : Find(taskbar), TimeSpan.FromSeconds(5)).Result;
+		if(icon != null)
+			return icon;
+		//hidden icons: open the flyout
+		taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))?.AsButton().Invoke();
+		return Retry.WhileNull(() => Find(desktop), TimeSpan.FromSeconds(5)).Result
+		       ?? throw new InvalidOperationException($"No tray icon whose tooltip starts with \"{prefix}\"");
+	}
+
+	/// <summary>
+	/// Right-clicks the tray icon and returns the item of its menu (a WPF context menu: "Open mixer", "Settings", "Output device",
+	/// "Sound control panel", "Sound settings", "Exit")
+	/// </summary>
+	public AutomationElement TrayMenuItem(string name)
+	{
+		TrayIcon().RightClick();
+		return Retry.WhileNull(() => app!.GetAllTopLevelWindows(Automation)
+		                                .Select(w => w.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuItem).And(cf.ByName(name))))
+		                                .FirstOrDefault(i => i != null), TimeSpan.FromSeconds(5)).Result
+		       ?? throw new InvalidOperationException($"No \"{name}\" in the tray menu");
+	}
+
+	/// <summary>Exits the app with the tray menu, the way a person quits it (it saves the window's place and size then)</summary>
+	public void ExitByTray()
+	{
+		TrayMenuItem("Exit").Patterns.Invoke.Pattern.Invoke();
+		if(!process!.WaitForExit(10000))
+			throw new TimeoutException("Volumey didn't exit from the tray menu");
+	}
+
+	public bool HasExited => process?.HasExited ?? true;
+
+	/// <summary>The mixer's or settings window's handle, for Win32 checks (topmost, monitor)</summary>
+	public static IntPtr Handle(Window window) => window.Properties.NativeWindowHandle.Value;
+
+	/// <summary>
+	/// Stops the app now (before the test's cleanup restores device and app state the app would react to)
+	/// </summary>
+	public void Kill() => Stop();
+
+	/// <summary>
 	/// Stops the app and starts it again on the same data folder (saved settings and hotkeys come back)
 	/// </summary>
 	public void Restart()
