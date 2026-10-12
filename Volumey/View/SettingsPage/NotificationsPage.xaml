@@ -167,23 +167,28 @@
                     <TextBlock Text="{lc:Localization Notifications_DistanceHint}" Style="{StaticResource Caption}" />
                 </StackPanel>
             </ui:CardControl.Header>
+            <!-- each label above its box: side by side, the labels took the title's room in longer languages (owner) -->
             <StackPanel Orientation="Horizontal">
                 <!-- as before, the distance from the side doesn't apply to a centered OSD -->
-                <TextBlock Text="{lc:Localization Notifications_HorizontalShort}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0 0 8 0" />
-                <ui:NumberBox Style="{StaticResource DistanceBox}"
-                              Minimum="{Binding MinIndent, Mode=OneTime}"
-                              Maximum="{Binding MaxIndent, Mode=OneTime}"
-                              Value="{Binding HorizontalIndent}"
-                              IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}"
-                              AutomationProperties.Name="{lc:Localization Notifications_HorizontalShort}"
-                              AutomationProperties.AutomationId="HorizontalDistanceBox" />
-                <TextBlock Text="{lc:Localization Notifications_VerticalShort}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="16 0 8 0" />
-                <ui:NumberBox Style="{StaticResource DistanceBox}"
-                              Minimum="{Binding MinIndent, Mode=OneTime}"
-                              Maximum="{Binding MaxIndent, Mode=OneTime}"
-                              Value="{Binding VerticalIndent}"
-                              AutomationProperties.Name="{lc:Localization Notifications_VerticalShort}"
-                              AutomationProperties.AutomationId="VerticalDistanceBox" />
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_HorizontalShort}" Style="{StaticResource Caption}" Margin="0 0 0 4" />
+                    <ui:NumberBox Style="{StaticResource DistanceBox}"
+                                  Minimum="{Binding MinIndent, Mode=OneTime}"
+                                  Maximum="{Binding MaxIndent, Mode=OneTime}"
+                                  Value="{Binding HorizontalIndent}"
+                                  IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}"
+                                  AutomationProperties.Name="{lc:Localization Notifications_HorizontalShort}"
+                                  AutomationProperties.AutomationId="HorizontalDistanceBox" />
+                </StackPanel>
+                <StackPanel Margin="12 0 0 0">
+                    <TextBlock Text="{lc:Localization Notifications_VerticalShort}" Style="{StaticResource Caption}" Margin="0 0 0 4" />
+                    <ui:NumberBox Style="{StaticResource DistanceBox}"
+                                  Minimum="{Binding MinIndent, Mode=OneTime}"
+                                  Maximum="{Binding MaxIndent, Mode=OneTime}"
+                                  Value="{Binding VerticalIndent}"
+                                  AutomationProperties.Name="{lc:Localization Notifications_VerticalShort}"
+                                  AutomationProperties.AutomationId="VerticalDistanceBox" />
+                </StackPanel>
             </StackPanel>
         </ui:CardControl>
         <ui:CardControl Icon="{ui:SymbolIcon Clock24}" Header="{lc:Localization Notifications_DisplayTime}">
