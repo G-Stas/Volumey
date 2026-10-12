@@ -1,9 +1,13 @@
 using System.Globalization;
+using System.Windows.Forms;
 using NAudio.Wave;
 
-//usage: testaudio <seconds> [<volume 0..1> <after seconds>]
+//usage: testaudio <seconds> [<volume 0..1> <after seconds>] [--window]
 //plays silence on the default output device for <seconds>; optionally sets its own session volume after a delay,
-//like a change in the Windows mixer (Volumey shows an OSD for it when "react to all volume changes" is on)
+//like a change in the Windows mixer (Volumey shows an OSD for it when "react to all volume changes" is on).
+//--window also shows a small window titled "Volumey test app <pid>", so a UI test can put the app in front (foreground-app hotkeys)
+bool window = args.Contains("--window");
+args = args.Where(a => a != "--window").ToArray();
 int seconds = args.Length > 0 ? int.Parse(args[0], CultureInfo.InvariantCulture) : 30;
 float? volume = args.Length > 1 ? float.Parse(args[1], CultureInfo.InvariantCulture) : null;
 int after = args.Length > 2 ? int.Parse(args[2], CultureInfo.InvariantCulture) : 3;
@@ -14,6 +18,26 @@ player.Play();
 //Windows remembers a session's volume per executable
 player.SessionVolume.Mute = false;
 player.SessionVolume.Volume = 1f;
+
+if(window)
+{
+	//WinForms needs an STA thread with a message loop
+	var ui = new Thread(() =>
+	{
+		using var form = new Form
+		{
+			Text = $"Volumey test app {Environment.ProcessId}",
+			Width = 320,
+			Height = 120,
+			StartPosition = FormStartPosition.CenterScreen,
+			ShowInTaskbar = true
+		};
+		Application.Run(form);
+	});
+	ui.SetApartmentState(ApartmentState.STA);
+	ui.IsBackground = true;
+	ui.Start();
+}
 
 if(volume is float v)
 {

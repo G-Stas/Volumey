@@ -23,6 +23,53 @@ public class AppHotkeysTests : UiTest
 	private static JsonNode? SavedApp(JsonNode settings, string name)
 		=> settings["Hotkeys"]?["Apps"]?.AsArray().FirstOrDefault(a => a?["ProcessName"]?.GetValue<string>() == name);
 
+	/// <summary>Adds the running test app with the Add app dialog</summary>
+	private void AddInDialog(TestAudioApp testApp, Combo up, Combo down)
+	{
+		Settings.Find("AddAppButton").AsButton().Invoke();
+		var apps = Settings.Find("AddAppBox").AsComboBox();
+		apps.Expand();
+		var item = Retry.WhileNull(() => apps.Items.FirstOrDefault(i => i.Name == testApp.DisplayName), TimeSpan.FromSeconds(5)).Result
+		           ?? throw new AssertFailedException($"{testApp.DisplayName} isn't in the dialog's list: {string.Join(", ", apps.Items.Select(i => i.Name))}");
+		item.Select();
+		apps.Collapse();
+		Settings.TypeHotkey("AddAppUpBox", up);
+		Settings.TypeHotkey("AddAppDownBox", down);
+		Settings.Find("PrimaryButton").AsButton().Invoke();
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void ThePagesSettingsSurviveARestart()
+	{
+		using var testApp = Later(TestAudioApp.Start());
+		OpenPage();
+		var foregroundUp = Combo.F(13);
+		var foregroundDown = Combo.F(14);
+		var appUp = Combo.F(15);
+		var appDown = Combo.F(16);
+		Settings.TypeHotkey("ForegroundUpBox", foregroundUp);
+		Settings.TypeHotkey("ForegroundDownBox", foregroundDown);
+		Settings.SetSwitch("ForegroundToggle", true);
+		AddInDialog(testApp, appUp, appDown);
+		App.WaitForSettings(s => IsHotkey(s["Hotkeys"]?["ForegroundVolumeUp"], foregroundUp) && IsHotkey(s["Hotkeys"]?["ForegroundVolumeDown"], foregroundDown)
+		                         && SavedApp(s, testApp.DisplayName) is { } a && IsHotkey(a["VolumeUp"], appUp) && IsHotkey(a["VolumeDown"], appDown),
+			"the App hotkeys page's settings saved");
+
+		Restart();
+		Settings.Open("NavAppHotkeys", "AddAppButton");
+
+		Assert.IsTrue(Eventually(() => new[] { foregroundUp, foregroundDown, appUp, appDown }.All(c => c.IsHeldByAnotherApp())),
+			"the hotkeys aren't registered after the restart");
+		Assert.IsTrue(Settings.IsOn("ForegroundToggle"), "the foreground switch is off after the restart");
+		var row = Settings.Find("AppList").FindFirstDescendant(cf => cf.ByName(testApp.DisplayName))
+		          ?? throw new AssertFailedException("The app's row is gone after the restart");
+		row.Patterns.ExpandCollapse.PatternOrDefault?.Expand();
+		var upBox = Retry.WhileNull(() => row.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName(testApp.DisplayName + " volume up"))),
+			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException("No volume up box in the app's row");
+		Assert.IsFalse(string.IsNullOrEmpty(upBox.AsTextBox().Text), "the app's volume up box is empty after the restart");
+	}
+
 	[TestMethod]
 	public void ForegroundHotkeysAreRegisteredAndReleased()
 	{
@@ -41,6 +88,33 @@ public class AppHotkeysTests : UiTest
 		Settings.SetSwitch("ForegroundToggle", false);
 		App.WaitForSettings(s => s["Hotkeys"]?["ForegroundVolumeUp"] == null, "the foreground hotkeys removed");
 		Assert.IsFalse(up.IsHeldByAnotherApp() || down.IsHeldByAnotherApp(), "the foreground hotkeys are still registered");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void TheForegroundHotkeysChangeOnlyTheAppInFront()
+	{
+		using var testApp = Later(TestAudioApp.Start("VolumeyUiForegroundApp", window: true));
+		var up = Combo.F(21);
+		var down = Combo.F(22);
+		StartApp(new JsonObject
+		{
+			["Hotkeys"] = new JsonObject { ["ForegroundVolumeUp"] = HotkeyJson(up), ["ForegroundVolumeDown"] = HotkeyJson(down) }
+		});
+		Assert.IsTrue(Eventually(() => up.IsHeldByAnotherApp() && down.IsHeldByAnotherApp()), "the saved foreground hotkeys aren't registered");
+		int step = VolumeStep;
+
+		//Volumey's settings window in front: the test app isn't the foreground app
+		Settings.Window.SetForeground();
+		down.Press();
+		Thread.Sleep(500);
+		Assert.AreEqual(100, testApp.Volume, "a foreground hotkey changed an app that isn't in front");
+
+		testApp.BringToFront(App.Automation);
+		down.Press();
+		Assert.AreEqual(100 - step, Audio.WaitFor(() => testApp.Volume, 100 - step), "volume down didn't lower the app in front");
+		up.Press();
+		Assert.AreEqual(100, Audio.WaitFor(() => testApp.Volume, 100), "volume up didn't raise the app in front");
 	}
 
 	[TestMethod]
@@ -66,16 +140,7 @@ public class AppHotkeysTests : UiTest
 		var up = Combo.F(16);
 		var down = Combo.F(17);
 
-		Settings.Find("AddAppButton").AsButton().Invoke();
-		var apps = Settings.Find("AddAppBox").AsComboBox();
-		apps.Expand();
-		var item = Retry.WhileNull(() => apps.Items.FirstOrDefault(i => i.Name == testApp.DisplayName), TimeSpan.FromSeconds(5)).Result
-		           ?? throw new AssertFailedException($"{testApp.DisplayName} isn't in the dialog's list: {string.Join(", ", apps.Items.Select(i => i.Name))}");
-		item.Select();
-		apps.Collapse();
-		Settings.TypeHotkey("AddAppUpBox", up);
-		Settings.TypeHotkey("AddAppDownBox", down);
-		Settings.Find("PrimaryButton").AsButton().Invoke();
+		AddInDialog(testApp, up, down);
 
 		App.WaitForSettings(s => SavedApp(s, testApp.DisplayName) is { } a && IsHotkey(a["VolumeUp"], up) && IsHotkey(a["VolumeDown"], down),
 			"the app's hotkeys saved");
