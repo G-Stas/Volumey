@@ -21,3 +21,4 @@ Volumey.Package/BundleArtifacts/
 TestResults/
 # release zips (scripts/build-release.ps1)
 artifacts/
+Volumey.Package/Volumey.Package.assets.cache
