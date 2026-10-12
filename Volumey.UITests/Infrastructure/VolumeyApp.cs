@@ -131,9 +131,40 @@ internal sealed class VolumeyApp : IDisposable
 			.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Custom).And(cf.ByName(name)));
 
 	/// <summary>
+	/// The OSD window: transparent, it covers the work area of the screen the OSD is on (null before the first OSD)
+	/// </summary>
+	public Window? OsdWindow => app!.GetAllTopLevelWindows(Automation).FirstOrDefault(w => w.Title == "Volumey OSD");
+
+	/// <summary>
 	/// Whether the mixer window is shown (Win32 IsWindowVisible: UI Automation's IsOffscreen also counts a covered window)
 	/// </summary>
 	public bool MixerIsVisible => IsTopLevelWindowVisible("Volumey");
+
+	/// <summary>
+	/// The titles of the app's visible top-level windows, owned ones too (UI Automation lists an owned dialog under its owner)
+	/// </summary>
+	public List<(IntPtr Handle, string Title, string Class)> VisibleWindows()
+	{
+		var windows = new List<(IntPtr, string, string)>();
+		uint pid = (uint)process!.Id;
+		EnumWindows((hwnd, _) =>
+		{
+			GetWindowThreadProcessId(hwnd, out uint owner);
+			if(owner == pid && IsWindowVisible(hwnd))
+			{
+				var text = new System.Text.StringBuilder(256);
+				GetWindowText(hwnd, text, text.Capacity);
+				var cls = new System.Text.StringBuilder(256);
+				GetClassName(hwnd, cls, cls.Capacity);
+				windows.Add((hwnd, text.ToString(), cls.ToString()));
+			}
+			return true;
+		}, IntPtr.Zero);
+		return windows;
+	}
+
+	/// <summary>Closes a window like its X button (WM_CLOSE)</summary>
+	public static void CloseWindow(IntPtr hwnd) => PostMessage(hwnd, 0x10, IntPtr.Zero, IntPtr.Zero);
 
 	private bool IsTopLevelWindowVisible(string title)
 	{
@@ -270,6 +301,8 @@ internal sealed class VolumeyApp : IDisposable
 
 	public bool HasExited => process?.HasExited ?? true;
 
+	public int ProcessId => process!.Id;
+
 	/// <summary>The mixer's or settings window's handle, for Win32 checks (topmost, monitor)</summary>
 	public static IntPtr Handle(Window window) => window.Properties.NativeWindowHandle.Value;
 
@@ -339,6 +372,9 @@ internal sealed class VolumeyApp : IDisposable
 
 	[DllImport("user32.dll", CharSet = CharSet.Unicode)]
 	private static extern int GetWindowText(IntPtr hwnd, System.Text.StringBuilder text, int maxCount);
+
+	[DllImport("user32.dll", CharSet = CharSet.Unicode)]
+	private static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder className, int maxCount);
 
 	[DllImport("user32.dll", CharSet = CharSet.Unicode)]
 	private static extern uint RegisterWindowMessage(string lpString);
