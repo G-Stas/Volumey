@@ -569,6 +569,6 @@
     <value>Lembrar a posição do mixer</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>Abre onde você o deixou; arraste o pop-up por um espaço vazio. Desativado: ao lado da bandeja.</value>
+    <value>Abre onde você o deixou. Desativado: ao lado da bandeja.</value>
   </data>
 </root>
