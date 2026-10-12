@@ -38,13 +38,13 @@ public partial class MainView
 
 	//popup sizing (mockups FlyoutMin/FlyoutCapped): the height is computed once when it opens and doesn't change while it's
 	//visible; new apps go to the end of the scrolling list
-	private const double PopupWidth = 460; //WPF-UI's minimum window width (owner's decision)
+	private const double PopupWidth = 368; //WPF-UI's minimum window width (460) × 4/5, owner's decision; MainView.xaml lowers MinWidth to it
 	private const double RowHeight = 54;
 	private const int MinRows = 3;
 	private const double MaxShareOfWorkArea = 0.6;
 
-	//window mode before its size was ever saved (mockup MixerWindow)
-	private const double DefaultWindowWidth = 520;
+	//window mode before its size was ever saved
+	private const double DefaultWindowWidth = PopupWidth; //one width for both modes (owner)
 	private const double DefaultWindowHeight = 540;
 
 	public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo), typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
