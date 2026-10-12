@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -253,16 +254,31 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// While the position is remembered, the popup (it has no title bar) is dragged by any spot that isn't a control
+	/// While the position is remembered, the popup (it has no title bar) is dragged by any spot that isn't a control.
+	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reached the window there.
 	/// </summary>
-	protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+	protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 	{
-		base.OnMouseLeftButtonDown(e);
-		if(e.Handled || !vm.DisplayMinimalistic || !vm.RememberPosition || e.ButtonState != MouseButtonState.Pressed)
+		base.OnPreviewMouseLeftButtonDown(e);
+		if(e.Handled || !vm.DisplayMinimalistic || !vm.RememberPosition || e.ButtonState != MouseButtonState.Pressed
+		   || IsInControl(e.OriginalSource as DependencyObject))
 			return;
+		e.Handled = true;
 		DragMove();
 		vm.PopupLeft = Left;
 		vm.PopupTop = Top;
+	}
+
+	/// <summary>Whether the pressed element is (inside) something that takes clicks itself</summary>
+	private static bool IsInControl(DependencyObject source)
+	{
+		for(var element = source; element != null;
+		    element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
+		{
+			if(element is ButtonBase or RangeBase or Thumb or Selector or TextBoxBase)
+				return true;
+		}
+		return false;
 	}
 
 	/// <summary>

@@ -55,7 +55,21 @@ public class MixerPositionTests : UiTest
 	}
 
 	[TestMethod]
-	public void ADraggedPopupOpensWhereItWasDropped()
+	public void ADraggedPopupOpensWhereItWasDropped() => DragPopupBy("Apps");
+
+	/// <summary>
+	/// Inside the apps list, whose ScrollViewer takes mouse presses itself (dragging didn't work there at first)
+	/// </summary>
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void ThePopupIsDraggedByAnAppsName()
+	{
+		using var testApp = Later(TestAudioApp.Start());
+		DragPopupBy(testApp.DisplayName);
+	}
+
+	/// <param name="text">a text in the popup that isn't a control: where it's grabbed</param>
+	private void DragPopupBy(string text)
 	{
 		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = true, ["RememberPosition"] = true } });
 		//the app shows a normal window at its first start; a second start opens the popup
@@ -64,10 +78,9 @@ public class MixerPositionTests : UiTest
 		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the popup didn't open");
 		var before = MixerPosition();
 
-		//by a spot that isn't a control: the "Apps" header
-		var header = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Apps"))),
-			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException("No \"Apps\" header in the popup");
-		var from = header.BoundingRectangle.Center();
+		var grip = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName(text))),
+			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"No \"{text}\" in the popup");
+		var from = grip.BoundingRectangle.Center();
 		Mouse.Drag(from, new Point(from.X - 300, from.Y - 200));
 		Wait.UntilInputIsProcessed();
 		var dropped = MixerPosition();
