@@ -56,6 +56,49 @@ public class AppTests
 		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new CompositionException(compositionDisabled, WindowChromeStack)));
 	}
 
+	private sealed class PopupException : System.NullReferenceException
+	{
+		private readonly string stackTrace;
+		public PopupException(string stackTrace) => this.stackTrace = stackTrace;
+		public override string StackTrace => stackTrace;
+	}
+
+	private sealed class TabletException : System.InvalidOperationException
+	{
+		private readonly string stackTrace;
+		public TabletException(string stackTrace) => this.stackTrace = stackTrace;
+		public override string StackTrace => stackTrace;
+	}
+
+	//the stacks of the 1.5.4 crashes in Loggly
+	private const string PopupStack = "   at System.Windows.Controls.Primitives.Popup.OnWindowResize(Object sender, AutoResizedEventArgs e)\n" +
+									  "   at System.Windows.Interop.HwndSource.Resize(Size newSize)\n" +
+									  "   at System.Windows.Interop.HwndSource.OnLayoutUpdated(Object obj, EventArgs args)";
+
+	private const string TabletStack = "   at System.Collections.Generic.Dictionary`2.ValueCollection.Enumerator.MoveNext()\n" +
+									   "   at System.Windows.Input.StylusWisp.WispLogic.RefreshTablets()\n" +
+									   "   at System.Windows.Input.StylusWisp.WispLogic.OnTabletAdded(UInt32 wisptisIndex)";
+
+	[TestMethod]
+	public void OnlyThePopupsOwnResizeFailureIsIgnored()
+	{
+		Assert.IsTrue(App.IsPopupResizeFailure(new PopupException(PopupStack)));
+
+		//a NullReferenceException of app code running in the same layout pass still crashes
+		Assert.IsFalse(App.IsPopupResizeFailure(new PopupException("   at Volumey.View.MainView.OnSizeChanged()\n" + PopupStack)));
+		Assert.IsFalse(App.IsPopupResizeFailure(new TabletException(PopupStack)));
+		Assert.IsFalse(App.IsPopupResizeFailure(new PopupException(TabletStack)));
+	}
+
+	[TestMethod]
+	public void OnlyTheTabletRefreshFailureIsIgnored()
+	{
+		Assert.IsTrue(App.IsTabletRefreshFailure(new TabletException(TabletStack)));
+
+		Assert.IsFalse(App.IsTabletRefreshFailure(new TabletException("   at Volumey.Model.OutputDeviceModel.Something()")));
+		Assert.IsFalse(App.IsTabletRefreshFailure(new PopupException(TabletStack)));
+	}
+
 	[TestMethod]
 	public void IgnoredFailuresAreReportedAtMostOncePerInterval()
 	{
