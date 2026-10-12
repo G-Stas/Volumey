@@ -38,9 +38,11 @@ public partial class App
 
 	private readonly WindowUpdateFailureGuard windowUpdateFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 	private readonly WindowUpdateFailureGuard compositionChangeFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
+	private readonly WindowUpdateFailureGuard popupResizeFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
+	private readonly WindowUpdateFailureGuard tabletRefreshFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 
 	/// <summary>
-	/// Keeps the app alive on two known WPF failures. Only the failed window update is skipped;
+	/// Keeps the app alive on known WPF failures. Only the failed update is skipped;
 	/// <see cref="WindowUpdateFailureGuard"/> limits the logging and refreshes the windows afterwards.
 	/// <list type="bullet">
 	/// <item>Updating a window's render target can fail with "Not enough quota is available to process this command"
@@ -49,6 +51,11 @@ public partial class App
 	/// which fails with "Desktop composition is disabled" (0x80263001) while DWM is briefly unavailable (graphics driver reset,
 	/// Remote Desktop, sleep and wake). It was the most common 1.5.4 crash in Loggly. DWM sends the message again once it's back,
 	/// and the frame is extended then.</item>
+	/// <item>A popup (tray menu, combo box drop-down, tooltip) whose window is resized before WPF positioned it: WPF's
+	/// <c>Popup.OnWindowResize</c> throws a NullReferenceException on purpose (still in .NET 10). 12 crashes on 10 PCs in 6 days of 1.5.4 logs.
+	/// Skipped, the popup is positioned again the next time it opens.</item>
+	/// <item>WPF's pen and touch code (<c>WispLogic.RefreshTablets</c>) changes its tablet list while enumerating it when a pen or
+	/// touch device is added ("Collection was modified"). 2 crashes in the same logs. Skipped, a new tablet may not work in Volumey until a restart.</item>
 	/// </list>
 	/// </summary>
 	private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -59,6 +66,10 @@ public partial class App
 			(guard, failure) = (windowUpdateFailures, "failed window update(s) (not enough quota)");
 		else if(IsCompositionChangeFailure(e.Exception))
 			(guard, failure) = (compositionChangeFailures, "failed window frame update(s) (desktop composition disabled)");
+		else if(IsPopupResizeFailure(e.Exception))
+			(guard, failure) = (popupResizeFailures, "failed popup resize(s)");
+		else if(IsTabletRefreshFailure(e.Exception))
+			(guard, failure) = (tabletRefreshFailures, "failed pen and touch device refresh(es)");
 		else
 			return;
 		e.Handled = true;
@@ -76,6 +87,14 @@ public partial class App
 
 	internal static bool IsCompositionChangeFailure(Exception exception)
 		=> exception is COMException { HResult: CompositionDisabled } && exception.StackTrace?.Contains("System.Windows.Shell.WindowChromeWorker") == true;
+
+	/// <summary>Thrown by the popup itself (its first frame), not by app code that runs during the layout</summary>
+	internal static bool IsPopupResizeFailure(Exception exception)
+		=> exception is NullReferenceException
+		   && exception.StackTrace?.TrimStart().StartsWith("at System.Windows.Controls.Primitives.Popup.OnWindowResize(", StringComparison.Ordinal) == true;
+
+	internal static bool IsTabletRefreshFailure(Exception exception)
+		=> exception is InvalidOperationException && exception.StackTrace?.Contains("System.Windows.Input.StylusWisp.WispLogic.RefreshTablets") == true;
 
 	internal static void InitializeExecutionTimer()
 	{
