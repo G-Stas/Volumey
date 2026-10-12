@@ -45,6 +45,8 @@
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_Devices}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization Devices_Description}" Style="{StaticResource PageDescription}" />
+            <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+            <viewControls:HotkeyModeNote />
 
             <!-- the default device's hotkeys: they follow the default device -->
             <TextBlock Text="{lc:Localization Devices_VolumeSection}" Style="{StaticResource SectionHeader}" />
@@ -224,7 +226,6 @@
                                          AutomationProperties.AutomationId="DeviceHotkeyToggle" />
                     </StackPanel>
                 </ui:CardControl>
-                <viewControls:HotkeyModeNote />
 
                 <!-- the device's audio features, read from Windows (DeviceSettings); only while it's connected. Every control is disabled
                      while a change runs; a failed change shows its error under the title and the control shows the real state again -->
