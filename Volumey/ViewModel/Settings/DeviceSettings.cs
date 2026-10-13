@@ -231,6 +231,9 @@ public sealed partial class DeviceSettings : ObservableObject
 					DeviceSwitch.AllowExclusive => features with { AllowExclusive = value },
 					_ => features with { ExclusivePriority = value }
 				};
+			//the formats are checked in exclusive mode, which Windows refuses while it isn't allowed: read them again
+			if(changed && setting == DeviceSwitch.AllowExclusive && !detached)
+				SetSupportedFormats(await Task.Run(model.GetSupportedFormats) ?? Array.Empty<DeviceFormatOption>());
 			return changed;
 		}, ErrorMessageType.SettingFailed, () => RestoreSwitch(setting, previous, propertyName));
 	}

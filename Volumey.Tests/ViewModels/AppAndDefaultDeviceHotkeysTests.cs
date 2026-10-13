@@ -632,6 +632,27 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void AllowingExclusiveModeReadsTheFormatsAgain()
+	{
+		//Windows refuses the exclusive-mode format checks while exclusive mode isn't allowed: no list, the current format is shown
+		SetUpFeatures("1", new DeviceFeatureState(false, false));
+		DeviceProvider.Setup(m => m.SetDeviceSwitchAsync("1", DeviceSwitch.AllowExclusive, true)).ReturnsAsync(true);
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, out var device));
+		device.SetupSequence(m => m.GetSupportedFormats())
+		      .Returns(Array.Empty<DeviceFormatOption>())
+		      .Returns(new[] { Option24At48, Option24At96 });
+		var settings = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys).SelectedDevice.Settings;
+		//the balance is read right after the formats are shown, so the first (empty) list is in place then
+		WaitFor(() => device.Invocations.Any(i => i.Method.Name == nameof(IDevice.GetChannelVolumes)), "the device's settings weren't read");
+		Assert.IsTrue(settings.HasExclusiveMode);
+		Assert.IsFalse(settings.CanChooseFormat);
+
+		settings.AllowExclusive = true;
+		WaitFor(() => settings.CanChooseFormat, "the formats weren't read again");
+		Assert.AreEqual(Option24At48, settings.SelectedFormat);
+	}
+
+	[TestMethod]
 	public void TheBalanceShowsAndSetsTheFirstTwoChannels()
 	{
 		SetDefaultDevice(CreateDevice("1", "Speakers", At48, out var device, Option24At48));

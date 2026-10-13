@@ -110,10 +110,24 @@ public sealed class AudioDevice : IDevice
 						continue;
 					//what Windows' format list checks: integer PCM the device takes in exclusive mode
 					var format = new WaveFormatExtensible((int)rate, container, channels, false, bits, channelMask);
-					if(client.IsFormatSupported(AudioClientShareMode.Exclusive, format))
-						supported.Add(new DeviceFormatOption(bits, container, rate));
+					try
+					{
+						if(client.IsFormatSupported(AudioClientShareMode.Exclusive, format))
+							supported.Add(new DeviceFormatOption(bits, container, rate));
+					}
+					catch(Exception e) when(e is not AudioExclusiveModeNotAllowedException)
+					{
+						//one format the driver can't check isn't a reason to drop the others
+						Logger.Debug($"Couldn't check the format {bits} bit, {rate} Hz", e);
+					}
 				}
 			}
+		}
+		catch(AudioExclusiveModeNotAllowedException)
+		{
+			//"Allow apps to take exclusive control" is off: Windows refuses every check, the page shows the current format only
+			Logger.Info("The formats can't be checked while exclusive mode isn't allowed");
+			supported.Clear();
 		}
 		catch(Exception e)
 		{
