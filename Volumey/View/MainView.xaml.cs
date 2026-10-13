@@ -70,11 +70,11 @@ public partial class MainView
 	/// </summary>
 	private bool placed;
 
-	public MainView()
+	internal MainView(AppBehaviorViewModel vm, SettingsViewModel settings)
 	{
+		this.vm = vm;
 		InitializeComponent();
 		WindowBackdropType = ThemeViewModel.Backdrop;
-		vm = (AppBehaviorViewModel)DataContext;
 
 		//size before the HWND exists
 		ApplyMode();
@@ -107,10 +107,10 @@ public partial class MainView
 		SetUpTrayIcon();
 		SetBindings();
 
-		//Load SettingsViewModel from resources so hotkeys could be loaded on app startup instead of waiting when settings view will be opened to load it
-		var settingsVm = (SettingsViewModel)TryFindResource("SettingsViewModel");
-		messages.HotkeyMessageHandler = settingsVm.GetHotkeyMessageHandler();
-		settingsVm.SetWindowHandle(Hwnd);
+		//WM_HOTKEY goes to the blocking hotkey manager; getting the window handle sets up the hotkey manager,
+		//and the hotkey features then register their saved hotkeys
+		messages.HotkeyMessageHandler = settings.GetHotkeyMessageHandler();
+		settings.SetWindowHandle(Hwnd);
 	}
 
 	private void SetBindings()

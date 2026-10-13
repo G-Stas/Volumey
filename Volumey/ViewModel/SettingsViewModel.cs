@@ -44,13 +44,9 @@ sealed partial class SettingsViewModel : ObservableObject
 	}
 	private readonly IHotkeyService hotkeys;
 
-	public SettingsViewModel() : this(AppServices.Current) { }
-
-	internal SettingsViewModel(AppServices services)
+	internal SettingsViewModel(IHotkeyService hotkeys, IDeviceProvider devices, INotificationService notifications, IScreenInfoProvider screens)
 	{
-		hotkeys = services.Hotkeys;
-		var devices = services.Devices;
-		var notifications = services.Notifications;
+		this.hotkeys = hotkeys;
 		LangSettings = new LangSettings();
 		HotkeysViewModel = new AppsHotkeysViewModel(devices, hotkeys, notifications);
 		DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel(devices, hotkeys, notifications);
@@ -59,7 +55,7 @@ sealed partial class SettingsViewModel : ObservableObject
 		AppVolumeSyncViewModel = new AppVolumeSyncViewModel(devices);
 		DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel(devices, hotkeys);
 		ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, hotkeys, notifications);
-		NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
+		NotificationsViewModel = new NotificationViewModel(devices, notifications, screens);
 		SystemHotkeysViewModel = new SystemHotkeysViewModel(hotkeys);
 		About = new AboutViewModel(new SupportLinks());
 

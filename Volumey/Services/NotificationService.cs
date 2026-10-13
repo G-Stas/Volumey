@@ -8,6 +8,7 @@ using Volumey.Helper;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.Services;
 
@@ -24,6 +25,14 @@ internal sealed class NotificationService : INotificationService
 	private OsdWindow window;
 	private TimeSpan displayTime;
 	private IManagedMasterAudioSession example;
+
+	/// <summary>The sample app's model takes it like every app model</summary>
+	private readonly IHotkeyService hotkeys;
+
+	internal NotificationService(IHotkeyService hotkeys)
+	{
+		this.hotkeys = hotkeys;
+	}
 
 	private OsdWindow Window
 	{
@@ -65,7 +74,7 @@ internal sealed class NotificationService : INotificationService
 		{
 			if(example == null)
 			{
-				var model = new AudioProcessModel(85, false, ExampleName, default, string.Empty, IconHelper.CreateGenericExeIcon(), null, AppServices.Current.Hotkeys);
+				var model = new AudioProcessModel(85, false, ExampleName, default, string.Empty, IconHelper.CreateGenericExeIcon(), null, hotkeys);
 				//the sample app's name follows the language
 				TranslationSource.Instance.PropertyChanged += (_, _) => model.Name = ExampleName;
 				example = model;

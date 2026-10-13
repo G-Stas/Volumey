@@ -11,7 +11,7 @@ namespace Volumey.ViewModel.Settings;
 
 /// <summary>
 /// The app's hotkeys: holds the hotkey manager, counts the users of each hotkey so several features can share one,
-/// raises the pressed hotkeys and validates new ones. One instance for the app (<see cref="AppServices"/>).
+/// raises the pressed hotkeys and validates new ones. One instance for the app (<see cref="Services.ServiceRegistration"/>).
 /// </summary>
 public sealed class HotkeyService : IHotkeyService
 {
@@ -277,6 +277,8 @@ public sealed class HotkeyService : IHotkeyService
 
 	public void Dispose()
 	{
+		//called again when the container is disposed on exit
 		hotkeyManager?.Dispose();
+		hotkeyManager = null;
 	}
 }

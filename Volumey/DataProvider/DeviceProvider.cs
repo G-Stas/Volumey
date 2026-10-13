@@ -357,6 +357,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 
 	public void Dispose()
 	{
+		//called again when the container is disposed on exit
+		if(disposed)
+			return;
 		//no rebuilds after the app has started to exit
 		disposed = true;
 		deviceStateNotificationHandler?.Dispose();
