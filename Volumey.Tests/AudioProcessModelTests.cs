@@ -325,6 +325,52 @@ public class AudioProcessModelTests
 		Assert.AreEqual(!muteState, proc.IsMuted);
 	}
 
+	[TestMethod]
+	public void ADisposedModelReleasesItsProcess()
+	{
+		//watching a process for its exit keeps its handle open (and the model alive) until the app exits, so Dispose must release it
+		using var child = StartIdleProcess();
+		try
+		{
+			var process = System.Diagnostics.Process.GetProcessById(child.Id);
+			var model = new AudioProcessModel(50, false, "app", (uint)child.Id, default, default, process, hotkeys);
+			Assert.AreEqual(child.Id, process.Id);
+
+			model.Dispose();
+
+			//a disposed Process has no process associated anymore
+			Assert.Throws<InvalidOperationException>(() => _ = process.Id);
+		}
+		finally
+		{
+			child.Kill();
+			child.WaitForExit();
+		}
+	}
+
+	[TestMethod]
+	public void AModelReportsItsProcessExit()
+	{
+		using var child = StartIdleProcess();
+		using var exited = new System.Threading.ManualResetEventSlim();
+		var model = new AudioProcessModel(50, false, "app", (uint)child.Id, default, default, System.Diagnostics.Process.GetProcessById(child.Id), hotkeys);
+		model.Exited += _ => exited.Set();
+
+		child.Kill();
+		child.WaitForExit();
+
+		Assert.IsTrue(exited.Wait(TimeSpan.FromSeconds(5)), "the model didn't report its process's exit");
+		model.Dispose();
+	}
+
+	private static System.Diagnostics.Process StartIdleProcess()
+		=> System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c pause")
+		{
+			UseShellExecute = false,
+			CreateNoWindow = true,
+			RedirectStandardInput = true
+		});
+
 	internal static AudioSessionModel GetSessionMock(int volume, bool muteState, string id)
 	{
 		var sessionVolumeMock = new Mock<IAudioSessionVolume>();
