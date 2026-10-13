@@ -7,8 +7,7 @@
       xmlns:controls="clr-namespace:Volumey.Controls"
       xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_MediaKeys}"
-      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-      DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=SystemHotkeysViewModel}">
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <!-- the Foreground: see GeneralPage -->
     <Page.Resources>
         <ResourceDictionary>

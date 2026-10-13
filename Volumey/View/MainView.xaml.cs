@@ -59,6 +59,8 @@ public partial class MainView
 	private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
 
 	private readonly AppBehaviorViewModel vm;
+	/// <summary>Creates the settings window the first time it opens (the container keeps the one instance)</summary>
+	private readonly Func<SettingsWindow> getSettingsWindow;
 	private SettingsWindow settingsWindow;
 
 	/// <summary>Set while the window mode's size or position is applied, so applying it isn't saved as a user change</summary>
@@ -70,9 +72,10 @@ public partial class MainView
 	/// </summary>
 	private bool placed;
 
-	internal MainView(AppBehaviorViewModel vm, SettingsViewModel settings)
+	internal MainView(AppBehaviorViewModel vm, SettingsViewModel settings, Func<SettingsWindow> getSettingsWindow)
 	{
 		this.vm = vm;
+		this.getSettingsWindow = getSettingsWindow;
 		InitializeComponent();
 		WindowBackdropType = ThemeViewModel.Backdrop;
 
@@ -464,7 +467,7 @@ public partial class MainView
 
 	private void ShowSettings()
 	{
-		settingsWindow ??= new SettingsWindow();
+		settingsWindow ??= getSettingsWindow();
 		if(!settingsWindow.IsVisible)
 			CenterOnMixerScreen(settingsWindow);
 		settingsWindow.Show();

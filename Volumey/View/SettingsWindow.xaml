@@ -11,7 +11,6 @@
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
                  WindowCornerPreference="Round"
-                 DataContext="{StaticResource SettingsViewModel}"
                  Closing="OnClosing">
     <!-- a title bar and the pages on the left (no footer items). MinWidth: narrower than 800 the cards break
          (titles wrap letter by letter, e.g. "Distance from the edges"); WPF-UI's default minimum is 460 -->

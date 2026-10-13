@@ -48,8 +48,9 @@ public partial class App
 		Resources[nameof(AppBehaviorViewModel)] = services.GetRequiredService<AppBehaviorViewModel>();
 		//creating it enumerates the audio devices
 		Resources[nameof(DeviceProviderViewModel)] = services.GetRequiredService<DeviceProviderViewModel>();
-		//creates every hotkey feature, which registers its saved hotkeys once MainView gives it the window handle
 		Resources[nameof(SettingsViewModel)] = services.GetRequiredService<SettingsViewModel>();
+		foreach(var feature in ServiceRegistration.Features)
+			services.GetRequiredService(feature);
 
 		//the mixer window and the tray icon; the window shows itself unless the app starts minimized
 		MainWindow = services.GetRequiredService<MainView>();

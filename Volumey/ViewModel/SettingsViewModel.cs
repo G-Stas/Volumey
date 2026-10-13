@@ -8,19 +8,6 @@ namespace Volumey.ViewModel;
 
 sealed partial class SettingsViewModel : ObservableObject
 {
-	public DeviceVolumeHotkeysViewModel DeviceVolumeHotkeysViewModel { get; }
-	public AppsHotkeysViewModel HotkeysViewModel { get; }
-	public OpenHotkeyViewModel OpenHotkeyViewModel { get; }
-	public VolumeLimitViewModel VolumeLimitViewModel { get; }
-	public AppVolumeSyncViewModel AppVolumeSyncViewModel { get; }
-	public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
-	public NotificationViewModel NotificationsViewModel { get; }
-	public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
-	public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
-	public LangSettings LangSettings { get; }
-
-	public AboutViewModel About { get; }
-
 	private IntPtr windowHandle;
 
 	private bool blockHotkeysInSystem;
@@ -43,25 +30,9 @@ sealed partial class SettingsViewModel : ObservableObject
 	}
 	private readonly IHotkeyService hotkeys;
 
-	internal SettingsViewModel(IHotkeyService hotkeys, LangSettings langSettings, AppsHotkeysViewModel appsHotkeys,
-		DeviceVolumeHotkeysViewModel deviceVolumeHotkeys, OpenHotkeyViewModel openHotkey, VolumeLimitViewModel volumeLimit,
-		AppVolumeSyncViewModel appVolumeSync, DefaultDeviceHotkeysViewModel defaultDeviceHotkeys,
-		ForegroundWindowVolumeViewModel foregroundWindowVolume, NotificationViewModel notifications, SystemHotkeysViewModel systemHotkeys,
-		AboutViewModel about)
+	internal SettingsViewModel(IHotkeyService hotkeys)
 	{
 		this.hotkeys = hotkeys;
-		LangSettings = langSettings;
-		HotkeysViewModel = appsHotkeys;
-		DeviceVolumeHotkeysViewModel = deviceVolumeHotkeys;
-		OpenHotkeyViewModel = openHotkey;
-		VolumeLimitViewModel = volumeLimit;
-		AppVolumeSyncViewModel = appVolumeSync;
-		DefaultDeviceHotkeysViewModel = defaultDeviceHotkeys;
-		ForegroundWindowVolumeViewModel = foregroundWindowVolume;
-		NotificationsViewModel = notifications;
-		SystemHotkeysViewModel = systemHotkeys;
-		About = about;
-
 		blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;
 	}
 

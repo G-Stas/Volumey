@@ -1,9 +1,8 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using log4net;
 using Volumey.Helper;
 using Volumey.View.DialogContent;
-using Volumey.ViewModel;
+using Volumey.ViewModel.Pages;
 
 namespace Volumey.View.SettingsPage;
 
@@ -11,8 +10,12 @@ public partial class AppHotkeysPage
 {
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppHotkeysPage));
 
-	public AppHotkeysPage()
+	private readonly AppHotkeysPageViewModel vm;
+
+	internal AppHotkeysPage(AppHotkeysPageViewModel vm)
 	{
+		this.vm = vm;
+		DataContext = vm;
 		InitializeComponent();
 	}
 
@@ -20,8 +23,7 @@ public partial class AppHotkeysPage
 	{
 		if(Window.GetWindow(this) is not SettingsWindow window)
 			return;
-		var vm = ((SettingsViewModel)DataContext).HotkeysViewModel;
-		vm.PrepareAddApp();
-		new AddAppDialog(vm) { DialogHostEx = window.DialogHost }.ShowAsync().Forget(Logger, "Failed to show the add app dialog");
+		vm.AppHotkeys.PrepareAddApp();
+		new AddAppDialog(vm.AppHotkeys) { DialogHostEx = window.DialogHost }.ShowAsync().Forget(Logger, "Failed to show the add app dialog");
 	}
 }

@@ -1,13 +1,14 @@
-﻿using Volumey.ViewModel;
+﻿using Volumey.ViewModel.Pages;
 
 namespace Volumey.View.SettingsPage;
 
 public partial class MixerPage
 {
-	public MixerPage()
+	internal MixerPage(MixerPageViewModel vm)
 	{
+		DataContext = vm;
 		InitializeComponent();
 		//read the screens again when the page opens
-		Loaded += (_, _) => ((AppBehaviorViewModel)FindResource("AppBehaviorViewModel")).LoadedCommand.Execute(null);
+		Loaded += (_, _) => vm.Window.LoadedCommand.Execute(null);
 	}
 }

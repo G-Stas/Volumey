@@ -7,8 +7,7 @@
       xmlns:controls="clr-namespace:Volumey.Controls"
       xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_Mixer}"
-      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-      DataContext="{StaticResource SettingsViewModel}">
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <!-- the Foreground: see GeneralPage -->
     <Page.Resources>
         <ResourceDictionary>
@@ -32,7 +31,7 @@
             <viewControls:HotkeyModeNote />
 
             <TextBlock Text="{lc:Localization MixerPage_Opening}" Style="{StaticResource SectionHeader}" />
-            <ui:CardControl Icon="{ui:SymbolIcon Keyboard24}" DataContext="{Binding OpenHotkeyViewModel}">
+            <ui:CardControl Icon="{ui:SymbolIcon Keyboard24}" DataContext="{Binding OpenHotkey}">
                 <ui:CardControl.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization MixerPage_OpenHotkey}" />
@@ -60,17 +59,17 @@
                         <TextBlock Text="{lc:Localization MixerPage_PopupHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=PopupEnabled}"
+                <ui:ToggleSwitch IsChecked="{Binding Window.PopupEnabled}"
                                  AutomationProperties.Name="{lc:Localization MixerPage_Popup}"
                                  AutomationProperties.AutomationId="PopupToggle" />
             </ui:CardControl>
             <ui:CardControl Icon="{ui:SymbolIcon Pin24}" Header="{lc:Localization MixerPage_AlwaysOnTop}">
-                <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=AlwaysOnTop}"
+                <ui:ToggleSwitch IsChecked="{Binding Window.AlwaysOnTop}"
                                  AutomationProperties.Name="{lc:Localization MixerPage_AlwaysOnTop}"
                                  AutomationProperties.AutomationId="AlwaysOnTopToggle" />
             </ui:CardControl>
             <ui:CardControl Icon="{ui:SymbolIcon Desktop24}"
-                            DataContext="{StaticResource AppBehaviorViewModel}"
+                            DataContext="{Binding Window}"
                             Visibility="{Binding AllScreens.Count, Converter={StaticResource SeveralToVisibility}}">
                 <ui:CardControl.Header>
                     <StackPanel>
@@ -105,7 +104,7 @@
                         <TextBlock Text="{lc:Localization MixerPage_RememberPositionHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=RememberPosition}"
+                <ui:ToggleSwitch IsChecked="{Binding Window.RememberPosition}"
                                  AutomationProperties.Name="{lc:Localization MixerPage_RememberPosition}"
                                  AutomationProperties.AutomationId="RememberPositionToggle" />
             </ui:CardControl>
@@ -117,13 +116,13 @@
                         <TextBlock Text="{lc:Localization MixerPage_DeviceBottom}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=DeviceViewAtTheBottom}"
+                <ui:ToggleSwitch IsChecked="{Binding Window.DeviceViewAtTheBottom}"
                                  AutomationProperties.Name="{lc:Localization MixerPage_DeviceBottom}"
                                  AutomationProperties.AutomationId="DeviceBottomToggle" />
             </ui:CardControl>
 
             <TextBlock Text="{lc:Localization MixerPage_AppVolumes}" Style="{StaticResource SectionHeader}" />
-            <ui:CardControl Icon="{ui:SymbolIcon Speaker124}" DataContext="{Binding VolumeLimitViewModel}">
+            <ui:CardControl Icon="{ui:SymbolIcon Speaker124}" DataContext="{Binding VolumeLimit}">
                 <ui:CardControl.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization MixerPage_VolumeLimit}" />
@@ -150,7 +149,7 @@
                                      AutomationProperties.AutomationId="VolumeLimitToggle" />
                 </StackPanel>
             </ui:CardControl>
-            <ui:CardControl Icon="{ui:SymbolIcon ArrowSync24}" DataContext="{Binding AppVolumeSyncViewModel}">
+            <ui:CardControl Icon="{ui:SymbolIcon ArrowSync24}" DataContext="{Binding AppVolumeSync}">
                 <ui:CardControl.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization MixerPage_Sync}" />

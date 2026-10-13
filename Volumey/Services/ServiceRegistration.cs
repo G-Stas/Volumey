@@ -3,8 +3,11 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Volumey.DataProvider;
 using Volumey.View;
+using Volumey.View.SettingsPage;
 using Volumey.ViewModel;
+using Volumey.ViewModel.Pages;
 using Volumey.ViewModel.Settings;
+using Wpf.Ui.Abstractions;
 
 namespace Volumey.Services;
 
@@ -15,6 +18,26 @@ namespace Volumey.Services;
 /// </summary>
 internal static class ServiceRegistration
 {
+	/// <summary>
+	/// The settings features the app creates at startup, in this order, not when their page first opens: the language is applied,
+	/// the hotkey features register their saved hotkeys (in this order) once the hotkey service gets a manager, the volume limit,
+	/// app volume sync and the OSD start following the devices, and the support links are read
+	/// </summary>
+	internal static readonly Type[] Features =
+	[
+		typeof(LangSettings),
+		typeof(AppsHotkeysViewModel),
+		typeof(DeviceVolumeHotkeysViewModel),
+		typeof(OpenHotkeyViewModel),
+		typeof(VolumeLimitViewModel),
+		typeof(AppVolumeSyncViewModel),
+		typeof(DefaultDeviceHotkeysViewModel),
+		typeof(ForegroundWindowVolumeViewModel),
+		typeof(NotificationViewModel),
+		typeof(SystemHotkeysViewModel),
+		typeof(AboutViewModel)
+	];
+
 	internal static IServiceCollection AddVolumey(this IServiceCollection services, Application application)
 	{
 		services.AddSingleton<IHotkeyService, HotkeyService>();
@@ -30,6 +53,7 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
 			sp.Get<IAppShell>(), sp.Get<ISystemIntegration>()));
 		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>()));
+		services.AddSingleton(sp => new SettingsViewModel(sp.Get<IHotkeyService>()));
 
 		services.AddSingleton(_ => new LangSettings());
 		services.AddSingleton(sp => new AppsHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
@@ -42,13 +66,27 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new NotificationViewModel(sp.Get<IDeviceProvider>(), sp.Get<INotificationService>(), sp.Get<IScreenInfoProvider>()));
 		services.AddSingleton(sp => new SystemHotkeysViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new AboutViewModel(sp.Get<SupportLinks>()));
-		//the arguments in this order: the hotkey features register their saved hotkeys in the order they were created
-		services.AddSingleton(sp => new SettingsViewModel(sp.Get<IHotkeyService>(), sp.Get<LangSettings>(), sp.Get<AppsHotkeysViewModel>(),
-			sp.Get<DeviceVolumeHotkeysViewModel>(), sp.Get<OpenHotkeyViewModel>(), sp.Get<VolumeLimitViewModel>(), sp.Get<AppVolumeSyncViewModel>(),
-			sp.Get<DefaultDeviceHotkeysViewModel>(), sp.Get<ForegroundWindowVolumeViewModel>(), sp.Get<NotificationViewModel>(),
-			sp.Get<SystemHotkeysViewModel>(), sp.Get<AboutViewModel>()));
 
-		services.AddSingleton(sp => new MainView(sp.Get<AppBehaviorViewModel>(), sp.Get<SettingsViewModel>()));
+		services.AddSingleton(sp => new GeneralPageViewModel(sp.Get<SettingsViewModel>(), sp.Get<ThemeViewModel>(), sp.Get<AppBehaviorViewModel>(),
+			sp.Get<LangSettings>(), sp.Get<AppsHotkeysViewModel>()));
+		services.AddSingleton(sp => new MixerPageViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<OpenHotkeyViewModel>(), sp.Get<VolumeLimitViewModel>(),
+			sp.Get<AppVolumeSyncViewModel>()));
+		services.AddSingleton(sp => new AppHotkeysPageViewModel(sp.Get<ForegroundWindowVolumeViewModel>(), sp.Get<AppsHotkeysViewModel>()));
+		services.AddSingleton(sp => new DevicesPageViewModel(sp.Get<DeviceVolumeHotkeysViewModel>(), sp.Get<DefaultDeviceHotkeysViewModel>()));
+
+		services.AddSingleton(sp => new GeneralPage(sp.Get<GeneralPageViewModel>()));
+		services.AddSingleton(sp => new MixerPage(sp.Get<MixerPageViewModel>()));
+		services.AddSingleton(sp => new AppHotkeysPage(sp.Get<AppHotkeysPageViewModel>()));
+		services.AddSingleton(sp => new DevicesPage(sp.Get<DevicesPageViewModel>()));
+		services.AddSingleton(sp => new MediaKeysPage(sp.Get<SystemHotkeysViewModel>()));
+		services.AddSingleton(sp => new NotificationsPage(sp.Get<NotificationViewModel>()));
+		services.AddSingleton(sp => new AboutPage(sp.Get<AboutViewModel>()));
+		services.AddSingleton<INavigationViewPageProvider>(sp => new PageProvider(sp));
+
+		services.AddSingleton(sp => new SettingsWindow(sp.Get<INavigationViewPageProvider>()));
+		//the settings window is created when it first opens
+		services.AddSingleton<Func<SettingsWindow>>(sp => () => sp.Get<SettingsWindow>());
+		services.AddSingleton(sp => new MainView(sp.Get<AppBehaviorViewModel>(), sp.Get<SettingsViewModel>(), sp.Get<Func<SettingsWindow>>()));
 		return services;
 	}
 

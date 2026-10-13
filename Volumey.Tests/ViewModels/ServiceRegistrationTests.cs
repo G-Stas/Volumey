@@ -7,7 +7,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.DataProvider;
 using Volumey.Services;
+using Volumey.View;
 using Volumey.ViewModel;
+using Volumey.ViewModel.Pages;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests.ViewModels;
@@ -55,22 +57,48 @@ public class ServiceRegistrationTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void TheSettingsViewModelHasTheContainersFeatureViewModels()
+	public void EveryFeatureCreatedAtStartupIsRegistered()
 	{
 		using var provider = BuildProvider();
 
-		var settings = provider.GetRequiredService<SettingsViewModel>();
+		foreach(var feature in ServiceRegistration.Features)
+			Assert.IsNotNull(provider.GetService(feature), feature.Name);
+	}
 
-		Assert.AreSame(provider.GetRequiredService<AppsHotkeysViewModel>(), settings.HotkeysViewModel);
-		Assert.AreSame(provider.GetRequiredService<DeviceVolumeHotkeysViewModel>(), settings.DeviceVolumeHotkeysViewModel);
-		Assert.AreSame(provider.GetRequiredService<OpenHotkeyViewModel>(), settings.OpenHotkeyViewModel);
-		Assert.AreSame(provider.GetRequiredService<VolumeLimitViewModel>(), settings.VolumeLimitViewModel);
-		Assert.AreSame(provider.GetRequiredService<AppVolumeSyncViewModel>(), settings.AppVolumeSyncViewModel);
-		Assert.AreSame(provider.GetRequiredService<DefaultDeviceHotkeysViewModel>(), settings.DefaultDeviceHotkeysViewModel);
-		Assert.AreSame(provider.GetRequiredService<ForegroundWindowVolumeViewModel>(), settings.ForegroundWindowVolumeViewModel);
-		Assert.AreSame(provider.GetRequiredService<NotificationViewModel>(), settings.NotificationsViewModel);
-		Assert.AreSame(provider.GetRequiredService<SystemHotkeysViewModel>(), settings.SystemHotkeysViewModel);
-		Assert.AreSame(provider.GetRequiredService<AboutViewModel>(), settings.About);
-		Assert.AreSame(provider.GetRequiredService<LangSettings>(), settings.LangSettings);
+	[TestMethod]
+	public void ThePageViewModelsHaveTheContainersFeatureViewModels()
+	{
+		using var provider = BuildProvider();
+
+		var general = provider.GetRequiredService<GeneralPageViewModel>();
+		Assert.AreSame(provider.GetRequiredService<SettingsViewModel>(), general.HotkeyMode);
+		Assert.AreSame(provider.GetRequiredService<AppBehaviorViewModel>(), general.Window);
+		Assert.AreSame(provider.GetRequiredService<LangSettings>(), general.Language);
+		Assert.AreSame(provider.GetRequiredService<AppsHotkeysViewModel>(), general.AppHotkeys);
+
+		var mixer = provider.GetRequiredService<MixerPageViewModel>();
+		Assert.AreSame(provider.GetRequiredService<AppBehaviorViewModel>(), mixer.Window);
+		Assert.AreSame(provider.GetRequiredService<OpenHotkeyViewModel>(), mixer.OpenHotkey);
+		Assert.AreSame(provider.GetRequiredService<VolumeLimitViewModel>(), mixer.VolumeLimit);
+		Assert.AreSame(provider.GetRequiredService<AppVolumeSyncViewModel>(), mixer.AppVolumeSync);
+
+		var apps = provider.GetRequiredService<AppHotkeysPageViewModel>();
+		Assert.AreSame(provider.GetRequiredService<ForegroundWindowVolumeViewModel>(), apps.Foreground);
+		Assert.AreSame(provider.GetRequiredService<AppsHotkeysViewModel>(), apps.AppHotkeys);
+
+		var devices = provider.GetRequiredService<DevicesPageViewModel>();
+		Assert.AreSame(provider.GetRequiredService<DeviceVolumeHotkeysViewModel>(), devices.DeviceVolume);
+		Assert.AreSame(provider.GetRequiredService<DefaultDeviceHotkeysViewModel>(), devices.DefaultDevice);
+	}
+
+	[TestMethod]
+	public void ThePageProviderGivesTheContainersPage()
+	{
+		var page = new object();
+		using var provider = new ServiceCollection().AddSingleton(page).BuildServiceProvider();
+		var pages = new PageProvider(provider);
+
+		Assert.AreSame(page, pages.GetPage(typeof(object)));
+		Assert.IsNull(pages.GetPage(typeof(string)));
 	}
 }
