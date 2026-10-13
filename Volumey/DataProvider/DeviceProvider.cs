@@ -111,8 +111,8 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		=> retry >= 20 ? MaxRetryDelay : TimeSpan.FromTicks(Math.Min(FirstRetryDelay.Ticks << retry, MaxRetryDelay.Ticks));
 
 	/// <summary>
-	/// Creates the provider of the app's audio devices. Windows audio can refuse at start for a moment (seen in 1.5.4:
-	/// the device enumerator's class factory failed with 0x80070020, "the file is in use"), so it's tried <see cref="QuickAttempts"/>
+	/// Creates the provider of the app's audio devices. Windows audio can refuse at start for a moment (the device
+	/// enumerator's class factory can fail with 0x80070020, "the file is in use"), so it's tried <see cref="QuickAttempts"/>
 	/// times; after that the app starts without devices and keeps trying in the background with growing delays (<see cref="RetryDelay"/>).
 	/// </summary>
 	internal static IDeviceProvider Create(IHotkeyService hotkeys)
@@ -300,8 +300,8 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	}
 
 	/// <summary>
-	/// Windows reconfigured the device (format or spatial sound changed, #82, #85): its sessions are gone and its objects stopped working,
-	/// so the model is built again from fresh objects and replaces the old one. Before 2.0 the whole app restarted instead.
+	/// Windows reconfigured the device (format or spatial sound changed): its sessions are gone and its objects stopped working,
+	/// so the model is built again from fresh objects and replaces the old one.
 	/// </summary>
 	private void OnDeviceInvalidated(OutputDeviceModel invalid)
 		=> RebuildAsync(invalid).Forget(Logger, "Failed to rebuild a reconfigured device");

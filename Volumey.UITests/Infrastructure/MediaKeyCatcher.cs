@@ -5,7 +5,7 @@ namespace Volumey.UITests.Infrastructure;
 
 /// <summary>
 /// Catches the media keys Volumey sends (a media key hotkey simulates the real key) with a low-level keyboard hook and swallows them,
-/// so the owner's music player never gets them. Installed after Volumey started, the hook is called before any other app's.
+/// so a music player never gets them. Installed after Volumey started, the hook is called before any other app's.
 /// </summary>
 internal sealed class MediaKeyCatcher : IDisposable
 {

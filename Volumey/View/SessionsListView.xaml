@@ -14,7 +14,7 @@
         <converters:CollectionCountToVisibilityConverter CountLimit="1" x:Key="SeveralSessionsToVisibility"/>
         <converters:MultipleVisibilityToSingleVisibilityConverter x:Key="AllVisible"/>
 
-        <!-- the app's icon is the button that shows its sessions (as before); a subtle (transparent) button like WinUI's -->
+        <!-- the app's icon is the button that shows its sessions; a subtle (transparent) button like WinUI's -->
         <Style x:Key="IconToggle" TargetType="ToggleButton">
             <Setter Property="Width" Value="40" />
             <Setter Property="Height" Value="40" />
@@ -45,7 +45,7 @@
         <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <StackPanel>
-                    <!-- 16 on the right too: WPF-UI's scroll bar (up to 14 px) is drawn over the content and covered the mute buttons -->
+                    <!-- 16 on the right too: WPF-UI's scroll bar (up to 14 px) is drawn over the content and would cover the mute buttons -->
                     <Grid Margin="16 6 16 6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
@@ -73,7 +73,7 @@
                                         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
                                         BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="1"
                                         Visibility="{Binding Sessions.Count, Converter={StaticResource SeveralSessionsToVisibility}}">
-                                    <!-- the toggle's own template sets no text color, so the theme's is given here (it was black on dark, owner) -->
+                                    <!-- the toggle's own template sets no text color, so the theme's is given here (otherwise it's black on dark) -->
                                     <ui:SymbolIcon FontSize="10" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
                                         <ui:SymbolIcon.Style>
                                             <Style TargetType="ui:SymbolIcon">

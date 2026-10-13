@@ -24,7 +24,7 @@ public partial class App
 		DispatcherUnhandledException += OnDispatcherUnhandledException;
 		//settings are saved shortly after a change; write a pending change before the process ends (also on logoff)
 		Exit += (s, e) => DataProvider.SettingsProvider.Settings.Flush();
-		//sleep and wake drop and bring back audio devices (#57), so mark them in the log
+		//sleep and wake drop and bring back audio devices, so mark them in the log
 		Microsoft.Win32.SystemEvents.PowerModeChanged += (s, e) => Logger.Info($"Power mode changed: {e.Mode}");
 	}
 
@@ -46,17 +46,17 @@ public partial class App
 	/// <see cref="WindowUpdateFailureGuard"/> limits the logging and refreshes the windows afterwards.
 	/// <list type="bullet">
 	/// <item>Updating a window's render target can fail with "Not enough quota is available to process this command"
-	/// (Win32 error 1816), e.g. under a fullscreen game or while the window grows with many apps (GitHub issues #58, #66).</item>
+	/// (Win32 error 1816), e.g. under a fullscreen game or while the window grows with many apps.</item>
 	/// <item>WindowChrome (the windows' own title bar and backdrop) extends the window frame again on WM_DWMCOMPOSITIONCHANGED,
 	/// which fails while DWM is briefly unavailable (graphics driver reset, Remote Desktop, sleep and wake): usually "Desktop composition
-	/// is disabled" (0x80263001), also other codes (0xD0000701 seen), so any COMException of that call. It was the most common 1.5.4 crash
-	/// in Loggly. DWM sends the message again once it's back, and the frame is extended then. When a window gets its chrome
-	/// (<c>_ApplyNewCustomChrome</c>, also a 1.5.4 crash, at start), WPF-UI's <c>FluentWindow.SetWindowChrome</c> already ignores it.</item>
+	/// is disabled" (0x80263001), also other codes (e.g. 0xD0000701), so any COMException of that call.
+	/// DWM sends the message again once it's back, and the frame is extended then. When a window gets its chrome
+	/// (<c>_ApplyNewCustomChrome</c>, at start), WPF-UI's <c>FluentWindow.SetWindowChrome</c> already ignores it.</item>
 	/// <item>A popup (tray menu, combo box drop-down, tooltip) whose window is resized before WPF positioned it: WPF's
-	/// <c>Popup.OnWindowResize</c> throws a NullReferenceException on purpose (still in .NET 10). 12 crashes on 10 PCs in 6 days of 1.5.4 logs.
+	/// <c>Popup.OnWindowResize</c> throws a NullReferenceException on purpose (still in .NET 10).
 	/// Skipped, the popup is positioned again the next time it opens.</item>
 	/// <item>WPF's pen and touch code (<c>WispLogic.RefreshTablets</c>) changes its tablet list while enumerating it when a pen or
-	/// touch device is added ("Collection was modified"). 2 crashes in the same logs. Skipped, a new tablet may not work in Volumey until a restart.</item>
+	/// touch device is added ("Collection was modified"). Skipped, a new tablet may not work in Volumey until a restart.</item>
 	/// </list>
 	/// </summary>
 	private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

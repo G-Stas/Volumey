@@ -12,7 +12,7 @@ using Windows.Win32.Graphics.Gdi;
 namespace Volumey.Helper;
 
 /// <summary>
-/// Dev-build-only logging for the "foreground app" hotkeys in games (GitHub issues #63, #88): when a press reaches the app,
+/// Dev-build-only logging for the "foreground app" hotkeys in games: when a press reaches the app,
 /// how long it waited, and what the foreground window lookup sees. The calls are removed from Release builds
 /// (<see cref="ConditionalAttribute"/>), so nothing is sent to Loggly.
 /// </summary>

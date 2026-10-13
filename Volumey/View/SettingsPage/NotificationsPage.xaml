@@ -21,7 +21,7 @@
             <converters:LocalizationKeyConverter x:Key="LocalizationKey" />
             <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
             <converters:ScreenNameConverter x:Key="ScreenName" />
-            <!-- a place in the corner picker: a dot, the chosen one a bar in the accent color (mockup) -->
+            <!-- a place in the corner picker: a dot, the chosen one a bar in the accent color -->
             <Style x:Key="CornerButton" TargetType="RadioButton">
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Template">
@@ -73,7 +73,6 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsNotifications.dc.html, with six places to choose from instead of nine (owner) -->
     <!-- no ScrollViewer here: see GeneralPage -->
     <StackPanel Margin="16 4 40 32">
         <TextBlock Text="{lc:Localization Nav_Notifications}" Style="{StaticResource PageTitle}" />
@@ -103,7 +102,7 @@
         </ui:CardControl>
 
         <TextBlock Text="{lc:Localization Notifications_PositionHeader}" Style="{StaticResource SectionHeader}" />
-        <!-- only with several screens, as before -->
+        <!-- only with several screens -->
         <ui:CardControl Icon="{ui:SymbolIcon Desktop24}"
                         Visibility="{Binding AllScreens.Count, Converter={StaticResource SeveralToVisibility}}">
             <ui:CardControl.Header>
@@ -145,7 +144,7 @@
                     </TextBlock>
                 </StackPanel>
             </ui:CardControl.Header>
-            <!-- a screen with its places; no GroupName: see the page rules (the buttons are grouped by their panel) -->
+            <!-- a screen with its places; no GroupName: see GeneralPage (the buttons are grouped by their panel) -->
             <Border Width="176"
                     Height="76"
                     Padding="6"
@@ -170,7 +169,7 @@
                 </UniformGrid>
             </Border>
         </ui:CardControl>
-        <!-- the title on top and one row per direction (slider + box) under it, owner's choice; the whole layout is in the header,
+        <!-- the title on top and one row per direction (slider + box) under it; the whole layout is in the header,
              which takes the card's width. Changing a distance shows the sample OSD where it lands (NotificationViewModel) -->
         <ui:CardControl Icon="{ui:SymbolIcon ArrowAutofitWidth24}">
             <ui:CardControl.Header>
@@ -187,7 +186,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <!-- as before, the distance from the side doesn't apply to a centered OSD -->
+                        <!-- the distance from the side doesn't apply to a centered OSD -->
                         <TextBlock Grid.Row="0" Text="{lc:Localization Notifications_HorizontalShort}" VerticalAlignment="Center"
                                    IsEnabled="{Binding NotificationsPositionIsCentered, Converter={StaticResource InverseBool}}" />
                         <controls:VolumeSlider Grid.Row="0" Grid.Column="1" Style="{StaticResource DistanceSlider}"

@@ -11,7 +11,7 @@ public class IconHelperTests
 	[TestMethod]
 	public void DisposingOneGenericIconDoesntBreakTheOthers()
 	{
-		//the shared generic icon used to be handed out and destroyed by the first app model that was disposed
+		//every app model gets its own copy of the generic icon and disposes it
 		var first = IconHelper.CreateGenericExeIcon();
 		var second = IconHelper.CreateGenericExeIcon();
 		Assert.IsNotNull(first);

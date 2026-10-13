@@ -27,7 +27,7 @@ static class Startup
 	internal const string InstanceSuffix = "";
 #endif
 
-	//not owned on creation: Main takes it with WaitOne, once (owning it here as well took it twice, so it was abandoned on every exit)
+	//not owned on creation: Main takes it with WaitOne, once (owning it here as well would take it twice, so it would be abandoned on every exit)
 	private static readonly Mutex mutex = new Mutex(false, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
 
 	public static readonly int WM_SHOWME = (int)PInvoke.RegisterWindowMessage("WM_SHOWME" + InstanceSuffix);
@@ -138,14 +138,14 @@ static class Startup
 
 	/// <summary>
 	/// Logs crashes on every thread in every build. App.Main's try/catch only sees the UI thread, so an exception on an audio (COM),
-	/// thread-pool or keyboard hook thread used to end a Release build without a trace.
+	/// thread-pool or keyboard hook thread would otherwise end a Release build without a trace.
 	/// </summary>
 	private static void LogUnhandledExceptions()
 	{
 		//the process ends after this handler, the runtime sets the exit code
 		AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 			App.LogFatal(e.IsTerminating ? "background thread" : "background thread (not terminating)", e.ExceptionObject as Exception);
-		//exceptions of tasks nobody awaited (fire-and-forget Task.Run): they don't end the app, but they used to vanish
+		//exceptions of tasks nobody awaited (fire-and-forget Task.Run): they don't end the app, but would otherwise vanish
 		TaskScheduler.UnobservedTaskException += (s, e) =>
 		{
 			LogManager.GetLogger(typeof(Startup)).Error("Unobserved task exception", e.Exception);
@@ -164,7 +164,7 @@ static class Startup
 			var assembly = Assembly.GetExecutingAssembly();
 			var repo = LogManager.GetRepository(assembly);
 			BasicConfigurator.Configure(repo, RemoteLogging.CreateAppender(inputKey));
-			//info and above: info gives the context of a crash (devices, sleep and wake); debug stays local (owner, 2026-10-12)
+			//info and above: info gives the context of a crash (devices, sleep and wake); debug stays local
 			((Hierarchy)repo).Root.Level = Level.Info;
 			try
 			{

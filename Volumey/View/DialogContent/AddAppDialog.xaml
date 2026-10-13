@@ -9,7 +9,7 @@
                   CloseButtonText="{lc:Localization AppHotkeys_Cancel}"
                   DefaultButton="Primary"
                   Foreground="{DynamicResource TextFillColorPrimaryBrush}">
-    <!-- App hotkeys page, "Add app" (owner's decision: a dialog). Add stays disabled until an app and both hotkeys are set
+    <!-- App hotkeys page, "Add app". Add stays disabled until an app and both hotkeys are set
          (see the code-behind); an error (e.g. a hotkey in use) shows here and the dialog stays open -->
     <ui:ContentDialog.Resources>
         <ResourceDictionary>
@@ -68,7 +68,7 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <!-- each hotkey's error under its box (owner's decision); the labels line up with the boxes -->
+        <!-- each hotkey's error under its box; the labels line up with the boxes -->
         <TextBlock Grid.Row="2" Margin="0 22 0 0" Text="{lc:Localization AppHotkeys_VolumeUp}" VerticalAlignment="Top" />
         <StackPanel Grid.Row="2" Grid.Column="1" Width="220" Margin="0 16 0 0">
             <controls:HotKeyBox Width="220"

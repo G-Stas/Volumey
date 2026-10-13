@@ -39,19 +39,18 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsDevices.dc.html, with the switches kept (owner's decision) and a device combo box instead of the tiles
-         (the page is too narrow for three); the audio features come one by one (owner's decision), the format first -->
+    <!-- each hotkey has its switch; the devices are picked in a combo box (the page is too narrow for tiles) -->
     <!-- no ScrollViewer here: see GeneralPage -->
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_Devices}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization Devices_Description}" Style="{StaticResource PageDescription}" />
-            <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+            <!-- what the hotkey mode means for this page's hotkeys, at the top -->
             <viewControls:HotkeyModeNote />
 
             <!-- the default device's hotkeys: they follow the default device -->
             <TextBlock Text="{lc:Localization Devices_VolumeSection}" Style="{StaticResource SectionHeader}" />
             <StackPanel DataContext="{Binding DeviceVolumeHotkeysViewModel}">
-                <!-- as before: the hotkeys can be edited while they're off; turning them on registers them -->
+                <!-- the hotkeys can be edited while they're off; turning them on registers them -->
                 <ui:CardExpander Icon="{ui:SymbolIcon Speaker224}" IsExpanded="True" Margin="0 0 0 4">
                     <ui:CardExpander.Header>
                         <Grid>
@@ -125,10 +124,10 @@
                 </ui:CardControl>
             </StackPanel>
 
-            <!-- each device: picked in a combo box (owner's decision), then its own settings -->
+            <!-- each device: picked in a combo box, then its own settings -->
             <StackPanel DataContext="{Binding DefaultDeviceHotkeysViewModel}">
                 <TextBlock Text="{lc:Localization Devices_YourDevices}" Style="{StaticResource SectionHeader}" />
-                <!-- the device's name is only here, and "Default" only as the list's tag (owner: no repeated name or "Default device") -->
+                <!-- the device's name is only here, and "Default" only as the list's tag, so neither repeats on the page -->
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />

@@ -19,12 +19,12 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsMedia.dc.html: one row per media key, its hotkey changed in place and cleared with the X button -->
+    <!-- one row per media key, its hotkey changed in place and cleared with the X button -->
     <!-- no ScrollViewer here: see GeneralPage -->
     <StackPanel Margin="16 4 40 32">
         <TextBlock Text="{lc:Localization Nav_MediaKeys}" Style="{StaticResource PageTitle}" />
         <TextBlock Text="{lc:Localization Media_Description}" Style="{StaticResource PageDescription}" />
-        <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+        <!-- what the hotkey mode means for this page's hotkeys, at the top -->
         <viewControls:HotkeyModeNote />
 
         <TextBlock Text="{lc:Localization Media_Hotkeys}" Style="{StaticResource SectionHeader}" />

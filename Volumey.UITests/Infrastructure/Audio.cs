@@ -32,7 +32,7 @@ internal static class Audio
 	public static void SetDeviceVolume(int volume) => WithDefaultDevice(d => d.AudioEndpointVolume.MasterVolumeLevelScalar = volume / 100f);
 
 	/// <summary>
-	/// Remembers the default device's volume and mute and puts them back when disposed (the tests change them, owner's permission)
+	/// Remembers the default device's volume and mute and puts them back when disposed (the tests change them)
 	/// </summary>
 	public static IDisposable KeepDeviceState()
 	{
@@ -63,7 +63,7 @@ internal static class Audio
 
 	/// <summary>
 	/// Remembers the volume and mute of every app (session) on the default device and puts them back when disposed:
-	/// app volume sync changes all of them, the owner's apps too
+	/// app volume sync changes all of them, other apps too
 	/// </summary>
 	public static IDisposable KeepSessionVolumes()
 	{

@@ -13,8 +13,8 @@
                  WindowCornerPreference="Round"
                  DataContext="{StaticResource SettingsViewModel}"
                  Closing="OnClosing">
-    <!-- mockups Settings*.dc.html: a title bar and the pages on the left (no footer items: Source code and Support were removed, owner). MinWidth: narrower than 800 the cards break
-         (titles wrap letter by letter, e.g. "Distance from the edges"); WPF-UI's default minimum is 460 (owner) -->
+    <!-- a title bar and the pages on the left (no footer items). MinWidth: narrower than 800 the cards break
+         (titles wrap letter by letter, e.g. "Distance from the edges"); WPF-UI's default minimum is 460 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

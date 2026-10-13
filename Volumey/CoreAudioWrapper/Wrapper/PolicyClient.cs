@@ -20,7 +20,7 @@ public class PolicyClient
 	//KSDATAFORMAT_SUBTYPE_PCM
 	private static readonly Guid PcmSubFormat = new Guid("00000001-0000-0010-8000-00aa00389b71");
 
-	/// <exception cref="COMException">Windows refused the switch (it used to fail silently)</exception>
+	/// <exception cref="COMException">Windows refused the switch</exception>
 	public void SetDefaultEndpointDevice(string deviceId)
 	{
 		Marshal.ThrowExceptionForHR(instance.SetDefaultEndpoint(deviceId, ERole.Console));

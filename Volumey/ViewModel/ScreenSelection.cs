@@ -11,7 +11,7 @@ namespace Volumey.ViewModel;
 
 /// <summary>
 /// The screen something is shown on (the main window, the OSD): the connected screens, the screen remembered in the settings
-/// and the fallback to the primary screen while the remembered one isn't connected (#92)
+/// and the fallback to the primary screen while the remembered one isn't connected
 /// </summary>
 internal sealed class ScreenSelection
 {
@@ -70,7 +70,7 @@ internal sealed class ScreenSelection
 	}
 
 	/// <summary>
-	/// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice (#92)
+	/// Uses the screen without remembering it, so a fallback screen doesn't replace the user's choice
 	/// </summary>
 	private void Show(ScreenInfo screen)
 	{

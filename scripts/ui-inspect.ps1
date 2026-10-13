@@ -39,7 +39,7 @@ Add-Type -Namespace Native -Name Win32 -MemberDefinition @'
 '@ -ReferencedAssemblies System.Drawing.Primitives -ErrorAction SilentlyContinue
 
 # A real click at a screen point, only if the window there belongs to the dev build: another app's window can cover Volumey,
-# and the click would land in that app instead (it happened once with a chat window on top)
+# and the click would land in that app instead
 function Invoke-MouseClick([int]$sx, [int]$sy) {
     $hwnd = [Native.Win32]::WindowFromPoint([System.Drawing.Point]::new($sx, $sy))
     $root = [Native.Win32]::GetAncestor($hwnd, 2) # GA_ROOT

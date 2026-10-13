@@ -22,7 +22,7 @@
                 <Setter Property="VerticalAlignment" Value="Top" />
                 <Setter Property="Margin" Value="0 6 0 0" />
             </Style>
-            <!-- the error of one hotkey, under its box (owner's decision) -->
+            <!-- the error of one hotkey, under its box -->
             <Style x:Key="HotkeyError" TargetType="TextBlock" BasedOn="{StaticResource SettingError}">
                 <Setter Property="MaxWidth" Value="180" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
@@ -31,17 +31,16 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsApps.dc.html; the app list is an expander per app (the mockup's table doesn't fit the page's width),
-         apps are added in a dialog and their hotkeys can be changed in place (owner's decisions) -->
+    <!-- the app list is an expander per app; apps are added in a dialog and their hotkeys can be changed in place -->
     <!-- no ScrollViewer here: see GeneralPage -->
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_AppHotkeys}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization AppHotkeys_Description}" Style="{StaticResource PageDescription}" />
-            <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+            <!-- what the hotkey mode means for this page's hotkeys, at the top -->
             <viewControls:HotkeyModeNote />
 
             <TextBlock Text="{lc:Localization AppHotkeys_Foreground}" Style="{StaticResource SectionHeader}" />
-            <!-- as before: the hotkeys can be edited while it's off; turning it on registers them -->
+            <!-- the hotkeys can be edited while it's off; turning it on registers them -->
             <ui:CardExpander Icon="{ui:SymbolIcon WindowApps24}" IsExpanded="True" Margin="0 0 0 4"
                              DataContext="{Binding ForegroundWindowVolumeViewModel}">
                 <ui:CardExpander.Header>

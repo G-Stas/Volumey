@@ -85,7 +85,7 @@ public class OutputDeviceModelTests
 	[TestMethod]
 	public async Task ADisposedModelIsSafeToUse()
 	{
-		//listeners get the old device after it was disposed (#57)
+		//listeners get the old device after it was disposed
 		model.Dispose();
 		model.Dispose();
 
@@ -99,7 +99,7 @@ public class OutputDeviceModelTests
 	[TestMethod]
 	public void FormatChangeDisconnectsInvalidateTheDeviceOnce()
 	{
-		//#82, #85: turning spatial sound off disconnects all sessions without a format notification
+		//turning spatial sound off disconnects all sessions without a format notification
 		var notifications1 = new Mock<IAudioSessionStateNotifications>();
 		var notifications2 = new Mock<IAudioSessionStateNotifications>();
 		var model = CreateModelWithSessions(notifications1.Object, notifications2.Object);

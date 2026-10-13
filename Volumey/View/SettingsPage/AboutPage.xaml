@@ -15,14 +15,13 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:LocalizationKeyConverter x:Key="LocalizationKey" />
             <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
-            <!-- a link row: opens a web page, the arrow says it leaves the app (mockup) -->
+            <!-- a link row: opens a web page, the arrow says it leaves the app -->
             <Style x:Key="LinkCard" TargetType="ui:CardAction" BasedOn="{StaticResource {x:Type ui:CardAction}}">
                 <Setter Property="Margin" Value="0 0 0 4" />
             </Style>
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsAbout.dc.html without the checksum, license and components (owner) -->
     <!-- no ScrollViewer here: see GeneralPage -->
     <StackPanel Margin="16 4 40 32">
         <TextBlock Text="{lc:Localization Nav_About}" Style="{StaticResource PageTitle}" />

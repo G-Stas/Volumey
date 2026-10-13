@@ -272,8 +272,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 
 	/// <summary>
 	/// Writes the mute state (hotkeys) and takes it over at once. The mute hotkey toggles <see cref="IsMuted"/>, so it must be current:
-	/// it used to wait for Windows' notification, which never came (the write always carried Volumey's own context), so the hotkey muted
-	/// but never unmuted (owner found it)
+	/// Windows' notification may not come (a write with Volumey's own context is skipped), and the hotkey would mute but never unmute
 	/// </summary>
 	public void SetMute(bool muteState, bool notify, Guid context)
 	{
@@ -287,7 +286,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	}
 
 
-	//only write (true if they did); the public overloads notify (when asked to). Notifying here as well showed the OSD twice for every hotkey press
+	//only write (true if they did); the public overloads notify (when asked to). Notifying here as well would show the OSD twice for every hotkey press
 	private bool SetVolume(int newVol, Guid context)
 	{
 		if(masterVolume == null)

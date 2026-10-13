@@ -35,7 +35,7 @@
         <Setter Property="Width" Value="28" />
         <Setter Property="TextAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <!-- primary, as in Windows 11's volume flyout: the secondary color was hard to read in the light theme (owner) -->
+        <!-- primary, as in Windows 11's volume flyout: the secondary color is hard to read in the light theme -->
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
     </Style>
@@ -43,7 +43,7 @@
     <!-- a small caption above a control ("Output device") -->
     <Style x:Key="Caption" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12" />
-        <!-- secondary, as Windows 11 Settings' descriptions: WPF-UI's tertiary was hard to read in the light theme (owner) -->
+        <!-- secondary, as Windows 11 Settings' descriptions: WPF-UI's tertiary is hard to read in the light theme -->
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>

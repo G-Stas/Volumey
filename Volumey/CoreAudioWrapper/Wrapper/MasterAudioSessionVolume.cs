@@ -56,7 +56,7 @@ class MasterAudioSessionVolume : IAudioSessionVolume
 	{
 		lock(writeLock)
 		{
-			//the caller's context: hotkey changes must come back as notifications (they used to be skipped like the UI's own changes)
+			//the caller's context: hotkey changes must come back as notifications (the UI's own changes are skipped)
 			audioVolume.NotificationGuid = context;
 			audioVolume.Mute = muteState;
 		}

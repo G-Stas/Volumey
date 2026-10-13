@@ -4,12 +4,12 @@
 
 .DESCRIPTION
   - Volumey_<version>_x64.zip: self-contained (carries the .NET 10 runtime, about 80 MB). LatestUpdateInfo.xml points the in-app
-    updater to this one, so an update works on any PC, also for 1.x users who only have an older .NET (owner's decision, 2026-10-12).
+    updater to this one, so an update works on any PC, also for 1.x users who only have an older .NET.
   - Volumey_<version>_x64_framework-dependent.zip: small (about 12 MB), needs the .NET 10 Desktop Runtime. Only offered on the
     release page, for people who have it.
   Both are Release builds, so they send logs to Loggly only when the build found the input key (loggly.key or
   VOLUMEY_LOGGLY_INPUT_KEY); the script stops without one unless -NoLoggly is given.
-  The Store package is built separately (see CLAUDE.md, Build, run, test).
+  The Store package is built separately, with Visual Studio's MSBuild and the packaging project.
 
 .EXAMPLE
   ./scripts/build-release.ps1                   # into artifacts\<version>

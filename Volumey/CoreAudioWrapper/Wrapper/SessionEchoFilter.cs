@@ -11,7 +11,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// so instead of comparing the context the filter remembers the state each own write leads to
 /// and treats a callback that reports one of these states as an echo.
 /// A state stays an echo for <see cref="EchoWindowMs"/>, because Windows can repeat a session event
-/// (seen when several session controls of the same session were created in a process).
+/// (e.g. when several session controls of the same session were created in a process).
 /// </summary>
 internal sealed class SessionEchoFilter
 {

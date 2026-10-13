@@ -81,7 +81,7 @@ static class IconHelper
 
 	/// <summary>
 	/// A new copy of Windows' generic program icon, for apps whose own icon can't be read. The cached original is never handed out,
-	/// because models dispose their icons (it used to be, and the first app that closed destroyed it for all others).
+	/// because models dispose their icons: the first app that closed would destroy it for all others.
 	/// </summary>
 	internal static Icon CreateGenericExeIcon()
 	{

@@ -85,7 +85,7 @@ public class AboutPageTests : UiTest
 	[TestMethod]
 	public void SavedSupportLinksAreShown()
 	{
-		//links.json from GitHub is saved next to settings.json; a failed download (it isn't on main yet) keeps the saved one
+		//links.json from GitHub is saved next to settings.json; a failed download keeps the saved one
 		string dir = Path.Combine(Path.GetTempPath(), "Volumey-uitests", Guid.NewGuid().ToString("N"));
 		Directory.CreateDirectory(dir);
 		Later(new DeleteDir(dir));

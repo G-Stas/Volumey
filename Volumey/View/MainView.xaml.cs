@@ -25,7 +25,7 @@ namespace Volumey.View;
 
 /// <summary>
 /// The mixer window: the popup above the tray in popup mode (no title bar, height fixed when it opens),
-/// otherwise a normal resizable window whose size and position are remembered (#80). It also owns the tray icon
+/// otherwise a normal resizable window whose size and position are remembered. It also owns the tray icon
 /// and the window messages (hotkeys, restart, second start)
 /// </summary>
 public partial class MainView
@@ -37,15 +37,15 @@ public partial class MainView
 	private const int ScrollStep = 30;
 	private const int BorderIndent = 11;
 
-	//popup sizing (mockups FlyoutMin/FlyoutCapped): the height is computed once when it opens and doesn't change while it's
+	//popup sizing: the height is computed once when it opens and doesn't change while it's
 	//visible; new apps go to the end of the scrolling list
-	private const double PopupWidth = 368; //WPF-UI's minimum window width (460) × 4/5, owner's decision; MainView.xaml lowers MinWidth to it
+	private const double PopupWidth = 368; //WPF-UI's minimum window width (460) × 4/5; MainView.xaml lowers MinWidth to it
 	private const double RowHeight = 54;
 	private const int MinRows = 3;
 	private const double MaxShareOfWorkArea = 0.6;
 
 	//window mode before its size was ever saved
-	private const double DefaultWindowWidth = PopupWidth; //one width for both modes (owner)
+	private const double DefaultWindowWidth = PopupWidth; //one width for both modes
 	private const double DefaultWindowHeight = 540;
 
 	public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo), typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
@@ -130,7 +130,7 @@ public partial class MainView
 		//The icon and the tooltip go straight to the shell icon instead of the TaskbarIcon properties:
 		//TaskbarIcon.Icon disposes the previous icon, but the icons come from a cache (or belong to the device model),
 		//and a failed shell call throws, which mustn't crash the app (e.g. while Explorer restarts).
-		//The tooltip is the native text tooltip on every Windows version (a custom WPF tooltip got stuck on Windows 10, #65, #91)
+		//The tooltip is the native text tooltip on every Windows version (a WPF tooltip popup gets stuck on Windows 10)
 		BindingOperations.SetBinding(this, TrayIconImageProperty, (MultiBinding)TryFindResource("TrayIconBinding"));
 		BindingOperations.SetBinding(this, TrayToolTipTextProperty, (MultiBinding)TryFindResource("TrayTextTooltip"));
 
@@ -247,7 +247,7 @@ public partial class MainView
 	/// A remembered position (both modes), while "Remember the mixer's position" is on and the position is on a connected screen,
 	/// and the height of that screen's work area in DIPs.
 	/// Positions are in physical pixels: WPF converts Left/Top with the scale of the screen the window is on when they're set,
-	/// and the hidden window is often on another screen than the one it opens on (on mixed scales it opened hundreds of pixels off),
+	/// and the hidden window is often on another screen than the one it opens on (on mixed scales it would open hundreds of pixels off),
 	/// and they stay right when a screen's scale changes between starts
 	/// </summary>
 	private bool TryGetRememberedPosition(double? left, double? top, out System.Drawing.Point position, out double workAreaHeight)
@@ -314,9 +314,9 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// The mixer is dragged by any spot that isn't a control, in both modes, whether its position is remembered or not (owner).
+	/// The mixer is dragged by any spot that isn't a control, in both modes, whether its position is remembered or not.
 	/// The new position is always noted (window mode: LocationChanged; popup: below) but used for the next opening only while it's remembered.
-	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reached the window there.
+	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reaches the window there.
 	/// </summary>
 	protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 	{
@@ -474,7 +474,7 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// The settings open centered on the screen the mixer is on (owner's decision), also when the mixer is hidden:
+	/// The settings open centered on the screen the mixer is on, also when the mixer is hidden:
 	/// its window keeps its last position. If the screen can't be read, the window's own startup location is used
 	/// </summary>
 	private void CenterOnMixerScreen(Window window)

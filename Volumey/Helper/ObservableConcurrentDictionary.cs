@@ -10,7 +10,6 @@ namespace Volumey.Helper;
 /// <summary>
 /// Thread-safe dictionary that can be bound in WPF. Every change raises a collection reset and
 /// PropertyChanged for Count, Keys and Values on the synchronization context it was created on (normally the UI thread).
-/// Replaces the class of the same name from MSFT.ParallelExtensionsExtras (a .NET Framework-only package).
 /// </summary>
 public sealed class ObservableConcurrentDictionary<TKey, TValue> :
 	IDictionary<TKey, TValue>, INotifyCollectionChanged, INotifyPropertyChanged
