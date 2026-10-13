@@ -72,7 +72,7 @@ public partial class MainView
 	/// </summary>
 	private bool placed;
 
-	internal MainView(AppBehaviorViewModel vm, SettingsViewModel settings, Func<SettingsWindow> getSettingsWindow)
+	internal MainView(AppBehaviorViewModel vm, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow)
 	{
 		this.vm = vm;
 		this.getSettingsWindow = getSettingsWindow;
@@ -112,8 +112,8 @@ public partial class MainView
 
 		//WM_HOTKEY goes to the blocking hotkey manager; getting the window handle sets up the hotkey manager,
 		//and the hotkey features then register their saved hotkeys
-		messages.HotkeyMessageHandler = settings.GetHotkeyMessageHandler();
-		settings.SetWindowHandle(Hwnd);
+		messages.HotkeyMessageHandler = hotkeyMode.GetHotkeyMessageHandler();
+		hotkeyMode.SetWindowHandle(Hwnd);
 	}
 
 	private void SetBindings()

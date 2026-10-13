@@ -48,7 +48,7 @@ public partial class App
 		Resources[nameof(AppBehaviorViewModel)] = services.GetRequiredService<AppBehaviorViewModel>();
 		//creating it enumerates the audio devices
 		Resources[nameof(DeviceProviderViewModel)] = services.GetRequiredService<DeviceProviderViewModel>();
-		Resources[nameof(SettingsViewModel)] = services.GetRequiredService<SettingsViewModel>();
+		Resources[nameof(HotkeyModeViewModel)] = services.GetRequiredService<HotkeyModeViewModel>();
 		foreach(var feature in ServiceRegistration.Features)
 			services.GetRequiredService(feature);
 

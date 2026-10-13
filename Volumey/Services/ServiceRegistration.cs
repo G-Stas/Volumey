@@ -53,7 +53,7 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
 			sp.Get<IAppShell>(), sp.Get<ISystemIntegration>()));
 		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>()));
-		services.AddSingleton(sp => new SettingsViewModel(sp.Get<IHotkeyService>()));
+		services.AddSingleton(sp => new HotkeyModeViewModel(sp.Get<IHotkeyService>()));
 
 		services.AddSingleton(_ => new LangSettings());
 		services.AddSingleton(sp => new AppsHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
@@ -67,7 +67,7 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new SystemHotkeysViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new AboutViewModel(sp.Get<SupportLinks>()));
 
-		services.AddSingleton(sp => new GeneralPageViewModel(sp.Get<SettingsViewModel>(), sp.Get<ThemeViewModel>(), sp.Get<AppBehaviorViewModel>(),
+		services.AddSingleton(sp => new GeneralPageViewModel(sp.Get<HotkeyModeViewModel>(), sp.Get<ThemeViewModel>(), sp.Get<AppBehaviorViewModel>(),
 			sp.Get<LangSettings>(), sp.Get<AppsHotkeysViewModel>()));
 		services.AddSingleton(sp => new MixerPageViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<OpenHotkeyViewModel>(), sp.Get<VolumeLimitViewModel>(),
 			sp.Get<AppVolumeSyncViewModel>()));
@@ -86,7 +86,7 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new SettingsWindow(sp.Get<INavigationViewPageProvider>()));
 		//the settings window is created when it first opens
 		services.AddSingleton<Func<SettingsWindow>>(sp => () => sp.Get<SettingsWindow>());
-		services.AddSingleton(sp => new MainView(sp.Get<AppBehaviorViewModel>(), sp.Get<SettingsViewModel>(), sp.Get<Func<SettingsWindow>>()));
+		services.AddSingleton(sp => new MainView(sp.Get<AppBehaviorViewModel>(), sp.Get<HotkeyModeViewModel>(), sp.Get<Func<SettingsWindow>>()));
 		return services;
 	}
 

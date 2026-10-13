@@ -71,7 +71,7 @@ public class ServiceRegistrationTests : ViewModelTestBase
 		using var provider = BuildProvider();
 
 		var general = provider.GetRequiredService<GeneralPageViewModel>();
-		Assert.AreSame(provider.GetRequiredService<SettingsViewModel>(), general.HotkeyMode);
+		Assert.AreSame(provider.GetRequiredService<HotkeyModeViewModel>(), general.HotkeyMode);
 		Assert.AreSame(provider.GetRequiredService<AppBehaviorViewModel>(), general.Window);
 		Assert.AreSame(provider.GetRequiredService<LangSettings>(), general.Language);
 		Assert.AreSame(provider.GetRequiredService<AppsHotkeysViewModel>(), general.AppHotkeys);

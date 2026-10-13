@@ -7,7 +7,7 @@ namespace Volumey.ViewModel.Pages;
 /// </summary>
 internal sealed class GeneralPageViewModel
 {
-	public SettingsViewModel HotkeyMode { get; }
+	public HotkeyModeViewModel HotkeyMode { get; }
 	public ThemeViewModel Theme { get; }
 	public AppBehaviorViewModel Window { get; }
 	public LangSettings Language { get; }
@@ -15,7 +15,7 @@ internal sealed class GeneralPageViewModel
 	/// <summary>Holds the volume step</summary>
 	public AppsHotkeysViewModel AppHotkeys { get; }
 
-	internal GeneralPageViewModel(SettingsViewModel hotkeyMode, ThemeViewModel theme, AppBehaviorViewModel window, LangSettings language,
+	internal GeneralPageViewModel(HotkeyModeViewModel hotkeyMode, ThemeViewModel theme, AppBehaviorViewModel window, LangSettings language,
 		AppsHotkeysViewModel appHotkeys)
 	{
 		HotkeyMode = hotkeyMode;

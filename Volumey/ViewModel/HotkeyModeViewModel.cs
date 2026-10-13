@@ -6,7 +6,10 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel;
 
-sealed partial class SettingsViewModel : ObservableObject
+/// <summary>
+/// The hotkey mode (keep the keys to Volumey or share them) and the hotkey manager that goes with it
+/// </summary>
+sealed partial class HotkeyModeViewModel : ObservableObject
 {
 	private IntPtr windowHandle;
 
@@ -30,7 +33,7 @@ sealed partial class SettingsViewModel : ObservableObject
 	}
 	private readonly IHotkeyService hotkeys;
 
-	internal SettingsViewModel(IHotkeyService hotkeys)
+	internal HotkeyModeViewModel(IHotkeyService hotkeys)
 	{
 		this.hotkeys = hotkeys;
 		blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;

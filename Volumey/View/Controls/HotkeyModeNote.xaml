@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:lc="clr-namespace:Volumey.Localization"
-             DataContext="{StaticResource SettingsViewModel}">
+             DataContext="{StaticResource HotkeyModeViewModel}">
     <!-- what the hotkey mode (General) means for the hotkeys of a settings page, with a link to General; at the top of every page
          that sets hotkeys. A card: WPF-UI's InfoBar doesn't show content, so no link would fit there -->
     <ui:CardControl Margin="0 12 0 0">
