@@ -86,6 +86,36 @@ public class VolumeySettingsTests
 	}
 
 	[TestMethod]
+	public void FlushWaitsForAWriteThatIsAlreadyRunning()
+	{
+		//the timer's write has taken the change and is still writing when the app exits and flushes
+		var settings = Load().EnableAutosave();
+		settings.General.VolumeStep = 7;
+		//nothing pending anymore: the timer's write has taken it
+		settings.Flush();
+		var writeLock = typeof(VolumeySettings).GetField("writeLock", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+		                                      .GetValue(settings)!;
+		using var writing = new System.Threading.ManualResetEventSlim();
+		using var finish = new System.Threading.ManualResetEventSlim();
+		var write = System.Threading.Tasks.Task.Run(() =>
+		{
+			lock(writeLock)
+			{
+				writing.Set();
+				finish.Wait();
+			}
+		});
+		writing.Wait();
+
+		var flush = System.Threading.Tasks.Task.Run(settings.Flush);
+		Assert.IsFalse(flush.Wait(300), "Flush returned while the file was still being written");
+
+		finish.Set();
+		Assert.IsTrue(flush.Wait(5000), "Flush didn't return after the write");
+		write.Wait();
+	}
+
+	[TestMethod]
 	public void SectionShouldNotifyOnlyOnChange()
 	{
 		var general = new GeneralSettings();
