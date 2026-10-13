@@ -76,18 +76,17 @@ public partial class MainView
 		WindowBackdropType = ThemeViewModel.Backdrop;
 		vm = (AppBehaviorViewModel)DataContext;
 
-		//size and position before the HWND exists, so a window shown at startup appears at its remembered place right away
+		//size before the HWND exists
 		ApplyMode();
-		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && vm.RememberPosition)
-		{
-			Left = vm.WindowLeft;
-			Top = vm.WindowTop;
-		}
 
 		//force create HWND of the window
 		//since the window is hidden at the startup
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
+
+		//the hidden window goes to its remembered place, so a window shown at startup appears there right away (placed again when it shows)
+		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
+			MoveTo(position.X, position.Y, show: false);
 
 		//use created hwnd to register window messages handler
 		var source = HwndSource.FromHwnd(Hwnd);
@@ -225,11 +224,11 @@ public partial class MainView
 	{
 		if(vm.DisplayMinimalistic)
 		{
-			if(TryGetRememberedPopupPosition(out var position, out double workAreaHeight))
+			if(TryGetRememberedPosition(vm.PopupLeft, vm.PopupTop, out var position, out double workAreaHeight))
 			{
 				SizePopup(workAreaHeight);
 				UpdateLayout();
-				MoveToPopupPosition(position);
+				MoveToRemembered(position);
 			}
 			else
 			{
@@ -244,34 +243,20 @@ public partial class MainView
 		placed = true;
 	}
 
-	/// <summary>Whether the window at this position would still be on a screen (one may have been unplugged)</summary>
-	private bool IsOnScreen(double left, double top)
-	{
-		var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
-			SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
-		return screen.IntersectsWith(new Rect(left, top, Width, Height));
-	}
-
-	private void MoveToRemembered(double left, double top)
-	{
-		applyingPlacement = true;
-		Left = left;
-		Top = top;
-		applyingPlacement = false;
-	}
-
 	/// <summary>
-	/// The popup's remembered position, while it's remembered and on a connected screen, and the height of that screen's work area in DIPs.
-	/// The position is in physical pixels: WPF converts Left/Top with the scale of the screen the window is on when they're set,
-	/// and the hidden popup is usually on another screen than the one it's opened on (on mixed scales it opened hundreds of pixels off)
+	/// A remembered position (both modes), while "Remember the mixer's position" is on and the position is on a connected screen,
+	/// and the height of that screen's work area in DIPs.
+	/// Positions are in physical pixels: WPF converts Left/Top with the scale of the screen the window is on when they're set,
+	/// and the hidden window is often on another screen than the one it opens on (on mixed scales it opened hundreds of pixels off),
+	/// and they stay right when a screen's scale changes between starts
 	/// </summary>
-	private bool TryGetRememberedPopupPosition(out System.Drawing.Point position, out double workAreaHeight)
+	private bool TryGetRememberedPosition(double? left, double? top, out System.Drawing.Point position, out double workAreaHeight)
 	{
 		position = default;
 		workAreaHeight = 0;
-		if(!vm.RememberPosition || vm.PopupLeft is not { } left || vm.PopupTop is not { } top)
+		if(!vm.RememberPosition || left is not { } x || top is not { } y)
 			return false;
-		position = new System.Drawing.Point((int)Math.Round(left), (int)Math.Round(top));
+		position = new System.Drawing.Point((int)Math.Round(x), (int)Math.Round(y));
 		var monitor = PInvoke.MonitorFromPoint(position, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONULL);
 		var info = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
 		if(monitor.IsNull || !PInvoke.GetMonitorInfo(monitor, ref info)
@@ -281,24 +266,44 @@ public partial class MainView
 		return true;
 	}
 
-	/// <summary>Where the popup is placed now (physical pixels), until the move is done</summary>
-	private System.Drawing.Point? popupTarget;
+	/// <summary>Where the window is being placed (physical pixels), until the move is done</summary>
+	private System.Drawing.Point? placementTarget;
 
-	private void MoveToPopupPosition(System.Drawing.Point position)
+	private void MoveToRemembered(System.Drawing.Point position)
 	{
-		//moving onto a screen with another scale makes WPF resize the window to the new scale (DpiChanged), which can shift it: placed again then
-		popupTarget = position;
+		//moving onto a screen with another scale makes WPF resize the window to the new scale (DpiChanged), which can shift it: placed again then;
+		//once it's done, a window that sticks out of its screen (e.g. it grew with the screen's scale) is moved back in
+		placementTarget = position;
 		MoveTo(position.X, position.Y);
-		Dispatcher.InvokeAsync(() => popupTarget = null, System.Windows.Threading.DispatcherPriority.ContextIdle);
+		Dispatcher.InvokeAsync(() =>
+		{
+			placementTarget = null;
+			KeepOnScreen();
+		}, System.Windows.Threading.DispatcherPriority.ContextIdle);
 	}
 
 	private void OnDpiChanged(object sender, DpiChangedEventArgs e)
 	{
-		if(popupTarget is { } target)
+		if(placementTarget is { } target)
 			Dispatcher.InvokeAsync(() => MoveTo(target.X, target.Y));
 	}
 
-	/// <summary>The popup's position in physical pixels (see <see cref="TryGetRememberedPopupPosition"/>)</summary>
+	/// <summary>Moves the visible window back inside the work area of the screen it's (mostly) on</summary>
+	private void KeepOnScreen()
+	{
+		if(!IsVisible || WindowState != WindowState.Normal || !PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
+			return;
+		var info = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+		if(!PInvoke.GetMonitorInfo(PInvoke.MonitorFromWindow((HWND)Hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST), ref info))
+			return;
+		var window = System.Drawing.Rectangle.FromLTRB(rect.left, rect.top, rect.right, rect.bottom);
+		var work = System.Drawing.Rectangle.FromLTRB(info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom);
+		var inside = WindowPlacement.KeepInside(window, work);
+		if(inside != window.Location)
+			MoveTo(inside.X, inside.Y);
+	}
+
+	/// <summary>The popup's position in physical pixels (see <see cref="TryGetRememberedPosition"/>)</summary>
 	private void RememberPopupPosition()
 	{
 		if(PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
@@ -358,8 +363,11 @@ public partial class MainView
 	private void RestoreWindowPlacement()
 	{
 		ApplyMode();
-		if(vm.RememberPosition && vm.WindowWidth > 0 && IsOnScreen(vm.WindowLeft, vm.WindowTop))
-			MoveToRemembered(vm.WindowLeft, vm.WindowTop);
+		if(vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
+		{
+			UpdateLayout();
+			MoveToRemembered(position);
+		}
 		else
 		{
 			UpdateLayout();
@@ -368,14 +376,18 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// Remembers the window mode's size and position (saved to the settings on exit)
+	/// Remembers the window mode's size (DIPs, so it scales with the screen) and position (physical pixels, see <see cref="TryGetRememberedPosition"/>),
+	/// saved to the settings on exit
 	/// </summary>
 	private void SaveWindowPlacement()
 	{
 		if(applyingPlacement || !placed || vm.DisplayMinimalistic || !IsVisible || WindowState != WindowState.Normal)
 			return;
-		vm.WindowLeft = Left;
-		vm.WindowTop = Top;
+		if(PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
+		{
+			vm.WindowLeft = rect.left;
+			vm.WindowTop = rect.top;
+		}
 		vm.WindowWidth = ActualWidth;
 		vm.WindowHeight = ActualHeight;
 	}
@@ -429,11 +441,16 @@ public partial class MainView
 		}
 	}
 
-	private void MoveTo(double left, double top)
+	/// <param name="show">false: a hidden window stays hidden (placed before it's shown)</param>
+	private void MoveTo(double left, double top, bool show = true)
 	{
 		//move only: WPF sizes the window
-		PInvoke.SetWindowPos((HWND)Hwnd, default /*HWND_TOP*/, (int)left, (int)top, 0, 0,
-			SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+		var flags = SET_WINDOW_POS_FLAGS.SWP_NOSIZE;
+		if(show)
+			flags |= SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW;
+		else
+			flags |= SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE;
+		PInvoke.SetWindowPos((HWND)Hwnd, default /*HWND_TOP*/, (int)left, (int)top, 0, 0, flags);
 	}
 
 	/// <summary>
