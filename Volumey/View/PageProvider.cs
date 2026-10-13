@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Wpf.Ui.Abstractions;
 
 namespace Volumey.View;
