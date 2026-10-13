@@ -378,6 +378,22 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void TwoDevicesWithTheSameNameKeepTheirOwnHotkeys()
+	{
+		//two identical headsets: only the second one has a hotkey, and the first one comes first in Windows' list
+		Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "B", DeviceName = "Headset" } };
+		SetDefaultDevice(CreateDevice("A", "Headset"));
+		ActiveDevices.Add(CreateDevice("B", "Headset"));
+
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+
+		Assert.AreEqual("B", vm.Devices.Single(d => Equals(d.Hotkey, Switch)).Id);
+		Assert.AreEqual("B", Settings.Hotkeys.DefaultDevices.Single().DeviceId);
+		Assert.HasCount(2, vm.Devices);
+		Assert.IsNull(vm.Devices.Single(d => d.Id == "A").Hotkey);
+	}
+
+	[TestMethod]
 	public void SavedDeviceHotkeysFollowRenamedOrReplugedDevices()
 	{
 		Settings.Hotkeys.DefaultDevices = new[]
