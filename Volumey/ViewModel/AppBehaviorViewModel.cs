@@ -200,10 +200,6 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
-	public AppBehaviorViewModel() : this(AppServices.Current.Hotkeys, AppServices.Current.Screens,
-		AppServices.Current.Shell, AppServices.Current.SystemIntegration)
-	{ }
-
 	internal AppBehaviorViewModel(IHotkeyService hotkeys, IScreenInfoProvider screenInfoProvider, IAppShell shell,
 		ISystemIntegration systemIntegration)
 	{

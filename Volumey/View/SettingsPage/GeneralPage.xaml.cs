@@ -1,12 +1,14 @@
 ﻿using System.Windows;
+using Volumey.ViewModel.Pages;
 using Wpf.Ui.Controls;
 
 namespace Volumey.View.SettingsPage;
 
 public partial class GeneralPage
 {
-	public GeneralPage()
+	internal GeneralPage(GeneralPageViewModel vm)
 	{
+		DataContext = vm;
 		InitializeComponent();
 
 #if(STORE)

@@ -8,7 +8,7 @@
       xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_Devices}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-      DataContext="{StaticResource SettingsViewModel}">
+      controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
     <!-- the Foreground: see GeneralPage -->
     <Page.Resources>
         <ResourceDictionary>
@@ -45,11 +45,11 @@
             <TextBlock Text="{lc:Localization Nav_Devices}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization Devices_Description}" Style="{StaticResource PageDescription}" />
             <!-- what the hotkey mode means for this page's hotkeys, at the top -->
-            <viewControls:HotkeyModeNote />
+            <viewControls:HotkeyModeNote KeysBlocked="{Binding HotkeyMode.BlockHotkeysInSystem}" />
 
             <!-- the default device's hotkeys: they follow the default device -->
             <TextBlock Text="{lc:Localization Devices_VolumeSection}" Style="{StaticResource SectionHeader}" />
-            <StackPanel DataContext="{Binding DeviceVolumeHotkeysViewModel}">
+            <StackPanel DataContext="{Binding DeviceVolume}">
                 <!-- the hotkeys can be edited while they're off; turning them on registers them -->
                 <ui:CardExpander Icon="{ui:SymbolIcon Speaker224}" IsExpanded="True" Margin="0 0 0 4">
                     <ui:CardExpander.Header>
@@ -125,7 +125,7 @@
             </StackPanel>
 
             <!-- each device: picked in a combo box, then its own settings -->
-            <StackPanel DataContext="{Binding DefaultDeviceHotkeysViewModel}">
+            <StackPanel DataContext="{Binding DefaultDevice}">
                 <TextBlock Text="{lc:Localization Devices_YourDevices}" Style="{StaticResource SectionHeader}" />
                 <!-- the device's name is only here, and "Default" only as the list's tag, so neither repeats on the page -->
                 <Grid>

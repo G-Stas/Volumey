@@ -1,9 +1,12 @@
-﻿namespace Volumey.View.SettingsPage;
+﻿using Volumey.ViewModel.Settings;
+
+namespace Volumey.View.SettingsPage;
 
 public partial class AboutPage
 {
-	public AboutPage()
+	internal AboutPage(AboutViewModel vm)
 	{
+		DataContext = vm;
 		InitializeComponent();
 	}
 }

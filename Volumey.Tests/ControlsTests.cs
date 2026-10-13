@@ -1,13 +1,31 @@
-﻿using System.Windows.Input;
+﻿using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using Volumey.Controls;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests;
 
 [TestClass]
 public class ControlsTests
 {
+	[STATestMethod]
+	public void AHotkeyBoxInheritsTheHotkeyServiceSetOnItsPage()
+	{
+		var service = new Mock<IHotkeyService>().Object;
+		var page = new StackPanel();
+		var card = new Border();
+		var box = new HotKeyBox();
+		card.Child = box;
+		page.Children.Add(card);
+
+		HotKeyBox.SetHotkeyService(page, service);
+
+		Assert.AreSame(service, HotKeyBox.GetHotkeyService(box));
+	}
+
 	[TestMethod]
 	public void DigitsOnlyLetsOnlyDigitsIn()
 	{
@@ -25,7 +43,7 @@ public class ControlsTests
 	public void NumberBoxCommitsAClampedValueWhenItLosesFocus()
 	{
 		var box = new Wpf.Ui.Controls.NumberBox { Minimum = 1, Maximum = 100, Value = 5 };
-		var scope = new System.Windows.Controls.StackPanel();
+		var scope = new StackPanel();
 		System.Windows.Input.FocusManager.SetIsFocusScope(scope, true);
 		scope.Children.Add(box);
 		System.Windows.Input.FocusManager.SetFocusedElement(scope, box);

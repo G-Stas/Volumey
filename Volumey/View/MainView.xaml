@@ -17,7 +17,6 @@
                  ExtendsContentIntoTitleBar="True"
                  WindowCornerPreference="Round"
                  WindowStartupLocation="Manual"
-                 DataContext="{StaticResource AppBehaviorViewModel}"
                  IsVisibleChanged="OnIsVisibleChanged"
                  PreviewKeyDown="OnKeyDown"
                  Loaded="OnLoaded">
@@ -31,15 +30,15 @@
                 <MenuItem
                     Header="{lc:Localization Tray_OpenMixer}"
                     FontWeight="SemiBold"
-                    Command="{Binding TrayMixerCommand}"
+                    Command="{Binding Window.TrayMixerCommand}"
                     Icon="{ui:SymbolIcon Options24}" />
                 <MenuItem
                     Header="{lc:Localization TabHeader_Settings}"
-                    Command="{Binding TraySettingsCommand}"
+                    Command="{Binding Window.TraySettingsCommand}"
                     Icon="{ui:SymbolIcon Settings24}" />
                 <MenuItem
                     Header="{lc:Localization Mixer_OutputDevice}"
-                    ItemsSource="{Binding Source={StaticResource DeviceProviderViewModel}, Path=DeviceProvider.ActiveDevices}"
+                    ItemsSource="{Binding Devices.DeviceProvider.ActiveDevices}"
                     Icon="{ui:SymbolIcon Headphones24}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
@@ -48,12 +47,12 @@
                                 <Setter.Value>
                                     <MultiBinding Converter="{StaticResource DeviceIsDefaultToIconConverter}">
                                         <Binding/>
-                                        <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice"/>
+                                        <Binding Path="DataContext.Devices.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ContextMenu}"/>
                                     </MultiBinding>
                                 </Setter.Value>
                             </Setter>
                             <Setter Property="Header" Value="{Binding Master.DeviceFriendlyName}"/>
-                            <Setter Property="Command" Value="{Binding Source={StaticResource DeviceProviderViewModel}, Path=SetDefaultDeviceTrayCommand}"/>
+                            <Setter Property="Command" Value="{Binding DataContext.Devices.SetDefaultDeviceTrayCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
                             <Setter Property="CommandParameter" Value="{Binding}"/>
                         </Style>
                     </MenuItem.ItemContainerStyle>
@@ -61,16 +60,16 @@
                 <Separator />
                 <MenuItem
                     Header="{lc:Localization TrayMenu_SoundPanel}"
-                    Command="{Binding SoundControlPanelCommand}"
+                    Command="{Binding Window.SoundControlPanelCommand}"
                     Icon="{ui:SymbolIcon Speaker224}" />
                 <MenuItem
                     Header="{lc:Localization TrayMenu_SoundSettings}"
-                    Command="{Binding SoundSettingsCommand}"
+                    Command="{Binding Window.SoundSettingsCommand}"
                     Icon="{ui:SymbolIcon Open24}" />
                 <Separator />
                 <MenuItem
                     Header="{lc:Localization TrayMenu_Exit}"
-                    Command="{Binding TrayExitCommand}"
+                    Command="{Binding Window.TrayExitCommand}"
                     Icon="{ui:SymbolIcon Power24}" />
             </ContextMenu>
 
@@ -93,28 +92,23 @@
 
             <MultiBinding x:Key="TrayIconBinding"
                           Converter="{StaticResource TrayIconConverter}">
-                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DeviceProvider.NoOutputDevices" />
-                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Volume" />
-                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.IsMuted" />
-                <Binding Source="{StaticResource ThemeViewModel}" Path="WindowsTheme" />
-                <Binding Source="{StaticResource AppBehaviorViewModel}" Path="DisplayDeviceIconAtTray"/>
-                <Binding Source="{StaticResource DeviceProviderViewModel}" Path="DefaultDevice.Master.Icon" />
+                <Binding Path="Devices.DeviceProvider.NoOutputDevices" />
+                <Binding Path="Devices.DefaultDevice.Master.Volume" />
+                <Binding Path="Devices.DefaultDevice.Master.IsMuted" />
+                <Binding Path="Theme.WindowsTheme" />
+                <Binding Path="Window.DisplayDeviceIconAtTray"/>
+                <Binding Path="Devices.DefaultDevice.Master.Icon" />
             </MultiBinding>
 
             <MultiBinding x:Key="TrayTextTooltip"
                           Converter="{StaticResource TrayTooltipConverter}">
-                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                         Path="DeviceProvider.NoOutputDevices"/>
-                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                         Path="DefaultDevice.Master"/>
-                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                         Path="DefaultDevice.Master.IsMuted"/>
-                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                         Path="DefaultDevice.Master.Volume"/>
+                <Binding Path="Devices.DeviceProvider.NoOutputDevices"/>
+                <Binding Path="Devices.DefaultDevice.Master"/>
+                <Binding Path="Devices.DefaultDevice.Master.IsMuted"/>
+                <Binding Path="Devices.DefaultDevice.Master.Volume"/>
                 <Binding Source="{x:Static lc:TranslationSource.Instance}"
                          Path="CurrentCulture"/>
-                <Binding Source="{StaticResource DeviceProviderViewModel}"
-                         Path="DefaultDevice.Master.DeviceFriendlyName"/>
+                <Binding Path="Devices.DefaultDevice.Master.DeviceFriendlyName"/>
             </MultiBinding>
         </ResourceDictionary>
     </Window.Resources>
@@ -123,7 +117,7 @@
         <behaviors:EventTrigger
             EventName="Closing"
             SourceObject="{Binding ElementName=Window}">
-            <behaviors:InvokeCommandAction Command="{Binding Path=ClosingCommand}"
+            <behaviors:InvokeCommandAction Command="{Binding Path=Window.ClosingCommand}"
                                            PassEventArgsToCommand="True"/>
         </behaviors:EventTrigger>
 
@@ -144,20 +138,20 @@
         <behaviors:EventTrigger
             EventName="Deactivated"
             SourceObject="{Binding ElementName=Window}">
-            <behaviors:InvokeCommandAction Command="{Binding Path=LostFocusCommand}"/>
+            <behaviors:InvokeCommandAction Command="{Binding Path=Window.LostFocusCommand}"/>
         </behaviors:EventTrigger>
     </behaviors:Interaction.Triggers>
 
     <Window.ShowInTaskbar>
-        <Binding Path="DisplayMinimalistic" Converter="{StaticResource InverseBoolConverter}"/>
+        <Binding Path="Window.DisplayMinimalistic" Converter="{StaticResource InverseBoolConverter}"/>
     </Window.ShowInTaskbar>
 
     <Window.Visibility>
-        <Binding Path="WindowIsVisible" Converter="{StaticResource WindowVisibilityConverter}" />
+        <Binding Path="Window.WindowIsVisible" Converter="{StaticResource WindowVisibilityConverter}" />
     </Window.Visibility>
 
     <Window.Topmost>
-        <Binding Path="AlwaysOnTop"/>
+        <Binding Path="Window.AlwaysOnTop"/>
     </Window.Topmost>
 
     <Grid>
@@ -169,7 +163,7 @@
         <tb:TaskbarIcon
             Name="Tray"
             NoLeftClickDelay="True"
-            LeftClickCommand="{Binding TrayClickCommand}"
+            LeftClickCommand="{Binding Window.TrayClickCommand}"
             ContextMenu="{StaticResource TrayMenu}" />
 
         <!-- window mode only; the popup has no title bar. Minimize and maximize are off:
@@ -180,7 +174,7 @@
             Icon="{ui:SymbolIcon Speaker224}"
             ShowMinimize="False"
             ShowMaximize="False"
-            Visibility="{Binding DisplayMinimalistic, Converter={StaticResource InverseBoolToVisibility}}" />
+            Visibility="{Binding Window.DisplayMinimalistic, Converter={StaticResource InverseBoolToVisibility}}" />
 
         <view:MixerView
             x:Name="Mixer"

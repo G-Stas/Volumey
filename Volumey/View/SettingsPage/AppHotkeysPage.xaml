@@ -8,7 +8,7 @@
       xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_AppHotkeys}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-      DataContext="{StaticResource SettingsViewModel}">
+      controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
     <!-- the Foreground: see GeneralPage -->
     <Page.Resources>
         <ResourceDictionary>
@@ -37,12 +37,12 @@
             <TextBlock Text="{lc:Localization Nav_AppHotkeys}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization AppHotkeys_Description}" Style="{StaticResource PageDescription}" />
             <!-- what the hotkey mode means for this page's hotkeys, at the top -->
-            <viewControls:HotkeyModeNote />
+            <viewControls:HotkeyModeNote KeysBlocked="{Binding HotkeyMode.BlockHotkeysInSystem}" />
 
             <TextBlock Text="{lc:Localization AppHotkeys_Foreground}" Style="{StaticResource SectionHeader}" />
             <!-- the hotkeys can be edited while it's off; turning it on registers them -->
             <ui:CardExpander Icon="{ui:SymbolIcon WindowApps24}" IsExpanded="True" Margin="0 0 0 4"
-                             DataContext="{Binding ForegroundWindowVolumeViewModel}">
+                             DataContext="{Binding Foreground}">
                 <ui:CardExpander.Header>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -87,7 +87,7 @@
                 </Grid>
             </ui:CardExpander>
 
-            <Grid Margin="0 20 0 8" DataContext="{Binding HotkeysViewModel}">
+            <Grid Margin="0 20 0 8" DataContext="{Binding AppHotkeys}">
                 <TextBlock Text="{lc:Localization AppHotkeys_Apps}" FontWeight="SemiBold" VerticalAlignment="Center" />
                 <ui:Button HorizontalAlignment="Right"
                            Appearance="Primary"
@@ -97,7 +97,7 @@
                            AutomationProperties.AutomationId="AddAppButton" />
             </Grid>
 
-            <StackPanel DataContext="{Binding HotkeysViewModel}">
+            <StackPanel DataContext="{Binding AppHotkeys}">
                 <TextBlock Text="{lc:Localization AppHotkeys_NoApps}" Margin="0 0 0 4">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">

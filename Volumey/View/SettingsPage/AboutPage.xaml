@@ -5,8 +5,7 @@
       xmlns:lc="clr-namespace:Volumey.Localization"
       xmlns:converters="clr-namespace:Volumey.View.Converters"
       Title="{lc:Localization Nav_About}"
-      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-      DataContext="{Binding Source={StaticResource SettingsViewModel}, Path=About}">
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <!-- the Foreground: see GeneralPage -->
     <Page.Resources>
         <ResourceDictionary>

@@ -56,6 +56,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
     <!-- Fluent (Windows 11) controls and themes -->
     <PackageReference Include="WPF-UI" Version="4.3.0" />
     <!-- Core Audio (devices, endpoint volume, audio sessions) -->

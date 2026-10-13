@@ -6,8 +6,7 @@
       xmlns:converters="clr-namespace:Volumey.View.Converters"
       xmlns:controls="clr-namespace:Volumey.Controls"
       Title="{lc:Localization Nav_General}"
-      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-      DataContext="{StaticResource SettingsViewModel}">
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
     <!-- the Foreground: a page in a Frame doesn't inherit the window's text color, so plain text would be black in the dark theme
          (until a theme switch at runtime); set it on every settings page (an implicit Page style doesn't reach subclasses) -->
     <Page.Resources>
@@ -28,14 +27,14 @@
 
             <TextBlock Text="{lc:Localization General_Appearance}" Style="{StaticResource SectionHeader}" />
             <ui:CardControl Icon="{ui:SymbolIcon Globe24}" Header="{lc:Localization General_Language}">
-                <ComboBox ItemsSource="{Binding LangSettings.Languages}"
-                          SelectedItem="{Binding LangSettings.SelectedLanguage}"
+                <ComboBox ItemsSource="{Binding Language.Languages}"
+                          SelectedItem="{Binding Language.SelectedLanguage}"
                           AutomationProperties.Name="{lc:Localization General_Language}"
                           AutomationProperties.AutomationId="LanguageBox" />
             </ui:CardControl>
             <ui:CardControl Icon="{ui:SymbolIcon DarkTheme24}" Header="{lc:Localization General_Theme}">
-                <ComboBox ItemsSource="{Binding Source={StaticResource ThemeViewModel}, Path=AppThemes}"
-                          SelectedItem="{Binding Source={StaticResource ThemeViewModel}, Path=SelectedTheme}"
+                <ComboBox ItemsSource="{Binding Theme.AppThemes}"
+                          SelectedItem="{Binding Theme.SelectedTheme}"
                           AutomationProperties.Name="{lc:Localization General_Theme}"
                           AutomationProperties.AutomationId="ThemeBox">
                     <ComboBox.ItemTemplate>
@@ -44,7 +43,7 @@
                                 <TextBlock.Text>
                                     <MultiBinding Converter="{StaticResource ThemeNameConverter}">
                                         <Binding />
-                                        <Binding Source="{StaticResource SettingsViewModel}" Path="LangSettings.SelectedLanguage" />
+                                        <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
                                     </MultiBinding>
                                 </TextBlock.Text>
                             </TextBlock>
@@ -59,13 +58,13 @@
                         <TextBlock Text="{lc:Localization General_TrayIconHint}" Style="{StaticResource Caption}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding Source={StaticResource AppBehaviorViewModel}, Path=DisplayDeviceIconAtTray}"
+                <ui:ToggleSwitch IsChecked="{Binding Window.DisplayDeviceIconAtTray}"
                                  AutomationProperties.Name="{lc:Localization General_TrayIcon}"
                                  AutomationProperties.AutomationId="TrayIconToggle" />
             </ui:CardControl>
 
             <!-- the Store build starts through the package's startup task and is always in the Start menu -->
-            <StackPanel x:Name="NonStoreSection" DataContext="{StaticResource AppBehaviorViewModel}">
+            <StackPanel x:Name="NonStoreSection" DataContext="{Binding Window}">
                 <TextBlock Text="{lc:Localization General_Startup}" Style="{StaticResource SectionHeader}" />
                 <ui:CardControl Icon="{ui:SymbolIcon Power24}">
                     <ui:CardControl.Header>
@@ -104,14 +103,14 @@
                 <StackPanel Margin="34 0 0 0">
                     <RadioButton Margin="0 0 0 12"
                                  AutomationProperties.AutomationId="BlockHotkeysRadio"
-                                 IsChecked="{Binding BlockHotkeysInSystem}">
+                                 IsChecked="{Binding HotkeyMode.BlockHotkeysInSystem}">
                         <StackPanel>
                             <TextBlock Text="{lc:Localization General_KeepKeys}" />
                             <TextBlock Text="{lc:Localization General_KeepKeysHint}" Style="{StaticResource Caption}" />
                         </StackPanel>
                     </RadioButton>
                     <RadioButton AutomationProperties.AutomationId="ShareHotkeysRadio"
-                                 IsChecked="{Binding BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}">
+                                 IsChecked="{Binding HotkeyMode.BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}">
                         <StackPanel>
                             <TextBlock Text="{lc:Localization General_ShareKeys}" />
                             <TextBlock Text="{lc:Localization General_ShareKeysHint}" Style="{StaticResource Caption}" />
@@ -135,7 +134,7 @@
                                   MaxDecimalPlaces="0"
                                   SpinButtonPlacementMode="Inline"
                                   ClearButtonEnabled="False"
-                                  Value="{Binding HotkeysViewModel.VolumeStep}"
+                                  Value="{Binding AppHotkeys.VolumeStep}"
                                   ValueChanged="OnNumberBoxValueChanged"
                                   controls:DigitsOnly.IsEnabled="True"
                                   controls:NumberBoxCommit.IsEnabled="True"

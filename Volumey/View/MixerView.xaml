@@ -7,8 +7,7 @@
              xmlns:view="clr-namespace:Volumey.View"
              xmlns:converters="clr-namespace:Volumey.View.Converters"
              xmlns:lc="clr-namespace:Volumey.Localization"
-             mc:Ignorable="d"
-             DataContext="{StaticResource AppBehaviorViewModel}">
+             mc:Ignorable="d">
     <UserControl.Resources>
         <converters:DeviceViewPositionToDockConverter x:Key="DeviceViewPositionConverter"/>
     </UserControl.Resources>
@@ -28,23 +27,23 @@
                            Padding="10 6"
                            Icon="{ui:SymbolIcon Open24}"
                            Content="{lc:Localization TrayMenu_SoundSettings}"
-                           Command="{Binding SoundSettingsCommand}" />
+                           Command="{Binding Window.SoundSettingsCommand}" />
                 <ui:Button DockPanel.Dock="Right"
                            Style="{StaticResource IconButton}"
                            ToolTip="{lc:Localization Mixer_OpenSettings}"
                            AutomationProperties.Name="{lc:Localization Mixer_OpenSettings}"
                            AutomationProperties.AutomationId="SettingsButton"
-                           Command="{Binding TraySettingsCommand}">
+                           Command="{Binding Window.TraySettingsCommand}">
                     <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
                 </ui:Button>
             </DockPanel>
         </Border>
 
-        <!-- explicit source: MasterView has its own DataContext (the device view model) -->
-        <view:MasterView DockPanel.Dock="{Binding Source={StaticResource AppBehaviorViewModel}, Path=DeviceViewAtTheBottom, Converter={StaticResource DeviceViewPositionConverter}}"
+        <!-- MasterView sets the devices as the DataContext of its content, so its own DataContext is still this view's -->
+        <view:MasterView DockPanel.Dock="{Binding Window.DeviceViewAtTheBottom, Converter={StaticResource DeviceViewPositionConverter}}"
                          Margin="16 12 16 12" />
 
-        <Border DockPanel.Dock="{Binding DeviceViewAtTheBottom, Converter={StaticResource DeviceViewPositionConverter}}"
+        <Border DockPanel.Dock="{Binding Window.DeviceViewAtTheBottom, Converter={StaticResource DeviceViewPositionConverter}}"
                 Height="1"
                 Margin="16 0"
                 Background="{DynamicResource DividerStrokeColorDefaultBrush}" />

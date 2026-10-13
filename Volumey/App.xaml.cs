@@ -4,9 +4,14 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows;
 using System.Windows.Threading;
 using log4net;
+using Microsoft.Extensions.DependencyInjection;
 using Volumey.Helper;
+using Volumey.Services;
+using Volumey.View;
+using Volumey.ViewModel;
 
 namespace Volumey;
 
@@ -28,10 +33,31 @@ public partial class App
 		Microsoft.Win32.SystemEvents.PowerModeChanged += (s, e) => Logger.Info($"Power mode changed: {e.Mode}");
 	}
 
-	protected override void OnExit(System.Windows.ExitEventArgs e)
+	private ServiceProvider services;
+
+	protected override void OnStartup(StartupEventArgs e)
+	{
+		base.OnStartup(e);
+		services = new ServiceCollection().AddVolumey(this).BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
+
+		//the theme and accent before any window is created
+		services.GetRequiredService<ThemeViewModel>();
+		services.GetRequiredService<AppBehaviorViewModel>();
+		//creating it enumerates the audio devices
+		services.GetRequiredService<DeviceProviderViewModel>();
+		services.GetRequiredService<HotkeyModeViewModel>();
+		foreach(var feature in ServiceRegistration.Features)
+			services.GetRequiredService(feature);
+
+		//the mixer window and the tray icon; the window shows itself unless the app starts minimized
+		MainWindow = services.GetRequiredService<MainView>();
+	}
+
+	protected override void OnExit(ExitEventArgs e)
 	{
 		//raises Exit: its handlers release the devices and write pending settings
 		base.OnExit(e);
+		services?.Dispose();
 		//last, so errors of those are still logged (Release builds send their last logs to Loggly here)
 		LogManager.Shutdown();
 	}

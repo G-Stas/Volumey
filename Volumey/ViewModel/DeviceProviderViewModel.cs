@@ -19,8 +19,6 @@ public partial class DeviceProviderViewModel : ObservableObject
 
 	private Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-	public DeviceProviderViewModel() : this(AppServices.Current.Devices, AppServices.Current.Shell) { }
-
 	internal DeviceProviderViewModel(IDeviceProvider deviceProvider, IAppShell shell)
 	{
 		DeviceProvider = deviceProvider;

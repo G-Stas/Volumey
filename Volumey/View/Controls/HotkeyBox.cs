@@ -29,7 +29,6 @@ using System.ComponentModel;
 using System.Windows.Automation;
 using System.Windows.Interop;
 using Volumey.Localization;
-using Volumey.Services;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Controls;
@@ -120,7 +119,22 @@ public class HotKeyBox : TextBox
 			HotKey = null;
 	}
 
+	/// <summary>
+	/// The hotkey service a box tells that it's being edited (hotkeys are ignored meanwhile) and asks who holds a combination.
+	/// Inherited: set once on a page or dialog, it reaches every box in it
+	/// </summary>
+	public static readonly DependencyProperty HotkeyServiceProperty
+		= DependencyProperty.RegisterAttached("HotkeyService", typeof(IHotkeyService), typeof(HotKeyBox),
+			new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
+
+	public static IHotkeyService GetHotkeyService(DependencyObject element) => (IHotkeyService)element.GetValue(HotkeyServiceProperty);
+
+	public static void SetHotkeyService(DependencyObject element, IHotkeyService value) => element.SetValue(HotkeyServiceProperty, value);
+
 	private bool editing;
+
+	/// <summary>The service told about the editing: a box that left its page (Unloaded) no longer inherits one</summary>
+	private IHotkeyService editingService;
 
 	private void TextBoxOnGotFocus(object sender, RoutedEventArgs routedEventArgs)
 	{
@@ -128,7 +142,9 @@ public class HotKeyBox : TextBox
 			return;
 		editing = true;
 		pressedKeys.Clear();
-		AppServices.Current.Hotkeys.IsEditingHotkey = true;
+		editingService = GetHotkeyService(this);
+		if(editingService != null)
+			editingService.IsEditingHotkey = true;
 		ComponentDispatcher.ThreadPreprocessMessage += ComponentDispatcherOnThreadPreprocessMessage;
 	}
 
@@ -137,7 +153,9 @@ public class HotKeyBox : TextBox
 		if(!editing)
 			return;
 		editing = false;
-		AppServices.Current.Hotkeys.IsEditingHotkey = false;
+		if(editingService != null)
+			editingService.IsEditingHotkey = false;
+		editingService = null;
 		ComponentDispatcher.ThreadPreprocessMessage -= ComponentDispatcherOnThreadPreprocessMessage;
 	}
 
@@ -193,7 +211,7 @@ public class HotKeyBox : TextBox
 		//the box's own hotkey (typed again), or a key held down before the box got focus that nobody holds
 		if(combination.Equals(HotKey))
 			return;
-		switch(AppServices.Current.Hotkeys.FindOwner(combination))
+		switch(GetHotkeyService(this)?.FindOwner(combination))
 		{
 			case HotkeyOwner.Volumey:
 				SetTaken(combination, "Hotkeys_TakenInVolumey");

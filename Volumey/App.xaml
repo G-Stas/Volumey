@@ -1,9 +1,7 @@
 ﻿<Application x:Class="Volumey.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:Volumey.ViewModel"
-             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             StartupUri="View/MainView.xaml">
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,11 +11,6 @@
                 <ResourceDictionary Source="View/Controls/VolumeSlider.xaml"/>
                 <ResourceDictionary Source="View/Styles/Mixer.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-
-            <vm:AppBehaviorViewModel x:Key="AppBehaviorViewModel"/>
-            <vm:SettingsViewModel x:Key="SettingsViewModel" />
-            <vm:DeviceProviderViewModel x:Key="DeviceProviderViewModel" />
-            <vm:ThemeViewModel x:Key="ThemeViewModel" />
 
             <BitmapImage x:Key="TrayHigh" UriSource="Resources/Icons/TrayLight/high.ico" />
             <BitmapImage x:Key="TrayMid" UriSource="Resources/Icons/TrayLight/mid.ico" />

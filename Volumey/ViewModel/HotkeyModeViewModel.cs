@@ -2,26 +2,15 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.DataProvider;
 using Volumey.Helper;
-using Volumey.Services;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel;
 
-sealed partial class SettingsViewModel : ObservableObject
+/// <summary>
+/// The hotkey mode (keep the keys to Volumey or share them) and the hotkey manager that goes with it
+/// </summary>
+sealed partial class HotkeyModeViewModel : ObservableObject
 {
-	public DeviceVolumeHotkeysViewModel DeviceVolumeHotkeysViewModel { get; }
-	public AppsHotkeysViewModel HotkeysViewModel { get; }
-	public OpenHotkeyViewModel OpenHotkeyViewModel { get; }
-	public VolumeLimitViewModel VolumeLimitViewModel { get; }
-	public AppVolumeSyncViewModel AppVolumeSyncViewModel { get; }
-	public DefaultDeviceHotkeysViewModel DefaultDeviceHotkeysViewModel { get; }
-	public NotificationViewModel NotificationsViewModel { get; }
-	public ForegroundWindowVolumeViewModel ForegroundWindowVolumeViewModel { get; }
-	public SystemHotkeysViewModel SystemHotkeysViewModel { get; }
-	public LangSettings LangSettings { get; }
-
-	public AboutViewModel About { get; }
-
 	private IntPtr windowHandle;
 
 	private bool blockHotkeysInSystem;
@@ -44,25 +33,9 @@ sealed partial class SettingsViewModel : ObservableObject
 	}
 	private readonly IHotkeyService hotkeys;
 
-	public SettingsViewModel() : this(AppServices.Current) { }
-
-	internal SettingsViewModel(AppServices services)
+	internal HotkeyModeViewModel(IHotkeyService hotkeys)
 	{
-		hotkeys = services.Hotkeys;
-		var devices = services.Devices;
-		var notifications = services.Notifications;
-		LangSettings = new LangSettings();
-		HotkeysViewModel = new AppsHotkeysViewModel(devices, hotkeys, notifications);
-		DeviceVolumeHotkeysViewModel = new DeviceVolumeHotkeysViewModel(devices, hotkeys, notifications);
-		OpenHotkeyViewModel = new OpenHotkeyViewModel(hotkeys);
-		VolumeLimitViewModel = new VolumeLimitViewModel(devices);
-		AppVolumeSyncViewModel = new AppVolumeSyncViewModel(devices);
-		DefaultDeviceHotkeysViewModel = new DefaultDeviceHotkeysViewModel(devices, hotkeys);
-		ForegroundWindowVolumeViewModel = new ForegroundWindowVolumeViewModel(devices, hotkeys, notifications);
-		NotificationsViewModel = new NotificationViewModel(devices, notifications, services.Screens);
-		SystemHotkeysViewModel = new SystemHotkeysViewModel(hotkeys);
-		About = new AboutViewModel(new SupportLinks());
-
+		this.hotkeys = hotkeys;
 		blockHotkeysInSystem = SettingsProvider.Settings.Hotkeys.BlockInSystem;
 	}
 

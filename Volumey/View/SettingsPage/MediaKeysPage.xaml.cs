@@ -1,9 +1,12 @@
-﻿namespace Volumey.View.SettingsPage;
+﻿using Volumey.ViewModel.Pages;
+
+namespace Volumey.View.SettingsPage;
 
 public partial class MediaKeysPage
 {
-	public MediaKeysPage()
+	internal MediaKeysPage(MediaKeysPageViewModel vm)
 	{
+		DataContext = vm;
 		InitializeComponent();
 	}
 }

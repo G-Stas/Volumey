@@ -1,9 +1,12 @@
-﻿namespace Volumey.View.SettingsPage;
+﻿using Volumey.ViewModel.Pages;
+
+namespace Volumey.View.SettingsPage;
 
 public partial class DevicesPage
 {
-	public DevicesPage()
+	internal DevicesPage(DevicesPageViewModel vm)
 	{
+		DataContext = vm;
 		InitializeComponent();
 	}
 }

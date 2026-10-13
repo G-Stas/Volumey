@@ -8,7 +8,7 @@
              xmlns:converters="clr-namespace:Volumey.View.Converters"
              xmlns:lc="clr-namespace:Volumey.Localization"
              mc:Ignorable="d"
-             DataContext="{StaticResource DeviceProviderViewModel}">
+             DataContext="{Binding Devices}">
     <UserControl.Resources>
         <!-- visible unless the app has exactly one session -->
         <converters:CollectionCountToVisibilityConverter CountLimit="1" x:Key="SeveralSessionsToVisibility"/>
