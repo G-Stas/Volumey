@@ -266,14 +266,22 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		else
 			error = hotkeys.HotkeyIsValid(changed);
 
-		var process = LaunchedProcesses.FirstOrDefault(p => p.Name == app.ProcessName);
-		if(error == ErrorMessageType.None && process != null)
+		//every running process of the app (it can run as several with the same name) gets the change
+		var processes = LaunchedProcesses.Where(p => p.Name == app.ProcessName).ToList();
+		if(error == ErrorMessageType.None && processes.Count > 0)
 		{
-			process.ResetVolumeHotkeys();
-			if(!process.SetVolumeHotkeys(up, down))
+			foreach(AudioProcessModel process in processes)
+				process.ResetVolumeHotkeys();
+			//the hotkey service counts users: the first process registers the pair, the others only count, so it fails on the first or not at all
+			if(!processes.All(p => p.SetVolumeHotkeys(up, down)))
 			{
-				//the hotkey service logs why; the unchanged hotkey was registered until now, so it's the changed one
-				process.SetVolumeHotkeys(app.VolumeUp, app.VolumeDown);
+				//the hotkey service logs why; the unchanged hotkey was registered until now, so it's the changed one.
+				//Reset only releases what a process holds, so the ones the new pair didn't reach are fine too
+				foreach(AudioProcessModel process in processes)
+				{
+					process.ResetVolumeHotkeys();
+					process.SetVolumeHotkeys(app.VolumeUp, app.VolumeDown);
+				}
 				error = ErrorMessageType.VolumeReg;
 			}
 		}

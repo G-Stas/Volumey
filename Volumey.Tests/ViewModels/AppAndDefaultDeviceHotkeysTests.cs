@@ -144,6 +144,55 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void ChangingAnAppsHotkeyReachesEveryProcessOfTheApp()
+	{
+		var newUp = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		//one app running as two processes with the same name
+		var first = CreateProcess("Spotify", 50);
+		var second = CreateProcess("Spotify", 30);
+		SetDefaultDevice(CreateDevice("1", "Speakers", first, second));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var app = vm.Apps.Single();
+
+		app.VolumeUp = newUp;
+
+		Assert.IsFalse(app.Errors.Any);
+		//the old hotkey is released by both (the service unregisters it once its last user lets go)
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
+		PressHotkey(Up);
+		Assert.AreEqual(50, first.Volume);
+		Assert.AreEqual(30, second.Volume);
+		PressHotkey(newUp);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, first.Volume);
+		Assert.AreEqual(30 + Hotkeys.VolumeStep, second.Volume);
+	}
+
+	[TestMethod]
+	public void ARefusedHotkeyChangeKeepsTheOldHotkeyOnEveryProcessOfTheApp()
+	{
+		var refused = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
+		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new InvalidOperationException("taken by another app"));
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var first = CreateProcess("Spotify", 50);
+		var second = CreateProcess("Spotify", 30);
+		SetDefaultDevice(CreateDevice("1", "Speakers", first, second));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var app = vm.Apps.Single();
+
+		app.VolumeUp = refused;
+
+		Assert.AreEqual(Up, app.VolumeUp);
+		Assert.IsTrue(app.Errors.Any);
+		Assert.AreEqual(Up, Settings.Hotkeys.Apps.Single().VolumeUp);
+		PressHotkey(Up);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, first.Volume);
+		Assert.AreEqual(30 + Hotkeys.VolumeStep, second.Volume);
+	}
+
+	[TestMethod]
 	public void ChangingAStoppedAppsHotkeyOnlySavesIt()
 	{
 		var newDown = new HotKey(Key.Down, ModifierKeys.Control | ModifierKeys.Shift);
