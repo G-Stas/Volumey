@@ -65,13 +65,16 @@ public abstract class UiTest
 	{
 		for(int i = cleanup.Count - 1; i >= 0; i--)
 			cleanup[i].Dispose();
-		bool failed = TestContext.CurrentTestOutcome != UnitTestOutcome.Passed;
+		var bindingErrors = App?.BindingErrors() ?? [];
+		bool failed = TestContext.CurrentTestOutcome != UnitTestOutcome.Passed || bindingErrors.Count > 0;
 		if(failed && App != null)
 		{
 			App.KeepDataDir = true;
 			TestContext.WriteLine("Data folder (settings, log): " + App.DataDir);
 		}
 		App?.Dispose();
+		if(bindingErrors.Count > 0)
+			Assert.Fail("The app logged binding errors:\n" + string.Join("\n", bindingErrors));
 	}
 
 	/// <summary>

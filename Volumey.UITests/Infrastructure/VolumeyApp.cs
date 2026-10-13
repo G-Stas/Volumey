@@ -29,6 +29,24 @@ internal sealed class VolumeyApp : IDisposable
 	public string SettingsFile => Path.Combine(DataDir, "settings.json");
 	public string LogFile => Path.Combine(DataDir, "volumey.log");
 
+	/// <summary>How the Debug build logs a failed WPF binding (BindingErrorListener in the app)</summary>
+	private const string BindingErrorPrefix = "Binding error:";
+
+	/// <summary>The binding errors the app logged so far (every start on this data folder)</summary>
+	public IReadOnlyList<string> BindingErrors()
+	{
+		if(!File.Exists(LogFile))
+			return [];
+		//the running app keeps the log open
+		using var stream = new FileStream(LogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+		using var reader = new StreamReader(stream);
+		var errors = new List<string>();
+		while(reader.ReadLine() is { } line)
+			if(line.Contains(BindingErrorPrefix, StringComparison.Ordinal))
+				errors.Add(line);
+		return errors;
+	}
+
 	public UIA3Automation Automation { get; } = new();
 
 	private Process? process;
