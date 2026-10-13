@@ -73,38 +73,55 @@ internal static class AudioModelFactory
 
 	private static List<AudioProcessModel> GetCurrentProcessList(SessionCollection sessions, IHotkeyService hotkeys)
 	{
-		List<AudioProcessModel> processes = new List<AudioProcessModel>();
-
 		if(sessions == null)
-			return processes;
+			return new List<AudioProcessModel>();
 
-		int sessionCount = sessions.Count;
-		for(int i = 0; i < sessionCount; i++)
+		return GroupIntoProcesses(sessions.Count, i => sessions[i], CreateSessionModel,
+			(AudioSessionModel session, AudioSessionControl control, out bool isSystemSounds) => CreateProcessModel(session, control, hotkeys, out isSystemSounds),
+			control => control.Dispose());
+	}
+
+	internal delegate AudioProcessModel? ProcessModelFactory<TControl>(AudioSessionModel session, TControl control, out bool isSystemSounds);
+
+	/// <summary>
+	/// Builds the app models of a device's existing sessions: sessions of one app (same grouping parameter or file) go into one model,
+	/// System Sounds first. A session that doesn't end up in a model is released: a session model registers for Windows' events
+	/// when it's created, and an unreleased one kept that registration (and itself) until Volumey exited.
+	/// Generic over the session control so it can be tested without Windows' audio objects.
+	/// </summary>
+	/// <param name="createSession">takes ownership of the control; null if the session can't be read</param>
+	/// <param name="releaseControl">releases a control that no session model took over</param>
+	internal static List<AudioProcessModel> GroupIntoProcesses<TControl>(int count, Func<int, TControl> getControl,
+		Func<TControl, AudioSessionModel?> createSession, ProcessModelFactory<TControl> createProcess, Action<TControl> releaseControl)
+		where TControl : class
+	{
+		var processes = new List<AudioProcessModel>();
+		for(int i = 0; i < count; i++)
 		{
+			TControl? control = null;
+			AudioSessionModel? session = null;
+			bool kept = false;
 			try
 			{
-				AudioSessionControl sessionControl = sessions[i];
-				AudioSessionModel? session = CreateSessionModel(sessionControl);
-
+				control = getControl(i);
+				session = createSession(control);
 				if(session == null)
-				{
-					sessionControl.Dispose();
 					continue;
-				}
 
-				if(processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
+				if(processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || Equals(p.FilePath, session.FilePath)) is { } process)
 				{
 					session.Name = process.Name;
 					process.AddSession(session);
+					kept = true;
 				}
 				else
 				{
-					AudioProcessModel? newProcess = CreateProcessModel(session, sessionControl, hotkeys, out bool isSystemSounds);
-
+					AudioProcessModel? newProcess = createProcess(session, control, out bool isSystemSounds);
 					if(newProcess == null)
 						continue;
 
 					newProcess.AddSession(session);
+					kept = true;
 					session.Name = newProcess.Name;
 
 					//put system sounds process on top of the processes list
@@ -114,7 +131,21 @@ internal static class AudioModelFactory
 						processes.Add(newProcess);
 				}
 			}
-			catch { }
+			catch(Exception e)
+			{
+				Logger.Debug("Skipped a session that couldn't be read", e);
+			}
+			finally
+			{
+				//the session model owns its control once it exists
+				if(!kept)
+				{
+					if(session != null)
+						session.Dispose();
+					else if(control != null)
+						releaseControl(control);
+				}
+			}
 		}
 		return processes;
 	}
