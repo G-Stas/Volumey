@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -42,8 +43,7 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		}
 		bool anySaved = Devices.Count > 0;
 
-		foreach(var device in deviceProvider.ActiveDevices)
-			Connect(device);
+		ConnectAll(deviceProvider.ActiveDevices);
 		UpdateDefault();
 		//the names or IDs of saved devices may have changed (they're matched by either)
 		if(anySaved)
@@ -75,6 +75,21 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 			if(!hotkeys.RegisterHotkey(entry.Hotkey))
 				entry.SetError(ErrorMessageType.OpenReg);
 		}
+	}
+
+	/// <summary>
+	/// Connects devices whose saved entry has their ID first: a device matched by name could otherwise take the entry of another
+	/// device with the same name (two identical headsets) that comes later in the list, and its ID would be saved over the right one
+	/// </summary>
+	private void ConnectAll(IEnumerable<OutputDeviceModel> devices)
+	{
+		var list = devices.ToList();
+		foreach(var device in list.Where(HasSavedId).ToList())
+			Connect(device);
+		foreach(var device in list.Where(d => !HasSavedId(d)))
+			Connect(device);
+
+		bool HasSavedId(OutputDeviceModel device) => Devices.Any(d => device.CompareId(d.Id));
 	}
 
 	/// <summary>
@@ -131,15 +146,13 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		{
 			foreach(var entry in Devices.Where(d => d.IsConnected).ToList())
 				Disconnect(entry.Model);
-			foreach(var device in DeviceProvider.ActiveDevices)
-				Connect(device);
+			ConnectAll(DeviceProvider.ActiveDevices);
 		}
 		else
 		{
 			foreach(OutputDeviceModel device in e.OldItems ?? new OutputDeviceModel[0])
 				Disconnect(device);
-			foreach(OutputDeviceModel device in e.NewItems ?? new OutputDeviceModel[0])
-				Connect(device);
+			ConnectAll(e.NewItems?.Cast<OutputDeviceModel>() ?? Enumerable.Empty<OutputDeviceModel>());
 		}
 		UpdateDefault();
 		SelectedDevice ??= Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
