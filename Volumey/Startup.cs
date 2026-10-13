@@ -198,6 +198,7 @@ static class Startup
 			BasicConfigurator.Configure(LogManager.GetRepository(Assembly.GetExecutingAssembly()), appender);
 			LogManager.GetLogger(typeof(Startup)).Info($"Debug build started, pid {Environment.ProcessId}");
 		}
+		BindingErrorListener.Attach();
 #endif
 	}
 }
