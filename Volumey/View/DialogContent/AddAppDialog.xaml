@@ -8,7 +8,8 @@
                   PrimaryButtonText="{lc:Localization AppHotkeys_Add}"
                   CloseButtonText="{lc:Localization AppHotkeys_Cancel}"
                   DefaultButton="Primary"
-                  Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+                  Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                  controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
     <!-- App hotkeys page, "Add app". Add stays disabled until an app and both hotkeys are set
          (see the code-behind); an error (e.g. a hotkey in use) shows here and the dialog stays open -->
     <ui:ContentDialog.Resources>

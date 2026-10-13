@@ -8,6 +8,16 @@ namespace Volumey.View.Controls;
 /// </summary>
 public partial class HotkeyModeNote
 {
+	/// <summary>True: hotkeys keep their keys to Volumey; false: other apps get the keys too</summary>
+	public static readonly DependencyProperty KeysBlockedProperty
+		= DependencyProperty.Register(nameof(KeysBlocked), typeof(bool), typeof(HotkeyModeNote), new PropertyMetadata(true));
+
+	public bool KeysBlocked
+	{
+		get => (bool)GetValue(KeysBlockedProperty);
+		set => SetValue(KeysBlockedProperty, value);
+	}
+
 	public HotkeyModeNote()
 	{
 		InitializeComponent();

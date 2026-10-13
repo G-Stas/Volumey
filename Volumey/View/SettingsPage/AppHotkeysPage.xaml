@@ -7,7 +7,8 @@
       xmlns:controls="clr-namespace:Volumey.Controls"
       xmlns:viewControls="clr-namespace:Volumey.View.Controls"
       Title="{lc:Localization Nav_AppHotkeys}"
-      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
     <!-- the Foreground: see GeneralPage -->
     <Page.Resources>
         <ResourceDictionary>
@@ -36,7 +37,7 @@
             <TextBlock Text="{lc:Localization Nav_AppHotkeys}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization AppHotkeys_Description}" Style="{StaticResource PageDescription}" />
             <!-- what the hotkey mode means for this page's hotkeys, at the top -->
-            <viewControls:HotkeyModeNote />
+            <viewControls:HotkeyModeNote KeysBlocked="{Binding HotkeyMode.BlockHotkeysInSystem}" />
 
             <TextBlock Text="{lc:Localization AppHotkeys_Foreground}" Style="{StaticResource SectionHeader}" />
             <!-- the hotkeys can be edited while it's off; turning it on registers them -->

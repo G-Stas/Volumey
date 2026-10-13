@@ -69,16 +69,19 @@ internal static class ServiceRegistration
 
 		services.AddSingleton(sp => new GeneralPageViewModel(sp.Get<HotkeyModeViewModel>(), sp.Get<ThemeViewModel>(), sp.Get<AppBehaviorViewModel>(),
 			sp.Get<LangSettings>(), sp.Get<AppsHotkeysViewModel>()));
-		services.AddSingleton(sp => new MixerPageViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<OpenHotkeyViewModel>(), sp.Get<VolumeLimitViewModel>(),
-			sp.Get<AppVolumeSyncViewModel>()));
-		services.AddSingleton(sp => new AppHotkeysPageViewModel(sp.Get<ForegroundWindowVolumeViewModel>(), sp.Get<AppsHotkeysViewModel>()));
-		services.AddSingleton(sp => new DevicesPageViewModel(sp.Get<DeviceVolumeHotkeysViewModel>(), sp.Get<DefaultDeviceHotkeysViewModel>()));
+		services.AddSingleton(sp => new MixerPageViewModel(sp.Get<IHotkeyService>(), sp.Get<HotkeyModeViewModel>(), sp.Get<AppBehaviorViewModel>(),
+			sp.Get<OpenHotkeyViewModel>(), sp.Get<VolumeLimitViewModel>(), sp.Get<AppVolumeSyncViewModel>()));
+		services.AddSingleton(sp => new AppHotkeysPageViewModel(sp.Get<IHotkeyService>(), sp.Get<HotkeyModeViewModel>(), sp.Get<ForegroundWindowVolumeViewModel>(),
+			sp.Get<AppsHotkeysViewModel>()));
+		services.AddSingleton(sp => new DevicesPageViewModel(sp.Get<IHotkeyService>(), sp.Get<HotkeyModeViewModel>(), sp.Get<DeviceVolumeHotkeysViewModel>(),
+			sp.Get<DefaultDeviceHotkeysViewModel>()));
+		services.AddSingleton(sp => new MediaKeysPageViewModel(sp.Get<IHotkeyService>(), sp.Get<HotkeyModeViewModel>(), sp.Get<SystemHotkeysViewModel>()));
 
 		services.AddSingleton(sp => new GeneralPage(sp.Get<GeneralPageViewModel>()));
 		services.AddSingleton(sp => new MixerPage(sp.Get<MixerPageViewModel>()));
 		services.AddSingleton(sp => new AppHotkeysPage(sp.Get<AppHotkeysPageViewModel>()));
 		services.AddSingleton(sp => new DevicesPage(sp.Get<DevicesPageViewModel>()));
-		services.AddSingleton(sp => new MediaKeysPage(sp.Get<SystemHotkeysViewModel>()));
+		services.AddSingleton(sp => new MediaKeysPage(sp.Get<MediaKeysPageViewModel>()));
 		services.AddSingleton(sp => new NotificationsPage(sp.Get<NotificationViewModel>()));
 		services.AddSingleton(sp => new AboutPage(sp.Get<AboutViewModel>()));
 		services.AddSingleton<INavigationViewPageProvider>(sp => new PageProvider(sp));

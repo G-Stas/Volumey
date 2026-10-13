@@ -7,11 +7,20 @@ namespace Volumey.ViewModel.Pages;
 /// </summary>
 internal sealed class DevicesPageViewModel
 {
+	/// <summary>For the page's hotkey boxes</summary>
+	public IHotkeyService Hotkeys { get; }
+
+	/// <summary>For the hotkey mode note</summary>
+	public HotkeyModeViewModel HotkeyMode { get; }
+
 	public DeviceVolumeHotkeysViewModel DeviceVolume { get; }
 	public DefaultDeviceHotkeysViewModel DefaultDevice { get; }
 
-	internal DevicesPageViewModel(DeviceVolumeHotkeysViewModel deviceVolume, DefaultDeviceHotkeysViewModel defaultDevice)
+	internal DevicesPageViewModel(IHotkeyService hotkeys, HotkeyModeViewModel hotkeyMode, DeviceVolumeHotkeysViewModel deviceVolume,
+		DefaultDeviceHotkeysViewModel defaultDevice)
 	{
+		Hotkeys = hotkeys;
+		HotkeyMode = hotkeyMode;
 		DeviceVolume = deviceVolume;
 		DefaultDevice = defaultDevice;
 	}

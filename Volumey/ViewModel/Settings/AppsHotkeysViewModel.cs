@@ -19,6 +19,9 @@ namespace Volumey.ViewModel.Settings;
 /// </summary>
 public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 {
+	/// <summary>For the hotkey boxes of the Add app dialog</summary>
+	public IHotkeyService Hotkeys => hotkeys;
+
 	[ObservableProperty]
 	public partial AudioProcessModel SelectedProcess { get; set; }
 

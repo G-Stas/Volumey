@@ -1,10 +1,10 @@
-﻿using Volumey.ViewModel.Settings;
+﻿using Volumey.ViewModel.Pages;
 
 namespace Volumey.View.SettingsPage;
 
 public partial class MediaKeysPage
 {
-	internal MediaKeysPage(SystemHotkeysViewModel vm)
+	internal MediaKeysPage(MediaKeysPageViewModel vm)
 	{
 		DataContext = vm;
 		InitializeComponent();

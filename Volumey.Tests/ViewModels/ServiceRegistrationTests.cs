@@ -93,6 +93,18 @@ public class ServiceRegistrationTests : ViewModelTestBase
 		var devices = provider.GetRequiredService<DevicesPageViewModel>();
 		Assert.AreSame(provider.GetRequiredService<DeviceVolumeHotkeysViewModel>(), devices.DeviceVolume);
 		Assert.AreSame(provider.GetRequiredService<DefaultDeviceHotkeysViewModel>(), devices.DefaultDevice);
+
+		var mediaKeys = provider.GetRequiredService<MediaKeysPageViewModel>();
+		Assert.AreSame(provider.GetRequiredService<SystemHotkeysViewModel>(), mediaKeys.MediaKeys);
+
+		//the pages with hotkeys: their boxes and the hotkey mode note
+		foreach(var (hotkeys, hotkeyMode) in new[] { (mixer.Hotkeys, mixer.HotkeyMode), (apps.Hotkeys, apps.HotkeyMode),
+			(devices.Hotkeys, devices.HotkeyMode), (mediaKeys.Hotkeys, mediaKeys.HotkeyMode) })
+		{
+			Assert.AreSame(Hotkeys, hotkeys);
+			Assert.AreSame(provider.GetRequiredService<HotkeyModeViewModel>(), hotkeyMode);
+		}
+		Assert.AreSame(Hotkeys, provider.GetRequiredService<AppsHotkeysViewModel>().Hotkeys);
 	}
 
 	[TestMethod]
