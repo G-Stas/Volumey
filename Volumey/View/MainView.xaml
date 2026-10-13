@@ -26,8 +26,7 @@
         <ResourceDictionary>
             <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
 
-            <!-- mockup TrayMenu.dc.html (248 wide, the default item in bold), plus the two Windows sound items (owner's decision;
-                 no "Start with Windows" item) -->
+            <!-- 248 wide, the default item in bold, with the two Windows sound items -->
             <ContextMenu x:Key="TrayMenu" MinWidth="248">
                 <MenuItem
                     Header="{lc:Localization Tray_OpenMixer}"
@@ -173,7 +172,7 @@
             LeftClickCommand="{Binding TrayClickCommand}"
             ContextMenu="{StaticResource TrayMenu}" />
 
-        <!-- window mode only; the popup has no title bar. Minimize and maximize stay off as before:
+        <!-- window mode only; the popup has no title bar. Minimize and maximize are off:
              the window hides to the tray instead -->
         <ui:TitleBar
             x:Name="TitleBar"

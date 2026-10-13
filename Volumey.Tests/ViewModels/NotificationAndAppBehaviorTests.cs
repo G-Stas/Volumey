@@ -80,7 +80,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	[TestMethod]
 	public void TheOsdAreaOfAScaledScreenIsInPhysicalPixels()
 	{
-		//#76: a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them; the OSD window takes them as they are
+		//a 125% screen right of a 100% one, values in physical pixels as WpfScreenHelper gives them; the OSD window takes them as they are
 		var scaled = new ScreenInfo(@"\\.\DISPLAY2", false, 1920, 1020, 1920, 1080, 2560, 4480, 0, 1020, 1.25);
 		screens.Setup(m => m.GetAllScreensInfo()).Returns(new[] { Primary, scaled });
 		Settings.Notifications.ScreenName = scaled.Name;
@@ -93,7 +93,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	[TestMethod]
 	public void MissingScreenFallsBackToThePrimaryOneAndStaysRemembered()
 	{
-		//#92: e.g. a monitor that turns on after the app has started
+		//e.g. a monitor that turns on after the app has started
 		Settings.Notifications.ScreenName = @".//DISPLAY3";
 		Settings.Window.ScreenName = @".//DISPLAY3";
 
@@ -223,7 +223,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	[TestMethod]
 	public void ADisposedOldDefaultDeviceDoesntBreakTheSwitch()
 	{
-		//#57: after sleep a headset is removed (its model disposed) before Windows switches the default device
+		//after sleep a headset is removed (its model disposed) before Windows switches the default device
 		var headset = CreateDevice("1", "Headset", CreateProcess("app"));
 		SetDefaultDevice(headset);
 		var vm = CreateNotifications();

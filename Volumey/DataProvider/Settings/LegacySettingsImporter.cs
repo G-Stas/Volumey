@@ -10,7 +10,7 @@ namespace Volumey.DataProvider.Settings;
 
 /// <summary>
 /// Imports settings saved by Volumey 1.x (a BinaryFormatter snapshot of the old AppSettings class).
-/// The file is parsed as plain data with System.Formats.Nrbf, so none of the old types have to exist anymore.
+/// The file is parsed as plain data with System.Formats.Nrbf, so none of the old types are needed.
 /// Member names below are field names of the old AppSettings classes and must not be changed.
 /// </summary>
 internal static class LegacySettingsImporter
@@ -39,7 +39,7 @@ internal static class LegacySettingsImporter
 		ReadBool(root, "displayDeviceIconAtTray", v => window.DisplayDeviceIconAtTray = v);
 		ReadDouble(root, "windowLeft", v => window.Left = v);
 		ReadDouble(root, "windowTop", v => window.Top = v);
-		//1.x stored screens by their index in the list of screens, which changes order when a monitor is detected late (#92).
+		//1.x stored screens by their index in the list of screens, which changes order when a monitor is detected late.
 		//The index meant the screens as they are now, so that's the best guess for the name
 		IReadOnlyList<ScreenInfo> screens = null;
 		string ScreenNameAt(int index)

@@ -1,7 +1,7 @@
 name: UI tests
 
 # Runs on pull requests that aren't drafts (also when a draft is marked ready for review) and by hand
-# (Actions -> UI tests -> Run workflow; the button only shows once this file is on main).
+# (Actions -> UI tests -> Run workflow; GitHub shows the button only for workflows on the default branch).
 # The runner has a desktop but no audio device, so the tests that need one (category Audio) are skipped;
 # run everything locally with scripts/run-ui-tests.ps1.
 on:
@@ -21,7 +21,7 @@ jobs:
         with:
           global-json-file: global.json
 
-      # the runner's screen is 1024x768: the 880 px settings window wouldn't fit, and its lower controls were off-screen
+      # the runner's screen is 1024x768: the 880 px settings window wouldn't fit, its lower controls would be off-screen
       - name: Screen resolution
         shell: pwsh
         continue-on-error: true

@@ -34,7 +34,7 @@ public sealed record DeviceFeatureState(bool? AllowExclusive, bool? ExclusivePri
 
 /// <summary>
 /// Reads and changes a device's exclusive mode switches (IPolicyConfig, undocumented, as Windows' sound settings do).
-/// Every call makes COM calls: run it off the UI thread. Checked on a real device (2026-10-11): works without admin rights.
+/// Every call makes COM calls: run it off the UI thread. Works without admin rights.
 /// </summary>
 public sealed class DeviceFeatures
 {

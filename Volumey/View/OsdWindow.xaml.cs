@@ -16,7 +16,7 @@ namespace Volumey.View;
 
 /// <summary>
 /// The on-screen display: a pill per app or device whose volume changed (at most <see cref="MaxPills"/>), in a corner of a screen,
-/// each closing after the display time unless the mouse is over it. Replaces the Notification.Wpf fork. UI thread only.
+/// each closing after the display time unless the mouse is over it. UI thread only.
 /// </summary>
 public partial class OsdWindow
 {
@@ -57,7 +57,7 @@ public partial class OsdWindow
 
 	/// <summary>
 	/// The work area of the OSD's screen, in physical pixels. Set with SetWindowPos, not Left/Top: WPF converts those with the scale
-	/// of the screen the window is on now, which put the OSD off on a screen with another scale
+	/// of the screen the window is on now, which puts the OSD off on a screen with another scale
 	/// </summary>
 	public void SetWorkArea(int left, int top, int width, int height)
 	{
@@ -99,7 +99,7 @@ public partial class OsdWindow
 		};
 		bool center = Pills.HorizontalAlignment == HorizontalAlignment.Center;
 		//the distances are to the pill itself: its margin (room for the shadow) is part of them.
-		//The distance from the side doesn't apply to a centered OSD (as before)
+		//The distance from the side doesn't apply to a centered OSD
 		double h = center ? 0 : Math.Max(0, horizontalIndent - OsdPill.ShadowMargin);
 		double v = Math.Max(0, verticalIndent - OsdPill.ShadowMargin);
 		Pills.Margin = new Thickness(h, top ? v : 0, h, top ? 0 : v);

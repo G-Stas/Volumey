@@ -92,7 +92,7 @@ public sealed class TestAudioSession : IDisposable
 	/// <summary>
 	/// Sets the session's volume and mute, as the Windows mixer would, and waits until Windows keeps them.
 	/// When a stream starts, Windows restores the volume it remembers for the executable asynchronously,
-	/// which can overwrite a value set right after the start (that made the tests flaky).
+	/// which can overwrite a value set right after the start.
 	/// </summary>
 	public void SetVolumeAndWait(float volume, bool mute = false)
 	{

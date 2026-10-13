@@ -13,9 +13,8 @@
         <converters:DeviceViewPositionToDockConverter x:Key="DeviceViewPositionConverter"/>
     </UserControl.Resources>
 
-    <!-- mockup Main.dc.html (popup) and MixerWindow.dc.html (window mode) -->
     <DockPanel>
-        <!-- the bottom bar (mockup Main.dc.html), in both modes (owner's decision) -->
+        <!-- the bottom bar, in both modes -->
         <Border x:Name="Footer"
                 DockPanel.Dock="Bottom"
                 Height="48"

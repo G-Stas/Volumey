@@ -22,7 +22,7 @@ public partial class TrayIconConverter : IMultiValueConverter
 	private IconType currentIconType = IconType.None;
 	private TrayIconProvider currentIconProvider;
 	private Icon curDeviceIcon;
-	//one provider per theme: a provider caches its icons, a new one on every theme switch leaked them
+	//one provider per theme: a provider caches its icons, a new one on every theme switch would leak them
 	private LightIconProvider lightIconProvider;
 	private DarkIconProvider darkIconProvider;
 

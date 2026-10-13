@@ -60,7 +60,7 @@ public struct ScreenInfo
 	}
 
 	/// <summary>
-	/// The screen with the remembered device name, otherwise the primary screen (e.g. while the remembered one isn't connected yet, #92),
+	/// The screen with the remembered device name, otherwise the primary screen (e.g. while the remembered one isn't connected yet),
 	/// otherwise the first one. Returns the default value if there are no screens.
 	/// </summary>
 	internal static ScreenInfo Find(IReadOnlyCollection<ScreenInfo> screens, string name)

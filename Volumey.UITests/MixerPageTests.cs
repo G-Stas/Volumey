@@ -120,7 +120,7 @@ public class MixerPageTests : UiTest
 	[TestCategory("Audio")]
 	public void AppVolumeSyncFollowsTheDeviceVolume()
 	{
-		//sync sets every app on the device to the device's volume, the owner's apps too: all of them are put back afterwards
+		//sync sets every app on the device to the device's volume, other apps too: all of them are put back afterwards
 		Later(Audio.KeepDeviceState());
 		Later(Audio.KeepSessionVolumes());
 		using var testApp = Later(TestAudioApp.Start());
@@ -222,7 +222,7 @@ public class MixerPageTests : UiTest
 		ShownMixer().FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName("Sound settings")))!.AsButton().Invoke();
 
 		Assert.IsTrue(Eventually(() => Process.GetProcessesByName("SystemSettings").Length > 0, 10000), "Windows Settings didn't open");
-		//only closed when the test opened it: an open Settings app is the owner's
+		//only closed when the test opened it: a Settings app that was already open belongs to the user
 		if(!wasOpen)
 			foreach(var p in Process.GetProcessesByName("SystemSettings"))
 				using(p)

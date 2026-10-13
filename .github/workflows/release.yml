@@ -2,12 +2,10 @@ name: Release
 
 # Pushing a version tag (git tag v2.0.0.0 && git push origin v2.0.0.0) builds the GitHub zips (scripts/build-release.ps1) and
 # creates a DRAFT release with them: check it on the Releases page and press Publish. The tag must match <Version> in
-# Volumey/Volumey.csproj. Release notes: the downloads, then every commit since the previous version tag (owner's choice).
+# Volumey/Volumey.csproj. Release notes: the downloads, then every commit since the previous version tag.
 # The Loggly key comes from the repository secret VOLUMEY_LOGGLY_INPUT_KEY.
-# A tag ending in -test (v1.5.4.0-test) is a dry run: same build and draft, without the Loggly key, then the draft and the tag are
+# A tag ending in -test is a dry run: same build and draft, without the Loggly key, then the draft and the tag are
 # deleted again.
-# Not done here: the Store package (needs Visual Studio's packaging tools and the signing certificate, built locally), and
-# LatestUpdateInfo.xml on main (only after the release is published, or the updater would offer a zip that isn't there yet).
 on:
   push:
     tags: [ 'v*' ]

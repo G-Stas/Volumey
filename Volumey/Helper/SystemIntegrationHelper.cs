@@ -46,7 +46,7 @@ internal static class SystemIntegrationHelper
 		try
 		{
 			using(var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64))
-			//created if missing: a fresh user profile has no Run key yet, and opening it then did nothing while reporting success
+			//created if missing: a fresh user profile has no Run key yet, and opening it then would do nothing while reporting success
 			using(var key = baseKey.CreateSubKey(StartupRegistryPath, true))
 			{
 				if(CheckIfStartupRegistryKeyExists())
@@ -189,7 +189,7 @@ internal static class SystemIntegrationHelper
 	{
 		var link = (IShellLinkW)new ShellLink();
 		((IPersistFile)link).Load(linkPath, 0 /*STGM_READ*/);
-		//long enough for any path; flags 0: the full path (SLGP_SHORTPATH, used before, can give an 8.3 path that differs from the exe path)
+		//long enough for any path; flags 0: the full path (SLGP_SHORTPATH can give an 8.3 path that differs from the exe path)
 		var buffer = new char[32768];
 		var data = new WIN32_FIND_DATAW();
 		link.GetPath(buffer, ref data, 0).ThrowOnFailure();

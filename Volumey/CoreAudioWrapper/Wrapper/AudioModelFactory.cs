@@ -86,7 +86,7 @@ internal static class AudioModelFactory
 	/// <summary>
 	/// Builds the app models of a device's existing sessions: sessions of one app (same grouping parameter or file) go into one model,
 	/// System Sounds first. A session that doesn't end up in a model is released: a session model registers for Windows' events
-	/// when it's created, and an unreleased one kept that registration (and itself) until Volumey exited.
+	/// when it's created, and an unreleased one would keep that registration (and itself) until Volumey exits.
 	/// Generic over the session control so it can be tested without Windows' audio objects.
 	/// </summary>
 	/// <param name="createSession">takes ownership of the control; null if the session can't be read</param>
@@ -227,7 +227,7 @@ internal static class AudioModelFactory
 
 		try
 		{
-			//disposed: every new session opened a process handle that was never closed
+			//disposed: every new session opens a process handle
 			using Process proc = Process.GetProcessById((int)processId);
 			name = proc.ProcessName;
 			filePath = proc.MainModule?.FileName ?? filePath;
@@ -264,8 +264,7 @@ internal static class AudioModelFactory
 
 	/// <summary>
 	/// Path errors that are expected and only logged as debug (not sent to Loggly): access denied (elevated processes),
-	/// a general failure and an invalid parameter (the process is exiting or has exited). 1.5.4 logged them as errors,
-	/// most of its Loggly volume.
+	/// a general failure and an invalid parameter (the process is exiting or has exited).
 	/// </summary>
 	private static bool IsExpectedPathError(int error)
 		=> error is (int)WIN32_ERROR.ERROR_ACCESS_DENIED or (int)WIN32_ERROR.ERROR_GEN_FAILURE or (int)WIN32_ERROR.ERROR_INVALID_PARAMETER;
@@ -328,7 +327,7 @@ internal static class AudioModelFactory
 		}
 		catch(Exception e)
 		{
-			//the app's own icon path is missing or broken (1.5.4 logged about 50 of these in 10 hours as errors); the generic icon is used
+			//the app's own icon path is missing or broken; the generic icon is used
 			Logger.Debug($"Failed to extract the session icon, process: [{name}] icon path: [{iconPath}]", e);
 			return null;
 		}

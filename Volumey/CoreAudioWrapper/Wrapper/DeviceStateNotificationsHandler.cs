@@ -78,7 +78,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 			try
 			{
 				//every output device model ignores other devices' IDs, so input devices need no check
-				//(opening the device for one used to release it on the UI thread)
+				//(opening the device for one would release it on the UI thread)
 				if(e.NewState != DeviceState.Active)
 					DeviceDisabled?.Invoke(e.DeviceId);
 				else

@@ -136,7 +136,7 @@ public partial class NotificationViewModel : ObservableObject
 	private bool _loaded;
 
 	/// <summary>
-	/// A changed distance (slider or box) shows the sample OSD where it now lands; each change restarts its display time (owner, 2026-10-12)
+	/// A changed distance (slider or box) shows the sample OSD where it now lands; each change restarts its display time
 	/// </summary>
 	private void ShowIndentPreview()
 	{
@@ -184,8 +184,8 @@ public partial class NotificationViewModel : ObservableObject
 	private void OnScreenShown(ScreenInfo screen)
 	{
 		OnPropertyChanged(nameof(SelectedScreen));
-		//the screen's work area in physical pixels; the OSD window places itself with them (#76: dividing them by the scale
-		//as WPF units still put the OSD off when it moved between screens with different scales)
+		//the screen's work area in physical pixels; the OSD window places itself with them (in WPF units
+		//the OSD would be off when it moves between screens with different scales)
 		_notifications.SetWindowWorkArea((int)screen.WorkingAreaLeft, (int)screen.WorkingAreaTop, (int)screen.Width, (int)screen.Height);
 	}
 
@@ -221,7 +221,7 @@ public partial class NotificationViewModel : ObservableObject
 		_loaded = true;
 	}
 
-	//e.g. a game switching the resolution, or a monitor that turns on late (#92)
+	//e.g. a game switching the resolution, or a monitor that turns on late
 	private void OnDisplaySettingsChanged(object sender, EventArgs e) => screens.Refresh();
 
 	[RelayCommand]

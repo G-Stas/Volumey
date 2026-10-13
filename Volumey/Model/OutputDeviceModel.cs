@@ -44,7 +44,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	internal event Action<AudioProcessModel> ProcessCreated;
 
 	/// <summary>
-	/// Windows reconfigured the device's audio engine: its format changed, or spatial sound was turned on or off (#82, #85).
+	/// Windows reconfigured the device's audio engine: its format changed, or spatial sound was turned on or off.
 	/// It disconnects all sessions then, and the device's objects stop working (AUDCLNT_E_DEVICE_INVALIDATED),
 	/// so the model has to be replaced by a new one. Raised once, on any thread.
 	/// </summary>
@@ -163,7 +163,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 
 	/// <remarks>
 	/// Empty once the model is disposed: listeners still get the old default device after it was disabled and disposed
-	/// (e.g. a headset that drops out on sleep and wake, #57), and must not see its disposed processes.
+	/// (e.g. a headset that drops out on sleep and wake), and must not see its disposed processes.
 	/// </remarks>
 	internal async Task<IImmutableList<AudioProcessModel>> GetImmutableProcessesAsync()
 	{
@@ -184,8 +184,8 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	}
 
 	/// <summary>
-	/// For the UI thread, the only one that changes <see cref="Processes"/>, so no lock is needed. It used to take the lock,
-	/// which deadlocked with <see cref="OnSessionCreated"/>: that holds the lock while it waits for the UI thread.
+	/// For the UI thread, the only one that changes <see cref="Processes"/>, so no lock is needed. Taking the lock
+	/// would deadlock with <see cref="OnSessionCreated"/>: that holds the lock while it waits for the UI thread.
 	/// </summary>
 	internal IImmutableList<AudioProcessModel> GetImmutableProcesses()
 	{

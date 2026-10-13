@@ -16,8 +16,8 @@ namespace Volumey.DataProvider;
 public sealed record SupportLink(string Name, string Url);
 
 /// <summary>
-/// The support links, read from links.json on GitHub (owner's decision: they can change without a release), so a new build isn't needed
-/// to change them. The last copy is kept next to settings.json; without one there are no links (owner: none are built in).
+/// The support links, read from links.json on GitHub, so a new build isn't needed
+/// to change them. The last copy is kept next to settings.json; without one there are no links (none are built in).
 /// File format: <c>{ "support": [ { "name": "Boosty", "url": "https://boosty.to/stasg" } ] }</c>. UI thread only.
 /// </summary>
 public sealed class SupportLinks

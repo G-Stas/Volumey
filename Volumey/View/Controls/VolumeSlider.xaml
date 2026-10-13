@@ -16,9 +16,9 @@
         </Setter>
     </Style>
 
-    <!-- the thumb as in Windows 11's volume flyout (measured on the owner's screenshot): a 10 px inner circle in the fill's accent
+    <!-- the thumb as in Windows 11's volume flyout: a 10 px inner circle in the fill's accent
          color that keeps its color, grows to 14 px while the pointer is over it and shrinks while dragging;
-         WPF-UI's thumb is 12 px in a darker accent and changes color on hover instead (owner's request) -->
+         WPF-UI's thumb is 12 px in a darker accent and changes color on hover instead -->
     <Style x:Key="VolumeSliderThumb" TargetType="Thumb" BasedOn="{StaticResource UiSliderThumbStyle}">
         <Setter Property="Template">
             <Setter.Value>

@@ -111,7 +111,7 @@ public class DeviceProviderTests
 	[TestMethod]
 	public void ReconfiguredDefaultDeviceIsRebuilt()
 	{
-		//#82, #85: spatial sound on/off
+		//spatial sound on/off
 		var (provider, enumerator, sessions, handler) = CreateWithInvalidatableDefault();
 		var old = provider.DefaultDevice;
 		var fresh = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);

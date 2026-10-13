@@ -31,7 +31,7 @@ public class UpdateDialogTests : UiTest
 		           ?? throw new AssertFailedException("No update dialog in the mixer");
 		var later = Find("CloseButton") ?? throw new AssertFailedException("No Later button");
 		Assert.IsNotNull(Find("PrimaryButton"), "No OK button");
-		//its text had a fixed width that ran past the dialog in the popup (the text was cut off)
+		//the text wraps inside the narrower popup instead of running past the dialog
 		Assert.IsTrue(text.BoundingRectangle.Right <= later.BoundingRectangle.Right,
 			$"the text ({text.BoundingRectangle}) runs past the dialog's buttons ({later.BoundingRectangle})");
 

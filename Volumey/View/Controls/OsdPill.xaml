@@ -6,10 +6,10 @@
              xmlns:lc="clr-namespace:Volumey.Localization"
              Foreground="{DynamicResource TextFillColorPrimaryBrush}"
              AutomationProperties.Name="{Binding Name}">
-    <!-- the OSD (mockup Osd.dc.html): one pill like the Windows 11 volume flyout for an app or a device; the icon tells which.
-         It stays usable as before (owner): the bar is a slider, the number (or the mute icon while muted) a mute button.
+    <!-- the OSD: one pill like the Windows 11 volume flyout for an app or a device; the icon tells which.
+         It's usable: the bar is a slider, the number (or the mute icon while muted) a mute button.
          The margin leaves room for the shadow inside the OSD window. The shadow is its own element behind the pill: an effect on the
-         pill itself renders the text as a bitmap, which was blurry on a 125% screen (owner found it). -->
+         pill itself renders the text as a bitmap, which is blurry on a scaled screen (e.g. 125%). -->
     <Grid Margin="12" Height="48" MinWidth="220" UseLayoutRounding="True">
         <Border CornerRadius="8" Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}">
             <Border.Effect>

@@ -103,7 +103,7 @@ public class HotKeyBox : TextBox
 		PreviewKeyUp -= OnPreviewKeyUp;
 		PreviewKeyUp += OnPreviewKeyUp;
 		//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
-		//which left every hotkey ignored (and swallowed) until focus moved inside the window again
+		//which would leave every hotkey ignored (and swallowed) until focus moved inside the window again
 		GotKeyboardFocus += TextBoxOnGotFocus;
 		LostKeyboardFocus += TextBoxOnLostFocus;
 		IsVisibleChanged += (s, e) => { if(!IsVisible) StopEditing(); };

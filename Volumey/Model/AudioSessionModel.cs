@@ -109,8 +109,7 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	/// <summary>
 	/// A change made outside the app (the Windows mixer, the app itself). It's taken over without writing it back to Windows,
-	/// and the process hears about it once, with the new values. It used to hear the old values first (so the OSD showed them),
-	/// and the property setters then wrote the change back to Windows.
+	/// and the process hears about it once, with the new values.
 	/// </summary>
 	private void OnVolumeChanged(VolumeChangedEventArgs e)
 	{
@@ -135,7 +134,7 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	/// <summary>
 	/// True if Windows disconnected the session because the device's format changed (also when spatial sound is turned on or off):
-	/// the device's objects don't work anymore then
+	/// the device's objects stop working then
 	/// </summary>
 	internal bool EndedByFormatChange { get; private set; }
 

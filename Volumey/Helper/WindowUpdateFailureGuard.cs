@@ -11,7 +11,7 @@ using Windows.Win32.UI.WindowsAndMessaging;
 namespace Volumey.Helper;
 
 /// <summary>
-/// Follows up on a WPF window update failure that <see cref="App"/> ignores ("not enough quota", GitHub issues #58, #66;
+/// Follows up on a WPF window update failure that <see cref="App"/> ignores ("not enough quota",
 /// "desktop composition disabled"), one instance per kind of failure:
 /// reports it at most once per <see cref="LogInterval"/>, so a lasting failure can't flood the log (or Loggly),
 /// and refreshes the app's windows once the failures stop, so a skipped update doesn't leave a window stale until it's moved.

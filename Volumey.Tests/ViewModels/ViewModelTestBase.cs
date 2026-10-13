@@ -119,7 +119,7 @@ public abstract class ViewModelTestBase
 	}
 
 	/// <summary>
-	/// Some view models save settings on the thread pool.
+	/// Waits until <paramref name="condition"/> holds: some view models finish their work on the thread pool. Fails after 2 seconds.
 	/// </summary>
 	protected static void WaitFor(Func<bool> condition, string message)
 	{

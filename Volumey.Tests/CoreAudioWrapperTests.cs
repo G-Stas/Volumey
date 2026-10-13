@@ -25,7 +25,7 @@ public class CoreAudioWrapperTests
 	[TestMethod]
 	public void RepeatedVolumeEchoAfterAMuteWriteIsStillAnEcho()
 	{
-		//the case that un-muted the app: a repeat of the volume echo arrived after the mute was written
+		//a repeat of the volume echo arrives after the mute was written; taken as an outside change, it would un-mute the app
 		var filter = CreateFilter(volume: 100);
 		filter.OnVolumeWritten(37);
 		Assert.IsTrue(filter.IsEcho(37, false));

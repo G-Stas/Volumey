@@ -18,18 +18,17 @@
             <converters:HotkeysRegisteredToEnabledConverter x:Key="NotRegisteredToEnabled" />
             <converters:PropertyIsNullToEnabledConverter x:Key="NotNullToEnabled" />
             <converters:ScreenNameConverter x:Key="ScreenNameConverter" />
-            <!-- the screen picker only shows with more than one screen (as before) -->
+            <!-- the screen picker only shows with more than one screen -->
             <converters:CollectionCountToVisibilityConverter x:Key="SeveralToVisibility" CountLimit="1" />
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsMixer.dc.html, plus "Always on top" (owner's decision); the level meters row comes with item K -->
-    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolled
-         but took the mouse wheel, so only the scroll bar scrolled) -->
+    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolls
+         but takes the mouse wheel, so only the scroll bar scrolls) -->
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_Mixer}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization MixerPage_Description}" Style="{StaticResource PageDescription}" />
-            <!-- what the hotkey mode means for this page's hotkeys, at the top (owner) -->
+            <!-- what the hotkey mode means for this page's hotkeys, at the top -->
             <viewControls:HotkeyModeNote />
 
             <TextBlock Text="{lc:Localization MixerPage_Opening}" Style="{StaticResource SectionHeader}" />
@@ -41,7 +40,7 @@
                         <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource SettingError}" />
                     </StackPanel>
                 </ui:CardControl.Header>
-                <!-- as before: the hotkey can be edited while it's off, and turned on once there is one -->
+                <!-- the hotkey can be edited while it's off, and turned on once there is one -->
                 <StackPanel Orientation="Horizontal">
                     <controls:HotKeyBox HotKey="{Binding Hotkey}"
                                         IsEnabled="{Binding IsOn, Converter={StaticResource NotRegisteredToEnabled}}"
@@ -98,7 +97,7 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </ui:CardControl>
-            <!-- next to the screen choice (owner); shown with one screen too -->
+            <!-- next to the screen choice; shown with one screen too -->
             <ui:CardControl Icon="{ui:SymbolIcon Location24}">
                 <ui:CardControl.Header>
                     <StackPanel>

@@ -425,7 +425,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	[TestMethod]
 	public void SavedHotkeysOfDisconnectedDevicesAreListed()
 	{
-		//#18: after a restart the page looked as if no hotkeys were registered; an unplugged device's hotkey is shown too
+		//after a restart the page shows the saved hotkeys; an unplugged device's hotkey is shown too
 		Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "3", DeviceName = "Monitor" } };
 		SetDefaultDevice(CreateDevice("1", "Speakers"));
 

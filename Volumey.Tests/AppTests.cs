@@ -23,7 +23,7 @@ public class AppTests
 	{
 		Assert.IsTrue(App.IsWindowUpdateQuotaFailure(new WindowUpdateException(1816, WpfStack)));
 
-		//other errors, or the same error elsewhere, still crash the app as before
+		//other errors, or the same error elsewhere, still crash the app
 		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new WindowUpdateException(5, WpfStack)));
 		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new WindowUpdateException(1816, "   at Volumey.Helper.NativeMethods.Something()")));
 		Assert.IsFalse(App.IsWindowUpdateQuotaFailure(new System.InvalidOperationException()));
@@ -38,7 +38,7 @@ public class AppTests
 		public override string StackTrace => stackTrace;
 	}
 
-	//the stack of the 1.5.4 crash in Loggly
+	//a real stack of this crash
 	private const string WindowChromeStack = "   at Standard.NativeMethods.DwmExtendFrameIntoClientArea(IntPtr hwnd, MARGINS& pMarInset)\n" +
 											 "   at System.Windows.Shell.WindowChromeWorker._ExtendGlassFrame()\n" +
 											 "   at System.Windows.Shell.WindowChromeWorker._HandleDwmCompositionChanged(WM uMsg, IntPtr wParam, IntPtr lParam, Boolean& handled)";
@@ -48,10 +48,10 @@ public class AppTests
 	{
 		const int compositionDisabled = unchecked((int)0x80263001);
 		Assert.IsTrue(App.IsCompositionChangeFailure(new CompositionException(compositionDisabled, WindowChromeStack)));
-		//the same call failed with another code in the 1.5.4 logs
+		//the same call can fail with another code
 		Assert.IsTrue(App.IsCompositionChangeFailure(new CompositionException(unchecked((int)0xD0000701), WindowChromeStack)));
 
-		//the same error elsewhere, or another exception there, still crashes the app as before
+		//the same error elsewhere, or another exception there, still crashes the app
 		Assert.IsFalse(App.IsCompositionChangeFailure(new CompositionException(compositionDisabled, "   at Volumey.Helper.NativeMethods.Something()")));
 		Assert.IsFalse(App.IsCompositionChangeFailure(new TabletException(WindowChromeStack)));
 		Assert.IsFalse(App.IsCompositionChangeFailure(new WindowUpdateException(1816, WpfStack)));
@@ -72,7 +72,7 @@ public class AppTests
 		public override string StackTrace => stackTrace;
 	}
 
-	//the stacks of the 1.5.4 crashes in Loggly
+	//real stacks of these crashes
 	private const string PopupStack = "   at System.Windows.Controls.Primitives.Popup.OnWindowResize(Object sender, AutoResizedEventArgs e)\n" +
 									  "   at System.Windows.Interop.HwndSource.Resize(Size newSize)\n" +
 									  "   at System.Windows.Interop.HwndSource.OnLayoutUpdated(Object obj, EventArgs args)";

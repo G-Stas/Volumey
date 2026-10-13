@@ -53,8 +53,6 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 				volumeStep = value;
 				OnPropertyChanged();
 
-				//set new value in AppSettings but save it in App.Exit event handler
-				//or when other parameters will be saved
 				SettingsProvider.Settings.General.VolumeStep = value;
 				hotkeys.SetVolumeStep(value);
 			}
@@ -288,7 +286,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 
 		if(error != ErrorMessageType.None)
 		{
-			//the box shows the old hotkey again, so the error names the rejected one (owner's decision)
+			//the box shows the old hotkey again, so the error names the rejected one
 			app.Errors.SetRejected(upChanged, changed, error);
 			app.SetHotkeys(app.VolumeUp, app.VolumeDown);
 			return;

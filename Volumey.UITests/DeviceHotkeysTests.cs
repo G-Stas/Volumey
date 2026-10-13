@@ -4,7 +4,7 @@ using Volumey.UITests.Infrastructure;
 namespace Volumey.UITests;
 
 /// <summary>
-/// The Devices page's hotkeys. They change the real default device's volume and mute (put back afterwards, owner's permission);
+/// The Devices page's hotkeys. They change the real default device's volume and mute (put back afterwards);
 /// the "make default" hotkey is only registered, never pressed: the tests must not switch the default device.
 /// </summary>
 [TestClass]
@@ -66,7 +66,6 @@ public class DeviceHotkeysTests : UiTest
 		bool muted = Audio.DeviceMuted;
 		mute.Press();
 		Assert.AreEqual(!muted, Audio.WaitFor(() => Audio.DeviceMuted, !muted), "the first press didn't flip mute");
-		//it used to mute but never unmute (fixed in 2.0)
 		mute.Press();
 		Assert.AreEqual(muted, Audio.WaitFor(() => Audio.DeviceMuted, muted), "the second press didn't flip mute back");
 	}

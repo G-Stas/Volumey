@@ -287,7 +287,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 			{
 				if(popupEnabled && !displayedMinimalistic)
 					DisplayMinimalistic = true;
-				//bring the window to the foreground and change page
+				//bring the window to the foreground
 				DisplayAppRequested?.Invoke(WindowIsVisible, displayedAsPopup);
 				WindowIsVisible = true;
 				screens.Refresh();
@@ -323,7 +323,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Starting the app again opens the running instance like a tray click: as a popup in popup mode (#74), otherwise as a normal window
+	/// Starting the app again opens the running instance like a tray click: as a popup in popup mode, otherwise as a normal window
 	/// </summary>
 	internal void OnShowRequestedBySecondInstance()
 	{

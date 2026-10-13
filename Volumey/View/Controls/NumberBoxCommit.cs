@@ -11,9 +11,9 @@ namespace Volumey.Controls;
 /// (WPF-UI clamps it to the range and updates the binding on Enter and on LostFocus):
 /// <list type="bullet">
 /// <item>switching to another window only takes the keyboard focus (the box keeps the window's logical focus), so a typed
-/// value stayed unclamped and unsaved: the logical focus is taken away then, so WPF raises LostFocus;</item>
+/// value would stay unclamped and unsaved: the logical focus is taken away then, so WPF raises LostFocus;</item>
 /// <item>when the clamped value equals the current one (e.g. 150 typed while the value is 100), WPF-UI doesn't update the
-/// text, so "150" stayed in the box: the text is set to the value after each commit.</item>
+/// text, so "150" would stay in the box: the text is set to the value after each commit.</item>
 /// </list>
 /// </summary>
 public static class NumberBoxCommit

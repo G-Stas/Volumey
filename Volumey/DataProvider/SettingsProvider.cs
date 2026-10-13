@@ -94,7 +94,7 @@ public static class SettingsProvider
 
 	private static void Migrate(VolumeySettings volumeySettings)
 	{
-		//add migration steps here when the layout changes after 2.0 has shipped, e.g.:
+		//add migration steps here when the layout changes, e.g.:
 		//if(volumeySettings.Version < 2) { ...move values...; volumeySettings.Version = 2; }
 		volumeySettings.Version = VolumeySettings.CurrentVersion;
 	}

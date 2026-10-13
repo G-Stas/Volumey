@@ -126,7 +126,7 @@ public class DeviceHotkeysViewModelTests : ViewModelTestBase
 	[TestMethod]
 	public void TheMuteHotkeyMutesAndUnmutes()
 	{
-		//it used to mute only: the model waited for Windows' notification, which was skipped as Volumey's own change (owner found it)
+		//the model takes the new state over once the write succeeds, it doesn't wait for Windows' notification
 		ActivateHotkeys();
 		var device = CreateDevice("1", "Speakers", out var masterVolume);
 		SetDefaultDevice(device);

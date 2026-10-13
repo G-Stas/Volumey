@@ -8,7 +8,7 @@ namespace Volumey.Controls;
 /// <summary>
 /// <c>controls:DigitsOnly.IsEnabled="True"</c> on a text box (e.g. a WPF-UI NumberBox for a positive whole number):
 /// only digits can be typed or pasted. WPF-UI's NumberBox accepts any text and only clamps it to its range on Enter
-/// or when it loses focus, so "-1" stayed in the box until then
+/// or when it loses focus, so "-1" would stay in the box until then
 /// </summary>
 public static class DigitsOnly
 {

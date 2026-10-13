@@ -83,7 +83,7 @@ public class MixerPositionTests : UiTest
 	}
 
 	/// <summary>
-	/// Inside the apps list, whose ScrollViewer takes mouse presses itself (dragging didn't work there at first); dragging works while
+	/// Inside the apps list, whose ScrollViewer takes mouse presses itself; dragging works while
 	/// the position isn't remembered too, the popup just opens by the tray again
 	/// </summary>
 	[TestMethod]
@@ -95,8 +95,9 @@ public class MixerPositionTests : UiTest
 	}
 
 	/// <summary>
-	/// The mixer's position is kept in physical pixels: kept as WPF's Left/Top, a popup dropped on a screen at another scale than the one the
-	/// hidden window starts on opened hundreds of pixels off after a restart. Needs a screen at another scale than the primary one
+	/// The mixer's position is kept in physical pixels: WPF's Left/Top depend on the scale of the screen the window is on, so a popup dropped
+	/// on a screen at another scale than the one the hidden window starts on would open off after a restart. Needs a screen at another scale
+	/// than the primary one
 	/// </summary>
 	[TestMethod]
 	public void APopupDroppedOnAScreenAtAnotherScaleOpensThereAfterARestart() => DropOnAScreenAtAnotherScaleAndRestart(popup: true);

@@ -7,7 +7,7 @@ using Volumey.Model;
 namespace Volumey.View.Converters;
 
 /// <summary>
-/// A screen as the screen picker shows it (mockup SettingsMixer): "DISPLAY1 · 2560 × 1440 (main)".
+/// A screen as the screen picker shows it:"DISPLAY1 · 2560 × 1440 (main)".
 /// The second value is the current language, only bound so "(main)" follows it
 /// </summary>
 public class ScreenNameConverter : IMultiValueConverter

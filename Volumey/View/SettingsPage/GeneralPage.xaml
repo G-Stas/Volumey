@@ -8,7 +8,7 @@
       Title="{lc:Localization Nav_General}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       DataContext="{StaticResource SettingsViewModel}">
-    <!-- the Foreground: a page in a Frame doesn't inherit the window's text color, so plain text was black in the dark theme
+    <!-- the Foreground: a page in a Frame doesn't inherit the window's text color, so plain text would be black in the dark theme
          (until a theme switch at runtime); set it on every settings page (an implicit Page style doesn't reach subclasses) -->
     <Page.Resources>
         <ResourceDictionary>
@@ -20,9 +20,8 @@
         </ResourceDictionary>
     </Page.Resources>
 
-    <!-- mockup SettingsGeneral.dc.html -->
-    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolled
-         but took the mouse wheel, so only the scroll bar scrolled) -->
+    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolls
+         but takes the mouse wheel, so only the scroll bar scrolls) -->
         <StackPanel Margin="16 4 40 32">
             <TextBlock Text="{lc:Localization Nav_General}" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{lc:Localization General_Description}" Style="{StaticResource PageDescription}" />
@@ -100,8 +99,8 @@
                     </StackPanel>
                 </ui:CardExpander.Header>
                 <!-- no GroupName: WPF then groups the buttons by their panel. With a GroupName, the old and the new page instance
-                     (both in the window while WPF-UI changes pages) shared the group: selecting a button in the new page
-                     unchecked its twin in the old one, whose binding wrote the setting back (nothing or both selected) -->
+                     (both in the window while WPF-UI changes pages) share the group: selecting a button in the new page
+                     unchecks its twin in the old one, whose binding writes the setting back (nothing or both selected) -->
                 <StackPanel Margin="34 0 0 0">
                     <RadioButton Margin="0 0 0 12"
                                  AutomationProperties.AutomationId="BlockHotkeysRadio"

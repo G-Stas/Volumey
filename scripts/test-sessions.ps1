@@ -6,7 +6,7 @@
   Each process is a copy of scripts/test-audio-app under its own exe name (TestApp1.exe, TestApp2.exe, ...),
   because the mixer groups apps by exe path: copies with one name would show as a single row.
   They only change their own session volume, never the device's or other apps'.
-  Uses: many rows in the mixer (issue #66), apps starting and exiting (memory, issue #87),
+  Uses: many rows in the mixer, apps starting and exiting (memory),
   and an OSD for an outside volume change (-Volume).
 
 .EXAMPLE

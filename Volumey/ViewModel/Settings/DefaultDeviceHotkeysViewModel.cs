@@ -123,7 +123,7 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	/// </summary>
 	private void Disconnect(OutputDeviceModel device)
 	{
-		//a replaced device (#82) is connected again first, so its entry already has the new model
+		//a replaced device (reconfigured by Windows) is connected again first, so its entry already has the new model
 		var entry = Devices.FirstOrDefault(d => d.Model == device);
 		if(entry == null)
 			return;
@@ -225,8 +225,8 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		Save();
 		if(entry.HotkeyRegistered || entry.IsConnected)
 			return;
-		//later, not inside the switch's click: selecting another device here moved the switch to that device while its click
-		//was still being handled, and turned that device's hotkey off too (owner found it)
+		//later, not inside the switch's click: selecting another device here would move the switch to that device while its click
+		//is still being handled, and turn that device's hotkey off too
 		if(SynchronizationContext.Current is { } uiThread)
 			uiThread.Post(_ => RemoveDisconnected(entry), null);
 		else

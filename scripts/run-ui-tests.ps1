@@ -5,7 +5,7 @@
 .DESCRIPTION
   The UI tests start the app with an isolated data folder, drive it through UI Automation and press real keys
   (Ctrl+Alt+Shift with F13-F24, keys no keyboard has). They change real app and device volume and mute and put them back;
-  they never change the default device. Don't use the keyboard or mouse while they run (about 2 minutes).
+  they never change the default device. Don't use the keyboard or mouse while they run.
   A running dev build has to be closed first (same exe and single-instance lock); the script stops if one runs.
   A failed test keeps its data folder (settings.json, volumey.log) in %TEMP%\Volumey-uitests and prints its path.
 
