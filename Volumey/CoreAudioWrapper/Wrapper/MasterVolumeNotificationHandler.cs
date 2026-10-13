@@ -21,7 +21,7 @@ class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
 	private void OnNotify(AudioVolumeNotificationData data)
 	{
 		//don't fire event if callback was called because of changes of volume inside the app
-		if(data.EventContext.Equals(GuidValue.Internal.VolumeGUID))
+		if(IsOwnVolumeChange(data.EventContext))
 			return;
 
 		int newVolumeValue = VolumePercent.FromScalar(data.MasterVolume);
@@ -34,6 +34,11 @@ class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
 			return;
 		VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, data.Muted));
 	}
+
+	/// <summary>
+	/// A change the mixer made itself, which it already shows. Balance changes aren't: they can move the device volume (see <see cref="GuidValue.Internal.BalanceGUID"/>)
+	/// </summary>
+	internal static bool IsOwnVolumeChange(Guid context) => context.Equals(GuidValue.Internal.VolumeGUID);
 
 	public void RegisterMVolumeNotifications() => endpointVolume.OnVolumeNotification += OnNotify;
 

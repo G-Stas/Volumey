@@ -142,8 +142,8 @@ public sealed class AudioDevice : IDevice
 	public void SetChannelVolume(int channel, float level)
 	{
 		var target = Device.AudioEndpointVolume.Channels[channel];
-		//Volumey's own change: the device volume listener skips it (see MasterVolumeNotificationHandler)
-		target.NotificationGuid = GuidValue.Internal.VolumeGUID;
+		//its own context, not VolumeGUID: the device volume listener must see it when it changes the device volume (see GuidValue)
+		target.NotificationGuid = GuidValue.Internal.BalanceGUID;
 		target.VolumeLevelScalar = Math.Clamp(level, 0f, 1f);
 	}
 

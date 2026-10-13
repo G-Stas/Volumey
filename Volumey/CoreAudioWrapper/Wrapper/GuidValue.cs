@@ -24,6 +24,12 @@ public static class GuidValue
 		/// Used to distinguish volume change sources between internal changes and external in volume change callbacks
 		/// </summary>
 		public static readonly Guid VolumeGUID = new Guid("1DD0B43C-EE90-47BE-8E12-DE3BB4CF92F0");
+
+		/// <summary>
+		/// Volumey's own balance (channel volume) changes. Not skipped by the device volume listener: raising a channel above the
+		/// device volume raises the device volume too, and the mixer has to follow it
+		/// </summary>
+		public static readonly Guid BalanceGUID = new Guid("5B0E6C1E-7A5D-4C0B-9E0F-2D4B8A9C3F61");
 		public static readonly Guid Empty = Guid.Empty;
 	}
 }
