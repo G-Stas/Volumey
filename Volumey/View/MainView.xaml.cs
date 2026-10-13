@@ -103,6 +103,7 @@ public partial class MainView
 
 		SizeChanged += (s, a) => SaveWindowPlacement();
 		LocationChanged += (s, a) => SaveWindowPlacement();
+		DpiChanged += OnDpiChanged;
 
 		SetUpTrayIcon();
 		SetBindings();
@@ -224,13 +225,19 @@ public partial class MainView
 	{
 		if(vm.DisplayMinimalistic)
 		{
-			SizePopup();
-			//update layout before setting windows position to use actual height of the window when calculating its position
-			UpdateLayout();
-			if(vm.RememberPosition && vm.PopupLeft is { } left && vm.PopupTop is { } top && IsOnScreen(left, top))
-				MoveToRemembered(left, top);
+			if(TryGetRememberedPopupPosition(out var position, out double workAreaHeight))
+			{
+				SizePopup(workAreaHeight);
+				UpdateLayout();
+				MoveToPopupPosition(position);
+			}
 			else
+			{
+				SizePopup();
+				//update layout before setting windows position to use actual height of the window when calculating its position
+				UpdateLayout();
 				SetWindowPosition();
+			}
 		}
 		else
 			RestoreWindowPlacement();
@@ -254,6 +261,54 @@ public partial class MainView
 	}
 
 	/// <summary>
+	/// The popup's remembered position, while it's remembered and on a connected screen, and the height of that screen's work area in DIPs.
+	/// The position is in physical pixels: WPF converts Left/Top with the scale of the screen the window is on when they're set,
+	/// and the hidden popup is usually on another screen than the one it's opened on (on mixed scales it opened hundreds of pixels off)
+	/// </summary>
+	private bool TryGetRememberedPopupPosition(out System.Drawing.Point position, out double workAreaHeight)
+	{
+		position = default;
+		workAreaHeight = 0;
+		if(!vm.RememberPosition || vm.PopupLeft is not { } left || vm.PopupTop is not { } top)
+			return false;
+		position = new System.Drawing.Point((int)Math.Round(left), (int)Math.Round(top));
+		var monitor = PInvoke.MonitorFromPoint(position, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONULL);
+		var info = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+		if(monitor.IsNull || !PInvoke.GetMonitorInfo(monitor, ref info)
+		   || PInvoke.GetDpiForMonitor(monitor, Windows.Win32.UI.HiDpi.MONITOR_DPI_TYPE.MDT_EFFECTIVE_DPI, out uint dpi, out _).Failed)
+			return false;
+		workAreaHeight = (info.rcWork.bottom - info.rcWork.top) * 96.0 / dpi;
+		return true;
+	}
+
+	/// <summary>Where the popup is placed now (physical pixels), until the move is done</summary>
+	private System.Drawing.Point? popupTarget;
+
+	private void MoveToPopupPosition(System.Drawing.Point position)
+	{
+		//moving onto a screen with another scale makes WPF resize the window to the new scale (DpiChanged), which can shift it: placed again then
+		popupTarget = position;
+		MoveTo(position.X, position.Y);
+		Dispatcher.InvokeAsync(() => popupTarget = null, System.Windows.Threading.DispatcherPriority.ContextIdle);
+	}
+
+	private void OnDpiChanged(object sender, DpiChangedEventArgs e)
+	{
+		if(popupTarget is { } target)
+			Dispatcher.InvokeAsync(() => MoveTo(target.X, target.Y));
+	}
+
+	/// <summary>The popup's position in physical pixels (see <see cref="TryGetRememberedPopupPosition"/>)</summary>
+	private void RememberPopupPosition()
+	{
+		if(PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
+		{
+			vm.PopupLeft = rect.left;
+			vm.PopupTop = rect.top;
+		}
+	}
+
+	/// <summary>
 	/// The mixer is dragged by any spot that isn't a control, in both modes, whether its position is remembered or not (owner).
 	/// The new position is always noted (window mode: LocationChanged; popup: below) but used for the next opening only while it's remembered.
 	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reached the window there.
@@ -266,10 +321,7 @@ public partial class MainView
 		e.Handled = true;
 		DragMove();
 		if(vm.DisplayMinimalistic)
-		{
-			vm.PopupLeft = Left;
-			vm.PopupTop = Top;
-		}
+			RememberPopupPosition();
 	}
 
 	/// <summary>Whether the pressed element is (inside) something that takes clicks itself</summary>
@@ -288,10 +340,12 @@ public partial class MainView
 	/// The popup's height: its fixed parts plus the apps list (at least <see cref="MinRows"/> rows),
 	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. Computed when it opens only
 	/// </summary>
-	private void SizePopup()
+	private void SizePopup() => SizePopup((SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor);
+
+	/// <param name="workAreaHeight">The height of the work area of the screen it opens on, in DIPs</param>
+	private void SizePopup(double workAreaHeight)
 	{
 		var (chrome, apps) = Mixer.MeasureHeights(PopupWidth);
-		double workAreaHeight = (SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor;
 		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea);
 		applyingPlacement = true;
 		Height = Math.Clamp(chrome + Math.Max(apps, MinRows * RowHeight), MinHeight, max);
