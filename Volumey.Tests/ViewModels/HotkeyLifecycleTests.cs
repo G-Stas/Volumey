@@ -73,4 +73,72 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 		//and the pair stays saved for the next start
 		Assert.AreEqual(Up, Settings.Hotkeys.ForegroundVolumeUp);
 	}
+
+	[TestMethod]
+	public void SavedDeviceHotkeysThatFailAtStartupShowAnError()
+	{
+		var mute = new HotKey(Key.M, ModifierKeys.Alt);
+		Settings.Hotkeys.DeviceVolumeUp = Up;
+		Settings.Hotkeys.DeviceVolumeDown = Down;
+		Settings.Hotkeys.DeviceMute = mute;
+		//another app took the combinations since the last start
+		HotkeyManager.Setup(m => m.RegisterHotkey(Down)).Throws(new Win32Exception(1409));
+		HotkeyManager.Setup(m => m.RegisterHotkey(mute)).Throws(new Win32Exception(1409));
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+
+		ActivateHotkeys();
+
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.VolumeErrors.VolumeDown);
+		Assert.AreEqual(string.Empty, vm.VolumeErrors.VolumeUp);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.OpenReg], vm.MuteError);
+		//the first hotkey of the pair isn't left registered
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
+		//they stay on and saved for the next start
+		Assert.IsTrue(vm.VolumeHotkeysRegistered);
+		Assert.IsTrue(vm.MuteHotkeyRegistered);
+		Assert.AreEqual(mute, Settings.Hotkeys.DeviceMute);
+	}
+
+	[TestMethod]
+	public void DeviceHotkeysThatFailOnTheNewDefaultDeviceShowAnErrorUntilTheyWork()
+	{
+		ActivateHotkeys();
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
+		Assert.IsFalse(vm.VolumeErrors.Any);
+
+		//taken by another app while the old device released it
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
+		ChangeDefaultDevice(CreateDevice("2", "Headphones"));
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.VolumeErrors.VolumeUp);
+
+		//free again: the next default device gets them and the error goes away
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up));
+		ChangeDefaultDevice(CreateDevice("3", "Monitor"));
+		Assert.IsFalse(vm.VolumeErrors.Any);
+	}
+
+	[TestMethod]
+	public void ASavedAppsHotkeysThatFailWhenItStartsShowAnError()
+	{
+		Settings.Hotkeys.Apps = new[] { new DataProvider.Settings.AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		var device = CreateDevice("1", "Speakers");
+		SetDefaultDevice(device);
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		ActivateHotkeys();
+		var app = vm.Apps[0];
+
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
+		RaiseProcessCreated(device, CreateProcess("Spotify"));
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], app.Errors.VolumeUp);
+		Assert.AreEqual(Up, Settings.Hotkeys.Apps[0].VolumeUp);
+
+		//it starts again once the combination is free: the error goes away
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up));
+		var restarted = CreateProcess("Spotify");
+		RaiseProcessCreated(device, restarted);
+		Assert.IsTrue(restarted.AnyHotkeyRegistered);
+		Assert.IsFalse(app.Errors.Any);
+	}
 }
