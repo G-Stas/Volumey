@@ -89,7 +89,7 @@
     <value>Ayarlar</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
-    <value>çıkış</value>
+    <value>Çıkış</value>
   </data>
   <data name="TrayMenu_SoundPanel" xml:space="preserve">
     <value>Ses Denetim Masası</value>
@@ -572,7 +572,7 @@
     <value>Bıraktığınız yerde açılır. Kapalı: tepsinin yanında.</value>
   </data>
   <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
-    <value>Volumey&apos;de zaten kullanılıyor</value>
+    <value>Volumey'de zaten kullanılıyor</value>
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Başka bir uygulama tarafından kullanılıyor</value>

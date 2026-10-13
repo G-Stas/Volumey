@@ -80,7 +80,7 @@
     <value>Не удалось зарегистрировать сочетание клавиш</value>
   </data>
   <data name="Notification_Yes" xml:space="preserve">
-    <value>Ок</value>
+    <value>ОК</value>
   </data>
   <data name="Notification_Later" xml:space="preserve">
     <value>Позже</value>
