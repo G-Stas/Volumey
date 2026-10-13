@@ -29,9 +29,10 @@ public sealed class WindowSettings : SettingsSection
 	public bool DisplayDeviceIconAtTray { get; set; }
 	/// <summary>The mixer opens where it was last (window mode: <see cref="Left"/>/<see cref="Top"/>, popup: <see cref="PopupLeft"/>/<see cref="PopupTop"/>), not next to the tray</summary>
 	public bool RememberPosition { get; set; }
-	/// <summary>Where the popup was last dragged to; null = never</summary>
+	/// <summary>Where the popup was last dragged to, in physical pixels (WPF's Left/Top depend on the screen the window is on); null = never</summary>
 	public double? PopupLeft { get; set; }
 	public double? PopupTop { get; set; }
+	/// <summary>Window mode's position, in physical pixels (see <see cref="PopupLeft"/>)</summary>
 	public double Left { get; set; }
 	public double Top { get; set; }
 	/// <summary>Size of the mixer in window mode (not in popup mode); 0 = not saved yet</summary>

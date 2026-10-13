@@ -76,18 +76,17 @@ public partial class MainView
 		WindowBackdropType = ThemeViewModel.Backdrop;
 		vm = (AppBehaviorViewModel)DataContext;
 
-		//size and position before the HWND exists, so a window shown at startup appears at its remembered place right away
+		//size before the HWND exists
 		ApplyMode();
-		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && vm.RememberPosition)
-		{
-			Left = vm.WindowLeft;
-			Top = vm.WindowTop;
-		}
 
 		//force create HWND of the window
 		//since the window is hidden at the startup
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
+
+		//the hidden window goes to its remembered place, so a window shown at startup appears there right away (placed again when it shows)
+		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
+			MoveTo(position.X, position.Y, show: false);
 
 		//use created hwnd to register window messages handler
 		var source = HwndSource.FromHwnd(Hwnd);
@@ -103,6 +102,7 @@ public partial class MainView
 
 		SizeChanged += (s, a) => SaveWindowPlacement();
 		LocationChanged += (s, a) => SaveWindowPlacement();
+		DpiChanged += OnDpiChanged;
 
 		SetUpTrayIcon();
 		SetBindings();
@@ -224,33 +224,93 @@ public partial class MainView
 	{
 		if(vm.DisplayMinimalistic)
 		{
-			SizePopup();
-			//update layout before setting windows position to use actual height of the window when calculating its position
-			UpdateLayout();
-			if(vm.RememberPosition && vm.PopupLeft is { } left && vm.PopupTop is { } top && IsOnScreen(left, top))
-				MoveToRemembered(left, top);
+			if(TryGetRememberedPosition(vm.PopupLeft, vm.PopupTop, out var position, out double workAreaHeight))
+			{
+				SizePopup(workAreaHeight);
+				UpdateLayout();
+				MoveToRemembered(position);
+			}
 			else
+			{
+				SizePopup();
+				//update layout before setting windows position to use actual height of the window when calculating its position
+				UpdateLayout();
 				SetWindowPosition();
+			}
 		}
 		else
 			RestoreWindowPlacement();
 		placed = true;
 	}
 
-	/// <summary>Whether the window at this position would still be on a screen (one may have been unplugged)</summary>
-	private bool IsOnScreen(double left, double top)
+	/// <summary>
+	/// A remembered position (both modes), while "Remember the mixer's position" is on and the position is on a connected screen,
+	/// and the height of that screen's work area in DIPs.
+	/// Positions are in physical pixels: WPF converts Left/Top with the scale of the screen the window is on when they're set,
+	/// and the hidden window is often on another screen than the one it opens on (on mixed scales it opened hundreds of pixels off),
+	/// and they stay right when a screen's scale changes between starts
+	/// </summary>
+	private bool TryGetRememberedPosition(double? left, double? top, out System.Drawing.Point position, out double workAreaHeight)
 	{
-		var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
-			SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
-		return screen.IntersectsWith(new Rect(left, top, Width, Height));
+		position = default;
+		workAreaHeight = 0;
+		if(!vm.RememberPosition || left is not { } x || top is not { } y)
+			return false;
+		position = new System.Drawing.Point((int)Math.Round(x), (int)Math.Round(y));
+		var monitor = PInvoke.MonitorFromPoint(position, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONULL);
+		var info = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+		if(monitor.IsNull || !PInvoke.GetMonitorInfo(monitor, ref info)
+		   || PInvoke.GetDpiForMonitor(monitor, Windows.Win32.UI.HiDpi.MONITOR_DPI_TYPE.MDT_EFFECTIVE_DPI, out uint dpi, out _).Failed)
+			return false;
+		workAreaHeight = (info.rcWork.bottom - info.rcWork.top) * 96.0 / dpi;
+		return true;
 	}
 
-	private void MoveToRemembered(double left, double top)
+	/// <summary>Where the window is being placed (physical pixels), until the move is done</summary>
+	private System.Drawing.Point? placementTarget;
+
+	private void MoveToRemembered(System.Drawing.Point position)
 	{
-		applyingPlacement = true;
-		Left = left;
-		Top = top;
-		applyingPlacement = false;
+		//moving onto a screen with another scale makes WPF resize the window to the new scale (DpiChanged), which can shift it: placed again then;
+		//once it's done, a window that sticks out of its screen (e.g. it grew with the screen's scale) is moved back in
+		placementTarget = position;
+		MoveTo(position.X, position.Y);
+		Dispatcher.InvokeAsync(() =>
+		{
+			placementTarget = null;
+			KeepOnScreen();
+		}, System.Windows.Threading.DispatcherPriority.ContextIdle);
+	}
+
+	private void OnDpiChanged(object sender, DpiChangedEventArgs e)
+	{
+		if(placementTarget is { } target)
+			Dispatcher.InvokeAsync(() => MoveTo(target.X, target.Y));
+	}
+
+	/// <summary>Moves the visible window back inside the work area of the screen it's (mostly) on</summary>
+	private void KeepOnScreen()
+	{
+		if(!IsVisible || WindowState != WindowState.Normal || !PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
+			return;
+		var info = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
+		if(!PInvoke.GetMonitorInfo(PInvoke.MonitorFromWindow((HWND)Hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST), ref info))
+			return;
+		var window = System.Drawing.Rectangle.FromLTRB(rect.left, rect.top, rect.right, rect.bottom);
+		var work = System.Drawing.Rectangle.FromLTRB(info.rcWork.left, info.rcWork.top, info.rcWork.right, info.rcWork.bottom);
+		var inside = WindowPlacement.KeepInside(window, work);
+		if(inside != window.Location)
+			MoveTo(inside.X, inside.Y);
+	}
+
+	/// <summary>The popup's position in physical pixels (see <see cref="TryGetRememberedPosition"/>)</summary>
+	private void RememberPopupPosition()
+	{
+		if(PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
+		{
+			vm.PopupLeft = rect.left;
+			vm.PopupTop = rect.top;
+		}
 	}
 
 	/// <summary>
@@ -266,10 +326,7 @@ public partial class MainView
 		e.Handled = true;
 		DragMove();
 		if(vm.DisplayMinimalistic)
-		{
-			vm.PopupLeft = Left;
-			vm.PopupTop = Top;
-		}
+			RememberPopupPosition();
 	}
 
 	/// <summary>Whether the pressed element is (inside) something that takes clicks itself</summary>
@@ -288,10 +345,12 @@ public partial class MainView
 	/// The popup's height: its fixed parts plus the apps list (at least <see cref="MinRows"/> rows),
 	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. Computed when it opens only
 	/// </summary>
-	private void SizePopup()
+	private void SizePopup() => SizePopup((SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor);
+
+	/// <param name="workAreaHeight">The height of the work area of the screen it opens on, in DIPs</param>
+	private void SizePopup(double workAreaHeight)
 	{
 		var (chrome, apps) = Mixer.MeasureHeights(PopupWidth);
-		double workAreaHeight = (SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor;
 		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea);
 		applyingPlacement = true;
 		Height = Math.Clamp(chrome + Math.Max(apps, MinRows * RowHeight), MinHeight, max);
@@ -304,8 +363,11 @@ public partial class MainView
 	private void RestoreWindowPlacement()
 	{
 		ApplyMode();
-		if(vm.RememberPosition && vm.WindowWidth > 0 && IsOnScreen(vm.WindowLeft, vm.WindowTop))
-			MoveToRemembered(vm.WindowLeft, vm.WindowTop);
+		if(vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
+		{
+			UpdateLayout();
+			MoveToRemembered(position);
+		}
 		else
 		{
 			UpdateLayout();
@@ -314,14 +376,18 @@ public partial class MainView
 	}
 
 	/// <summary>
-	/// Remembers the window mode's size and position (saved to the settings on exit)
+	/// Remembers the window mode's size (DIPs, so it scales with the screen) and position (physical pixels, see <see cref="TryGetRememberedPosition"/>),
+	/// saved to the settings on exit
 	/// </summary>
 	private void SaveWindowPlacement()
 	{
 		if(applyingPlacement || !placed || vm.DisplayMinimalistic || !IsVisible || WindowState != WindowState.Normal)
 			return;
-		vm.WindowLeft = Left;
-		vm.WindowTop = Top;
+		if(PInvoke.GetWindowRect((HWND)Hwnd, out RECT rect))
+		{
+			vm.WindowLeft = rect.left;
+			vm.WindowTop = rect.top;
+		}
 		vm.WindowWidth = ActualWidth;
 		vm.WindowHeight = ActualHeight;
 	}
@@ -375,11 +441,16 @@ public partial class MainView
 		}
 	}
 
-	private void MoveTo(double left, double top)
+	/// <param name="show">false: a hidden window stays hidden (placed before it's shown)</param>
+	private void MoveTo(double left, double top, bool show = true)
 	{
 		//move only: WPF sizes the window
-		PInvoke.SetWindowPos((HWND)Hwnd, default /*HWND_TOP*/, (int)left, (int)top, 0, 0,
-			SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+		var flags = SET_WINDOW_POS_FLAGS.SWP_NOSIZE;
+		if(show)
+			flags |= SET_WINDOW_POS_FLAGS.SWP_SHOWWINDOW;
+		else
+			flags |= SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE;
+		PInvoke.SetWindowPos((HWND)Hwnd, default /*HWND_TOP*/, (int)left, (int)top, 0, 0, flags);
 	}
 
 	/// <summary>

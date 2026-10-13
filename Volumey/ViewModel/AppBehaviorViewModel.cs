@@ -155,7 +155,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[ObservableProperty]
 	public partial double WindowHeight { get; set; }
 
-	//where the popup was last dragged to (null: never); saved on exit only, like the window mode's position
+	//where the popup was last dragged to, in physical pixels (null: never); saved on exit only, like the window mode's position
 	public double? PopupLeft { get; set; }
 
 	public double? PopupTop { get; set; }

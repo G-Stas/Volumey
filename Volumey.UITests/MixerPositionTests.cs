@@ -94,6 +94,56 @@ public class MixerPositionTests : UiTest
 		DragPopupBy(testApp.DisplayName, remember: false);
 	}
 
+	/// <summary>
+	/// The mixer's position is kept in physical pixels: kept as WPF's Left/Top, a popup dropped on a screen at another scale than the one the
+	/// hidden window starts on opened hundreds of pixels off after a restart. Needs a screen at another scale than the primary one
+	/// </summary>
+	[TestMethod]
+	public void APopupDroppedOnAScreenAtAnotherScaleOpensThereAfterARestart() => DropOnAScreenAtAnotherScaleAndRestart(popup: true);
+
+	[TestMethod]
+	public void WindowModeMovedToAScreenAtAnotherScaleOpensThereAfterARestart() => DropOnAScreenAtAnotherScaleAndRestart(popup: false);
+
+	private void DropOnAScreenAtAnotherScaleAndRestart(bool popup)
+	{
+		var monitors = Screens.All();
+		double primaryScale = monitors.First(m => m.IsPrimary).Scale;
+		if(monitors.FirstOrDefault(m => m.Scale != primaryScale) is not { WorkArea.Width: > 0 } other)
+		{
+			Assert.Inconclusive("Needs a screen at another scale than the primary one");
+			return;
+		}
+
+		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = popup, ["RememberPosition"] = true } });
+		App.HideMixer();
+		App.ShowMixer();
+		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the mixer didn't open");
+
+		Rectangle dropped;
+		using(Screens.PhysicalPixels())
+		{
+			var grip = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName("Apps"))),
+				TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException("No \"Apps\" header in the mixer");
+			var from = grip.BoundingRectangle.Center();
+			var target = new Point(other.WorkArea.Left + other.WorkArea.Width / 3, other.WorkArea.Top + other.WorkArea.Height / 4);
+			Mouse.Drag(from, target);
+			Wait.UntilInputIsProcessed();
+			Thread.Sleep(500);
+			dropped = Screens.WindowRect(VolumeyApp.Handle(App.Mixer));
+		}
+		Assert.IsTrue(other.WorkArea.Contains(dropped.Location), $"the mixer wasn't dropped on the other screen ({dropped})");
+
+		//exiting saves the position; the new hidden window starts on the primary screen
+		App.ExitByTray();
+		App.Restart();
+		App.HideMixer();
+		App.ShowMixer();
+		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the mixer didn't open after the restart");
+		Thread.Sleep(500);
+		var reopened = Screens.WindowRect(VolumeyApp.Handle(App.Mixer));
+		Assert.AreEqual(dropped.Location, reopened.Location, "the mixer didn't open where it was dropped");
+	}
+
 	/// <param name="text">a text in the popup that isn't a control: where it's grabbed</param>
 	/// <param name="remember">"Remember the mixer's position": the popup opens where it was dropped, else where it was before</param>
 	private void DragPopupBy(string text, bool remember)
@@ -102,7 +152,7 @@ public class MixerPositionTests : UiTest
 		//the app shows a normal window at its first start; a second start opens the popup
 		App.HideMixer();
 		App.ShowMixer();
-		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the popup didn't open");
+		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the mixer didn't open");
 		var before = MixerPosition();
 
 		var grip = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName(text))),
@@ -117,7 +167,7 @@ public class MixerPositionTests : UiTest
 		App.ShowMixer();
 		Assert.IsTrue(Eventually(() => App.MixerIsVisible), "the popup didn't open again");
 		if(remember)
-			Assert.AreEqual(dropped, MixerPosition(), "the popup didn't open where it was dropped");
+			Assert.AreEqual(dropped, MixerPosition(), "the mixer didn't open where it was dropped");
 		else
 			Assert.AreEqual(before, MixerPosition(), "the popup didn't open by the tray again");
 	}

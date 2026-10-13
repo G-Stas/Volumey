@@ -30,6 +30,8 @@ WIN32_ERROR
 GetClassName
 GetWindowRect
 MonitorFromWindow
+MonitorFromPoint
+GetDpiForMonitor
 GetMonitorInfo
 GetMessageTime
 GetWindowLongPtr
