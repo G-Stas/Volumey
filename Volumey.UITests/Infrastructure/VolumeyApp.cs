@@ -45,10 +45,16 @@ internal sealed class VolumeyApp : IDisposable
 		Directory.CreateDirectory(DataDir);
 	}
 
+	/// <summary>Extra environment variables for the app (kept for restarts), e.g. the Debug builds VOLUMEY_SHOW_UPDATE_DIALOG</summary>
+	private IDictionary<string, string> environment = new Dictionary<string, string>();
+
 	/// <param name="settings">settings.json to start with (missing values keep their defaults); null: a first start</param>
-	public static VolumeyApp Start(JsonObject? settings = null, string? dataDir = null)
+	/// <param name="environment">extra environment variables for the app</param>
+	public static VolumeyApp Start(JsonObject? settings = null, string? dataDir = null, IDictionary<string, string>? environment = null)
 	{
 		var volumey = new VolumeyApp(dataDir);
+		if(environment != null)
+			volumey.environment = environment;
 		//the tests find controls by their English names, and a first start takes the Windows display language
 		if(dataDir == null)
 		{
@@ -75,6 +81,8 @@ internal sealed class VolumeyApp : IDisposable
 		var start = new ProcessStartInfo(ExePath) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(ExePath)! };
 		start.Environment["VOLUMEY_SETTINGS_DIR"] = DataDir;
 		start.Environment["VOLUMEY_LOG_FILE"] = LogFile;
+		foreach(var (name, value) in environment)
+			start.Environment[name] = value;
 		process = Process.Start(start) ?? throw new InvalidOperationException("Volumey didn't start");
 		app = Application.Attach(process);
 
