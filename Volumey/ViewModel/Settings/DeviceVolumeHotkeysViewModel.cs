@@ -135,21 +135,28 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 	private void RegisterLoadedHotkeys()
 	{
 		if(defaultDevice != null)
+			ApplyHotkeys(defaultDevice);
+	}
+
+	/// <summary>
+	/// Registers the saved hotkeys for <paramref name="device"/> (on start and when the default device changes).
+	/// A hotkey that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
+	/// it stays on and saved, and is tried again with the next default device or start.
+	/// </summary>
+	private void ApplyHotkeys(OutputDeviceModel device)
+	{
+		if(volumeHotkeysRegistered)
 		{
-			if(muteHotkeyRegistered)
-			{
-				defaultDevice.SetMuteHotkey(MuteKey);
-				if(SettingsProvider.Settings.Notifications.Enabled)
-					defaultDevice.SetStateNotificationMediator(notifications);
-			}
-			if(volumeHotkeysRegistered)
-			{
-				defaultDevice.SetVolumeHotkeys(VolumeUp, VolumeDown);
-				if(SettingsProvider.Settings.Notifications.Enabled)
-					defaultDevice.SetStateNotificationMediator(notifications);
-			}
-			defaultDevice.Disabled += OnDefaultDeviceDisabled;
+			if(device.SetVolumeHotkeys(VolumeUp, VolumeDown, out var failed))
+				VolumeErrors.Clear();
+			else
+				VolumeErrors.SetFor(failed, VolumeUp, ErrorMessageType.VolumeReg);
 		}
+		if(muteHotkeyRegistered)
+			SetMuteError(device.SetMuteHotkey(MuteKey) ? ErrorMessageType.None : ErrorMessageType.OpenReg);
+		if((volumeHotkeysRegistered || muteHotkeyRegistered) && SettingsProvider.Settings.Notifications.Enabled)
+			device.SetStateNotificationMediator(notifications);
+		device.Disabled += OnDefaultDeviceDisabled;
 	}
 
 	private bool SaveVolumeHotkeys()
@@ -275,21 +282,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		}
 
 		if(newDevice != null)
-		{
-			if(volumeHotkeysRegistered)
-			{
-				newDevice.SetVolumeHotkeys(VolumeUp, VolumeDown);
-				if(SettingsProvider.Settings.Notifications.Enabled)
-					newDevice.SetStateNotificationMediator(notifications);
-			}
-			if(muteHotkeyRegistered)
-			{
-				newDevice.SetMuteHotkey(MuteKey);
-				if(SettingsProvider.Settings.Notifications.Enabled)
-					newDevice.SetStateNotificationMediator(notifications);
-			}
-			newDevice.Disabled += OnDefaultDeviceDisabled;
-		}
+			ApplyHotkeys(newDevice);
 		defaultDevice = newDevice;
 	}
 }

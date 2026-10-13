@@ -144,13 +144,23 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		{
 			//an app that is set up already would get its hotkeys registered twice
 			if(FindApp(process.Name) is { } app && !LaunchedProcesses.Contains(process))
-				SetUp(process, app);
+				SetUpSaved(process, app);
 		}
 	}
 
 	private AppHotkeysItem FindApp(string processName) => Apps.FirstOrDefault(app => app.ProcessName == processName);
 
-	private bool SetUp(AudioProcessModel process, AppHotkeysItem app) => SetUp(process, app, out _);
+	/// <summary>
+	/// Registers a saved app's hotkeys for a running process. If they fail (e.g. another app took the combination),
+	/// the error shows under the app's box instead of the hotkeys silently doing nothing; they stay saved.
+	/// </summary>
+	private void SetUpSaved(AudioProcessModel process, AppHotkeysItem app)
+	{
+		if(SetUp(process, app, out var failed))
+			app.Errors.Clear();
+		else
+			app.Errors.SetFor(failed, app.VolumeUp, ErrorMessageType.VolumeReg);
+	}
 
 	/// <summary>
 	/// Registers the app's hotkeys for a running process
@@ -331,6 +341,6 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	private void OnProcessStarted(AudioProcessModel process)
 	{
 		if(FindApp(process.Name) is { } app)
-			SetUp(process, app);
+			SetUpSaved(process, app);
 	}
 }
