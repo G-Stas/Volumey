@@ -73,7 +73,8 @@
                                         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
                                         BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="1"
                                         Visibility="{Binding Sessions.Count, Converter={StaticResource SeveralSessionsToVisibility}}">
-                                    <ui:SymbolIcon FontSize="10">
+                                    <!-- the toggle's own template sets no text color, so the theme's is given here (it was black on dark, owner) -->
+                                    <ui:SymbolIcon FontSize="10" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
                                         <ui:SymbolIcon.Style>
                                             <Style TargetType="ui:SymbolIcon">
                                                 <Setter Property="Symbol" Value="ChevronDown24" />
