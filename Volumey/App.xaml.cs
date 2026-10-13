@@ -42,12 +42,11 @@ public partial class App
 		AppServices.Use(services);
 
 		//the theme and accent before any window is created
-		var theme = services.GetRequiredService<ThemeViewModel>();
-		//XAML still finds these view models by key; the resources hold the container's instances, so each exists once
-		Resources[nameof(ThemeViewModel)] = theme;
-		Resources[nameof(AppBehaviorViewModel)] = services.GetRequiredService<AppBehaviorViewModel>();
+		services.GetRequiredService<ThemeViewModel>();
+		services.GetRequiredService<AppBehaviorViewModel>();
 		//creating it enumerates the audio devices
-		Resources[nameof(DeviceProviderViewModel)] = services.GetRequiredService<DeviceProviderViewModel>();
+		services.GetRequiredService<DeviceProviderViewModel>();
+		//the hotkey mode note finds it by key
 		Resources[nameof(HotkeyModeViewModel)] = services.GetRequiredService<HotkeyModeViewModel>();
 		foreach(var feature in ServiceRegistration.Features)
 			services.GetRequiredService(feature);

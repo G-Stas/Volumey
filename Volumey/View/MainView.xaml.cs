@@ -72,9 +72,10 @@ public partial class MainView
 	/// </summary>
 	private bool placed;
 
-	internal MainView(AppBehaviorViewModel vm, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow)
+	internal MainView(MainViewModel main, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow)
 	{
-		this.vm = vm;
+		vm = main.Window;
+		DataContext = main;
 		this.getSettingsWindow = getSettingsWindow;
 		InitializeComponent();
 		WindowBackdropType = ThemeViewModel.Backdrop;

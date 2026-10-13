@@ -9,16 +9,13 @@
              xmlns:controls="clr-namespace:Volumey.Controls"
              mc:Ignorable="d">
 
-    <UserControl.DataContext>
-        <StaticResource ResourceKey="DeviceProviderViewModel" />
-    </UserControl.DataContext>
-
     <UserControl.Resources>
         <converters:NoDeviceToVisibilityConverter x:Key="NoDeviceToVisibilityConverter" />
         <converters:DeviceIsDefaultToVisibilityPropertiesConverter x:Key="DeviceIsDefaultToVisibilityPropertiesConverter"/>
     </UserControl.Resources>
 
-    <Grid>
+    <!-- the devices on the content, not on the control: where the mixer places it is bound on the control -->
+    <Grid DataContext="{Binding Devices}">
         <TextBlock
             Text="{lc:Localization Error_NoDevice}"
             TextWrapping="Wrap"

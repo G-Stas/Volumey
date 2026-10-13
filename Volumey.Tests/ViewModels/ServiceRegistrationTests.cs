@@ -54,6 +54,10 @@ public class ServiceRegistrationTests : ViewModelTestBase
 		Assert.AreSame(provider.GetRequiredService<AppBehaviorViewModel>(), provider.GetRequiredService<AppBehaviorViewModel>());
 		Assert.AreSame(provider.GetRequiredService<DeviceProviderViewModel>(), provider.GetRequiredService<DeviceProviderViewModel>());
 		Assert.AreSame(DeviceProvider.Object, provider.GetRequiredService<DeviceProviderViewModel>().DeviceProvider);
+
+		var main = provider.GetRequiredService<MainViewModel>();
+		Assert.AreSame(provider.GetRequiredService<AppBehaviorViewModel>(), main.Window);
+		Assert.AreSame(provider.GetRequiredService<DeviceProviderViewModel>(), main.Devices);
 	}
 
 	[TestMethod]
