@@ -39,15 +39,13 @@ public partial class App
 	{
 		base.OnStartup(e);
 		services = new ServiceCollection().AddVolumey(this).BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
-		AppServices.Use(services);
 
 		//the theme and accent before any window is created
 		services.GetRequiredService<ThemeViewModel>();
 		services.GetRequiredService<AppBehaviorViewModel>();
 		//creating it enumerates the audio devices
 		services.GetRequiredService<DeviceProviderViewModel>();
-		//the hotkey mode note finds it by key
-		Resources[nameof(HotkeyModeViewModel)] = services.GetRequiredService<HotkeyModeViewModel>();
+		services.GetRequiredService<HotkeyModeViewModel>();
 		foreach(var feature in ServiceRegistration.Features)
 			services.GetRequiredService(feature);
 
