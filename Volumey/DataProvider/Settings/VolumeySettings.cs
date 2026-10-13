@@ -58,26 +58,30 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	}
 
 	/// <summary>
-	/// Writes a scheduled save now, e.g. when the app exits.
+	/// Writes a scheduled save now, e.g. when the app exits. Returns once the file is written, also when the timer's write
+	/// had already taken the change and is still running: the app exits right after, which would cut that write off.
 	/// </summary>
 	public void Flush()
 	{
-		string file;
-		lock(saveLock)
+		lock(writeLock)
 		{
-			file = pendingFile;
-			pendingFile = null;
-		}
-		if(file == null)
-			return;
-		try
-		{
-			SaveNow(file);
-		}
-		catch(Exception e)
-		{
-			//also runs on a timer thread, where an exception would end the app
-			log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
+			string file;
+			lock(saveLock)
+			{
+				file = pendingFile;
+				pendingFile = null;
+			}
+			if(file == null)
+				return;
+			try
+			{
+				SaveNow(file);
+			}
+			catch(Exception e)
+			{
+				//also runs on a timer thread, where an exception would end the app
+				log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
+			}
 		}
 	}
 
@@ -90,6 +94,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 			base.Save(filename ?? FileName);
 	}
 
+	//held while the file is written; taken before saveLock where both are needed (Save only takes saveLock)
 	private readonly object writeLock = new object();
 
 	private static JsonSerializerSettings CreateSerializerSettings()
