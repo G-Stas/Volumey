@@ -143,6 +143,8 @@ public class AudioProcessModel : IManagedMasterAudioSession
 
 	private readonly IHotkeyService _hotkeys;
 
+	private readonly Process _process;
+
 	public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, IHotkeyService hotkeys, IAudioProcessStateMediator stateNotificationMediator = null)
 	{
 		_hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
@@ -156,6 +158,7 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		try { _iconSource = icon.GetAsImageSource(); }
 		catch { }
 
+		//the model owns the process: watching it for its exit keeps its handle open (and this model alive) until Dispose
 		//Might throw Access Denied if its a system process
 		try
 		{
@@ -164,9 +167,13 @@ public class AudioProcessModel : IManagedMasterAudioSession
 				RawProcessName = proc.ProcessName;
 				proc.EnableRaisingEvents = true;
 				proc.Exited += OnProcessExited;
+				_process = proc;
 			}
 		}
-		catch { }
+		catch
+		{
+			proc.Dispose();
+		}
 
 		Sessions = new ObservableCollection<AudioSessionModel>();
 
@@ -375,6 +382,13 @@ public class AudioProcessModel : IManagedMasterAudioSession
 
 		//the model owns its icon (see IconHelper); Dispose frees the handle
 		_icon?.Dispose();
+
+		//stops watching for the exit and closes the handle, so the app no longer keeps this model alive
+		if(_process != null)
+		{
+			_process.Exited -= OnProcessExited;
+			_process.Dispose();
+		}
 
 		if(_trackedSession != null)
 		{

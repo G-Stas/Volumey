@@ -174,8 +174,11 @@ internal static class AudioModelFactory
 		catch(Exception e)
 		{
 			Logger.Error($"Failed to create process model from session model, process: [{processName}]", e);
+			icon?.Dispose();
+			proc?.Dispose();
 			return null;
 		}
+		//the model takes ownership of the icon and the process
 		AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc, hotkeys);
 		return model;
 	}
