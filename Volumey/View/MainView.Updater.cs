@@ -23,6 +23,11 @@ public partial class MainView
 #else
 		CheckForUpdate();
 #endif
+#if(DEBUG)
+		//the Store build's update dialog, to look at it in a dev run (its OK button opens the Store page)
+		if(Environment.GetEnvironmentVariable("VOLUMEY_SHOW_UPDATE_DIALOG") == "1")
+			DisplayContentDialog(new UpdateDialog()).Forget(Logger, "Failed to show the update dialog");
+#endif
 	}
 
 	private void CheckForUpdate()
