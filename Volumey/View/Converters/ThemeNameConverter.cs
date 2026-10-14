@@ -10,7 +10,7 @@ namespace Volumey.View.Converters;
 /// The translated name of a theme ("Theme_Light", "Theme_Dark", "Theme_System").
 /// The second value is the current language, only bound so the name changes with it
 /// </summary>
-public class ThemeNameConverter : IMultiValueConverter
+public sealed class ThemeNameConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

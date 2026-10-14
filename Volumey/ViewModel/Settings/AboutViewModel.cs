@@ -13,7 +13,7 @@ namespace Volumey.ViewModel.Settings;
 /// <summary>
 /// The About page: the version and build, the update check, and the links (the support links come from GitHub, <see cref="DataProvider.SupportLinks"/>)
 /// </summary>
-public partial class AboutViewModel : ObservableObject
+public sealed partial class AboutViewModel : ObservableObject
 {
 	internal const string SourceCodeUrl = "https://github.com/G-Stas/Volumey";
 	internal const string IssuesUrl = "https://github.com/G-Stas/Volumey/issues";

@@ -18,7 +18,7 @@ namespace Volumey.View;
 /// The on-screen display: a pill per app or device whose volume changed (at most <see cref="MaxPills"/>), in a corner of a screen,
 /// each closing after the display time unless the mouse is over it. UI thread only.
 /// </summary>
-public partial class OsdWindow
+public sealed partial class OsdWindow
 {
 	private const int MaxPills = 3;
 	private static readonly Duration FadeDuration = new(TimeSpan.FromMilliseconds(150));

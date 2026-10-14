@@ -6,7 +6,7 @@ using Volumey.Model;
 
 namespace Volumey.View.Converters;
 
-public class TrayTooltipConverter : IMultiValueConverter
+public sealed class TrayTooltipConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo cltr)
 	{

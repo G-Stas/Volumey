@@ -1,6 +1,6 @@
 ﻿namespace Volumey.View;
 
-public partial class MasterView
+public sealed partial class MasterView
 {
 	public MasterView()
 	{

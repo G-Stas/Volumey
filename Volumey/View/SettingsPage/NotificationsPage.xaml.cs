@@ -2,7 +2,7 @@
 
 namespace Volumey.View.SettingsPage;
 
-public partial class NotificationsPage
+public sealed partial class NotificationsPage
 {
 	internal NotificationsPage(NotificationViewModel vm)
 	{

@@ -2,7 +2,7 @@
 
 namespace Volumey.Localization;
 
-public class LocalizationExtension : Binding
+public sealed class LocalizationExtension : Binding
 {
 	public LocalizationExtension(string name) : base($"[{name}]")
 	{

@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class DeviceViewPositionToDockConverter : IValueConverter
+public sealed class DeviceViewPositionToDockConverter : IValueConverter
 {
 	public object Convert(object deviceViewAtTheBottom, Type targetType, object parameter, CultureInfo culture)
 	{

@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class AnyPropertyIsNullToEnabledConverter : IMultiValueConverter, IValueConverter
+public sealed class AnyPropertyIsNullToEnabledConverter : IMultiValueConverter, IValueConverter
 {
 	public object Convert(object[] properties, Type targetType, object parameter, CultureInfo culture)
 	{

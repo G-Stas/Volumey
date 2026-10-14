@@ -2,7 +2,7 @@
 
 namespace Volumey.View;
 
-public partial class MixerView
+public sealed partial class MixerView
 {
 	public MixerView()
 	{

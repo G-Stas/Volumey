@@ -6,7 +6,7 @@ using Volumey.ViewModel.Pages;
 
 namespace Volumey.View.SettingsPage;
 
-public partial class AppHotkeysPage
+public sealed partial class AppHotkeysPage
 {
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppHotkeysPage));
 

@@ -4,9 +4,9 @@ using log4net;
 
 namespace Volumey.View.Converters;
 
-public partial class TrayIconConverter
+public sealed partial class TrayIconConverter
 {
-	internal class DarkIconProvider : TrayIconProvider
+	internal sealed class DarkIconProvider : TrayIconProvider
 	{
 		private Icon trayHigh;
 		protected override Icon High => trayHigh ??= (App.Current.FindResource("TrayHighDark") as BitmapImage).GetAsIcon();

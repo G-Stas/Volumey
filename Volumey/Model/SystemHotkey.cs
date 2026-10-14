@@ -6,7 +6,7 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model;
 
-public class SystemHotkey
+public sealed class SystemHotkey
 {
 	public Key SystemKey { get; set; }
 

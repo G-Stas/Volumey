@@ -3,7 +3,7 @@
 namespace Volumey.Model;
 
 [Serializable]
-public class DeviceInfo
+public sealed class DeviceInfo
 {
 	private string _id;
 	public string ID

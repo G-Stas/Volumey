@@ -4,7 +4,7 @@ using Volumey.Controls;
 namespace Volumey.Model;
 
 [Serializable]
-public class VolumeHotkeysPair
+public sealed class VolumeHotkeysPair
 {
 	public HotKey VolumeUp { get; }
 	public HotKey VolumeDown { get; }

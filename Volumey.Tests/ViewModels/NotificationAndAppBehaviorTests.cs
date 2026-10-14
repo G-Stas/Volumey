@@ -418,7 +418,8 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		systemIntegration.Setup(m => m.IsInStartMenu()).Returns(true);
 		var vm = CreateAppBehavior();
 		Assert.IsFalse(vm.LaunchAtStartup);
-		Assert.IsTrue(vm.AddToStartMenu);
+		//read off the UI thread
+		WaitFor(() => vm.AddToStartMenu, "the Start menu shortcut wasn't read");
 
 		vm.LaunchAtStartup = true;
 		vm.AddToStartMenu = false;

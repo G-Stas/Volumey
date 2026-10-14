@@ -9,7 +9,7 @@ namespace Volumey.View.Converters;
 /// The name a screen reader reads for a mute button: "Mute Spotify" / "Unmute Spotify".
 /// Values: is muted, the app's or device's name, and the current language (only bound so the name follows it)
 /// </summary>
-public class MuteButtonNameConverter : IMultiValueConverter
+public sealed class MuteButtonNameConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

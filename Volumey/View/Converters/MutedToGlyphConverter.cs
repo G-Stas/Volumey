@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class MutedToGlyphConverter : IValueConverter
+public sealed class MutedToGlyphConverter : IValueConverter
 {
 	private const string MuteGlyphCode = "E74F";
 	private const string VolumeGlyphCode = "E995";

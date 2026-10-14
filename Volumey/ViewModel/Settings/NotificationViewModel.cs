@@ -13,7 +13,7 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public partial class NotificationViewModel : ObservableObject
+public sealed partial class NotificationViewModel : ObservableObject
 {
 	public NotificationPosition[] Positions { get; } =
 	{
@@ -297,11 +297,5 @@ public partial class NotificationViewModel : ObservableObject
 	private void OnProcessCreated(AudioProcessModel newProcess)
 	{
 		newProcess.SetStateMediator(_notifications);
-	}
-
-
-	~NotificationViewModel()
-	{
-		SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
 	}
 }

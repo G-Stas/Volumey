@@ -14,7 +14,7 @@ namespace Volumey.Helper;
 /// Provides global hotkeys functionality by using native hotkeys functionality from Windows API.
 /// Blocks registered hotkeys combinations input system-wide.
 /// </summary>
-internal class HotkeyManager : IHotkeyManager
+internal sealed class HotkeyManager : IHotkeyManager
 {
 	public event Action<HotKey> HotkeyPressed;
 

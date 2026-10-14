@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class NoDeviceToVisibilityConverter : IValueConverter
+public sealed class NoDeviceToVisibilityConverter : IValueConverter
 {
 	public object Convert(object noOutputDevices, Type targetType, object parameter, CultureInfo culture)
 	{

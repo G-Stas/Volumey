@@ -16,7 +16,7 @@ namespace Volumey.ViewModel.Settings;
 /// The Devices page's device list: every connected output device, plus the ones with a saved "make default" hotkey that aren't connected.
 /// Each device can have one hotkey that makes it the default device (saved by ID and name, so it still works after a rename).
 /// </summary>
-public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
+public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 {
 	/// <summary>
 	/// Connected devices first (in Windows' order), then the saved ones that aren't connected

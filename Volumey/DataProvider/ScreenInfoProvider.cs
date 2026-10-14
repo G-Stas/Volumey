@@ -4,7 +4,7 @@ using WpfScreenHelper;
 
 namespace Volumey.DataProvider;
 
-public class ScreenInfoProvider : IScreenInfoProvider
+public sealed class ScreenInfoProvider : IScreenInfoProvider
 {
 	public IEnumerable<ScreenInfo> GetAllScreensInfo()
 	{

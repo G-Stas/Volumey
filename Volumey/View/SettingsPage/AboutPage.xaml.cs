@@ -2,7 +2,7 @@
 
 namespace Volumey.View.SettingsPage;
 
-public partial class AboutPage
+public sealed partial class AboutPage
 {
 	internal AboutPage(AboutViewModel vm)
 	{

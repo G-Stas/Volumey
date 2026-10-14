@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security;
 using System.Text;
@@ -175,11 +176,16 @@ internal static class SystemIntegrationHelper
 	internal static void SaveShortcut(string linkPath, string targetPath)
 	{
 		var link = (IShellLinkW)new ShellLink();
-		var file = (IPersistFile)link;
-		if(File.Exists(linkPath))
-			file.Load(linkPath, 2 /*STGM_READWRITE*/);
-		link.SetPath(targetPath);
-		file.Save(linkPath, false);
+		try
+		{
+			var file = (IPersistFile)link;
+			if(File.Exists(linkPath))
+				file.Load(linkPath, 2 /*STGM_READWRITE*/);
+			link.SetPath(targetPath);
+			file.Save(linkPath, false);
+		}
+		//released now rather than when the garbage collector gets to it
+		finally { Marshal.FinalReleaseComObject(link); }
 	}
 
 	/// <summary>
@@ -188,13 +194,17 @@ internal static class SystemIntegrationHelper
 	internal static string ReadShortcutTarget(string linkPath)
 	{
 		var link = (IShellLinkW)new ShellLink();
-		((IPersistFile)link).Load(linkPath, 0 /*STGM_READ*/);
-		//long enough for any path; flags 0: the full path (SLGP_SHORTPATH can give an 8.3 path that differs from the exe path)
-		var buffer = new char[32768];
-		var data = new WIN32_FIND_DATAW();
-		link.GetPath(buffer, ref data, 0).ThrowOnFailure();
-		int end = Array.IndexOf(buffer, '\0');
-		return new string(buffer, 0, end < 0 ? buffer.Length : end);
+		try
+		{
+			((IPersistFile)link).Load(linkPath, 0 /*STGM_READ*/);
+			//long enough for any path; flags 0: the full path (SLGP_SHORTPATH can give an 8.3 path that differs from the exe path)
+			var buffer = new char[32768];
+			var data = new WIN32_FIND_DATAW();
+			link.GetPath(buffer, ref data, 0).ThrowOnFailure();
+			int end = Array.IndexOf(buffer, '\0');
+			return new string(buffer, 0, end < 0 ? buffer.Length : end);
+		}
+		finally { Marshal.FinalReleaseComObject(link); }
 	}
 #endif
 

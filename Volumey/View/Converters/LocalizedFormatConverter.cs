@@ -10,7 +10,7 @@ namespace Volumey.View.Converters;
 /// Fills the localized format string named by the parameter (e.g. "Remove {0}") with the values, e.g. for screen reader names.
 /// Bind the current language as the last value, so the text follows it.
 /// </summary>
-public class LocalizedFormatConverter : IMultiValueConverter
+public sealed class LocalizedFormatConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

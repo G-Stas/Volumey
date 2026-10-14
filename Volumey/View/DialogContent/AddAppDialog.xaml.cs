@@ -9,7 +9,7 @@ namespace Volumey.View.DialogContent;
 /// <summary>
 /// App hotkeys page: picks a running app and its two hotkeys. Add only closes the dialog when the app was added.
 /// </summary>
-public partial class AddAppDialog
+public sealed partial class AddAppDialog
 {
 	private readonly AppsHotkeysViewModel vm;
 

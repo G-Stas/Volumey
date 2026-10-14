@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class CollectionCountToVisibilityConverter : IValueConverter
+public sealed class CollectionCountToVisibilityConverter : IValueConverter
 {
 	public int CountLimit { get; set; }
 

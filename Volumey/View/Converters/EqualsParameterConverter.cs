@@ -7,7 +7,7 @@ namespace Volumey.View.Converters;
 /// <summary>
 /// Whether an enum value is the one named by the parameter, for one radio button per value; a checked button gives that value back
 /// </summary>
-public class EqualsParameterConverter : IValueConverter
+public sealed class EqualsParameterConverter : IValueConverter
 {
 	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		=> value?.ToString() == parameter as string;

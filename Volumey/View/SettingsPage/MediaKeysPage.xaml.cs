@@ -2,7 +2,7 @@
 
 namespace Volumey.View.SettingsPage;
 
-public partial class MediaKeysPage
+public sealed partial class MediaKeysPage
 {
 	internal MediaKeysPage(MediaKeysPageViewModel vm)
 	{

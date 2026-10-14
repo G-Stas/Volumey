@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class WindowVisibilityConverter : IValueConverter
+public sealed class WindowVisibilityConverter : IValueConverter
 {
 	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 	{

@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class HotkeysRegisteredToEnabledConverter : IValueConverter
+public sealed class HotkeysRegisteredToEnabledConverter : IValueConverter
 {
 	public object Convert(object hotkeysRegistered, Type targetType, object parameter, CultureInfo culture)
 	{

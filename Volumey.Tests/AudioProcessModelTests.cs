@@ -363,6 +363,25 @@ public class AudioProcessModelTests
 		model.Dispose();
 	}
 
+	[TestMethod]
+	public void EachVolumeOrMuteChangeIsReportedOnce()
+	{
+		var model = GetProcessMock("app", 50, false, hotkeys);
+		var tracked = GetSessionMock(50, false, "1");
+		model.AddSession(tracked);
+		model.AddSession(GetSessionMock(50, false, "2"));
+		var changes = new System.Collections.Generic.List<string>();
+		model.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+
+		model.Volume = 60;
+		model.IsMuted = true;
+		//a change of one session's own slider reaches the app's row too
+		tracked.Volume = 70;
+
+		CollectionAssert.AreEqual(new[] { nameof(AudioProcessModel.Volume), nameof(AudioProcessModel.IsMuted), nameof(AudioProcessModel.Volume) }, changes);
+		Assert.AreEqual(70, model.Volume);
+	}
+
 	//process IDs are multiples of 4, so this one never runs: an app that has exited
 	private const uint ExitedProcessId = 3;
 	private static readonly string OwnPath = Environment.ProcessPath!;

@@ -1,6 +1,6 @@
 ﻿namespace Volumey.View;
 
-public partial class SessionsListView
+public sealed partial class SessionsListView
 {
 	public SessionsListView()
 	{
