@@ -423,6 +423,32 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void DevicesRenamedWhileConnectedShowAndSaveTheNewName()
+	{
+		Settings.Hotkeys.DefaultDevices = new[] { new DeviceHotkeyEntry { Hotkey = Switch, DeviceId = "1", DeviceName = "Speakers" } };
+		var speakers = CreateDevice("1", "Speakers");
+		SetDefaultDevice(speakers);
+		var headphones = CreateDevice("2", "Headphones");
+		ActiveDevices.Add(headphones);
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		var speakersEntry = vm.Devices.Single(d => d.Id == "1");
+		var headphonesEntry = vm.Devices.Single(d => d.Id == "2");
+
+		speakers.Master.Name = "Desk speakers";
+		headphones.Master.Name = "Headset";
+
+		Assert.AreEqual("Desk speakers", speakersEntry.Name);
+		Assert.AreEqual("Headset", headphonesEntry.Name);
+		Assert.AreEqual("Desk speakers", Settings.Hotkeys.DefaultDevices.Single().DeviceName);
+
+		//an unplugged device keeps its last name, and a model it no longer has doesn't rename it
+		ActiveDevices.Remove(speakers);
+		speakers.Master.Name = "Old model";
+		Assert.AreEqual("Desk speakers", speakersEntry.Name);
+		Assert.AreEqual("Desk speakers", Settings.Hotkeys.DefaultDevices.Single().DeviceName);
+	}
+
+	[TestMethod]
 	public void SavedHotkeysOfDisconnectedDevicesAreListed()
 	{
 		//after a restart the page shows the saved hotkeys; an unplugged device's hotkey is shown too

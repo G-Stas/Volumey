@@ -195,6 +195,15 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 			ActivateSettings(entry);
 	}
 
+	/// <summary>
+	/// A connected device got a new name: a saved hotkey keeps it, since a device whose ID changed is matched by its name
+	/// </summary>
+	internal void OnNameChanged(DeviceEntry entry)
+	{
+		if(entry.HotkeyRegistered)
+			Save();
+	}
+
 	private void ActivateSettings(DeviceEntry? entry)
 	{
 		entry?.Settings?.Load();
