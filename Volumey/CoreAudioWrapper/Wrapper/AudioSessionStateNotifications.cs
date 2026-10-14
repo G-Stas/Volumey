@@ -46,6 +46,11 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 	{
 		int newVolumeValue = VolumePercent.FromScalar(newVolume);
 
+		//don't fire event if callback was called because of changes of volume inside the app.
+		//Checked first: it needs no calls to Windows, and most callbacks are echoes while the app changes the volume
+		if(echoFilter != null && echoFilter.IsOwnWrite(newVolumeValue, newMuteState))
+			return;
+
 		//prevent invoking event if the new state is not the same as the actual session state (an outdated callback)
 		try
 		{
@@ -58,10 +63,7 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 			return;
 		}
 
-		//don't fire event if callback was called because of changes of volume inside the app
-		if(echoFilter != null && echoFilter.IsEcho(newVolumeValue, newMuteState))
-			return;
-
+		echoFilter?.Remember(newVolumeValue, newMuteState);
 		VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, newMuteState));
 	}
 
