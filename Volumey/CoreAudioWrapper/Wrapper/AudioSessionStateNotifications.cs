@@ -16,6 +16,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 public sealed class AudioSessionStateNotifications : IAudioSessionStateNotifications, IAudioSessionEventsHandler
 {
 	public event Action? SessionEnded;
+	public event Action? Deactivated;
 	public event Action<VolumeChangedEventArgs>? VolumeChanged;
 	public event Action<string>? NameChanged;
 	public event Action<AudioSessionDisconnectReason>? Disconnected;
@@ -71,6 +72,8 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 	{
 		if(newState == NAudioSessionState.AudioSessionStateExpired)
 			SessionEnded?.Invoke();
+		else if(newState == NAudioSessionState.AudioSessionStateInactive)
+			Deactivated?.Invoke();
 	}
 
 	public void RegisterNotifications()

@@ -363,6 +363,76 @@ public class AudioProcessModelTests
 		model.Dispose();
 	}
 
+	//process IDs are multiples of 4, so this one never runs: an app that has exited
+	private const uint ExitedProcessId = 3;
+	private static readonly string OwnPath = Environment.ProcessPath!;
+
+	private AudioProcessModel ModelWithoutProcessHandle(uint processId)
+		=> new AudioProcessModel(50, false, "app", processId, OwnPath, default, null, hotkeys);
+
+	private static AudioSessionModel SessionOf(uint processId, IAudioSessionStateNotifications notifications = null)
+		=> new AudioSessionModel(false, 50, "s" + processId, processId, "app", OwnPath, Guid.Empty,
+			new Mock<IAudioSessionVolume>().Object, notifications ?? new Mock<IAudioSessionStateNotifications>().Object);
+
+	[TestMethod]
+	public void AModelWithoutAProcessHandleFindsItsExitInTheProcessList()
+	{
+		//like a game guarded by anti-cheat, which refuses a handle to wait on
+		using var exited = new System.Threading.ManualResetEventSlim();
+		var model = ModelWithoutProcessHandle(ExitedProcessId);
+		model.Exited += _ => exited.Set();
+
+		model.WatchExitInProcessList(TimeSpan.FromMilliseconds(50));
+
+		Assert.IsTrue(exited.Wait(TimeSpan.FromSeconds(3)), "the model didn't find its process's exit");
+		model.Dispose();
+	}
+
+	[TestMethod]
+	public void ARunningProcessKeepsItsModel()
+	{
+		using var exited = new System.Threading.ManualResetEventSlim();
+		var model = ModelWithoutProcessHandle((uint)Environment.ProcessId);
+		model.Exited += _ => exited.Set();
+
+		model.WatchExitInProcessList(TimeSpan.FromMilliseconds(50));
+
+		Assert.IsFalse(exited.Wait(TimeSpan.FromMilliseconds(400)), "the model reported an exit while its process runs");
+		model.Dispose();
+	}
+
+	[TestMethod]
+	public void ARestartedAppsSessionKeepsTheModel()
+	{
+		//the restarted app's new session joins the model (same executable) after the first process has exited
+		using var exited = new System.Threading.ManualResetEventSlim();
+		var model = ModelWithoutProcessHandle(ExitedProcessId);
+		model.AddSession(SessionOf((uint)Environment.ProcessId));
+		model.Exited += _ => exited.Set();
+
+		model.WatchExitInProcessList(TimeSpan.FromMilliseconds(50));
+
+		Assert.IsFalse(exited.Wait(TimeSpan.FromMilliseconds(400)), "the model ended while its other session's process runs");
+		model.Dispose();
+	}
+
+	[TestMethod]
+	public void AnInactiveSessionMakesTheModelLookForItsExitRightAway()
+	{
+		using var exited = new System.Threading.ManualResetEventSlim();
+		var notifications = new Mock<IAudioSessionStateNotifications>();
+		var model = ModelWithoutProcessHandle(ExitedProcessId);
+		model.AddSession(SessionOf(ExitedProcessId, notifications.Object));
+		model.Exited += _ => exited.Set();
+		//the regular check wouldn't come during the test
+		model.WatchExitInProcessList(TimeSpan.FromMinutes(10));
+
+		notifications.Raise(m => m.Deactivated += null);
+
+		Assert.IsTrue(exited.Wait(TimeSpan.FromSeconds(3)), "the model didn't look for its process's exit when its session went inactive");
+		model.Dispose();
+	}
+
 	private static System.Diagnostics.Process StartIdleProcess()
 		=> System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c pause")
 		{

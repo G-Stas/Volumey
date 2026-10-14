@@ -216,6 +216,8 @@ internal static class AudioModelFactory
 		}
 		//the model takes ownership of the process; the icon is a shared frozen image
 		AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc, hotkeys);
+		//an app that refuses a handle (e.g. a game guarded by anti-cheat) can't be watched for its exit through the process
+		model.WatchExitInProcessList();
 		return model;
 	}
 
@@ -241,6 +243,12 @@ internal static class AudioModelFactory
 		}
 		else
 		{
+			//Windows keeps the sessions of exited apps (inactive), and nothing would ever remove their rows
+			if(processId != 0 && !NativeMethods.IsProcessRunning((int)processId))
+			{
+				Logger.Debug($"Skipped the session of the exited process {processId}");
+				return null;
+			}
 			if(processId != 0)
 				LogPathError(processId, pathError);
 			try

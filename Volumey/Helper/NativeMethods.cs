@@ -133,7 +133,25 @@ static class NativeMethods
 	/// that can't be opened (other users', protected ones, games guarded by anti-cheat). Null if the process isn't in the list
 	/// (it has exited) or its volume has no drive letter
 	/// </summary>
-	internal static unsafe string GetProcessImagePathFromSystem(int processId)
+	internal static string GetProcessImagePathFromSystem(int processId)
+		=> GetProcessImageKernelPath(processId) is { } kernelPath ? ToDosPath(kernelPath, DeviceOfDrive) : null;
+
+	/// <summary>
+	/// Whether the process runs, from the system's process list (no access to the process needed).
+	/// With <paramref name="expectedPath"/>, a process that now has its ID but runs another executable doesn't count (IDs are reused)
+	/// An exited process stays in the list while another program still holds a handle to it
+	/// </summary>
+	internal static bool IsProcessRunning(int processId, string expectedPath = null)
+	{
+		if(GetProcessImageKernelPath(processId) is not { } kernelPath)
+			return false;
+		if(string.IsNullOrEmpty(expectedPath) || ToDosPath(kernelPath, DeviceOfDrive) is not { } path)
+			return true;
+		return string.Equals(path, expectedPath, StringComparison.OrdinalIgnoreCase);
+	}
+
+	/// <summary>The process's executable as the kernel names it ("\Device\HarddiskVolume3\..."), null if the process isn't in the list</summary>
+	private static unsafe string GetProcessImageKernelPath(int processId)
 	{
 		var name = new char[260];
 		//the second attempt has the size the first one asked for
@@ -148,7 +166,7 @@ static class NativeMethods
 				};
 				NTSTATUS status = Windows.Wdk.PInvoke.NtQuerySystemInformation(SystemProcessIdInformation, &info, (uint)sizeof(SYSTEM_PROCESS_ID_INFORMATION), null);
 				if(status.SeverityCode == NTSTATUS.Severity.Success)
-					return ToDosPath(new string(buffer, 0, info.ImageName.Length / sizeof(char)), DeviceOfDrive);
+					return new string(buffer, 0, info.ImageName.Length / sizeof(char));
 				if(status != StatusInfoLengthMismatch || info.ImageName.MaximumLength <= name.Length * sizeof(char))
 					return null;
 				name = new char[info.ImageName.MaximumLength / sizeof(char)];
