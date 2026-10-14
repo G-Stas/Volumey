@@ -39,6 +39,7 @@
                                        Minimum="0"
                                        Maximum="100"
                                        Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                       IsMuted="{Binding IsMuted}"
                                        AutomationProperties.Name="{Binding Name}" />
                 <ui:Button Grid.Column="2"
                            MinWidth="40"
