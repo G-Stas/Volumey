@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Windows;
@@ -24,9 +25,9 @@ internal sealed class NotificationService : INotificationService
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(NotificationService));
 	private static Dispatcher UiDispatcher => Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-	private OsdWindow window;
+	private OsdWindow? window;
 	private TimeSpan displayTime;
-	private IManagedMasterAudioSession example;
+	private IManagedMasterAudioSession? example;
 
 	/// <summary>The sample app's model takes it like every app model</summary>
 	private readonly IHotkeyService hotkeys;

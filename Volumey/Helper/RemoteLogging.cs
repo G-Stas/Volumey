@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿#nullable enable
+using System.Linq;
 using System.Reflection;
 using log4net.Layout;
 using log4net.loggly;
@@ -16,7 +17,7 @@ internal static class RemoteLogging
 	/// <summary>
 	/// The input key this build was made with, null for a build without remote logging
 	/// </summary>
-	internal static string BuildInputKey
+	internal static string? BuildInputKey
 		=> typeof(RemoteLogging).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
 								  .FirstOrDefault(a => a.Key == "LogglyInputKey")?.Value is { Length: > 0 } key ? key : null;
 

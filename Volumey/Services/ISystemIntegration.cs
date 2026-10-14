@@ -1,4 +1,5 @@
-﻿namespace Volumey.Services;
+﻿#nullable enable
+namespace Volumey.Services;
 
 /// <summary>
 /// Autostart and the Start Menu shortcut of the non-Store build (the Store build uses the manifest's startup task).

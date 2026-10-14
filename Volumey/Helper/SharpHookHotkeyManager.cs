@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,14 +20,14 @@ namespace Volumey.Helper;
 /// </summary>
 internal sealed class SharpHookHotkeyManager : IHotkeyManager
 {
-	public event Action<HotKey> HotkeyPressed;
+	public event Action<HotKey>? HotkeyPressed;
 
 	private readonly HashSet<HotKey> registeredHotkeys = new HashSet<HotKey>();
 	private readonly Lock sync = new Lock();
 	private readonly IGlobalHook hook;
-	private readonly SynchronizationContext syncContext;
+	private readonly SynchronizationContext? syncContext;
 
-	private static ILog logger;
+	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(SharpHookHotkeyManager));
 
 	/// <summary>
@@ -82,7 +83,7 @@ internal sealed class SharpHookHotkeyManager : IHotkeyManager
 	}
 
 	//runs on the hook's event loop thread: only match the keys here, the work happens on the UI thread
-	private void OnKeyPressed(object sender, KeyboardHookEventArgs e)
+	private void OnKeyPressed(object? sender, KeyboardHookEventArgs e)
 	{
 		var hotkey = ToHotkey(e.Data.RawCode, e.RawEvent.Mask);
 		if(hotkey == null)
@@ -108,7 +109,7 @@ internal sealed class SharpHookHotkeyManager : IHotkeyManager
 	/// Converts a key press to a hotkey. Returns null for a modifier key pressed on its own.
 	/// </summary>
 	/// <param name="virtualKeyCode">On Windows the raw code of a key event is its virtual-key code</param>
-	internal static HotKey ToHotkey(ushort virtualKeyCode, EventMask mask)
+	internal static HotKey? ToHotkey(ushort virtualKeyCode, EventMask mask)
 	{
 		var key = KeyInterop.KeyFromVirtualKey(virtualKeyCode);
 		switch(key)

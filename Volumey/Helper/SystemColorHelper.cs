@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using log4net;
 using Microsoft.Win32;
 using Volumey.DataProvider;
@@ -7,7 +8,7 @@ namespace Volumey.Helper;
 
 static class SystemColorHelper
 {
-	internal static Action<AppTheme> WindowsThemeChanged;
+	internal static Action<AppTheme>? WindowsThemeChanged;
 	internal static AppTheme WindowsTheme { get; private set; }
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(SystemColorHelper));
@@ -26,7 +27,7 @@ static class SystemColorHelper
 	{
 		try
 		{
-			var systemUsesLightTheme = (int)Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\", "SystemUsesLightTheme", -1);
+			var systemUsesLightTheme = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\", "SystemUsesLightTheme", -1) as int? ?? -1;
 			if(systemUsesLightTheme != -1)
 				return systemUsesLightTheme == 1 ? AppTheme.Light : AppTheme.Dark;
 		}
@@ -36,7 +37,7 @@ static class SystemColorHelper
 		}
 		try
 		{
-			var appsUseLightTheme = (int)Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\", "AppsUseLightTheme", -1);
+			var appsUseLightTheme = Registry.GetValue(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\", "AppsUseLightTheme", -1) as int? ?? -1;
 			if(appsUseLightTheme != -1)
 				return appsUseLightTheme == 1 ? AppTheme.Light : AppTheme.Dark;
 		}

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Volumey.Controls;
 
@@ -6,7 +7,7 @@ namespace Volumey.Helper;
 
 public interface IHotkeyManager : IDisposable
 {
-	event Action<HotKey> HotkeyPressed;
+	event Action<HotKey>? HotkeyPressed;
 	int RegisteredHotkeysCount { get; }
 	IReadOnlyList<HotKey> GetRegisteredHotkeys();
 	void RegisterHotkey(HotKey key);

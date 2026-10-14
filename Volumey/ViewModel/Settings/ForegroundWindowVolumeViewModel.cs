@@ -181,7 +181,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	/// </summary>
 	private static (string? name, string path, Exception? pathError) GetProcessNameAndPath(uint processId)
 	{
-		string path = NativeMethods.GetProcessPath((int)processId, out int error);
+		string? path = NativeMethods.GetProcessPath((int)processId, out int error);
 		if(path != null)
 			return (NativeMethods.ProcessNameFromPath(path), path, null);
 
