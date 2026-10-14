@@ -76,6 +76,8 @@ public sealed class AudioSessionModel : IManagedAudioSession
 	private readonly IAudioSessionStateNotifications sessionStateNotifications;
 	private readonly IAudioSessionVolume sessionVolume;
 	public event Action<AudioSessionModel> SessionEnded;
+	/// <summary>The session stopped playing, on a COM thread (also when its app exits: Windows keeps the session, inactive)</summary>
+	public event Action<AudioSessionModel> Deactivated;
 	public event Action<int, Guid> VolumeChanged;
 	public event Action<bool, Guid> MuteStateChanged;
 
@@ -98,11 +100,15 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		sessionStateNotifications = sStateNotifications;
 		sessionStateNotifications.VolumeChanged += OnVolumeChanged;
 		sessionStateNotifications.SessionEnded += OnSessionEnded;
+		sessionStateNotifications.Deactivated += OnDeactivated;
 		sessionStateNotifications.NameChanged += OnNameChanged;
 		sessionStateNotifications.Disconnected += OnDisconnected;
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
 	}
+
+	private void OnDeactivated()
+		=> Deactivated?.Invoke(this);
 
 	private void OnSessionEnded()
 		=> SessionEnded?.Invoke(this);
@@ -184,6 +190,7 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		_disposed = true;
 		sessionStateNotifications.VolumeChanged -= OnVolumeChanged;
 		sessionStateNotifications.SessionEnded -= OnSessionEnded;
+		sessionStateNotifications.Deactivated -= OnDeactivated;
 		sessionStateNotifications.NameChanged -= OnNameChanged;
 		sessionStateNotifications.Disconnected -= OnDisconnected;
 		sessionStateNotifications.Dispose();

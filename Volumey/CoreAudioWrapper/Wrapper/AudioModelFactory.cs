@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows.Media;
 using log4net;
@@ -157,12 +158,16 @@ internal static class AudioModelFactory
 		Process? proc = null;
 		isSystemSounds = false;
 		string processName = session.Name;
+		//the session's path (see CreateSessionModel), or its process ID when the path couldn't be read
+		string? path = Path.IsPathFullyQualified(session.FilePath) ? session.FilePath : null;
 
+		try { proc = Process.GetProcessById((int)session.ProcessId); }
+		catch { }
+
+		//from the file, not the process: it also works for apps that can't be opened (elevated, guarded by anti-cheat)
 		try
 		{
-			proc = Process.GetProcessById((int)session.ProcessId);
-			processName = proc.ProcessName;
-			if(proc.MainModule?.FileName is string file && FileVersionInfo.GetVersionInfo(file).FileDescription is { Length: > 0 } description)
+			if(path != null && FileVersionInfo.GetVersionInfo(path).FileDescription is { Length: > 0 } description)
 				processName = description;
 		}
 		catch { }
@@ -200,7 +205,7 @@ internal static class AudioModelFactory
 			else
 			{
 				//on the calling (COM) thread: icon extraction doesn't need the UI thread, and a COM callback must not wait for it
-				icon = ExtractSessionIcon(proc, processName, sControl);
+				icon = ExtractSessionIcon(session.ProcessId, path, processName, sControl);
 			}
 		}
 		catch(Exception e)
@@ -211,6 +216,8 @@ internal static class AudioModelFactory
 		}
 		//the model takes ownership of the process; the icon is a shared frozen image
 		AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc, hotkeys);
+		//an app that refuses a handle (e.g. a game guarded by anti-cheat) can't be watched for its exit through the process
+		model.WatchExitInProcessList();
 		return model;
 	}
 
@@ -225,14 +232,33 @@ internal static class AudioModelFactory
 		string filePath = processId.ToString();
 		string name = filePath;
 
-		try
+		//read once here: the app model takes its description and icon from the session's path.
+		//The System Sounds session (process 0) has no executable
+		int pathError = 0;
+		string? path = processId == 0 ? null : NativeMethods.GetProcessPath((int)processId, out pathError);
+		if(path != null)
 		{
-			//disposed: every new session opens a process handle
-			using Process proc = Process.GetProcessById((int)processId);
-			name = proc.ProcessName;
-			filePath = proc.MainModule?.FileName ?? filePath;
+			filePath = path;
+			name = NativeMethods.ProcessNameFromPath(path);
 		}
-		catch { }
+		else
+		{
+			//Windows keeps the sessions of exited apps (inactive), and nothing would ever remove their rows
+			if(processId != 0 && !NativeMethods.IsProcessRunning((int)processId))
+			{
+				Logger.Debug($"Skipped the session of the exited process {processId}");
+				return null;
+			}
+			if(processId != 0)
+				LogPathError(processId, pathError);
+			try
+			{
+				//disposed: every new session opens a process handle
+				using Process proc = Process.GetProcessById((int)processId);
+				name = proc.ProcessName;
+			}
+			catch { }
+		}
 
 		try
 		{
@@ -263,48 +289,40 @@ internal static class AudioModelFactory
 	}
 
 	/// <summary>
-	/// Path errors that are expected and only logged as debug (not sent to Loggly): access denied (elevated processes),
-	/// a general failure and an invalid parameter (the process is exiting or has exited).
+	/// Path errors that are expected and only logged as debug (not sent to Loggly): access denied (other users' processes,
+	/// games guarded by anti-cheat), a general failure and an invalid parameter (the process is exiting or has exited).
 	/// </summary>
 	private static bool IsExpectedPathError(int error)
 		=> error is (int)WIN32_ERROR.ERROR_ACCESS_DENIED or (int)WIN32_ERROR.ERROR_GEN_FAILURE or (int)WIN32_ERROR.ERROR_INVALID_PARAMETER;
 
-	private static bool HasExited(Process proc)
+	/// <summary>Neither the process nor the system's process list had the path</summary>
+	private static void LogPathError(uint processId, int error)
 	{
-		try { return proc.HasExited; }
-		catch { return true; }
+		if(IsExpectedPathError(error))
+			Logger.Debug($"Couldn't read the path of the process {processId}, error code {error}");
+		else
+			Logger.Error($"Failed to read the path of the process {processId}, error code {error}");
 	}
 
-	/// <param name="name">The app's name for the log (reading the name of an exited process throws)</param>
-	private static ImageSource? ExtractSessionIcon(Process? proc, string name, AudioSessionControl sc)
+	/// <summary>
+	/// The icon of the app's main window first, as the taskbar and Windows' volume mixer show it (an executable can give its window
+	/// another of its icons), then its executable's, the session's own icon path, and the generic program icon
+	/// </summary>
+	/// <param name="path">The app's executable, null if its path couldn't be read</param>
+	/// <param name="name">The app's name for the log</param>
+	private static ImageSource? ExtractSessionIcon(uint processId, string? path, string name, AudioSessionControl sc)
 	{
-		ImageSource? icon = null;
-		try
+		ImageSource? icon = IconHelper.GetWindowIconSource(processId);
+		if(icon == null && path != null)
 		{
-			//without the process (it has exited, or can't be opened) the session's own icon path is the only source
-			if(proc == null)
-				return TryExtractIconAlternatively(name, sc) ?? IconHelper.GenericExeIconSource;
-			string? path = NativeMethods.GetProcessImagePath(proc.Id, out int error);
-			if(path != null)
-				icon = IconHelper.GetIconSource(path, Icon.ExtractAssociatedIcon);
-			else if(IsExpectedPathError(error))
-				//the session's icon path is tried next
-				Logger.Debug($"Couldn't read the path of the process [{name}], error code {error}");
-			else
-				Logger.Error($"Failed to read the path of the process [{name}], error code {error}");
-
-			icon ??= TryExtractIconAlternatively(name, sc);
+			try { icon = IconHelper.GetAppIconSource(path); }
+			catch(Exception e)
+			{
+				//e.g. a file the user may not read; the session's own icon path is tried next
+				Logger.Debug($"Couldn't read the icon of [{name}] from [{path}]", e);
+			}
 		}
-		catch(Exception e)
-		{
-			//an app that exits while its icon is read is expected
-			if(proc != null && HasExited(proc))
-				Logger.Debug($"The process [{name}] exited while its icon was read");
-			else
-				Logger.Error($"Failed to extract icon from the process: [{name}]", e);
-			icon = TryExtractIconAlternatively(name, sc);
-		}
-		return icon ?? IconHelper.GenericExeIconSource;
+		return icon ?? TryExtractIconAlternatively(name, sc) ?? IconHelper.GenericExeIconSource;
 	}
 
 	private static ImageSource? TryExtractIconAlternatively(string name, AudioSessionControl sc)

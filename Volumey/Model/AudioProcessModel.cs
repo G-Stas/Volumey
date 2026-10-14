@@ -174,6 +174,7 @@ public class AudioProcessModel : IManagedMasterAudioSession
 			if(!Sessions.Contains(newSession))
 			{
 				newSession.SessionEnded += OnSessionEnded;
+				newSession.Deactivated += OnSessionDeactivated;
 				Sessions.Add(newSession);
 				newSession.IconSource = IconSource;
 				if(Sessions.Count == 1)
@@ -302,6 +303,55 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		InvokeExited();
 	}
 
+	private static readonly TimeSpan ExitCheckInterval = TimeSpan.FromSeconds(5);
+	private System.Threading.Timer _exitCheck;
+
+	/// <summary>
+	/// For an app whose process can't be watched for its exit (it refuses even a handle to wait on, e.g. a game guarded by anti-cheat):
+	/// looks for its sessions' processes in the system's process list every few seconds and raises <see cref="Exited"/> once none runs.
+	/// Windows keeps an exited app's sessions (inactive), so they don't end it. A restarted app's new session joins this model
+	/// (same executable), so the model lives on while any of its sessions' processes runs.
+	/// </summary>
+	internal void WatchExitInProcessList() => WatchExitInProcessList(ExitCheckInterval);
+
+	/// <param name="interval">How often the process list is checked</param>
+	internal void WatchExitInProcessList(TimeSpan interval)
+	{
+		if(_process != null || _processId == 0 || _exitCheck != null)
+			return;
+		_exitCheckInterval = interval;
+		_exitCheck = new System.Threading.Timer(_ => CheckExit(), null, interval, interval);
+	}
+
+	private TimeSpan _exitCheckInterval;
+
+	//a session goes inactive when its app stops playing, which is also the moment it exits: the next check comes right away
+	//(after a moment: the process can still be in the list while it shuts down)
+	private static readonly TimeSpan ExitCheckAfterDeactivation = TimeSpan.FromMilliseconds(500);
+
+	private void OnSessionDeactivated(AudioSessionModel session)
+	{
+		try { _exitCheck?.Change(ExitCheckAfterDeactivation, _exitCheckInterval); }
+		catch(ObjectDisposedException) { }
+	}
+
+	private void CheckExit()
+	{
+		//compared by path when it's known: process IDs are reused
+		string path = System.IO.Path.IsPathFullyQualified(FilePath) ? FilePath : null;
+		uint[] processIds;
+		lock(_sessionsLock)
+		{
+			processIds = Sessions.Select(s => s.ProcessId).Append(_processId).Where(id => id != 0).Distinct().ToArray();
+		}
+		foreach(uint processId in processIds)
+		{
+			if(NativeMethods.IsProcessRunning((int)processId, path))
+				return;
+		}
+		InvokeExited();
+	}
+
 	private void OnSessionEnded(AudioSessionModel endedSession)
 	{
 		if(endedSession != null)
@@ -311,6 +361,7 @@ public class AudioProcessModel : IManagedMasterAudioSession
 	private async Task ProcessEndedSession(AudioSessionModel endedSession)
 	{
 		endedSession.SessionEnded -= OnSessionEnded;
+		endedSession.Deactivated -= OnSessionDeactivated;
 		if(endedSession.EndedByFormatChange)
 			DeviceReconfigured?.Invoke(this);
 		await _dispatcher.InvokeAsync(() =>
@@ -372,6 +423,7 @@ public class AudioProcessModel : IManagedMasterAudioSession
 			_process.Exited -= OnProcessExited;
 			_process.Dispose();
 		}
+		_exitCheck?.Dispose();
 
 		if(_trackedSession != null)
 		{

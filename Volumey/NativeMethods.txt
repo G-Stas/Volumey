@@ -37,3 +37,14 @@ GetMessageTime
 GetWindowLongPtr
 SetWindowLongPtr
 WINDOW_EX_STYLE
+NtQuerySystemInformation
+QueryDosDevice
+UNICODE_STRING
+EnumWindows
+IsWindowVisible
+GetWindow
+SendMessageTimeout
+GetClassLongPtr
+WM_GETICON
+ICON_BIG
+ICON_SMALL2

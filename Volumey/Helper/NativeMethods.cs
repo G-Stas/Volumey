@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Windows.Input;
+using Windows.Wdk.System.SystemInformation;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.LibraryLoader;
@@ -54,6 +56,41 @@ static class NativeMethods
 	}
 
 	/// <summary>
+	/// The icon of an app's main window, which the taskbar and Windows' volume mixer show: its first visible top-level window that no
+	/// other window owns. Reading it needs no access to the process. The handle belongs to the app: don't destroy it.
+	/// Zero if the app has no such window or icon
+	/// </summary>
+	internal static IntPtr GetAppWindowIcon(uint processId)
+	{
+		HWND found = HWND.Null;
+		PInvoke.EnumWindows((window, _) =>
+		{
+			if(PInvoke.GetWindowThreadProcessId(window, out uint owner) != 0 && owner == processId && PInvoke.IsWindowVisible(window)
+			   && PInvoke.GetWindow(window, GET_WINDOW_CMD.GW_OWNER).IsNull)
+			{
+				found = window;
+				return false;
+			}
+			return true;
+		}, default);
+		if(found.IsNull)
+			return IntPtr.Zero;
+
+		//the icon set on the window; a hung app isn't waited for, and an app at a higher integrity level gets no message
+		foreach(uint size in (ReadOnlySpan<uint>)[PInvoke.ICON_BIG, PInvoke.ICON_SMALL2])
+		{
+			if(PInvoke.SendMessageTimeout(found, PInvoke.WM_GETICON, size, default, SEND_MESSAGE_TIMEOUT_FLAGS.SMTO_ABORTIFHUNG, 100, out nuint icon) != 0
+			   && icon != 0)
+				return (IntPtr)icon;
+		}
+		//else the icon of its window class
+		nuint classIcon = PInvoke.GetClassLongPtr(found, GET_CLASS_LONG_INDEX.GCLP_HICON);
+		if(classIcon == 0)
+			classIcon = PInvoke.GetClassLongPtr(found, GET_CLASS_LONG_INDEX.GCLP_HICONSM);
+		return (IntPtr)classIcon;
+	}
+
+	/// <summary>
 	/// Sends a press and a release of the key to the foreground window
 	/// </summary>
 	internal static void SimulateKeyPress(Key keyToSimulate)
@@ -66,7 +103,26 @@ static class NativeMethods
 	}
 
 	/// <summary>
-	/// The full path of a process's executable, null if the process can't be opened (e.g. it runs elevated)
+	/// The full path of a process's executable: read from the process, else from the system's process list
+	/// (<see cref="GetProcessImagePathFromSystem"/>). Null if neither has it (e.g. the process has exited)
+	/// </summary>
+	/// <param name="error">The Win32 error when the process couldn't be read (the path may still come from the process list)</param>
+	internal static string GetProcessPath(int processId, out int error)
+		=> GetProcessImagePath(processId, out error) ?? GetProcessImagePathFromSystem(processId);
+
+	/// <summary>
+	/// A process's name from its executable's path, the way <see cref="System.Diagnostics.Process.ProcessName"/> forms it:
+	/// the file name without ".exe" (other extensions stay). App hotkeys are saved by this name
+	/// </summary>
+	internal static string ProcessNameFromPath(string path)
+	{
+		string file = System.IO.Path.GetFileName(path);
+		return file.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? file[..^4] : file;
+	}
+
+	/// <summary>
+	/// The full path of a process's executable, null if the process can't be opened. It asks for limited query rights only,
+	/// which elevated apps of the same user also give; other users' processes and games guarded by anti-cheat refuse them
 	/// </summary>
 	/// <param name="error">The Win32 error when the path couldn't be read</param>
 	internal static string GetProcessImagePath(int processId, out int error)
@@ -94,5 +150,93 @@ static class NativeMethods
 		}
 		error = (int)WIN32_ERROR.ERROR_INSUFFICIENT_BUFFER;
 		return null;
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	private struct SYSTEM_PROCESS_ID_INFORMATION
+	{
+		public nint ProcessId;
+		public UNICODE_STRING ImageName;
+	}
+
+	//SystemProcessIdInformation: not in the SDK's documentation, but in Windows since Vista (Process Explorer and System Informer use it)
+	private const SYSTEM_INFORMATION_CLASS SystemProcessIdInformation = (SYSTEM_INFORMATION_CLASS)88;
+	private static readonly NTSTATUS StatusInfoLengthMismatch = new(unchecked((int)0xC0000004));
+
+	/// <summary>
+	/// The full path of a process's executable from the system's process list, without opening the process, so also for processes
+	/// that can't be opened (other users', protected ones, games guarded by anti-cheat). Null if the process isn't in the list
+	/// (it has exited) or its volume has no drive letter
+	/// </summary>
+	internal static string GetProcessImagePathFromSystem(int processId)
+		=> GetProcessImageKernelPath(processId) is { } kernelPath ? ToDosPath(kernelPath, DeviceOfDrive) : null;
+
+	/// <summary>
+	/// Whether the process runs, from the system's process list (no access to the process needed).
+	/// With <paramref name="expectedPath"/>, a process that now has its ID but runs another executable doesn't count (IDs are reused)
+	/// An exited process stays in the list while another program still holds a handle to it
+	/// </summary>
+	internal static bool IsProcessRunning(int processId, string expectedPath = null)
+	{
+		if(GetProcessImageKernelPath(processId) is not { } kernelPath)
+			return false;
+		if(string.IsNullOrEmpty(expectedPath) || ToDosPath(kernelPath, DeviceOfDrive) is not { } path)
+			return true;
+		return string.Equals(path, expectedPath, StringComparison.OrdinalIgnoreCase);
+	}
+
+	/// <summary>The process's executable as the kernel names it ("\Device\HarddiskVolume3\..."), null if the process isn't in the list</summary>
+	private static unsafe string GetProcessImageKernelPath(int processId)
+	{
+		var name = new char[260];
+		//the second attempt has the size the first one asked for
+		for(int attempt = 0; attempt < 2; attempt++)
+		{
+			fixed(char* buffer = name)
+			{
+				var info = new SYSTEM_PROCESS_ID_INFORMATION
+				{
+					ProcessId = processId,
+					ImageName = new UNICODE_STRING { MaximumLength = (ushort)(name.Length * sizeof(char)), Buffer = buffer }
+				};
+				NTSTATUS status = Windows.Wdk.PInvoke.NtQuerySystemInformation(SystemProcessIdInformation, &info, (uint)sizeof(SYSTEM_PROCESS_ID_INFORMATION), null);
+				if(status.SeverityCode == NTSTATUS.Severity.Success)
+					return new string(buffer, 0, info.ImageName.Length / sizeof(char));
+				if(status != StatusInfoLengthMismatch || info.ImageName.MaximumLength <= name.Length * sizeof(char))
+					return null;
+				name = new char[info.ImageName.MaximumLength / sizeof(char)];
+			}
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// A path in the kernel's form ("\Device\HarddiskVolume3\Games\app.exe") with its drive letter instead ("C:\Games\app.exe");
+	/// null if no drive letter's device holds it
+	/// </summary>
+	/// <param name="deviceOfDrive">The device of a drive ("C:" → "\Device\HarddiskVolume3"), null for a drive that doesn't exist</param>
+	internal static string ToDosPath(string ntPath, Func<string, string> deviceOfDrive)
+	{
+		for(char letter = 'A'; letter <= 'Z'; letter++)
+		{
+			string drive = $"{letter}:";
+			string device = deviceOfDrive(drive);
+			if(!string.IsNullOrEmpty(device) && ntPath.Length > device.Length && ntPath[device.Length] == '\\'
+			   && ntPath.StartsWith(device, StringComparison.OrdinalIgnoreCase))
+				return string.Concat(drive, ntPath.AsSpan(device.Length));
+		}
+		return null;
+	}
+
+	private static string DeviceOfDrive(string drive)
+	{
+		//a list of names, the current one first, each ending with a null character
+		Span<char> target = stackalloc char[260];
+		uint length = PInvoke.QueryDosDevice(drive, target);
+		if(length == 0)
+			return null;
+		var names = target[..(int)length];
+		int end = names.IndexOf('\0');
+		return (end < 0 ? names : names[..end]).ToString();
 	}
 }
