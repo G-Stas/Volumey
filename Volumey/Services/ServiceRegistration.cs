@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,5 +95,5 @@ internal static class ServiceRegistration
 		return services;
 	}
 
-	private static T Get<T>(this IServiceProvider provider) => provider.GetRequiredService<T>();
+	private static T Get<T>(this IServiceProvider provider) where T : notnull => provider.GetRequiredService<T>();
 }

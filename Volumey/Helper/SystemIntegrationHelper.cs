@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -25,11 +26,11 @@ internal static class SystemIntegrationHelper
 	//a debug build has its own names, so a dev run never re-points the autostart entry or the shortcut of the installed app
 	private static readonly string StartupRegistryKeyName = "Volumey" + Startup.InstanceSuffix;
 	private static readonly string StartMenuLinkName = "Volumey" + Startup.InstanceSuffix + ".lnk";
-	private static readonly string StartupRegistryValue;
+	private static readonly string? StartupRegistryValue;
 
 	static SystemIntegrationHelper()
 	{
-		string exePath = Environment.ProcessPath;
+		string? exePath = Environment.ProcessPath;
 		if(string.IsNullOrEmpty(exePath))
 		{
 			Logger.Error("Failed to retrieve .exe path.");
@@ -96,7 +97,7 @@ internal static class SystemIntegrationHelper
 			using(var key = baseKey.OpenSubKey(StartupRegistryPath, true))
 			{
 				var value = key?.GetValue(StartupRegistryKeyName);
-				if(!string.IsNullOrEmpty(value?.ToString()))
+				if(key != null && !string.IsNullOrEmpty(value?.ToString()))
 				{
 					if(StartupRegistryValue == null || StartupRegistryValue.Equals(value))
 						return true;
@@ -163,8 +164,8 @@ internal static class SystemIntegrationHelper
 		try
 		{
 			string linkPath = Path.Combine(StartMenuProgramsPath, StartMenuLinkName);
-			string exePath = Environment.ProcessPath;
-			if(!ReadShortcutTarget(linkPath).Equals(exePath))
+			string? exePath = Environment.ProcessPath;
+			if(exePath != null && !ReadShortcutTarget(linkPath).Equals(exePath))
 				SaveShortcut(linkPath, exePath);
 		}
 		catch { }

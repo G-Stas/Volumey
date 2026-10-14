@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -22,9 +23,9 @@ internal sealed class AppShell : IAppShell
 
 	public bool StartMinimized => Startup.StartMinimized;
 
-	public event Action SessionEnding;
+	public event Action? SessionEnding;
 
-	public event Action Exit;
+	public event Action? Exit;
 
 	public void Shutdown() => application.Shutdown();
 }

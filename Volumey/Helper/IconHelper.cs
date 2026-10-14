@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Concurrent;
 using System.Drawing;
@@ -19,7 +20,7 @@ namespace Volumey.Helper;
 /// </summary>
 static class IconHelper
 {
-	public static Icon GetFromDll(string filePath, int resourceId, bool largeIcon = true)
+	public static Icon? GetFromDll(string? filePath, int resourceId, bool largeIcon = true)
 	{
 		if(filePath == null)
 			return null;
@@ -44,7 +45,7 @@ static class IconHelper
 	/// Extracts an icon from a resource specifier ("file-path,resource-index", e.g. a device's or a session's icon path),
 	/// or from the file itself if it's a plain path. Null if neither works.
 	/// </summary>
-	public static Icon GetFromResourcePath(string iconPath)
+	public static Icon? GetFromResourcePath(string? iconPath)
 	{
 		if(string.IsNullOrEmpty(iconPath))
 			return null;
@@ -59,7 +60,7 @@ static class IconHelper
 		return GetFromFilePath(Environment.ExpandEnvironmentVariables(iconPath));
 	}
 
-	public static ImageSource GetAsImageSource(this Icon icon)
+	public static ImageSource? GetAsImageSource(this Icon icon)
 	{
 		try { return ToImageSource(icon.Handle); }
 		catch { return null; }
@@ -77,7 +78,7 @@ static class IconHelper
 	/// A file's icon (by its index among the file's icons) as a frozen image, straight from the extracted handle;
 	/// null if the file has no such icon
 	/// </summary>
-	private static ImageSource ReadIconSource(string filePath, int index)
+	private static ImageSource? ReadIconSource(string filePath, int index)
 	{
 		Span<HICON> extracted = stackalloc HICON[1];
 		PInvoke.ExtractIconEx(filePath, index, extracted, default);
@@ -87,7 +88,7 @@ static class IconHelper
 		finally { PInvoke.DestroyIcon(extracted[0]); }
 	}
 
-	public static Icon GetFromFilePath(string filePath)
+	public static Icon? GetFromFilePath(string filePath)
 	{
 		if(File.Exists(filePath))
 			return Icon.ExtractAssociatedIcon(filePath);
@@ -104,7 +105,7 @@ static class IconHelper
 	/// The icon at <paramref name="path"/> as a frozen image, read with <paramref name="extract"/> the first time; null if it can't be read
 	/// (not remembered: the next app with this path tries again)
 	/// </summary>
-	internal static ImageSource GetIconSource(string path, Func<string, Icon> extract)
+	internal static ImageSource? GetIconSource(string path, Func<string, Icon?> extract)
 		=> GetCached(path, p =>
 		{
 			using var icon = extract(p);
@@ -116,14 +117,14 @@ static class IconHelper
 	/// is empty (some programs have an empty first icon and give their window another one, e.g. Warcraft III's war3.exe).
 	/// Null if none of them shows anything
 	/// </summary>
-	internal static ImageSource GetAppIconSource(string exePath) => GetCached(exePath, ReadAppIcon);
+	internal static ImageSource? GetAppIconSource(string exePath) => GetCached(exePath, ReadAppIcon);
 
 	/// <summary>
 	/// The icon of an app's main window as a frozen image (see <see cref="NativeMethods.GetAppWindowIcon"/>); null if it has none
 	/// that shows something. Not cached: one executable can give its window different icons (war3.exe shows The Frozen Throne's
 	/// icon when it runs that expansion)
 	/// </summary>
-	internal static ImageSource GetWindowIconSource(uint processId)
+	internal static ImageSource? GetWindowIconSource(uint processId)
 	{
 		IntPtr icon = NativeMethods.GetAppWindowIcon(processId);
 		if(icon == IntPtr.Zero)
@@ -137,7 +138,7 @@ static class IconHelper
 		catch { return null; }
 	}
 
-	private static ImageSource GetCached(string path, Func<string, ImageSource> read)
+	private static ImageSource? GetCached(string path, Func<string, ImageSource?> read)
 	{
 		if(iconSources.TryGetValue(path, out var cached))
 			return cached;
@@ -150,7 +151,7 @@ static class IconHelper
 
 	//ExtractIconEx reads the exe's own icons, about three times faster than Icon.ExtractAssociatedIcon, which goes through the shell's
 	//file associations; an exe without icons gets the session's icon or the generic one from the caller instead
-	private static ImageSource ReadAppIcon(string exePath)
+	private static ImageSource? ReadAppIcon(string exePath)
 	{
 		var first = ReadIconSource(exePath, 0);
 		if(first == null || HasVisiblePixels(first))
@@ -184,10 +185,10 @@ static class IconHelper
 		return false;
 	}
 
-	private static ImageSource genericExeIconSource;
+	private static ImageSource? genericExeIconSource;
 
 	/// <summary>Windows' generic program icon as a frozen image, for apps whose own icon can't be read</summary>
-	internal static ImageSource GenericExeIconSource
+	internal static ImageSource? GenericExeIconSource
 	{
 		get
 		{
@@ -200,7 +201,7 @@ static class IconHelper
 		}
 	}
 
-	private static Icon GetGenericExeIcon()
+	private static Icon? GetGenericExeIcon()
 	{
 		//the icon is located in this file since win 10 1903 by index 11
 		string imageres = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"SystemResources\imageres.dll.mun");

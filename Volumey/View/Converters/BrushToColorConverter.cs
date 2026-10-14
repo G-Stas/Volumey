@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -14,7 +15,7 @@ public sealed class BrushToColorConverter : IValueConverter
 		return Binding.DoNothing;
 	}
 
-	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 	{
 		return null;
 	}

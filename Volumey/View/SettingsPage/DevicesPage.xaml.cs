@@ -1,4 +1,5 @@
-﻿using Volumey.ViewModel.Pages;
+﻿#nullable enable
+using Volumey.ViewModel.Pages;
 
 namespace Volumey.View.SettingsPage;
 

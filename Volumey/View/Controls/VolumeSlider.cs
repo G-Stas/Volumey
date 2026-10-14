@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -8,7 +9,7 @@ namespace Volumey.Controls;
 
 public sealed class VolumeSlider : Slider
 {
-	private Thumb _thumb;
+	private Thumb? _thumb;
 
 	public VolumeSlider()
 		=> Loaded += OnLoaded;

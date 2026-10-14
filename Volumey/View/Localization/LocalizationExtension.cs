@@ -1,4 +1,5 @@
-﻿using System.Windows.Data;
+﻿#nullable enable
+using System.Windows.Data;
 
 namespace Volumey.Localization;
 

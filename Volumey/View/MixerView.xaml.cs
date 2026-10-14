@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿#nullable enable
+using System.Windows;
 
 namespace Volumey.View;
 

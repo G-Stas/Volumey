@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿#nullable enable
+using System.Windows;
 using Volumey.ViewModel.Pages;
 using Wpf.Ui.Controls;
 

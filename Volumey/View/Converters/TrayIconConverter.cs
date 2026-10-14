@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
@@ -20,13 +21,13 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 	}
 
 	private IconType currentIconType = IconType.None;
-	private TrayIconProvider currentIconProvider;
-	private Icon curDeviceIcon;
+	private TrayIconProvider? currentIconProvider;
+	private Icon? curDeviceIcon;
 	//one provider per theme: a provider caches its icons, a new one on every theme switch would leak them
-	private LightIconProvider lightIconProvider;
-	private DarkIconProvider darkIconProvider;
+	private LightIconProvider? lightIconProvider;
+	private DarkIconProvider? darkIconProvider;
 
-	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
 		if(values[4] is bool displayDeviceIconAtTray && displayDeviceIconAtTray && values[5] is Icon defaultDeviceIcon)
 		{
@@ -56,16 +57,17 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 					newIconProvider = true;
 				}
 			}
-			return GetIcon(values, newIconProvider);
+			return GetIcon(values, currentIconProvider, newIconProvider);
 		}
 		return Binding.DoNothing;
 	}
 
 	/// <summary></summary>
 	/// <param name="values"></param>
+	/// <param name="iconProvider">The provider of the current theme</param>
 	/// <param name="newIconProvider">Flag used to indicate that the color of the current icon has to change</param>
 	/// <returns></returns>
-	private object GetIcon(object[] values, bool newIconProvider)
+	private object? GetIcon(object[] values, TrayIconProvider iconProvider, bool newIconProvider)
 	{
 		var type = IconType.None;
 		if(values[0] is true) //NoOutputDevices
@@ -80,8 +82,8 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 		if((currentIconType == type || type == IconType.None) && !newIconProvider)
 			return Binding.DoNothing;
 		currentIconType = type;
-		return currentIconProvider.GetIcon(type);
+		return iconProvider.GetIcon(type);
 	}
 
-	public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
+	public object[]? ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
 }

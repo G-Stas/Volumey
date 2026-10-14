@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Diagnostics;
 using log4net;
@@ -33,22 +34,22 @@ internal sealed class BindingErrorListener : TraceListener
 		source.Switch.Level |= SourceLevels.Error;
 	}
 
-	internal static string Format(int id, string message) => $"{Prefix} {id}: {message}";
+	internal static string Format(int id, string? message) => $"{Prefix} {id}: {message}";
 
-	public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
+	public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? message)
 	{
 		if(eventType <= TraceEventType.Error)
 			write(Format(id, message));
 	}
 
-	public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
+	public override void TraceEvent(TraceEventCache? eventCache, string source, TraceEventType eventType, int id, string? format, params object?[]? args)
 	{
 		if(eventType <= TraceEventType.Error)
-			write(Format(id, args is { Length: > 0 } ? string.Format(format, args) : format));
+			write(Format(id, format != null && args is { Length: > 0 } ? string.Format(format, args) : format));
 	}
 
 	//WPF reports binding failures as trace events; plain writes carry no event type
-	public override void Write(string message) { }
+	public override void Write(string? message) { }
 
-	public override void WriteLine(string message) { }
+	public override void WriteLine(string? message) { }
 }

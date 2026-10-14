@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿#nullable enable
+using System.ComponentModel;
 using Volumey.View.SettingsPage;
 using Volumey.ViewModel;
 using Wpf.Ui.Abstractions;

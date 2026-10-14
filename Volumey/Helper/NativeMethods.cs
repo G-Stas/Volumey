@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using Windows.Wdk.System.SystemInformation;
@@ -107,7 +108,7 @@ static class NativeMethods
 	/// (<see cref="GetProcessImagePathFromSystem"/>). Null if neither has it (e.g. the process has exited)
 	/// </summary>
 	/// <param name="error">The Win32 error when the process couldn't be read (the path may still come from the process list)</param>
-	internal static string GetProcessPath(int processId, out int error)
+	internal static string? GetProcessPath(int processId, out int error)
 		=> GetProcessImagePath(processId, out error) ?? GetProcessImagePathFromSystem(processId);
 
 	/// <summary>
@@ -125,7 +126,7 @@ static class NativeMethods
 	/// which elevated apps of the same user also give; other users' processes and games guarded by anti-cheat refuse them
 	/// </summary>
 	/// <param name="error">The Win32 error when the path couldn't be read</param>
-	internal static string GetProcessImagePath(int processId, out int error)
+	internal static string? GetProcessImagePath(int processId, out int error)
 	{
 		using var process = PInvoke.OpenProcess_SafeHandle(Windows.Win32.System.Threading.PROCESS_ACCESS_RIGHTS.PROCESS_QUERY_LIMITED_INFORMATION,
 			false, (uint)processId);
@@ -168,7 +169,7 @@ static class NativeMethods
 	/// that can't be opened (other users', protected ones, games guarded by anti-cheat). Null if the process isn't in the list
 	/// (it has exited) or its volume has no drive letter
 	/// </summary>
-	internal static string GetProcessImagePathFromSystem(int processId)
+	internal static string? GetProcessImagePathFromSystem(int processId)
 		=> GetProcessImageKernelPath(processId) is { } kernelPath ? ToDosPath(kernelPath, DeviceOfDrive) : null;
 
 	/// <summary>
@@ -176,7 +177,7 @@ static class NativeMethods
 	/// With <paramref name="expectedPath"/>, a process that now has its ID but runs another executable doesn't count (IDs are reused)
 	/// An exited process stays in the list while another program still holds a handle to it
 	/// </summary>
-	internal static bool IsProcessRunning(int processId, string expectedPath = null)
+	internal static bool IsProcessRunning(int processId, string? expectedPath = null)
 	{
 		if(GetProcessImageKernelPath(processId) is not { } kernelPath)
 			return false;
@@ -186,7 +187,7 @@ static class NativeMethods
 	}
 
 	/// <summary>The process's executable as the kernel names it ("\Device\HarddiskVolume3\..."), null if the process isn't in the list</summary>
-	private static unsafe string GetProcessImageKernelPath(int processId)
+	private static unsafe string? GetProcessImageKernelPath(int processId)
 	{
 		var name = new char[260];
 		//the second attempt has the size the first one asked for
@@ -215,12 +216,12 @@ static class NativeMethods
 	/// null if no drive letter's device holds it
 	/// </summary>
 	/// <param name="deviceOfDrive">The device of a drive ("C:" → "\Device\HarddiskVolume3"), null for a drive that doesn't exist</param>
-	internal static string ToDosPath(string ntPath, Func<string, string> deviceOfDrive)
+	internal static string? ToDosPath(string ntPath, Func<string, string?> deviceOfDrive)
 	{
 		for(char letter = 'A'; letter <= 'Z'; letter++)
 		{
 			string drive = $"{letter}:";
-			string device = deviceOfDrive(drive);
+			string? device = deviceOfDrive(drive);
 			if(!string.IsNullOrEmpty(device) && ntPath.Length > device.Length && ntPath[device.Length] == '\\'
 			   && ntPath.StartsWith(device, StringComparison.OrdinalIgnoreCase))
 				return string.Concat(drive, ntPath.AsSpan(device.Length));
@@ -228,7 +229,7 @@ static class NativeMethods
 		return null;
 	}
 
-	private static string DeviceOfDrive(string drive)
+	private static string? DeviceOfDrive(string drive)
 	{
 		//a list of names, the current one first, each ending with a null character
 		Span<char> target = stackalloc char[260];

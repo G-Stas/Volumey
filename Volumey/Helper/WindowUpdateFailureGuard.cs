@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ internal sealed class WindowUpdateFailureGuard
 	private readonly Func<DateTime> now;
 	private DateTime? lastReport;
 	private int unreported;
-	private DispatcherTimer refreshTimer;
+	private DispatcherTimer? refreshTimer;
 
 	internal WindowUpdateFailureGuard(Func<DateTime> now) => this.now = now;
 
@@ -51,12 +52,13 @@ internal sealed class WindowUpdateFailureGuard
 	{
 		if(refreshTimer == null)
 		{
-			refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher) { Interval = RefreshDelay };
-			refreshTimer.Tick += (s, e) =>
+			var timer = new DispatcherTimer(DispatcherPriority.Background, dispatcher) { Interval = RefreshDelay };
+			timer.Tick += (s, e) =>
 			{
-				refreshTimer.Stop();
+				timer.Stop();
 				RefreshWindows(Application.Current.Windows.OfType<Window>());
 			};
+			refreshTimer = timer;
 		}
 		refreshTimer.Stop();
 		refreshTimer.Start();

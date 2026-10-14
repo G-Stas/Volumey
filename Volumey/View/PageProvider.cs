@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using Wpf.Ui.Abstractions;
 
@@ -15,5 +16,5 @@ internal sealed class PageProvider : INavigationViewPageProvider
 		this.services = services;
 	}
 
-	public object GetPage(Type pageType) => services.GetService(pageType);
+	public object? GetPage(Type pageType) => services.GetService(pageType);
 }

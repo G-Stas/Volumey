@@ -1,3 +1,4 @@
+#nullable enable
 using System.Drawing;
 
 namespace Volumey.Helper;

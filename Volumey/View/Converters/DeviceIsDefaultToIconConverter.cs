@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using Volumey.Model;
@@ -11,7 +12,7 @@ namespace Volumey.View.Converters;
 /// </summary>
 public sealed class DeviceIsDefaultToIconConverter : IMultiValueConverter
 {
-	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
 		//a new element each time: an element can have only one parent, and a shared one could still belong to the previous
 		//default device's menu item when the new one takes it, which throws

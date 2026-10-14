@@ -1,4 +1,5 @@
-﻿using Volumey.ViewModel.Settings;
+﻿#nullable enable
+using Volumey.ViewModel.Settings;
 
 namespace Volumey.View.SettingsPage;
 

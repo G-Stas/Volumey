@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Volumey.Helper;
 /// </summary>
 internal sealed class HotkeyManager : IHotkeyManager
 {
-	public event Action<HotKey> HotkeyPressed;
+	public event Action<HotKey>? HotkeyPressed;
 
 	private readonly Dictionary<HotKey, int> RegisteredHotkeys = new Dictionary<HotKey, int>();
 	private readonly IntPtr handle;
@@ -24,7 +25,7 @@ internal sealed class HotkeyManager : IHotkeyManager
 	private int keyId;
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(HotkeyManager));
 
-	private readonly SynchronizationContext syncContext;
+	private readonly SynchronizationContext? syncContext;
 	private readonly IWin32 win32;
 
 	/// <summary></summary>

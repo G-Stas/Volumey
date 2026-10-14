@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Volumey.Helper;
 using Windows.Win32;
 using Windows.Win32.System.Recovery;
@@ -23,7 +24,7 @@ internal sealed class WindowMessages
 	/// <summary>
 	/// Gets the lParam of WM_HOTKEY (the blocking hotkey manager's handler)
 	/// </summary>
-	public Action<int> HotkeyMessageHandler { get; set; }
+	public Action<int>? HotkeyMessageHandler { get; set; }
 
 	public WindowMessages(IWin32 win32, IntPtr hwnd)
 	{

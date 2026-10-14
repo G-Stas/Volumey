@@ -1,4 +1,5 @@
-﻿//  MIT License
+﻿#nullable enable
+//  MIT License
 //
 //  Copyright (c) .NET Foundation and Contributors. All rights reserved.
 //
@@ -55,9 +56,9 @@ public sealed class HotKeyBox : TextBox
 	/// <summary>
 	/// Gets or sets the <see cref="HotKey"/> for this <see cref="HotKeyBox"/>.
 	/// </summary>
-	public HotKey HotKey
+	public HotKey? HotKey
 	{
-		get => (HotKey)GetValue(HotKeyProperty);
+		get => (HotKey?)GetValue(HotKeyProperty);
 		set => SetValue(HotKeyProperty, value);
 	}
 
@@ -125,7 +126,7 @@ public sealed class HotKeyBox : TextBox
 
 	private void TextBoxOnTextChanged(object sender, TextChangedEventArgs args)
 	{
-		this!.SelectionStart = Text.Length;
+		SelectionStart = Text.Length;
 		if(Text.Length == 0)
 			HotKey = null;
 	}
@@ -138,14 +139,14 @@ public sealed class HotKeyBox : TextBox
 		= DependencyProperty.RegisterAttached("HotkeyService", typeof(IHotkeyService), typeof(HotKeyBox),
 			new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
 
-	public static IHotkeyService GetHotkeyService(DependencyObject element) => (IHotkeyService)element.GetValue(HotkeyServiceProperty);
+	public static IHotkeyService? GetHotkeyService(DependencyObject element) => (IHotkeyService?)element.GetValue(HotkeyServiceProperty);
 
-	public static void SetHotkeyService(DependencyObject element, IHotkeyService value) => element.SetValue(HotkeyServiceProperty, value);
+	public static void SetHotkeyService(DependencyObject element, IHotkeyService? value) => element.SetValue(HotkeyServiceProperty, value);
 
 	private bool editing;
 
 	/// <summary>The service told about the editing: a box that left its page (Unloaded) no longer inherits one</summary>
-	private IHotkeyService editingService;
+	private IHotkeyService? editingService;
 
 	private void TextBoxOnGotFocus(object sender, RoutedEventArgs routedEventArgs)
 	{
@@ -249,12 +250,12 @@ public sealed class HotKeyBox : TextBox
 	/// "Ctrl+K: Used by another app" after a combination someone else holds was typed (the template shows it under the box);
 	/// null otherwise. Cleared by the next key press.
 	/// </summary>
-	public string TakenMessage => (string)GetValue(TakenMessageProperty);
+	public string? TakenMessage => (string?)GetValue(TakenMessageProperty);
 
-	private HotKey takenHotkey;
-	private string takenKey;
+	private HotKey? takenHotkey;
+	private string? takenKey;
 
-	private void SetTaken(HotKey hotkey, string messageKey)
+	private void SetTaken(HotKey? hotkey, string? messageKey)
 	{
 		if(takenKey == null && messageKey == null)
 			return;
@@ -265,9 +266,9 @@ public sealed class HotKeyBox : TextBox
 
 	private void UpdateTakenMessage()
 	{
-		string message = takenKey == null
+		string? message = takenKey == null
 							 ? null
-							 : string.Format(TranslationSource.Instance["Error_RejectedHotkey"], takenHotkey, TranslationSource.Instance[takenKey]);
+							 : string.Format(TranslationSource.Instance["Error_RejectedHotkey"] ?? "{0}: {1}", takenHotkey, TranslationSource.Instance[takenKey]);
 		SetValue(TakenMessagePropertyKey, message);
 		//a text box doesn't expose its template's text to UI Automation, so screen readers (and the UI tests) get it as the box's help text
 		if(message == null)
@@ -278,7 +279,7 @@ public sealed class HotKeyBox : TextBox
 
 	//the message follows a language switch, like the rest of the settings; only while loaded, so the app-wide
 	//language source doesn't keep boxes of closed pages alive
-	private void OnLanguageChanged(object sender, PropertyChangedEventArgs e) => UpdateTakenMessage();
+	private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e) => UpdateTakenMessage();
 
 	public HotKeyBox()
 	{
@@ -330,17 +331,16 @@ public sealed class HotKeyBox : TextBox
 	/// <summary>
 	/// Shown in the empty box (the settings style sets it for every box)
 	/// </summary>
-	public string PlaceholderText
+	public string? PlaceholderText
 	{
-		get => (string)GetValue(PlaceholderTextProperty);
+		get => (string?)GetValue(PlaceholderTextProperty);
 		set => SetValue(PlaceholderTextProperty, value);
 	}
 
 	private void UpdateText()
 	{
-		var hotkey = HotKey;
-		bool none = hotkey is null || hotkey.Key == Key.None;
-		Text = none ? string.Empty : hotkey.ToString();
-		SetValue(KeyNamesPropertyKey, none ? Array.Empty<string>() : hotkey.GetKeyNames());
+		var hotkey = HotKey is { Key: not Key.None } set ? set : null;
+		Text = hotkey?.ToString() ?? string.Empty;
+		SetValue(KeyNamesPropertyKey, hotkey?.GetKeyNames() ?? Array.Empty<string>());
 	}
 }

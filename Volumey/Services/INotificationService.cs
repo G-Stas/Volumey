@@ -1,4 +1,5 @@
-﻿using Volumey.DataProvider.Settings;
+﻿#nullable enable
+using Volumey.DataProvider.Settings;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
 

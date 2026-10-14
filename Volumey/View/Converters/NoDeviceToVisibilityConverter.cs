@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -29,5 +30,5 @@ public sealed class NoDeviceToVisibilityConverter : IValueConverter
 		return Binding.DoNothing;
 	}
 
-	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => null;
+	public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => null;
 }

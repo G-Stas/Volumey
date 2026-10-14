@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Windows.Threading;
 
 namespace Volumey.Services;
@@ -18,12 +19,12 @@ public interface IAppShell
 	/// <summary>
 	/// Windows is logging off or shutting down
 	/// </summary>
-	event Action SessionEnding;
+	event Action? SessionEnding;
 
 	/// <summary>
 	/// The application is exiting
 	/// </summary>
-	event Action Exit;
+	event Action? Exit;
 
 	void Shutdown();
 }

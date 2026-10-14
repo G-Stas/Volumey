@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Runtime.InteropServices;
 using Volumey.CoreAudioWrapper.CoreAudio.Enums;
 using Volumey.CoreAudioWrapper.Wrapper;

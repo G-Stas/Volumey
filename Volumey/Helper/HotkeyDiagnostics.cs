@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -39,8 +40,8 @@ internal static class HotkeyDiagnostics
 		=> Logger.Debug($"Foreground hotkey [{hotkey}] pressed, foreground window: {DescribeForegroundWindow()}");
 
 	[Conditional("DEBUG")]
-	internal static void ForegroundLookup(uint foregroundPid, string processName, string filePath, Exception pathError,
-		IEnumerable<AudioProcessModel> mixerApps, AudioProcessModel match, double elapsedMs)
+	internal static void ForegroundLookup(uint foregroundPid, string? processName, string? filePath, Exception? pathError,
+		IEnumerable<AudioProcessModel> mixerApps, AudioProcessModel? match, double elapsedMs)
 	{
 		string path = pathError != null ? $"path not readable ({pathError.GetType().Name}: {pathError.Message})" : $"path [{filePath}]";
 		string apps = string.Join(", ", mixerApps.Select(p => $"{p.RawProcessName}({p.ProcessId})"));
@@ -52,7 +53,7 @@ internal static class HotkeyDiagnostics
 	internal static void ForegroundVolumeSet(AudioProcessModel process, int volume)
 		=> Logger.Debug($"Foreground app [{process.RawProcessName}] volume set to {volume}");
 
-	private static string MatchedBy(AudioProcessModel match, uint pid, string processName, string filePath)
+	private static string MatchedBy(AudioProcessModel match, uint pid, string? processName, string? filePath)
 	{
 		if(match.ProcessId == pid)
 			return "pid";

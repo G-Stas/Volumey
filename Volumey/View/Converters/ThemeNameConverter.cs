@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Globalization;
 using System.Windows.Data;
 using Volumey.DataProvider;
@@ -12,7 +13,7 @@ namespace Volumey.View.Converters;
 /// </summary>
 public sealed class ThemeNameConverter : IMultiValueConverter
 {
-	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
 		if(values is { Length: > 0 } && values[0] is AppTheme theme)
 			return TranslationSource.Instance["Theme_" + theme];
