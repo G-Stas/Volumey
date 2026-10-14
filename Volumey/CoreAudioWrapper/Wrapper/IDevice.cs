@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Windows.Media;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
 
@@ -13,8 +12,6 @@ public interface IDevice : IDisposable
 	string GetFriendlyName();
 
 	string GetDeviceDesc();
-
-	ImageSource? GetIconSource();
 
 	/// <summary>
 	/// A new icon owned by the caller, or null if the device has none (or it can't be read)
