@@ -37,3 +37,6 @@ GetMessageTime
 GetWindowLongPtr
 SetWindowLongPtr
 WINDOW_EX_STYLE
+NtQuerySystemInformation
+QueryDosDevice
+UNICODE_STRING

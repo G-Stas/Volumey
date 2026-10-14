@@ -2,7 +2,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -175,14 +174,15 @@ public partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	}
 
 	/// <summary>
-	/// Reads the path with QueryFullProcessImageName, which also works for elevated apps and games protected by anti-cheat
-	/// (they don't let other processes read their modules). The name falls back to the process list when the path can't be read.
+	/// Reads the path from the process or the system's process list (<see cref="NativeMethods.GetProcessPath"/>), which also works for
+	/// elevated apps and games guarded by anti-cheat (they don't let other processes read their modules).
+	/// The name falls back to the process list when the path can't be read.
 	/// </summary>
 	private static (string name, string path, Exception pathError) GetProcessNameAndPath(uint processId)
 	{
-		string path = NativeMethods.GetProcessImagePath((int)processId, out int error);
+		string path = NativeMethods.GetProcessPath((int)processId, out int error);
 		if(path != null)
-			return (Path.GetFileNameWithoutExtension(path), path, null);
+			return (NativeMethods.ProcessNameFromPath(path), path, null);
 
 		string name = null;
 		try
