@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Threading;
 using Newtonsoft.Json;
@@ -22,7 +23,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 
 	private readonly object saveLock = new object();
 
-	public override string FileName { get; set; }
+	public override string FileName { get; set; } = null!;
 
 	public int Version { get; set; } = CurrentVersion;
 
@@ -31,7 +32,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	public HotkeySettings Hotkeys { get; set; } = new HotkeySettings();
 	public NotificationSettings Notifications { get; set; } = new NotificationSettings();
 
-	protected override JsonSerializerSettings OverrideSerializerSettings { get; set; } = CreateSerializerSettings();
+	protected override JsonSerializerSettings? OverrideSerializerSettings { get; set; } = CreateSerializerSettings();
 
 	public VolumeySettings() { }
 	public VolumeySettings(string fileName) : base(fileName) { }
@@ -42,8 +43,8 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	/// </summary>
 	internal static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(300);
 
-	private Timer saveTimer;
-	private string pendingFile;
+	private Timer? saveTimer;
+	private string? pendingFile;
 
 	/// <summary>
 	/// Called by autosave on every change: schedules the write (see <see cref="SaveDelay"/>). <see cref="Flush"/> writes it at once.
@@ -65,7 +66,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	{
 		lock(writeLock)
 		{
-			string file;
+			string? file;
 			lock(saveLock)
 			{
 				file = pendingFile;
@@ -88,7 +89,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	/// <summary>
 	/// Writes the file at once (loading and migration need that).
 	/// </summary>
-	public void SaveNow(string filename = null)
+	public void SaveNow(string? filename = null)
 	{
 		lock(writeLock)
 			base.Save(filename ?? FileName);

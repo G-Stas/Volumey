@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Formats.Nrbf;
@@ -41,8 +42,8 @@ internal static class LegacySettingsImporter
 		ReadDouble(root, "windowTop", v => window.Top = v);
 		//1.x stored screens by their index in the list of screens, which changes order when a monitor is detected late.
 		//The index meant the screens as they are now, so that's the best guess for the name
-		IReadOnlyList<ScreenInfo> screens = null;
-		string ScreenNameAt(int index)
+		IReadOnlyList<ScreenInfo>? screens = null;
+		string? ScreenNameAt(int index)
 		{
 			screens ??= getScreens();
 			return index >= 0 && index < screens.Count ? screens[index].Name : null;
@@ -72,7 +73,7 @@ internal static class LegacySettingsImporter
 		var apps = new List<AppHotkeysEntry>();
 
 		//the oldest versions stored a single app's hotkeys in VolumeUp/VolumeDown together with MusicAppName
-		string musicAppName = GetString(record, "<MusicAppName>k__BackingField");
+		string? musicAppName = GetString(record, "<MusicAppName>k__BackingField");
 		if(musicAppName != null && volumeUp != null && volumeDown != null)
 			apps.Add(new AppHotkeysEntry { ProcessName = musicAppName, VolumeUp = volumeUp, VolumeDown = volumeDown });
 		else
@@ -93,7 +94,7 @@ internal static class LegacySettingsImporter
 			var tuple = pair.GetClassRecord("value");
 			var up = ReadSerializableHotkey(tuple?.GetClassRecord("Item1"));
 			var down = ReadSerializableHotkey(tuple?.GetClassRecord("Item2"));
-			string processName = pair.GetString("key");
+			string? processName = pair.GetString("key");
 			if(processName != null && up != null && down != null)
 				apps.Add(new AppHotkeysEntry { ProcessName = processName, VolumeUp = up, VolumeDown = down });
 		}
@@ -131,13 +132,13 @@ internal static class LegacySettingsImporter
 		hotkeys.System = systemHotkeys;
 	}
 
-	private static HotKey ReadHotkey(ClassRecord record, string keyMember, string modifiersMember)
+	private static HotKey? ReadHotkey(ClassRecord record, string keyMember, string modifiersMember)
 		=> ToHotkey(ReadEnumValue(record, keyMember), ReadEnumValue(record, modifiersMember));
 
-	private static HotKey ReadSerializableHotkey(ClassRecord record)
+	private static HotKey? ReadSerializableHotkey(ClassRecord? record)
 		=> record == null ? null : ToHotkey(ReadEnumValue(record, "_key"), ReadEnumValue(record, "_modifierKeys"));
 
-	private static HotKey ToHotkey(int? key, int? modifiers)
+	private static HotKey? ToHotkey(int? key, int? modifiers)
 	{
 		var k = (Key)(key ?? 0);
 		var m = (ModifierKeys)(modifiers ?? 0);
@@ -158,17 +159,17 @@ internal static class LegacySettingsImporter
 		}
 	}
 
-	private static SerializationRecord[] GetRecords(ClassRecord owner, string member)
+	private static SerializationRecord?[] GetRecords(ClassRecord owner, string member)
 	{
 		if(owner.HasMember(member) && owner.GetArrayRecord(member) is SZArrayRecord<SerializationRecord> array)
 			return array.GetArray();
-		return Array.Empty<SerializationRecord>();
+		return Array.Empty<SerializationRecord?>();
 	}
 
-	private static ClassRecord GetClass(ClassRecord owner, string member)
+	private static ClassRecord? GetClass(ClassRecord owner, string member)
 		=> owner.HasMember(member) ? owner.GetClassRecord(member) : null;
 
-	private static string GetString(ClassRecord owner, string member)
+	private static string? GetString(ClassRecord owner, string member)
 		=> owner.HasMember(member) ? owner.GetString(member) : null;
 
 	/// <summary>

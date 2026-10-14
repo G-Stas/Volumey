@@ -1,3 +1,4 @@
+#nullable enable
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -9,8 +10,8 @@ namespace Volumey.DataProvider.Settings;
 /// </summary>
 public abstract class SettingsSection : INotifyPropertyChanged
 {
-	public event PropertyChangedEventHandler PropertyChanged;
+	public event PropertyChangedEventHandler? PropertyChanged;
 
-	protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }

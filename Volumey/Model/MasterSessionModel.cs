@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -19,7 +20,7 @@ namespace Volumey.Model;
 /// </summary>
 public sealed class MasterSessionModel : IManagedMasterAudioSession
 {
-	private string deviceFriendlyName;
+	private string deviceFriendlyName = string.Empty;
 	public string DeviceFriendlyName
 	{
 		get => deviceFriendlyName;
@@ -30,7 +31,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
-	private string deviceDesc;
+	private string deviceDesc = string.Empty;
 	public string DeviceDesc
 	{
 		get => deviceDesc;
@@ -96,8 +97,8 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
-	private ImageSource _iconSource;
-	public ImageSource IconSource
+	private ImageSource? _iconSource;
+	public ImageSource? IconSource
 	{
 		get => _iconSource;
 		set
@@ -107,8 +108,8 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
-	private Icon _icon;
-	public Icon Icon
+	private Icon? _icon;
+	public Icon? Icon
 	{
 		get => _icon;
 		set
@@ -120,25 +121,25 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 
 	public ICommand MuteCommand { get; set; }
 
-	private HotKey volumeUp;
-	private HotKey volumeDown;
-	private HotKey muteKey;
+	private HotKey? volumeUp;
+	private HotKey? volumeDown;
+	private HotKey? muteKey;
 
 	private bool volumeHotkeysRegistered;
 	private bool muteHotkeyRegistered;
 
 	public bool AnyHotkeyRegistered => volumeHotkeysRegistered || muteHotkeyRegistered;
 
-	public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
+	public IAudioProcessStateMediator? StateNotificationMediator { get; private set; }
 
 	private readonly IHotkeyService hotkeys;
 	private IAudioSessionVolume masterVolume { get; }
 	private IMasterVolumeNotificationHandler notificationHandler { get; }
-	private static ILog logger;
+	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
 	public MasterSessionModel(string friendlyName, string desc,
-		int volume, bool muteState, string id, Icon icon,
+		int volume, bool muteState, string id, Icon? icon,
 		IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler, IHotkeyService hotkeys)
 	{
 		this.hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
@@ -146,7 +147,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		_isMuted = muteState;
 		_id = id;
 		_icon = icon;
-		_iconSource = icon.GetAsImageSource();
+		_iconSource = icon?.GetAsImageSource();
 		Name = friendlyName;
 		FilePath = Name;
 		DeviceDesc = desc;
@@ -160,7 +161,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) => SetVolumeHotkeys(volUp, volDown, out _);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey failed)
+	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey? failed)
 	{
 		failed = null;
 		try
@@ -345,9 +346,9 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		Logger.Info($"Failed to change state of the master session, HRESULT 0x{e.HResult:X8}", e);
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
+	public event PropertyChangedEventHandler? PropertyChanged;
 
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	private bool disposed;

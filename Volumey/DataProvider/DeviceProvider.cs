@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -19,12 +20,12 @@ namespace Volumey.DataProvider;
 public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 {
 	public ObservableCollection<OutputDeviceModel> ActiveDevices { get; } = new ObservableCollection<OutputDeviceModel>();
-	public event Action<OutputDeviceModel> DeviceDisabled;
-	public event Action<OutputDeviceModel> DefaultDeviceChanged;
-	public event Action<OutputDeviceModel, OutputDeviceModel> DeviceReplaced;
+	public event Action<OutputDeviceModel>? DeviceDisabled;
+	public event Action<OutputDeviceModel?>? DefaultDeviceChanged;
+	public event Action<OutputDeviceModel, OutputDeviceModel>? DeviceReplaced;
 
-	private OutputDeviceModel defaultDevice;
-	public OutputDeviceModel DefaultDevice
+	private OutputDeviceModel? defaultDevice;
+	public OutputDeviceModel? DefaultDevice
 	{
 		get => defaultDevice;
 		set
@@ -48,14 +49,14 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	}
 
 	//null until Windows audio could be reached (see Create)
-	private IDeviceStateNotificationHandler deviceStateNotificationHandler;
-	private IDeviceEnumerator deviceEnumerator;
+	private IDeviceStateNotificationHandler? deviceStateNotificationHandler;
+	private IDeviceEnumerator? deviceEnumerator;
 
 	/// <summary>Delays of the attempts to rebuild a reconfigured device: Windows may still be busy right after the notification</summary>
 	private static readonly TimeSpan[] RebuildDelays =
 		{ TimeSpan.FromMilliseconds(300), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4) };
 	private volatile bool disposed;
-	private static ILog logger;
+	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceProvider));
 
 	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
@@ -78,14 +79,14 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		deviceStateNotificationHandler.DefaultDeviceChanged += OnDefaultDeviceChanged;
 		deviceStateNotificationHandler.ActiveDeviceAdded += OnActiveDeviceAdded;
 
-		string defaultDeviceId = deviceEnumerator.GetDefaultDeviceId();
+		string? defaultDeviceId = deviceEnumerator.GetDefaultDeviceId();
 		var devices = deviceEnumerator.GetCurrentActiveDevices(deviceStateNotificationHandler);
 		if(devices.Count == 0)
 		{
 			NoOutputDevices = true;
 			return;
 		}
-		OutputDeviceModel newDefault = null;
+		OutputDeviceModel? newDefault = null;
 		foreach(var device in devices)
 		{
 			device.Disabled += OnDeviceDisabled;
@@ -142,7 +143,7 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 
 	private async Task RetryConnectAsync(IHotkeyService hotkeys)
 	{
-		Exception lastError = null;
+		Exception? lastError = null;
 		for(int retry = 0; ; retry++)
 		{
 			await Task.Delay(RetryDelay(retry)).ConfigureAwait(false);
@@ -208,7 +209,7 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		}
 	});
 
-	private DeviceFeatures features;
+	private DeviceFeatures? features;
 	private DeviceFeatures Features => features ??= new DeviceFeatures(PolicyClient);
 
 	public Task<DeviceFeatureState> GetDeviceFeaturesAsync(string deviceId) => Task.Run(() =>
@@ -340,6 +341,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		if(index < 0)
 			return true;
 
+		//a device only becomes invalid after Connect, which sets both
+		if(deviceEnumerator == null || deviceStateNotificationHandler == null)
+			return false;
 		var fresh = deviceEnumerator.CreateDeviceModel(invalid.Id, deviceStateNotificationHandler);
 		if(fresh == null)
 			return false;
@@ -378,8 +382,8 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			device.Dispose();
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	public event PropertyChangedEventHandler? PropertyChanged;
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}

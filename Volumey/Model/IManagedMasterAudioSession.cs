@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Windows.Media;
 using Volumey.Controls;
@@ -7,7 +8,7 @@ namespace Volumey.Model;
 
 public interface IManagedMasterAudioSession : IManagedAudioSession
 {
-	public ImageSource IconSource { get; set; }
+	public ImageSource? IconSource { get; set; }
 	public bool AnyHotkeyRegistered { get; }
 	public void SetVolume(int newValue, bool notify, Guid guid);
 	public void SetMute(bool newState, bool notify, Guid context);

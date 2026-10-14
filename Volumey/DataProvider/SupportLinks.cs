@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -68,7 +69,8 @@ public sealed class SupportLinks
 		}
 		try
 		{
-			Directory.CreateDirectory(Path.GetDirectoryName(cachePath));
+			if(Path.GetDirectoryName(cachePath) is string dir)
+				Directory.CreateDirectory(dir);
 			File.WriteAllText(cachePath, json);
 		}
 		catch(Exception e)
@@ -82,7 +84,7 @@ public sealed class SupportLinks
 			Links.Add(link);
 	}
 
-	private IReadOnlyList<SupportLink> ReadCache()
+	private IReadOnlyList<SupportLink>? ReadCache()
 	{
 		try
 		{
@@ -98,7 +100,7 @@ public sealed class SupportLinks
 	/// <summary>
 	/// The valid links of a links.json (a name and an https address each, at most <see cref="MaxLinks"/>), or null if there are none
 	/// </summary>
-	internal static IReadOnlyList<SupportLink> Parse(string json)
+	internal static IReadOnlyList<SupportLink>? Parse(string json)
 	{
 		try
 		{
@@ -107,8 +109,8 @@ public sealed class SupportLinks
 			var links = new List<SupportLink>();
 			foreach(var item in items.OfType<JObject>())
 			{
-				string name = (item["name"] as JValue)?.Value as string;
-				string url = (item["url"] as JValue)?.Value as string;
+				string? name = (item["name"] as JValue)?.Value as string;
+				string? url = (item["url"] as JValue)?.Value as string;
 				//only web pages: the app opens the address with the system's handler
 				if(string.IsNullOrWhiteSpace(name) || name.Length > MaxNameLength
 				   || !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)

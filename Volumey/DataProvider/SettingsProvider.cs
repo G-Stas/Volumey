@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,10 +33,10 @@ public static class SettingsProvider
 		? dir
 		: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ConfigFolderName);
 
-	private static ILog logger;
+	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(SettingsProvider));
 
-	private static VolumeySettings settings;
+	private static VolumeySettings? settings;
 	private static readonly object SettingsLock = new object();
 
 	public static VolumeySettings Settings
@@ -137,9 +138,9 @@ public static class SettingsProvider
 	/// </summary>
 	internal static bool HotkeyExists(HotKey hotkey) => HotkeysExist(hotkey, null);
 
-	internal static bool HotkeysExist(HotKey hotkey, HotKey hotkey2)
+	internal static bool HotkeysExist(HotKey hotkey, HotKey? hotkey2)
 	{
-		bool Matches(HotKey registered) => registered != null && (registered.Equals(hotkey) || registered.Equals(hotkey2));
+		bool Matches(HotKey? registered) => registered != null && (registered.Equals(hotkey) || registered.Equals(hotkey2));
 
 		var hotkeys = Settings.Hotkeys;
 		return Matches(hotkeys.DeviceVolumeUp) ||
