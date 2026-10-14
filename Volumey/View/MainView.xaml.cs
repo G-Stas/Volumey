@@ -356,17 +356,26 @@ public partial class MainView
 	/// The mixer is dragged by any spot that isn't a control, in both modes, whether its position is remembered or not.
 	/// The new position is always noted (window mode: LocationChanged; popup: below) but used for the next opening only while it's remembered.
 	/// On the preview: the apps list's ScrollViewer handles the press itself, so the bubbling event never reaches the window there.
+	/// A press in a popup (the device combo box's list) reaches the window too, through the popup's owner, but never drags it.
 	/// </summary>
 	protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 	{
 		base.OnPreviewMouseLeftButtonDown(e);
-		if(e.Handled || e.ButtonState != MouseButtonState.Pressed || IsInControl(e.OriginalSource as DependencyObject))
+		if(e.Handled || e.ButtonState != MouseButtonState.Pressed || !IsOnThisWindow(e.OriginalSource as DependencyObject)
+		   || IsInControl(e.OriginalSource as DependencyObject))
 			return;
 		e.Handled = true;
 		DragMove();
 		if(vm.DisplayMinimalistic)
 			RememberPopupPosition();
 	}
+
+	/// <summary>
+	/// Whether the pressed element is drawn in this window, not in a popup: a popup has its own window and visual tree,
+	/// so <see cref="IsInControl"/> can't find the control that opened it
+	/// </summary>
+	private bool IsOnThisWindow(DependencyObject source)
+		=> source != null && PresentationSource.FromDependencyObject(source)?.RootVisual == this;
 
 	/// <summary>Whether the pressed element is (inside) something that takes clicks itself</summary>
 	private static bool IsInControl(DependencyObject source)
