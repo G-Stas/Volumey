@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Windows.Media;
 using log4net;
 using NAudio.CoreAudioApi;
 using Volumey.DataProvider;
@@ -166,7 +167,7 @@ internal static class AudioModelFactory
 		}
 		catch { }
 
-		Icon? icon = null;
+		ImageSource? icon = null;
 
 		try
 		{
@@ -189,7 +190,7 @@ internal static class AudioModelFactory
 
 				try
 				{
-					icon = Icon.ExtractAssociatedIcon(Environment.ExpandEnvironmentVariables("%SystemRoot%\\System32\\AudioSrv.dll"));
+					icon = IconHelper.GetIconSource(Environment.ExpandEnvironmentVariables("%SystemRoot%\\System32\\AudioSrv.dll"), Icon.ExtractAssociatedIcon);
 				}
 				catch(Exception e)
 				{
@@ -205,11 +206,10 @@ internal static class AudioModelFactory
 		catch(Exception e)
 		{
 			Logger.Error($"Failed to create process model from session model, process: [{processName}]", e);
-			icon?.Dispose();
 			proc?.Dispose();
 			return null;
 		}
-		//the model takes ownership of the icon and the process
+		//the model takes ownership of the process; the icon is a shared frozen image
 		AudioProcessModel model = new AudioProcessModel(session.Volume, session.IsMuted, processName, session.ProcessId, session.FilePath, icon, proc, hotkeys);
 		return model;
 	}
@@ -276,17 +276,17 @@ internal static class AudioModelFactory
 	}
 
 	/// <param name="name">The app's name for the log (reading the name of an exited process throws)</param>
-	private static Icon ExtractSessionIcon(Process? proc, string name, AudioSessionControl sc)
+	private static ImageSource? ExtractSessionIcon(Process? proc, string name, AudioSessionControl sc)
 	{
-		Icon? icon = null;
+		ImageSource? icon = null;
 		try
 		{
 			//without the process (it has exited, or can't be opened) the session's own icon path is the only source
 			if(proc == null)
-				return TryExtractIconAlternatively(name, sc) ?? IconHelper.CreateGenericExeIcon();
+				return TryExtractIconAlternatively(name, sc) ?? IconHelper.GenericExeIconSource;
 			string? path = NativeMethods.GetProcessImagePath(proc.Id, out int error);
 			if(path != null)
-				icon = Icon.ExtractAssociatedIcon(path);
+				icon = IconHelper.GetIconSource(path, Icon.ExtractAssociatedIcon);
 			else if(IsExpectedPathError(error))
 				//the session's icon path is tried next
 				Logger.Debug($"Couldn't read the path of the process [{name}], error code {error}");
@@ -304,10 +304,10 @@ internal static class AudioModelFactory
 				Logger.Error($"Failed to extract icon from the process: [{name}]", e);
 			icon = TryExtractIconAlternatively(name, sc);
 		}
-		return icon ?? IconHelper.CreateGenericExeIcon();
+		return icon ?? IconHelper.GenericExeIconSource;
 	}
 
-	private static Icon? TryExtractIconAlternatively(string name, AudioSessionControl sc)
+	private static ImageSource? TryExtractIconAlternatively(string name, AudioSessionControl sc)
 	{
 		//it's possible to get system process icon from its IAudioSessionControl interface
 		string? iconPath = null;
@@ -317,13 +317,13 @@ internal static class AudioModelFactory
 		{
 			//the icon path will be empty if the exe was launched with admin rights
 			//looks like its impossible to get an icon of an exe with admin rights so we return generic windows exe icon
-			return IconHelper.CreateGenericExeIcon();
+			return IconHelper.GenericExeIconSource;
 		}
 
 		try
 		{
 			//"executable-file-path,resource-identifier", or a plain file path
-			return IconHelper.GetFromResourcePath(iconPath);
+			return IconHelper.GetIconSource(iconPath, IconHelper.GetFromResourcePath);
 		}
 		catch(Exception e)
 		{

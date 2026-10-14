@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -112,17 +111,6 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	private Icon _icon;
-	public Icon Icon
-	{
-		get => _icon;
-		set
-		{
-			_icon = value;
-			OnPropertyChanged();
-		}
-	}
-
 	public bool AnyHotkeyRegistered { get; private set; }
 
 	/// <summary>
@@ -145,18 +133,16 @@ public class AudioProcessModel : IManagedMasterAudioSession
 
 	private readonly Process _process;
 
-	public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, Icon icon, Process proc, IHotkeyService hotkeys, IAudioProcessStateMediator stateNotificationMediator = null)
+	/// <param name="iconSource">A frozen image, shared with the other models of the same app (see <see cref="IconHelper.GetIconSource"/>)</param>
+	public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, ImageSource iconSource, Process proc, IHotkeyService hotkeys, IAudioProcessStateMediator stateNotificationMediator = null)
 	{
 		_hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
 		_volume = volume;
 		_isMuted = isMuted;
-		_icon = icon;
+		_iconSource = iconSource;
 		_processId = processId;
 		Name = name;
 		FilePath = filePath;
-
-		try { _iconSource = icon.GetAsImageSource(); }
-		catch { }
 
 		//the model owns the process: watching it for its exit keeps its handle open (and this model alive) until Dispose
 		//Might throw Access Denied if its a system process
@@ -379,9 +365,6 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		//stop reacting to presses; the hotkeys themselves are released by the view models (ResetVolumeHotkeys), not here
 		_hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		StateNotificationMediator?.NotifyOfDisposing(this);
-
-		//the model owns its icon (see IconHelper); Dispose frees the handle
-		_icon?.Dispose();
 
 		//stops watching for the exit and closes the handle, so the app no longer keeps this model alive
 		if(_process != null)

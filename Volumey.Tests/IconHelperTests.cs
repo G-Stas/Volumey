@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.Helper;
@@ -9,19 +10,49 @@ namespace Volumey.Tests;
 public class IconHelperTests
 {
 	[TestMethod]
-	public void DisposingOneGenericIconDoesntBreakTheOthers()
+	public void AnAppsIconIsReadOnceAndShared()
 	{
-		//every app model gets its own copy of the generic icon and disposes it
-		var first = IconHelper.CreateGenericExeIcon();
-		var second = IconHelper.CreateGenericExeIcon();
+		string notepad = Path.Combine(Environment.SystemDirectory, "notepad.exe");
+		int reads = 0;
+		Icon Extract(string path)
+		{
+			reads++;
+			return Icon.ExtractAssociatedIcon(path);
+		}
+
+		var first = IconHelper.GetIconSource(notepad, Extract);
+		//the same file in other letter case, as paths from different sources can come
+		var second = IconHelper.GetIconSource(notepad.ToUpperInvariant(), Extract);
+
 		Assert.IsNotNull(first);
-		Assert.AreNotSame(first, second);
+		Assert.IsTrue(first.IsFrozen, "a shared image must be frozen to be used from other threads");
+		Assert.AreSame(first, second);
+		Assert.AreEqual(1, reads);
+	}
 
-		first.Dispose();
+	[TestMethod]
+	public void AnIconThatCantBeReadIsTriedAgain()
+	{
+		const string path = @"C:\does\not\exist.exe";
+		int reads = 0;
+		Icon Extract(string _)
+		{
+			reads++;
+			return null;
+		}
 
-		Assert.IsNotNull(second.GetAsImageSource(), "the second copy's handle was destroyed with the first");
-		Assert.IsNotNull(IconHelper.CreateGenericExeIcon().GetAsImageSource());
-		second.Dispose();
+		Assert.IsNull(IconHelper.GetIconSource(path, Extract));
+		Assert.IsNull(IconHelper.GetIconSource(path, Extract));
+		Assert.AreEqual(2, reads);
+	}
+
+	[TestMethod]
+	public void TheGenericIconIsOneSharedFrozenImage()
+	{
+		var generic = IconHelper.GenericExeIconSource;
+		Assert.IsNotNull(generic);
+		Assert.IsTrue(generic.IsFrozen);
+		Assert.AreSame(generic, IconHelper.GenericExeIconSource);
 	}
 
 	[TestMethod]

@@ -1,5 +1,4 @@
 using System;
-using System.Drawing;
 using System.Windows.Media;
 using Volumey.Controls;
 using Volumey.ViewModel.Settings;
@@ -9,7 +8,6 @@ namespace Volumey.Model;
 public interface IManagedMasterAudioSession : IManagedAudioSession
 {
 	public ImageSource IconSource { get; set; }
-	public Icon Icon { get; set; }
 	public bool AnyHotkeyRegistered { get; }
 	public void SetVolume(int newValue, bool notify, Guid guid);
 	public void SetMute(bool newState, bool notify, Guid context);

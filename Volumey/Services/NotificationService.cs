@@ -88,7 +88,7 @@ internal sealed class NotificationService : INotificationService
 		{
 			if(example == null)
 			{
-				var model = new AudioProcessModel(85, false, ExampleName, default, string.Empty, IconHelper.CreateGenericExeIcon(), null, hotkeys);
+				var model = new AudioProcessModel(85, false, ExampleName, default, string.Empty, IconHelper.GenericExeIconSource, null, hotkeys);
 				//the sample app's name follows the language
 				TranslationSource.Instance.PropertyChanged += (_, _) => model.Name = ExampleName;
 				example = model;
