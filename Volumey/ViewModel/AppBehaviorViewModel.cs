@@ -119,6 +119,14 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		}
 	}
 
+	//reading the shortcut is a call into the shell (about 20 ms): it's made on the thread pool, so the first window doesn't wait for it.
+	//Created on the UI thread, the view model gets the result there
+	private async System.Threading.Tasks.Task ReadStartMenuStateAsync()
+	{
+		addToStartMenu = await System.Threading.Tasks.Task.Run(systemIntegration.IsInStartMenu);
+		OnPropertyChanged(nameof(AddToStartMenu));
+	}
+
 	private bool addToStartMenu;
 	public bool AddToStartMenu
 	{
@@ -234,7 +242,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
-		addToStartMenu = systemIntegration.IsInStartMenu();
+		ReadStartMenuStateAsync().Forget(Logger, "Failed to read the Start menu shortcut");
 
 		SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
 
