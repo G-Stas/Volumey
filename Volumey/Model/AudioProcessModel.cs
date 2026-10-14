@@ -64,12 +64,13 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		{
 			if(_isMuted != value)
 			{
+				//first: the tracked session reports the change back, and the model then already has it (see OnTrackedSessionStateChanged)
+				_isMuted = value;
 				lock(_sessionsLock)
 				{
 					foreach(AudioSessionModel session in Sessions)
 						session.IsMuted = value;
 				}
-				_isMuted = value;
 				OnPropertyChanged();
 			}
 		}
@@ -195,10 +196,14 @@ public class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
+	//also raised when this model's own setter changes the sessions: the setter raises PropertyChanged then
 	private void OnTrackedSessionStateChanged(bool muteState, Guid context)
 	{
-		_isMuted = muteState;
-		OnPropertyChanged(nameof(IsMuted));
+		if(_isMuted != muteState)
+		{
+			_isMuted = muteState;
+			OnPropertyChanged(nameof(IsMuted));
+		}
 
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 		{
@@ -209,8 +214,11 @@ public class AudioProcessModel : IManagedMasterAudioSession
 
 	private void OnTrackedSessionVolumeChanged(int volume, Guid context)
 	{
-		_volume = volume;
-		OnPropertyChanged(nameof(Volume));
+		if(_volume != volume)
+		{
+			_volume = volume;
+			OnPropertyChanged(nameof(Volume));
+		}
 
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 		{
