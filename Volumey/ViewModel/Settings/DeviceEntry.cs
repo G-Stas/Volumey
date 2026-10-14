@@ -1,4 +1,5 @@
 #nullable enable
+using System.ComponentModel;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -41,11 +42,24 @@ public sealed partial class DeviceEntry : ObservableObject
 	[ObservableProperty]
 	public partial DeviceSettings? Settings { get; private set; }
 
-	partial void OnModelChanged(OutputDeviceModel? value)
+	partial void OnModelChanged(OutputDeviceModel? oldValue, OutputDeviceModel? newValue)
 	{
+		if(oldValue != null)
+			oldValue.Master.PropertyChanged -= OnMasterPropertyChanged;
+		if(newValue != null)
+			newValue.Master.PropertyChanged += OnMasterPropertyChanged;
 		Settings?.Detach();
-		Settings = value != null ? new DeviceSettings(value, owner.DeviceProvider) : null;
+		Settings = newValue != null ? new DeviceSettings(newValue, owner.DeviceProvider) : null;
 		owner.OnModelChanged(this);
+	}
+
+	//the device was renamed in Windows while it's connected
+	private void OnMasterPropertyChanged(object? sender, PropertyChangedEventArgs e)
+	{
+		if(e.PropertyName != nameof(MasterSessionModel.DeviceFriendlyName) || Model == null || Name == Model.Master.DeviceFriendlyName)
+			return;
+		Name = Model.Master.DeviceFriendlyName;
+		owner.OnNameChanged(this);
 	}
 
 	[ObservableProperty]
