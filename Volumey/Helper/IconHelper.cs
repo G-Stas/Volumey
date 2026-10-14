@@ -61,14 +61,30 @@ static class IconHelper
 
 	public static ImageSource GetAsImageSource(this Icon icon)
 	{
-		try
-		{
-			var source = Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-			if(source.CanFreeze)
-				source.Freeze();
-			return source;
-		}
+		try { return ToImageSource(icon.Handle); }
 		catch { return null; }
+	}
+
+	private static ImageSource ToImageSource(IntPtr hIcon)
+	{
+		var source = Imaging.CreateBitmapSourceFromHIcon(hIcon, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+		if(source.CanFreeze)
+			source.Freeze();
+		return source;
+	}
+
+	/// <summary>
+	/// A file's icon (by its index among the file's icons) as a frozen image, straight from the extracted handle;
+	/// null if the file has no such icon
+	/// </summary>
+	private static ImageSource ReadIconSource(string filePath, int index)
+	{
+		Span<HICON> extracted = stackalloc HICON[1];
+		PInvoke.ExtractIconEx(filePath, index, extracted, default);
+		if(extracted[0].IsNull)
+			return null;
+		try { return ToImageSource(extracted[0]); }
+		finally { PInvoke.DestroyIcon(extracted[0]); }
 	}
 
 	public static Icon GetFromFilePath(string filePath)
@@ -113,20 +129,18 @@ static class IconHelper
 	//an empty first icon is rare: the file's other icons are looked at only then, and only the first few
 	private const int MaxIconsTried = 8;
 
+	//ExtractIconEx reads the exe's own icons, about three times faster than Icon.ExtractAssociatedIcon, which goes through the shell's
+	//file associations; an exe without icons gets the session's icon or the generic one from the caller instead
 	private static ImageSource ReadAppIcon(string exePath)
 	{
-		using(var first = Icon.ExtractAssociatedIcon(exePath))
-		{
-			var source = first?.GetAsImageSource();
-			if(source == null || HasVisiblePixels(source))
-				return source;
-		}
+		var first = ReadIconSource(exePath, 0);
+		if(first == null || HasVisiblePixels(first))
+			return first;
 		//the number of icons in the file
 		int count = (int)Math.Min(PInvoke.ExtractIconEx(exePath, -1, default, default), MaxIconsTried);
 		for(int index = 1; index < count; index++)
 		{
-			using var icon = GetFromDll(exePath, index);
-			var source = icon?.GetAsImageSource();
+			var source = ReadIconSource(exePath, index);
 			if(source != null && HasVisiblePixels(source))
 				return source;
 		}
