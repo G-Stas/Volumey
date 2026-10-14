@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using H.NotifyIcon;
 using log4net;
 using Volumey.Helper;
@@ -154,9 +155,43 @@ public partial class MainView
 	}
 
 	private static void OnTrayToolTipTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		=> ((MainView)d).QueueTrayToolTip(e.NewValue as string ?? string.Empty);
+
+	private static readonly TimeSpan TrayToolTipInterval = TimeSpan.FromMilliseconds(100);
+	private DispatcherTimer trayToolTipTimer;
+	private string pendingTrayToolTip;
+
+	/// <summary>
+	/// Each tooltip update is a call into Explorer, and a held volume hotkey changes the text about 30 times a second:
+	/// the first change goes out at once, the changes within the next interval go out together after it
+	/// </summary>
+	private void QueueTrayToolTip(string text)
 	{
-		var text = e.NewValue as string ?? string.Empty;
-		((MainView)d).UpdateTrayIcon(tray => tray.TrayIcon.UpdateToolTip(text), "update the tooltip of");
+		pendingTrayToolTip = text;
+		if(trayToolTipTimer is { IsEnabled: true })
+			return;
+		PushTrayToolTip();
+		if(trayToolTipTimer == null)
+		{
+			trayToolTipTimer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher) { Interval = TrayToolTipInterval };
+			trayToolTipTimer.Tick += OnTrayToolTipTimerTick;
+		}
+		trayToolTipTimer.Start();
+	}
+
+	private void OnTrayToolTipTimerTick(object sender, EventArgs e)
+	{
+		if(pendingTrayToolTip == null)
+			trayToolTipTimer.Stop();
+		else
+			PushTrayToolTip();
+	}
+
+	private void PushTrayToolTip()
+	{
+		string text = pendingTrayToolTip;
+		pendingTrayToolTip = null;
+		UpdateTrayIcon(tray => tray.TrayIcon.UpdateToolTip(text), "update the tooltip of");
 	}
 
 	private void UpdateTrayIcon(Action<TaskbarIcon> update, string action)
