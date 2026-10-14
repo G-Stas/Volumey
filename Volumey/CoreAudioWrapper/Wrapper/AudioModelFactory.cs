@@ -205,7 +205,7 @@ internal static class AudioModelFactory
 			else
 			{
 				//on the calling (COM) thread: icon extraction doesn't need the UI thread, and a COM callback must not wait for it
-				icon = ExtractSessionIcon(path, processName, sControl);
+				icon = ExtractSessionIcon(session.ProcessId, path, processName, sControl);
 			}
 		}
 		catch(Exception e)
@@ -304,12 +304,16 @@ internal static class AudioModelFactory
 			Logger.Error($"Failed to read the path of the process {processId}, error code {error}");
 	}
 
+	/// <summary>
+	/// The icon of the app's main window first, as the taskbar and Windows' volume mixer show it (an executable can give its window
+	/// another of its icons), then its executable's, the session's own icon path, and the generic program icon
+	/// </summary>
 	/// <param name="path">The app's executable, null if its path couldn't be read</param>
 	/// <param name="name">The app's name for the log</param>
-	private static ImageSource? ExtractSessionIcon(string? path, string name, AudioSessionControl sc)
+	private static ImageSource? ExtractSessionIcon(uint processId, string? path, string name, AudioSessionControl sc)
 	{
-		ImageSource? icon = null;
-		if(path != null)
+		ImageSource? icon = IconHelper.GetWindowIconSource(processId);
+		if(icon == null && path != null)
 		{
 			try { icon = IconHelper.GetAppIconSource(path); }
 			catch(Exception e)

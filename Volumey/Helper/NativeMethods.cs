@@ -56,6 +56,41 @@ static class NativeMethods
 	}
 
 	/// <summary>
+	/// The icon of an app's main window, which the taskbar and Windows' volume mixer show: its first visible top-level window that no
+	/// other window owns. Reading it needs no access to the process. The handle belongs to the app: don't destroy it.
+	/// Zero if the app has no such window or icon
+	/// </summary>
+	internal static IntPtr GetAppWindowIcon(uint processId)
+	{
+		HWND found = HWND.Null;
+		PInvoke.EnumWindows((window, _) =>
+		{
+			if(PInvoke.GetWindowThreadProcessId(window, out uint owner) != 0 && owner == processId && PInvoke.IsWindowVisible(window)
+			   && PInvoke.GetWindow(window, GET_WINDOW_CMD.GW_OWNER).IsNull)
+			{
+				found = window;
+				return false;
+			}
+			return true;
+		}, default);
+		if(found.IsNull)
+			return IntPtr.Zero;
+
+		//the icon set on the window; a hung app isn't waited for, and an app at a higher integrity level gets no message
+		foreach(uint size in (ReadOnlySpan<uint>)[PInvoke.ICON_BIG, PInvoke.ICON_SMALL2])
+		{
+			if(PInvoke.SendMessageTimeout(found, PInvoke.WM_GETICON, size, default, SEND_MESSAGE_TIMEOUT_FLAGS.SMTO_ABORTIFHUNG, 100, out nuint icon) != 0
+			   && icon != 0)
+				return (IntPtr)icon;
+		}
+		//else the icon of its window class
+		nuint classIcon = PInvoke.GetClassLongPtr(found, GET_CLASS_LONG_INDEX.GCLP_HICON);
+		if(classIcon == 0)
+			classIcon = PInvoke.GetClassLongPtr(found, GET_CLASS_LONG_INDEX.GCLP_HICONSM);
+		return (IntPtr)classIcon;
+	}
+
+	/// <summary>
 	/// Sends a press and a release of the key to the foreground window
 	/// </summary>
 	internal static void SimulateKeyPress(Key keyToSimulate)

@@ -118,6 +118,25 @@ static class IconHelper
 	/// </summary>
 	internal static ImageSource GetAppIconSource(string exePath) => GetCached(exePath, ReadAppIcon);
 
+	/// <summary>
+	/// The icon of an app's main window as a frozen image (see <see cref="NativeMethods.GetAppWindowIcon"/>); null if it has none
+	/// that shows something. Not cached: one executable can give its window different icons (war3.exe shows The Frozen Throne's
+	/// icon when it runs that expansion)
+	/// </summary>
+	internal static ImageSource GetWindowIconSource(uint processId)
+	{
+		IntPtr icon = NativeMethods.GetAppWindowIcon(processId);
+		if(icon == IntPtr.Zero)
+			return null;
+		try
+		{
+			var source = ToImageSource(icon);
+			return HasVisiblePixels(source) ? source : null;
+		}
+		//the app can destroy its icon at any moment
+		catch { return null; }
+	}
+
 	private static ImageSource GetCached(string path, Func<string, ImageSource> read)
 	{
 		if(iconSources.TryGetValue(path, out var cached))
