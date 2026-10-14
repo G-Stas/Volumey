@@ -18,7 +18,7 @@ public sealed class SystemHotkey
 		SystemKey = sysKey;
 	}
 
-	public SystemHotkey(Key sysKey, HotKey replacement)
+	public SystemHotkey(Key sysKey, HotKey? replacement)
 	{
 		SystemKey = sysKey;
 		Replacement = replacement;

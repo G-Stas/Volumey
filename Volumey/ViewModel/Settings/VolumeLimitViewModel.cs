@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿#nullable enable
+using CommunityToolkit.Mvvm.ComponentModel;
 using log4net;
 using Volumey.DataProvider;
 using Volumey.Model;
@@ -51,7 +52,7 @@ public sealed partial class VolumeLimitViewModel : ObservableObject
 	}
 
 	private readonly IDeviceProvider deviceProvider;
-	private OutputDeviceModel defaultDevice;
+	private OutputDeviceModel? defaultDevice;
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(VolumeLimitViewModel));
 
@@ -62,7 +63,7 @@ public sealed partial class VolumeLimitViewModel : ObservableObject
 		IsOn = SettingsProvider.Settings.General.VolumeLimitEnabled;
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceChanged(OutputDeviceModel? newDevice)
 	{
 		if(defaultDevice != null)
 			defaultDevice.ProcessCreated -= OnProcessCreated;

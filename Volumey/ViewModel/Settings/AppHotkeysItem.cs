@@ -1,3 +1,4 @@
+#nullable enable
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -19,7 +20,7 @@ public sealed partial class AppHotkeysItem : ObservableObject
 	/// The app's icon while it's running on the default device, otherwise null
 	/// </summary>
 	[ObservableProperty]
-	public partial ImageSource Icon { get; internal set; }
+	public partial ImageSource? Icon { get; internal set; }
 
 	/// <summary>
 	/// Why the last change of a hotkey was rejected, under its box

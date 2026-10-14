@@ -1,3 +1,4 @@
+#nullable enable
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -10,7 +11,7 @@ namespace Volumey.ViewModel.Settings;
 
 public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 {
-	private OutputDeviceModel defaultDevice;
+	private OutputDeviceModel? defaultDevice;
 
 	[ObservableProperty]
 	public partial HotKey VolumeUp { get; set; }
@@ -246,7 +247,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		SettingsProvider.Settings.Hotkeys.DeviceMute = null;
 	}
 
-	private void OnNotificationSettingsChanged(object sender, PropertyChangedEventArgs e)
+	private void OnNotificationSettingsChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		//no device (none is active, or the default one was disabled): the next default device gets the mediator when it's set
 		if(e.PropertyName == nameof(NotificationSettings.Enabled) && defaultDevice != null)
@@ -269,7 +270,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		defaultDevice = null;
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceChanged(OutputDeviceModel? newDevice)
 	{
 		if(defaultDevice != null)
 		{

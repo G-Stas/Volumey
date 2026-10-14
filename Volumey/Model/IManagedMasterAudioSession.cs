@@ -14,6 +14,6 @@ public interface IManagedMasterAudioSession : IManagedAudioSession
 	public void SetMute(bool newState, bool notify, Guid context);
 	public void SetStateMediator(IAudioProcessStateMediator mediator);
 	public void ResetStateMediator(bool force);
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown);
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown);
 	public void ResetVolumeHotkeys();
 }

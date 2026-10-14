@@ -96,11 +96,11 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		Processes.CollectionChanged += OnProcessesCollectionChanged;
 	}
 
-	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+	internal bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown)
 		=> Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey? failed)
+	internal bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 		=> Master.SetVolumeHotkeys(volUp, volDown, out failed);
 
 	/// <summary>
@@ -168,7 +168,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	internal void ResetStateNotificationMediator(bool force = false)
 		=> Master.ResetStateMediator(force);
 
-	internal bool SetMuteHotkey(HotKey key)
+	internal bool SetMuteHotkey(HotKey? key)
 		=> Master.SetMuteHotkey(key);
 
 	internal void ResetMuteHotkeys()

@@ -173,10 +173,12 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 				Logger.Error($"Still can't reach Windows audio after {QuickAttempts + retry + 1} attempts", lastError);
 		}
 	}
-	public void SetDefaultDevice(string id)
+	public void SetDefaultDevice(string? id)
 	{
 		try
 		{
+			if(id == null)
+				return;
 			//Check if the device to set is enabled
 			if(ActiveDevices.Any(device => device.CompareId(id)))
 			{

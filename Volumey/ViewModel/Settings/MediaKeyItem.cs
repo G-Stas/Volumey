@@ -1,3 +1,4 @@
+#nullable enable
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -29,7 +30,7 @@ public sealed partial class MediaKeyItem : ObservableObject
 	/// </summary>
 	public string Name => TranslationSource.Instance[NameKey(MediaKey)];
 
-	public HotKey Hotkey
+	public HotKey? Hotkey
 	{
 		get => Model.Replacement;
 		set => owner.ChangeHotkey(this, value);
@@ -42,7 +43,7 @@ public sealed partial class MediaKeyItem : ObservableObject
 	public partial string Error { get; private set; }
 
 	private ErrorMessageType errorType = ErrorMessageType.None;
-	private HotKey rejected;
+	private HotKey? rejected;
 
 	internal MediaKeyItem(SystemHotkeysViewModel owner, SystemHotkey model)
 	{
@@ -53,7 +54,7 @@ public sealed partial class MediaKeyItem : ObservableObject
 	/// <summary>
 	/// Takes the new hotkey, or tells the hotkey box the current one again (after a rejected change, the box still shows what was typed)
 	/// </summary>
-	internal void SetHotkey(HotKey hotkey)
+	internal void SetHotkey(HotKey? hotkey)
 	{
 		Model.Replacement = hotkey;
 		OnPropertyChanged(nameof(Hotkey));
@@ -62,7 +63,7 @@ public sealed partial class MediaKeyItem : ObservableObject
 	/// <summary>
 	/// Shows an error; <paramref name="rejectedHotkey"/> is a typed hotkey that the box doesn't show anymore, the message names it
 	/// </summary>
-	internal void SetError(ErrorMessageType type, HotKey rejectedHotkey = null)
+	internal void SetError(ErrorMessageType type, HotKey? rejectedHotkey = null)
 	{
 		errorType = type;
 		rejected = rejectedHotkey;

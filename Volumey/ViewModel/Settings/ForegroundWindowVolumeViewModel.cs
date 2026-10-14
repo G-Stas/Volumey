@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -54,7 +55,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 	}
 
-	private OutputDeviceModel _defaultDevice;
+	private OutputDeviceModel? _defaultDevice;
 
 	private readonly INotificationService notifications;
 
@@ -117,7 +118,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		hotkeys.HotkeyPressed -= OnHotkeyPressed;
 	}
 
-	private async Task<(bool succeed, AudioProcessModel foundProcess)> TryGetForegroundAudioProcess()
+	private async Task<(bool succeed, AudioProcessModel? foundProcess)> TryGetForegroundAudioProcess()
 	{
 		if(_defaultDevice == null)
 		{
@@ -131,11 +132,11 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 
 		long started = Stopwatch.GetTimestamp();
-		AudioProcessModel foundProcess = null;
+		AudioProcessModel? foundProcess = null;
 		IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
-		string processName = null;
+		string? processName = null;
 		string filePath = string.Empty;
-		Exception pathError = null;
+		Exception? pathError = null;
 		try
 		{
 			curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
@@ -153,7 +154,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		return (foundProcess != null, foundProcess);
 	}
 
-	private static AudioProcessModel FindByProcessId(IImmutableList<AudioProcessModel> processes, uint processId)
+	private static AudioProcessModel? FindByProcessId(IImmutableList<AudioProcessModel> processes, uint processId)
 	{
 		foreach(var process in processes)
 		{
@@ -163,7 +164,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		return null;
 	}
 
-	private static AudioProcessModel FindByNameOrPath(IImmutableList<AudioProcessModel> processes, string processName, string filePath)
+	private static AudioProcessModel? FindByNameOrPath(IImmutableList<AudioProcessModel> processes, string? processName, string filePath)
 	{
 		foreach(var process in processes)
 		{
@@ -178,13 +179,13 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	/// elevated apps and games guarded by anti-cheat (they don't let other processes read their modules).
 	/// The name falls back to the process list when the path can't be read.
 	/// </summary>
-	private static (string name, string path, Exception pathError) GetProcessNameAndPath(uint processId)
+	private static (string? name, string path, Exception? pathError) GetProcessNameAndPath(uint processId)
 	{
 		string path = NativeMethods.GetProcessPath((int)processId, out int error);
 		if(path != null)
 			return (NativeMethods.ProcessNameFromPath(path), path, null);
 
-		string name = null;
+		string? name = null;
 		try
 		{
 			using var process = Process.GetProcessById((int)processId);
@@ -230,7 +231,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDefaultDevice)
+	private void OnDefaultDeviceChanged(OutputDeviceModel? newDefaultDevice)
 	{
 		_defaultDevice = newDefaultDevice;
 	}

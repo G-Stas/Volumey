@@ -158,10 +158,10 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
 	}
 
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) => SetVolumeHotkeys(volUp, volDown, out _);
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown) => SetVolumeHotkeys(volUp, volDown, out _);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey? failed)
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 	{
 		failed = null;
 		try
@@ -201,7 +201,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		volumeUp = volumeDown = null;
 	}
 
-	public bool SetMuteHotkey(HotKey key)
+	public bool SetMuteHotkey(HotKey? key)
 	{
 		try
 		{

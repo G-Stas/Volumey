@@ -1,3 +1,4 @@
+#nullable enable
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
 using Volumey.Localization;
@@ -12,8 +13,8 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 {
 	private ErrorMessageType upType = ErrorMessageType.None;
 	private ErrorMessageType downType = ErrorMessageType.None;
-	private HotKey rejectedUp;
-	private HotKey rejectedDown;
+	private HotKey? rejectedUp;
+	private HotKey? rejectedDown;
 
 	[ObservableProperty]
 	public partial string VolumeUp { get; private set; }
@@ -37,7 +38,7 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 	/// An error for a hotkey that was typed into a box but rejected, while the box shows the old hotkey again (a saved app):
 	/// the message names the rejected hotkey ("Ctrl+M: ..."), so it doesn't read as if the shown hotkey were wrong
 	/// </summary>
-	public void SetRejected(bool up, HotKey rejected, ErrorMessageType error)
+	public void SetRejected(bool up, HotKey? rejected, ErrorMessageType error)
 	{
 		Set(up ? error : ErrorMessageType.None, up ? ErrorMessageType.None : error);
 		if(up)
@@ -50,7 +51,7 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 	/// <summary>
 	/// Shows <paramref name="error"/> under the box of <paramref name="failed"/> (the hotkey of the pair the system refused)
 	/// </summary>
-	public void SetFor(HotKey failed, HotKey up, ErrorMessageType error)
+	public void SetFor(HotKey? failed, HotKey? up, ErrorMessageType error)
 		=> Set(Equals(failed, up) ? error : ErrorMessageType.None, Equals(failed, up) ? ErrorMessageType.None : error);
 
 	public void Clear() => Set(ErrorMessageType.None, ErrorMessageType.None);
@@ -68,7 +69,7 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 		VolumeDown = Message(downType, rejectedDown);
 	}
 
-	internal static string Message(ErrorMessageType type, HotKey rejected)
+	internal static string Message(ErrorMessageType type, HotKey? rejected)
 	{
 		if(type == ErrorMessageType.None)
 			return string.Empty;

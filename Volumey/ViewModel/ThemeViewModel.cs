@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿#nullable enable
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Volumey.DataProvider;
@@ -81,8 +82,8 @@ public sealed class ThemeViewModel : INotifyPropertyChanged
 		SettingsProvider.Settings.General.Theme = selectedTheme;
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	public event PropertyChangedEventHandler? PropertyChanged;
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}

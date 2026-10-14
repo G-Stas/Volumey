@@ -228,10 +228,10 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) => SetVolumeHotkeys(volUp, volDown, out _);
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown) => SetVolumeHotkeys(volUp, volDown, out _);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey? failed)
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 	{
 		failed = null;
 		try

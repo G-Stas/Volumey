@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Timers;
@@ -31,12 +32,12 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	/// <summary>
 	/// Requests showing the mixer window with these parameters: is the window visible already, is it shown as the popup
 	/// </summary>
-	public event Action<bool, bool> DisplayAppRequested;
+	public event Action<bool, bool>? DisplayAppRequested;
 
 	/// <summary>
 	/// Requests showing the settings window (a window of its own; the mixer window stays as it is)
 	/// </summary>
-	public event Action SettingsRequested;
+	public event Action? SettingsRequested;
 
 	private bool displayedMinimalistic = false;
 
@@ -249,7 +250,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		screens.Load();
 	}
 
-	private void OnSystemDisplaySettingsChanged(object sender, EventArgs e)
+	private void OnSystemDisplaySettingsChanged(object? sender, EventArgs e)
 	{
 		screens.Refresh();
 	}
@@ -340,7 +341,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 			DisplayAppRequested?.Invoke(WindowIsVisible, displayedAsPopup);
 	}
 
-	private void OnBlockTrayTimerElapsed(object sender, ElapsedEventArgs e)
+	private void OnBlockTrayTimerElapsed(object? sender, ElapsedEventArgs e)
 	{
 		trayBlocked = false;
 	}

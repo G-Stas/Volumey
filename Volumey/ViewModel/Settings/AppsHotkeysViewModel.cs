@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -23,22 +24,22 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	public IHotkeyService Hotkeys => hotkeys;
 
 	[ObservableProperty]
-	public partial AudioProcessModel SelectedProcess { get; set; }
+	public partial AudioProcessModel? SelectedProcess { get; set; }
 
 	[ObservableProperty]
-	public partial HotKey VolumeUp { get; set; }
+	public partial HotKey? VolumeUp { get; set; }
 
 	[ObservableProperty]
-	public partial HotKey VolumeDown { get; set; }
+	public partial HotKey? VolumeDown { get; set; }
 
 	/// <summary>
 	/// The "Add app" dialog's errors, under the hotkey box that has one; a box's error goes away when it changes
 	/// </summary>
 	public HotkeyPairErrors AddErrors { get; } = new HotkeyPairErrors();
 
-	partial void OnVolumeUpChanged(HotKey value) => AddErrors.ClearUp();
+	partial void OnVolumeUpChanged(HotKey? value) => AddErrors.ClearUp();
 
-	partial void OnVolumeDownChanged(HotKey value) => AddErrors.ClearDown();
+	partial void OnVolumeDownChanged(HotKey? value) => AddErrors.ClearDown();
 
 	/// <summary>
 	/// The running apps the "Add app" dialog offers: the default device's apps that have no hotkeys yet (see <see cref="PrepareAddApp"/>)
@@ -73,7 +74,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	private readonly List<AudioProcessModel> LaunchedProcesses = new List<AudioProcessModel>();
 
 	[ObservableProperty]
-	public partial OutputDeviceModel DefaultDevice { get; set; }
+	public partial OutputDeviceModel? DefaultDevice { get; set; }
 
 	//shows the OSD when a hotkey changes a volume (the models' state mediator)
 	private readonly INotificationService notifications;
@@ -112,7 +113,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		FindAndSetupRegisteredHotkeys();
 	}
 
-	private void OnDefaultDeviceSwitched(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceSwitched(OutputDeviceModel? newDevice)
 	{
 		if(DefaultDevice != null)
 			DefaultDevice.ProcessCreated -= OnProcessStarted;
@@ -128,8 +129,8 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 
 		if(Apps.Count != 0)
 		{
-			DefaultDevice.ProcessCreated -= OnProcessStarted;
-			DefaultDevice.ProcessCreated += OnProcessStarted;
+			newDevice.ProcessCreated -= OnProcessStarted;
+			newDevice.ProcessCreated += OnProcessStarted;
 			FindAndSetupRegisteredHotkeys();
 		}
 	}
@@ -149,7 +150,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		}
 	}
 
-	private AppHotkeysItem FindApp(string processName) => Apps.FirstOrDefault(app => app.ProcessName == processName);
+	private AppHotkeysItem? FindApp(string processName) => Apps.FirstOrDefault(app => app.ProcessName == processName);
 
 	/// <summary>
 	/// Registers a saved app's hotkeys for a running process. If they fail (e.g. another app took the combination),
@@ -167,7 +168,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	/// Registers the app's hotkeys for a running process
 	/// </summary>
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	private bool SetUp(AudioProcessModel process, AppHotkeysItem app, out HotKey failed)
+	private bool SetUp(AudioProcessModel process, AppHotkeysItem app, out HotKey? failed)
 	{
 		if(!process.SetVolumeHotkeys(app.VolumeUp, app.VolumeDown, out failed))
 			return false;
@@ -223,10 +224,11 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			return false;
 
 		AddErrors.Set(hotkeys.CheckHotkeysPair(VolumeUp, VolumeDown));
-		if(AddErrors.Any)
+		//the check reports a missing hotkey
+		if(AddErrors.Any || VolumeUp is not { } up || VolumeDown is not { } down)
 			return false;
 
-		var app = new AppHotkeysItem(this, process.Name, VolumeUp, VolumeDown);
+		var app = new AppHotkeysItem(this, process.Name, up, down);
 		if(!SetUp(process, app, out var failed))
 		{
 			//the hotkey service logs why
@@ -331,7 +333,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			.ToArray();
 	}
 
-	private void OnNotificationSettingsChanged(object sender, PropertyChangedEventArgs e)
+	private void OnNotificationSettingsChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		if(e.PropertyName == nameof(NotificationSettings.Enabled))
 		{

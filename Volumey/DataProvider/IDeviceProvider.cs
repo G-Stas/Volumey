@@ -22,7 +22,7 @@ public interface IDeviceProvider : IDisposable
 
 	public bool NoOutputDevices { get; set; }
 
-	public void SetDefaultDevice(string deviceId);
+	public void SetDefaultDevice(string? deviceId);
 
 	/// <summary>
 	/// Sets the format the device runs at (on the thread pool: Windows reconfigures the device during the call). False if the change failed;
