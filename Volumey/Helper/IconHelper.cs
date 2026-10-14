@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -77,16 +78,39 @@ static class IconHelper
 		return null;
 	}
 
-	private static Icon genericExeIcon;
+	/// <summary>
+	/// The apps' icons as frozen images, by the file or resource path they were read from. A frozen image can be shared by every
+	/// model and thread and needs no releasing, so each icon is read from its file once per run
+	/// </summary>
+	private static readonly ConcurrentDictionary<string, ImageSource> iconSources = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// A new copy of Windows' generic program icon, for apps whose own icon can't be read. The cached original is never handed out,
-	/// because models dispose their icons: the first app that closed would destroy it for all others.
+	/// The icon at <paramref name="path"/> as a frozen image, read with <paramref name="extract"/> the first time; null if it can't be read
+	/// (not remembered: the next app with this path tries again)
 	/// </summary>
-	internal static Icon CreateGenericExeIcon()
+	internal static ImageSource GetIconSource(string path, Func<string, Icon> extract)
 	{
-		genericExeIcon ??= GetGenericExeIcon();
-		return genericExeIcon == null ? null : (Icon)genericExeIcon.Clone();
+		if(iconSources.TryGetValue(path, out var cached))
+			return cached;
+		using var icon = extract(path);
+		var source = icon?.GetAsImageSource();
+		return source == null ? null : iconSources.GetOrAdd(path, source);
+	}
+
+	private static ImageSource genericExeIconSource;
+
+	/// <summary>Windows' generic program icon as a frozen image, for apps whose own icon can't be read</summary>
+	internal static ImageSource GenericExeIconSource
+	{
+		get
+		{
+			if(genericExeIconSource == null)
+			{
+				using var icon = GetGenericExeIcon();
+				genericExeIconSource = icon?.GetAsImageSource();
+			}
+			return genericExeIconSource;
+		}
 	}
 
 	private static Icon GetGenericExeIcon()
