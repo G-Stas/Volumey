@@ -167,8 +167,23 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		SetAsDefaultCommand.NotifyCanExecuteChanged();
 	}
 
+	private bool pageShown;
+
+	/// <summary>
+	/// The Devices page became visible or hidden: only the selected device on a visible page follows its channel levels
+	/// </summary>
+	internal void SetPageShown(bool shown)
+	{
+		pageShown = shown;
+		SelectedDevice?.Settings?.Listen(shown);
+	}
+
 	//the selected device's settings are read when it's selected (COM calls, off the UI thread)
-	partial void OnSelectedDeviceChanged(DeviceEntry value) => value?.Settings?.Load();
+	partial void OnSelectedDeviceChanged(DeviceEntry oldValue, DeviceEntry newValue)
+	{
+		oldValue?.Settings?.Listen(false);
+		ActivateSettings(newValue);
+	}
 
 	/// <summary>
 	/// A device got a new model (plugged in, or rebuilt after a change that reconfigured it): its new settings are read if it's selected
@@ -176,7 +191,13 @@ public partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	internal void OnModelChanged(DeviceEntry entry)
 	{
 		if(entry == SelectedDevice)
-			entry.Settings?.Load();
+			ActivateSettings(entry);
+	}
+
+	private void ActivateSettings(DeviceEntry entry)
+	{
+		entry?.Settings?.Load();
+		entry?.Settings?.Listen(pageShown);
 	}
 
 	private bool CanSetAsDefault() => SelectedDevice is { IsConnected: true, IsDefault: false };

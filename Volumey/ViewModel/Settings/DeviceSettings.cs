@@ -74,13 +74,41 @@ public sealed partial class DeviceSettings : ObservableObject
 		var features = provider.GetDeviceFeaturesAsync(model.Id);
 		ShowFeatures(await features ?? DeviceFeatureState.Unknown);
 		SetSupportedFormats(await formats ?? Array.Empty<DeviceFormatOption>());
-		if(!detached)
-		{
-			model.ChannelVolumesChanged += ReadChannelVolumes;
-			ReadChannelVolumes();
-		}
 		loading = false;
 		loaded = true;
+		if(!detached)
+		{
+			ReadChannelVolumes();
+			UpdateListening();
+		}
+	}
+
+	/// <summary>
+	/// Follows the device's channel levels while the device is selected on a visible Devices page.
+	/// Listening makes Windows report every volume change of the device, so it stops when nobody sees the balance.
+	/// </summary>
+	internal void Listen(bool on)
+	{
+		wantsListening = on;
+		if(loaded && !detached)
+			UpdateListening();
+	}
+
+	private bool wantsListening, listening;
+
+	private void UpdateListening()
+	{
+		if(wantsListening == listening)
+			return;
+		listening = wantsListening;
+		if(listening)
+		{
+			model.ChannelVolumesChanged += ReadChannelVolumes;
+			//the levels may have changed while nobody listened
+			ReadChannelVolumes();
+		}
+		else
+			model.ChannelVolumesChanged -= ReadChannelVolumes;
 	}
 
 	/// <summary>
@@ -89,6 +117,7 @@ public sealed partial class DeviceSettings : ObservableObject
 	internal void Detach()
 	{
 		detached = true;
+		listening = false;
 		model.ChannelVolumesChanged -= ReadChannelVolumes;
 	}
 
