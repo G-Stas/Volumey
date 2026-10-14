@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using log4net;
 using Volumey.DataProvider;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.ViewModel;
@@ -106,7 +107,8 @@ internal sealed class ScreenSelection
 			if(dispatcher == null || dispatcher.CheckAccess())
 				Apply();
 			else
-				dispatcher.Invoke(Apply);
+				//without waiting: the pool thread isn't held while the UI thread is busy (e.g. laying out the mixer that just opened)
+				dispatcher.InvokeAsync(Apply).Task.Forget(logger, "Failed to check the screen for availability");
 		}).ContinueWith(task => logger.Error("Failed to check the screen for availability", task.Exception.Flatten()),
 			TaskContinuationOptions.OnlyOnFaulted);
 	}

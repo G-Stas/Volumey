@@ -359,7 +359,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	}
 
 	internal bool CompareId(string deviceId) =>
-		string.Compare(Id, deviceId, StringComparison.InvariantCulture) == 0;
+		string.Equals(Id, deviceId, StringComparison.Ordinal);
 
 	//never raised: the bound properties don't change, but without INotifyPropertyChanged WPF tracks bindings to the model
 	//through PropertyDescriptor, which keeps the model alive
