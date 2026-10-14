@@ -131,6 +131,7 @@
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
+                    <!-- PropertyChanged: the arrows change the value without focusing the box, so the binding's default (on losing focus) wouldn't save it -->
                     <ui:NumberBox Width="140"
                                   Minimum="1"
                                   Maximum="99"
@@ -139,7 +140,7 @@
                                   MaxDecimalPlaces="0"
                                   SpinButtonPlacementMode="Inline"
                                   ClearButtonEnabled="False"
-                                  Value="{Binding VolumeLimit}"
+                                  Value="{Binding VolumeLimit, UpdateSourceTrigger=PropertyChanged}"
                                   controls:DigitsOnly.IsEnabled="True"
                                   controls:NumberBoxCommit.IsEnabled="True"
                                   AutomationProperties.Name="{lc:Localization MixerPage_VolumeLimit}"

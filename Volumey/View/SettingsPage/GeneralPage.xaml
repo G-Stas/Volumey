@@ -126,6 +126,7 @@
                     </StackPanel>
                 </ui:CardControl.Header>
                 <StackPanel Orientation="Horizontal">
+                    <!-- PropertyChanged: the arrows change the value without focusing the box, so the binding's default (on losing focus) wouldn't save it -->
                     <ui:NumberBox Width="140"
                                   Minimum="1"
                                   Maximum="100"
@@ -134,7 +135,7 @@
                                   MaxDecimalPlaces="0"
                                   SpinButtonPlacementMode="Inline"
                                   ClearButtonEnabled="False"
-                                  Value="{Binding AppHotkeys.VolumeStep}"
+                                  Value="{Binding AppHotkeys.VolumeStep, UpdateSourceTrigger=PropertyChanged}"
                                   ValueChanged="OnNumberBoxValueChanged"
                                   controls:DigitsOnly.IsEnabled="True"
                                   controls:NumberBoxCommit.IsEnabled="True"
