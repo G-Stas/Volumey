@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
@@ -51,6 +52,8 @@ public class MasterSessionModelTests
 		mVolumeNotifMock.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(newVolume, false));
 
 		Assert.AreEqual(model.Volume, newVolume);
+		//Windows already has the outside change
+		sessionVolumeMock.Verify(m => m.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
 	}
 
 	[TestMethod]
@@ -62,6 +65,7 @@ public class MasterSessionModelTests
 			new VolumeChangedEventArgs(model.Volume, newMuteState));
 
 		Assert.AreEqual(model.IsMuted, newMuteState);
+		sessionVolumeMock.Verify(m => m.SetMute(It.IsAny<bool>(), It.IsAny<Guid>()), Times.Never);
 	}
 
 	[TestMethod]

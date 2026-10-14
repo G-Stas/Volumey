@@ -327,8 +327,17 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 				StateNotificationMediator?.NotifyAudioStateChange(this);
 		}
 
-		Volume = e.NewVolume;
-		IsMuted = e.IsMuted;
+		//taken over without writing it back to Windows, which already has it
+		if(_volume != e.NewVolume)
+		{
+			_volume = e.NewVolume;
+			OnPropertyChanged(nameof(Volume));
+		}
+		if(_isMuted != e.IsMuted)
+		{
+			_isMuted = e.IsMuted;
+			OnPropertyChanged(nameof(IsMuted));
+		}
 	}
 
 	private void LogStateException(Exception e)
