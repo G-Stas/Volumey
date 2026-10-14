@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Threading;
 using log4net;
@@ -50,13 +52,25 @@ internal sealed class NotificationService : INotificationService
 		}
 	}
 
+	/// <summary>
+	/// The sessions whose notification is queued on the UI thread: it shows the session's state when it runs,
+	/// so the changes that arrive meanwhile (an app fading its volume) don't queue more
+	/// </summary>
+	private readonly ConcurrentDictionary<IManagedMasterAudioSession, byte> queued = new(ReferenceEqualityComparer.Instance);
+
 	//the models call these from audio callbacks, on any thread
 	public void NotifyAudioStateChange(IManagedMasterAudioSession sender)
 	{
 		//the "OSD notifications" switch: a model can still have the mediator from before it was turned off
 		if(!SettingsProvider.Settings.Notifications.Enabled)
 			return;
-		UiDispatcher.InvokeAsync(() => ShowNotification(sender));
+		if(!queued.TryAdd(sender, 0))
+			return;
+		UiDispatcher.InvokeAsync(() =>
+		{
+			queued.TryRemove(sender, out _);
+			ShowNotification(sender);
+		});
 	}
 
 	public void NotifyOfDisposing(IManagedMasterAudioSession sender)
