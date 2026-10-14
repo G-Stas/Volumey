@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -35,6 +36,30 @@ public class OutputDeviceModelTests
 		sProviderMock = new Mock<ISessionProvider>();
 
 		model = new OutputDeviceModel(deviceMock.Object, deviceStateMock.Object, sProviderMock.Object, master, processes);
+	}
+
+	[TestMethod]
+	public void ChannelVolumeChangesThatComeTogetherArePassedOnOnce()
+	{
+		int raised = 0;
+		model.ChannelVolumesChanged += () => raised++;
+
+		deviceMock.Raise(m => m.ChannelVolumesChanged += null);
+		deviceMock.Raise(m => m.ChannelVolumesChanged += null);
+		deviceMock.Raise(m => m.ChannelVolumesChanged += null);
+		RunQueuedDispatcherWork();
+		Assert.AreEqual(1, raised);
+
+		deviceMock.Raise(m => m.ChannelVolumesChanged += null);
+		RunQueuedDispatcherWork();
+		Assert.AreEqual(2, raised);
+	}
+
+	private static void RunQueuedDispatcherWork()
+	{
+		var frame = new DispatcherFrame();
+		Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, () => frame.Continue = false);
+		Dispatcher.PushFrame(frame);
 	}
 
 	[TestMethod]
