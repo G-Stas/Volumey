@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -19,5 +20,5 @@ public sealed class MutedToGlyphConverter : IValueConverter
 		return string.Empty;
 	}
 
-	public object ConvertBack(object value, Type targetTypes, object parameter, CultureInfo culture) => null;
+	public object? ConvertBack(object value, Type targetTypes, object parameter, CultureInfo culture) => null;
 }

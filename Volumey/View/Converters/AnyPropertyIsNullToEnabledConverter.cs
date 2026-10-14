@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -18,7 +19,7 @@ public sealed class AnyPropertyIsNullToEnabledConverter : IMultiValueConverter, 
 		return true;
 	}
 
-	public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+	public object[]? ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
 		=> null;
 
 	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -26,6 +27,6 @@ public sealed class AnyPropertyIsNullToEnabledConverter : IMultiValueConverter, 
 		return value != null;
 	}
 
-	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		=> null;
 }

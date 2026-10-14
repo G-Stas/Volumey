@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,9 +21,9 @@ namespace Volumey;
 /// </summary>
 public sealed partial class App
 {
-	private ILog logger;
+	private ILog? logger;
 	private ILog Logger => logger ??= LogManager.GetLogger(typeof(App));
-	private static Stopwatch execTimer;
+	private static Stopwatch? execTimer;
 
 	public App()
 	{
@@ -33,7 +34,7 @@ public sealed partial class App
 		Microsoft.Win32.SystemEvents.PowerModeChanged += (s, e) => Logger.Info($"Power mode changed: {e.Mode}");
 	}
 
-	private ServiceProvider services;
+	private ServiceProvider? services;
 
 	protected override void OnStartup(StartupEventArgs e)
 	{
@@ -130,7 +131,7 @@ public sealed partial class App
 	/// Logs an exception that ends the app and flushes the log (Release builds send logs to Loggly in batches,
 	/// which would be lost when the process goes down). The caller decides how the process ends.
 	/// </summary>
-	internal static void LogFatal(string source, Exception ex)
+	internal static void LogFatal(string source, Exception? ex)
 	{
 		try
 		{
@@ -150,7 +151,7 @@ public sealed partial class App
 			data.Append($"Is store version: {isStoreVersion}");
 			var log = LogManager.GetLogger(typeof(App));
 			log.Fatal($"An unhandled exception has occurred: \n{data}", ex);
-			log.Logger.Repository.Shutdown();
+			log.Logger.Repository?.Shutdown();
 		}
 		catch
 		{

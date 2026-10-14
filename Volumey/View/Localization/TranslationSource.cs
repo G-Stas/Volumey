@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -50,9 +51,9 @@ public sealed class TranslationSource : INotifyPropertyChanged
 	private readonly ResourceManager resManager = Resources.Resources.ResourceManager;
 
 	private readonly CultureInfo defaultCulture = CultureInfo.GetCultureInfo("en");
-	private CultureInfo currentCulture;
+	private CultureInfo? currentCulture;
 
-	public CultureInfo CurrentCulture
+	public CultureInfo? CurrentCulture
 	{
 		get => currentCulture;
 		private set
@@ -65,11 +66,12 @@ public sealed class TranslationSource : INotifyPropertyChanged
 		}
 	}
 
-	public string this[string key]
+	/// <summary>The string in the current language, else in English; null for an unknown key</summary>
+	public string? this[string key]
 	{
 		get
 		{
-			string resource = resManager.GetString(key, currentCulture);
+			string? resource = resManager.GetString(key, currentCulture);
 			//If the resource for the selected culture is not localized we will return English localized resource 
 			return string.IsNullOrEmpty(resource) ? resManager.GetString(key, defaultCulture) : resource;
 		}
@@ -80,21 +82,21 @@ public sealed class TranslationSource : INotifyPropertyChanged
 
 	internal static void SetLanguage(string lang)
 	{
-		if(CultureDictionary.TryGetValue(lang, out string culture))
+		if(CultureDictionary.TryGetValue(lang, out string? culture))
 		{
 			Instance.CurrentCulture = new CultureInfo(culture);
 		}
 		else
 			SetDefaultLanguage();
 
-		SettingsProvider.Settings.General.Language = Instance.currentCulture.Name;
+		SettingsProvider.Settings.General.Language = Instance.currentCulture?.Name;
 	}
 
 	internal static void SetLanguage(CultureInfo ci)
 	{
 		//the saved name differs in case from the supported one ("uk-UA" / "uk-ua"),
 		//and a system language may only match by language ("uk", "zh-Hans")
-		string culture = CultureDictionary.Values.FirstOrDefault(c => string.Equals(c, ci.Name, StringComparison.OrdinalIgnoreCase))
+		string? culture = CultureDictionary.Values.FirstOrDefault(c => string.Equals(c, ci.Name, StringComparison.OrdinalIgnoreCase))
 						 ?? CultureDictionary.Values.FirstOrDefault(c => new CultureInfo(c).TwoLetterISOLanguageName == ci.TwoLetterISOLanguageName);
 		if(culture != null)
 			Instance.CurrentCulture = new CultureInfo(culture);
@@ -105,7 +107,7 @@ public sealed class TranslationSource : INotifyPropertyChanged
 	/// <summary>
 	/// The current language's name as the language list shows it
 	/// </summary>
-	internal static string CurrentLanguageName => new CultureInfo(Instance.CurrentCulture.TwoLetterISOLanguageName).NativeName;
+	internal static string CurrentLanguageName => new CultureInfo((Instance.CurrentCulture ?? CultureInfo.CurrentUICulture).TwoLetterISOLanguageName).NativeName;
 
 	internal static string GetSystemLanguage()
 		=> CultureInfo.CurrentUICulture.Parent.Name;
@@ -113,5 +115,5 @@ public sealed class TranslationSource : INotifyPropertyChanged
 	internal static void SetDefaultLanguage()
 			=> Instance.CurrentCulture = new CultureInfo("en");
 
-	public event PropertyChangedEventHandler PropertyChanged;
+	public event PropertyChangedEventHandler? PropertyChanged;
 }

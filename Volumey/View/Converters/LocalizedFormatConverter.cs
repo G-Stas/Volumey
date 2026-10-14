@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Globalization;
 using System.Linq;
@@ -14,7 +15,7 @@ public sealed class LocalizedFormatConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
-		string format = parameter is string key ? TranslationSource.Instance[key] : null;
+		string? format = parameter is string key ? TranslationSource.Instance[key] : null;
 		if(string.IsNullOrEmpty(format))
 			return string.Empty;
 		return string.Format(format, values.Select(v => v?.ToString() ?? string.Empty).ToArray<object>()).Trim();

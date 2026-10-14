@@ -150,7 +150,7 @@ public sealed partial class DeviceSettings : ObservableObject
 
 	internal static string FormatName(ushort bits, uint samplesPerSec)
 	{
-		string pattern = TranslationSource.Instance["Devices_FormatName"];
+		string? pattern = TranslationSource.Instance["Devices_FormatName"];
 		return string.Format(string.IsNullOrEmpty(pattern) ? "{0} bit, {1} Hz" : pattern, bits, samplesPerSec);
 	}
 

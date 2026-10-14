@@ -40,7 +40,7 @@ public sealed partial class AboutViewModel : ObservableObject
 	/// <summary>
 	/// The build's name in the current language ("GitHub release", "Microsoft Store")
 	/// </summary>
-	public string BuildName => TranslationSource.Instance[BuildKey];
+	public string BuildName => TranslationSource.Instance[BuildKey] ?? string.Empty;
 
 	public ObservableCollection<SupportLink> SupportLinks => supportLinks.Links;
 
@@ -100,7 +100,7 @@ public sealed partial class AboutViewModel : ObservableObject
 	private void SetUpdateStatus(string? key)
 	{
 		updateStatusKey = key;
-		UpdateStatus = key == null ? string.Empty : TranslationSource.Instance[key];
+		UpdateStatus = key == null ? string.Empty : TranslationSource.Instance[key] ?? string.Empty;
 	}
 
 	[RelayCommand]

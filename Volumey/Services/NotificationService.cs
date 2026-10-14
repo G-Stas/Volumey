@@ -98,7 +98,7 @@ internal sealed class NotificationService : INotificationService
 		}
 	}
 
-	private static string ExampleName => TranslationSource.Instance["Notifications_ExampleApp"];
+	private static string ExampleName => TranslationSource.Instance["Notifications_ExampleApp"] ?? string.Empty;
 
 	public void ShowNotificationExample() => Try(() => Window.Show(ExampleKey, Example, displayTime), "Failed to display example notification");
 

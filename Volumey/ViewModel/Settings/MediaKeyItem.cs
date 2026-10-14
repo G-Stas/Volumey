@@ -28,7 +28,7 @@ public sealed partial class MediaKeyItem : ObservableObject
 	/// <summary>
 	/// The media key's name in the current language ("Play / pause")
 	/// </summary>
-	public string Name => TranslationSource.Instance[NameKey(MediaKey)];
+	public string Name => TranslationSource.Instance[NameKey(MediaKey)] ?? string.Empty;
 
 	public HotKey? Hotkey
 	{

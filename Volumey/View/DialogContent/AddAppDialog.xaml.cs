@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿#nullable enable
+using System.Windows;
 using System.Windows.Data;
 using Volumey.View.Converters;
 using Volumey.ViewModel.Settings;

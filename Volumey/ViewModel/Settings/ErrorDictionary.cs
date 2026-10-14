@@ -24,7 +24,7 @@ public static class ErrorDictionary
 			foreach(var error in Enum.GetValues(typeof(ErrorMessageType)).Cast<ErrorMessageType>())
 			{
 				if(error != ErrorMessageType.None)
-					instance.Add(error, TranslationSource.Instance[$"Error_{error.ToString()}"]);
+					instance.Add(error, TranslationSource.Instance[$"Error_{error.ToString()}"] ?? string.Empty);
 			}
 
 			LanguageChanged?.Invoke();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -25,8 +26,8 @@ public sealed partial class OsdWindow
 
 	private sealed class Entry
 	{
-		public OsdPill Pill;
-		public DispatcherTimer Timer;
+		public required OsdPill Pill;
+		public DispatcherTimer? Timer;
 		public bool Closing;
 	}
 
@@ -44,7 +45,7 @@ public sealed partial class OsdWindow
 	}
 
 	//never activated, not even by a click on a pill (a game in front keeps the focus), and not in Alt+Tab
-	private void OnSourceInitialized(object sender, EventArgs e)
+	private void OnSourceInitialized(object? sender, EventArgs e)
 	{
 		var hwnd = new HWND(new WindowInteropHelper(this).Handle);
 		var style = PInvoke.GetWindowLongPtr(hwnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);

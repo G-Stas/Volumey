@@ -1,4 +1,5 @@
-﻿//  MIT License
+﻿#nullable enable
+//  MIT License
 //
 //  Copyright (c) .NET Foundation and Contributors. All rights reserved.
 //
@@ -45,7 +46,7 @@ public sealed class HotKey : IEquatable<HotKey>
 
 	public ModifierKeys ModifierKeys { get; }
 
-	public override bool Equals(object obj)
+	public override bool Equals(object? obj)
 	{
 		return obj is HotKey key && Equals(key);
 	}
@@ -58,7 +59,7 @@ public sealed class HotKey : IEquatable<HotKey>
 		}
 	}
 
-	public bool Equals(HotKey other)
+	public bool Equals(HotKey? other)
 	{
 		if(other is null)
 			return false;
@@ -74,11 +75,11 @@ public sealed class HotKey : IEquatable<HotKey>
 	{
 		var names = new List<string>();
 		if((ModifierKeys & ModifierKeys.Alt) == ModifierKeys.Alt)
-			names.Add(GetLocalizedKeyStringUnsafe(VK_MENU));
+			names.Add(GetLocalizedKeyStringUnsafe(VK_MENU) ?? "Alt");
 		if((ModifierKeys & ModifierKeys.Control) == ModifierKeys.Control)
-			names.Add(GetLocalizedKeyStringUnsafe(VK_CONTROL));
+			names.Add(GetLocalizedKeyStringUnsafe(VK_CONTROL) ?? "Ctrl");
 		if((ModifierKeys & ModifierKeys.Shift) == ModifierKeys.Shift)
-			names.Add(GetLocalizedKeyStringUnsafe(VK_SHIFT));
+			names.Add(GetLocalizedKeyStringUnsafe(VK_SHIFT) ?? "Shift");
 		if((ModifierKeys & ModifierKeys.Windows) == ModifierKeys.Windows)
 			names.Add("Windows");
 		names.Add(GetLocalizedKeyString(Key));
@@ -96,7 +97,7 @@ public sealed class HotKey : IEquatable<HotKey>
 		return GetLocalizedKeyStringUnsafe(vkey) ?? key.ToString();
 	}
 
-	private static string GetLocalizedKeyStringUnsafe(int key)
+	private static string? GetLocalizedKeyStringUnsafe(int key)
 	{
 		// strip any modifier keys
 		long keyCode = key & 0xffff;

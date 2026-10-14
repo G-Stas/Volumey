@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,13 +57,13 @@ public sealed partial class MainView
 	private static readonly DependencyProperty TrayIconImageProperty = DependencyProperty.Register("TrayIconImage", typeof(System.Drawing.Icon), typeof(MainView), new PropertyMetadata(OnTrayIconImageChanged));
 	private static readonly DependencyProperty TrayToolTipTextProperty = DependencyProperty.Register("TrayToolTipText", typeof(string), typeof(MainView), new PropertyMetadata(OnTrayToolTipTextChanged));
 
-	private ILog logger;
+	private ILog? logger;
 	private ILog Logger => logger ??= LogManager.GetLogger(typeof(MainView));
 
 	private readonly AppBehaviorViewModel vm;
 	/// <summary>Creates the settings window the first time it opens (the container keeps the one instance)</summary>
 	private readonly Func<SettingsWindow> getSettingsWindow;
-	private SettingsWindow settingsWindow;
+	private SettingsWindow? settingsWindow;
 
 	/// <summary>Set while the window mode's size or position is applied, so applying it isn't saved as a user change</summary>
 	private bool applyingPlacement;
@@ -158,8 +159,8 @@ public sealed partial class MainView
 		=> ((MainView)d).QueueTrayToolTip(e.NewValue as string ?? string.Empty);
 
 	private static readonly TimeSpan TrayToolTipInterval = TimeSpan.FromMilliseconds(100);
-	private DispatcherTimer trayToolTipTimer;
-	private string pendingTrayToolTip;
+	private DispatcherTimer? trayToolTipTimer;
+	private string? pendingTrayToolTip;
 
 	/// <summary>
 	/// Each tooltip update is a call into Explorer, and a held volume hotkey changes the text about 30 times a second:
@@ -179,17 +180,18 @@ public sealed partial class MainView
 		trayToolTipTimer.Start();
 	}
 
-	private void OnTrayToolTipTimerTick(object sender, EventArgs e)
+	private void OnTrayToolTipTimerTick(object? sender, EventArgs e)
 	{
 		if(pendingTrayToolTip == null)
-			trayToolTipTimer.Stop();
+			trayToolTipTimer?.Stop();
 		else
 			PushTrayToolTip();
 	}
 
 	private void PushTrayToolTip()
 	{
-		string text = pendingTrayToolTip;
+		if(pendingTrayToolTip is not { } text)
+			return;
 		pendingTrayToolTip = null;
 		UpdateTrayIcon(tray => tray.TrayIcon.UpdateToolTip(text), "update the tooltip of");
 	}
@@ -209,7 +211,7 @@ public sealed partial class MainView
 
 	private IntPtr ForceCreateHwnd() => Hwnd = new WindowInteropHelper(this).EnsureHandle();
 
-	private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+	private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		if(e.PropertyName == nameof(AppBehaviorViewModel.DisplayMinimalistic))
 		{
@@ -374,11 +376,11 @@ public sealed partial class MainView
 	/// Whether the pressed element is drawn in this window, not in a popup: a popup has its own window and visual tree,
 	/// so <see cref="IsInControl"/> can't find the control that opened it
 	/// </summary>
-	private bool IsOnThisWindow(DependencyObject source)
+	private bool IsOnThisWindow(DependencyObject? source)
 		=> source != null && PresentationSource.FromDependencyObject(source)?.RootVisual == this;
 
 	/// <summary>Whether the pressed element is (inside) something that takes clicks itself</summary>
-	private static bool IsInControl(DependencyObject source)
+	private static bool IsInControl(DependencyObject? source)
 	{
 		for(var element = source; element != null;
 		    element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))

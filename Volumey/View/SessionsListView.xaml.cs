@@ -1,4 +1,5 @@
-﻿namespace Volumey.View;
+﻿#nullable enable
+namespace Volumey.View;
 
 public sealed partial class SessionsListView
 {

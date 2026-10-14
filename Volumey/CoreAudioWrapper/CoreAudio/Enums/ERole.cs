@@ -1,4 +1,5 @@
-﻿namespace Volumey.CoreAudioWrapper.CoreAudio.Enums;
+﻿#nullable enable
+namespace Volumey.CoreAudioWrapper.CoreAudio.Enums;
 
 public enum ERole
 {

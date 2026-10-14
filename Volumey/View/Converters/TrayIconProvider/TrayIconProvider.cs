@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Media;
@@ -11,14 +12,14 @@ public sealed partial class TrayIconConverter
 {
 	internal abstract class TrayIconProvider
 	{
-		protected virtual Icon High => null;
-		protected virtual Icon Mid => null;
-		protected virtual Icon Low => null;
-		protected virtual Icon Mute => null;
-		protected virtual Icon NoDevice => null;
-		protected virtual ILog Logger => null;
+		protected virtual Icon? High => null;
+		protected virtual Icon? Mid => null;
+		protected virtual Icon? Low => null;
+		protected virtual Icon? Mute => null;
+		protected virtual Icon? NoDevice => null;
+		protected virtual ILog? Logger => null;
 
-		public Icon GetIcon(IconType type)
+		public Icon? GetIcon(IconType type)
 		{
 			try
 			{
@@ -43,11 +44,11 @@ public sealed partial class TrayIconConverter
 
 public static class IconExtensions
 {
-	internal static Icon GetAsIcon(this ImageSource src)
+	internal static Icon? GetAsIcon(this ImageSource? src)
 	{
 		if(src == null) return null;
 		Uri uri = new Uri(src.ToString());
-		StreamResourceInfo streamInfo = Application.GetResourceStream(uri);
+		StreamResourceInfo? streamInfo = Application.GetResourceStream(uri);
 
 		if(streamInfo == null)
 			return null;

@@ -76,7 +76,7 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 		string message = ErrorDictionary.Instance[type];
 		if(rejected == null)
 			return message;
-		string format = TranslationSource.Instance["Error_RejectedHotkey"];
+		string? format = TranslationSource.Instance["Error_RejectedHotkey"];
 		return string.IsNullOrEmpty(format) ? message : string.Format(format, rejected, message);
 	}
 }
