@@ -479,7 +479,8 @@ public partial class MainView
 
 	/// <summary>
 	/// The settings open centered on the screen the mixer is on, also when the mixer is hidden:
-	/// its window keeps its last position. If the screen can't be read, the window's own startup location is used
+	/// its window keeps its last position. A window larger than that screen's work area is shrunk to it (the pages scroll).
+	/// If the screen can't be read, the window's own startup location is used
 	/// </summary>
 	private void CenterOnMixerScreen(Window window)
 	{
@@ -492,6 +493,12 @@ public partial class MainView
 		foreach(var screen in vm.AllScreens)
 			if((int)screen.WorkingAreaLeft == work.left && (int)screen.WorkingAreaTop == work.top)
 				targetScale = screen.ScaleFactor;
+		double workWidth = (work.right - work.left) / targetScale;
+		double workHeight = (work.bottom - work.top) / targetScale;
+		if(window.MinWidth > workWidth)
+			window.MinWidth = workWidth;
+		window.Width = Math.Min(window.Width, workWidth);
+		window.Height = Math.Min(window.Height, workHeight);
 		double currentScale = VisualTreeHelper.GetDpi(window).DpiScaleX;
 		double width = window.Width * targetScale;
 		double height = window.Height * targetScale;
