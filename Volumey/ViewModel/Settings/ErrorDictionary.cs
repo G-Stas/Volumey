@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Volumey.Localization;
@@ -13,7 +14,7 @@ public static class ErrorDictionary
 		new Dictionary<ErrorMessageType, string>();
 
 	internal static IReadOnlyDictionary<ErrorMessageType, string> Instance => instance;
-	internal static event Action LanguageChanged;
+	internal static event Action? LanguageChanged;
 
 	internal static void UpdateErrorDictionary()
 	{

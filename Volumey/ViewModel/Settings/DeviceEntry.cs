@@ -1,3 +1,4 @@
+#nullable enable
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -17,30 +18,30 @@ public sealed partial class DeviceEntry : ObservableObject
 	/// The device's ID; a saved device is also matched by its name, and the ID is updated then
 	/// </summary>
 	[ObservableProperty]
-	public partial string Id { get; internal set; }
+	public partial string? Id { get; internal set; }
 
 	[ObservableProperty]
-	public partial string Name { get; internal set; }
+	public partial string? Name { get; internal set; }
 
 	/// <summary>
 	/// The device's model while it's connected, otherwise null
 	/// </summary>
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsConnected), nameof(IconSource))]
-	public partial OutputDeviceModel Model { get; internal set; }
+	public partial OutputDeviceModel? Model { get; internal set; }
 
 	public bool IsConnected => Model != null;
 
-	public ImageSource IconSource => Model?.Master.IconSource;
+	public ImageSource? IconSource => Model?.Master.IconSource;
 
 	/// <summary>
 	/// The audio features of the connected device (format, exclusive mode, balance); null while it isn't connected.
 	/// A new model (plugged in, or rebuilt after a change that reconfigured the device) gets new settings, which read the new state.
 	/// </summary>
 	[ObservableProperty]
-	public partial DeviceSettings Settings { get; private set; }
+	public partial DeviceSettings? Settings { get; private set; }
 
-	partial void OnModelChanged(OutputDeviceModel value)
+	partial void OnModelChanged(OutputDeviceModel? value)
 	{
 		Settings?.Detach();
 		Settings = value != null ? new DeviceSettings(value, owner.DeviceProvider) : null;
@@ -51,9 +52,9 @@ public sealed partial class DeviceEntry : ObservableObject
 	public partial bool IsDefault { get; internal set; }
 
 	[ObservableProperty]
-	public partial HotKey Hotkey { get; set; }
+	public partial HotKey? Hotkey { get; set; }
 
-	partial void OnHotkeyChanged(HotKey value) => SetError(ErrorMessageType.None);
+	partial void OnHotkeyChanged(HotKey? value) => SetError(ErrorMessageType.None);
 
 	private bool hotkeyRegistered;
 	/// <summary>
@@ -99,7 +100,7 @@ public sealed partial class DeviceEntry : ObservableObject
 		ErrorMessage = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
 	}
 
-	internal DeviceEntry(DefaultDeviceHotkeysViewModel owner, string id, string name)
+	internal DeviceEntry(DefaultDeviceHotkeysViewModel owner, string? id, string? name)
 	{
 		this.owner = owner;
 		Id = id;

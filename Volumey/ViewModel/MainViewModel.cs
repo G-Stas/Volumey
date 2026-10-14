@@ -1,3 +1,4 @@
+#nullable enable
 namespace Volumey.ViewModel;
 
 /// <summary>

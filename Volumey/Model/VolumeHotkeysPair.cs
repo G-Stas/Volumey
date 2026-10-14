@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Volumey.Controls;
 
 namespace Volumey.Model;

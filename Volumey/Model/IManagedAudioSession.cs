@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.ComponentModel;
 using System.Windows.Input;
 

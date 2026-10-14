@@ -1,4 +1,5 @@
-﻿namespace Volumey.DataProvider.Settings;
+﻿#nullable enable
+namespace Volumey.DataProvider.Settings;
 
 /// <summary>
 /// Where on the screen the OSD shows: a corner or the middle of the top or bottom edge. The values are those of the old Notification.Wpf enum,

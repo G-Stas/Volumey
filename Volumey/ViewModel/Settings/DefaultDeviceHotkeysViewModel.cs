@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -25,7 +26,7 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(SetAsDefaultCommand))]
-	public partial DeviceEntry SelectedDevice { get; set; }
+	public partial DeviceEntry? SelectedDevice { get; set; }
 
 	public IDeviceProvider DeviceProvider { get; }
 
@@ -35,7 +36,7 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 
 		foreach(var saved in SettingsProvider.Settings.Hotkeys.DefaultDevices)
 		{
-			if(saved.Hotkey == null || Devices.Any(d => d.Hotkey.Equals(saved.Hotkey)))
+			if(saved.Hotkey == null || Devices.Any(d => saved.Hotkey.Equals(d.Hotkey)))
 				continue;
 			var entry = new DeviceEntry(this, saved.DeviceId, saved.DeviceName) { Hotkey = saved.Hotkey };
 			entry.SetRegistered(true);
@@ -140,12 +141,12 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 			SelectedDevice = Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
 	}
 
-	private void OnActiveDevicesChanged(object sender, NotifyCollectionChangedEventArgs e)
+	private void OnActiveDevicesChanged(object? sender, NotifyCollectionChangedEventArgs e)
 	{
 		if(e.Action == NotifyCollectionChangedAction.Reset)
 		{
-			foreach(var entry in Devices.Where(d => d.IsConnected).ToList())
-				Disconnect(entry.Model);
+			foreach(var model in Devices.Select(d => d.Model).OfType<OutputDeviceModel>().ToList())
+				Disconnect(model);
 			ConnectAll(DeviceProvider.ActiveDevices);
 		}
 		else
@@ -179,7 +180,7 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	}
 
 	//the selected device's settings are read when it's selected (COM calls, off the UI thread)
-	partial void OnSelectedDeviceChanged(DeviceEntry oldValue, DeviceEntry newValue)
+	partial void OnSelectedDeviceChanged(DeviceEntry? oldValue, DeviceEntry? newValue)
 	{
 		oldValue?.Settings?.Listen(false);
 		ActivateSettings(newValue);
@@ -194,7 +195,7 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 			ActivateSettings(entry);
 	}
 
-	private void ActivateSettings(DeviceEntry entry)
+	private void ActivateSettings(DeviceEntry? entry)
 	{
 		entry?.Settings?.Load();
 		entry?.Settings?.Listen(pageShown);
@@ -206,7 +207,7 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	private void SetAsDefault()
 	{
 		if(CanSetAsDefault())
-			DeviceProvider.SetDefaultDevice(SelectedDevice.Id);
+			DeviceProvider.SetDefaultDevice(SelectedDevice?.Id);
 	}
 
 	/// <summary>

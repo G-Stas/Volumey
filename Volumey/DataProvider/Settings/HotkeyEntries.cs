@@ -1,3 +1,4 @@
+#nullable enable
 using System.Windows.Input;
 using Volumey.Controls;
 
@@ -8,9 +9,9 @@ namespace Volumey.DataProvider.Settings;
 /// </summary>
 public sealed class AppHotkeysEntry
 {
-	public string ProcessName { get; set; }
-	public HotKey VolumeUp { get; set; }
-	public HotKey VolumeDown { get; set; }
+	public string ProcessName { get; set; } = string.Empty;
+	public HotKey? VolumeUp { get; set; }
+	public HotKey? VolumeDown { get; set; }
 }
 
 /// <summary>
@@ -18,9 +19,9 @@ public sealed class AppHotkeysEntry
 /// </summary>
 public sealed class DeviceHotkeyEntry
 {
-	public HotKey Hotkey { get; set; }
-	public string DeviceId { get; set; }
-	public string DeviceName { get; set; }
+	public HotKey? Hotkey { get; set; }
+	public string? DeviceId { get; set; }
+	public string? DeviceName { get; set; }
 }
 
 /// <summary>
@@ -29,5 +30,5 @@ public sealed class DeviceHotkeyEntry
 public sealed class SystemHotkeyEntry
 {
 	public Key SystemKey { get; set; }
-	public HotKey Replacement { get; set; }
+	public HotKey? Replacement { get; set; }
 }

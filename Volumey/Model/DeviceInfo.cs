@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace Volumey.Model;
 
@@ -21,7 +22,7 @@ public sealed class DeviceInfo
 
 	public DeviceInfo(string id, string name)
 	{
-		ID = id;
-		Name = name;
+		_id = id;
+		_name = name;
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -34,7 +35,7 @@ public struct ScreenInfo
 		WorkingAreaBottom = wkBottom;
 	}
 
-	public override bool Equals(object obj)
+	public override bool Equals(object? obj)
 	{
 		if(!(obj is ScreenInfo other))
 			return false;
@@ -63,7 +64,7 @@ public struct ScreenInfo
 	/// The screen with the remembered device name, otherwise the primary screen (e.g. while the remembered one isn't connected yet),
 	/// otherwise the first one. Returns the default value if there are no screens.
 	/// </summary>
-	internal static ScreenInfo Find(IReadOnlyCollection<ScreenInfo> screens, string name)
+	internal static ScreenInfo Find(IReadOnlyCollection<ScreenInfo> screens, string? name)
 	{
 		if(name != null)
 		{

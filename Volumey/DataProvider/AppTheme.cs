@@ -1,3 +1,4 @@
+#nullable enable
 namespace Volumey.DataProvider;
 
 public enum AppTheme

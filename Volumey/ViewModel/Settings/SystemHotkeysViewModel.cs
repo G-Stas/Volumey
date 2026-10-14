@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using Volumey.Controls;
@@ -52,7 +53,7 @@ public sealed class SystemHotkeysViewModel : HotkeyViewModel
 	/// <summary>
 	/// Takes a hotkey typed into a media key's box (null: cleared); a rejected one leaves the old hotkey in place
 	/// </summary>
-	internal void ChangeHotkey(MediaKeyItem item, HotKey hotkey)
+	internal void ChangeHotkey(MediaKeyItem item, HotKey? hotkey)
 	{
 		var old = item.Hotkey;
 		if(Equals(hotkey, old))

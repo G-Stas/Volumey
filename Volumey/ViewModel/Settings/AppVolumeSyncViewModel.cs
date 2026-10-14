@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 	}
 
 	private readonly IDeviceProvider deviceProvider;
-	private OutputDeviceModel defaultDevice;
+	private OutputDeviceModel? defaultDevice;
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppVolumeSyncViewModel));
 
@@ -60,7 +61,7 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider) : this(deviceProvider, null) { }
 
 	/// <param name="postSync">Runs a queued sync; the UI thread's dispatcher at background priority by default</param>
-	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider, Action<Action> postSync)
+	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider, Action<Action>? postSync)
 	{
 		this.deviceProvider = deviceProvider;
 		this.postSync = postSync ?? PostToDispatcher;
@@ -80,7 +81,7 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 	/// <summary>
 	/// Follows the volume and the new processes of the device, and stops following the previous one.
 	/// </summary>
-	private void SetDevice(OutputDeviceModel device)
+	private void SetDevice(OutputDeviceModel? device)
 	{
 		if(defaultDevice != null)
 		{
@@ -110,7 +111,7 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 		}
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceChanged(OutputDeviceModel? newDevice)
 	{
 		SetDevice(newDevice);
 		if(newDevice != null)
@@ -123,7 +124,7 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 			newProcess.Volume = MasterVolume;
 	}
 
-	private void OnMasterPropertyChanged(object sender, PropertyChangedEventArgs e)
+	private void OnMasterPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		if(sender is MasterSessionModel masterSession && e.PropertyName == nameof(MasterSessionModel.Volume))
 		{

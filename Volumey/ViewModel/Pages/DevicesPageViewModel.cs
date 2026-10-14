@@ -1,3 +1,4 @@
+#nullable enable
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.ViewModel.Pages;

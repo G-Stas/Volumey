@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -22,17 +23,17 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 {
 	private static readonly log4net.ILog Logger = log4net.LogManager.GetLogger(typeof(AudioProcessModel));
 
-	public event Action<AudioProcessModel> Exited;
+	public event Action<AudioProcessModel>? Exited;
 
 	/// <summary>
 	/// A session of the process was disconnected because the device's format changed, see <see cref="AudioSessionModel.EndedByFormatChange"/>
 	/// </summary>
-	internal event Action<AudioProcessModel> DeviceReconfigured;
+	internal event Action<AudioProcessModel>? DeviceReconfigured;
 
 	public ObservableCollection<AudioSessionModel> Sessions { get; }
 
 	public readonly string RawProcessName = string.Empty;
-	private string name;
+	private string name = string.Empty;
 	public string Name
 	{
 		get => name;
@@ -46,7 +47,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	private string _id;
+	private string? _id;
 	public string Id => _id ??= _processId.ToString(CultureInfo.InvariantCulture);
 
 	private readonly uint _processId;
@@ -101,8 +102,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	private ImageSource _iconSource;
-	public ImageSource IconSource
+	private ImageSource? _iconSource;
+	public ImageSource? IconSource
 	{
 		get => _iconSource;
 		set
@@ -117,12 +118,12 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	/// <summary>
 	/// Session of the process which is used as reference to current process state i.e. its current volume and mute state 
 	/// </summary>
-	private AudioSessionModel _trackedSession;
+	private AudioSessionModel? _trackedSession;
 
-	public IAudioProcessStateMediator StateNotificationMediator { get; private set; }
+	public IAudioProcessStateMediator? StateNotificationMediator { get; private set; }
 
-	private HotKey _volumeUp;
-	private HotKey _volumeDown;
+	private HotKey? _volumeUp;
+	private HotKey? _volumeDown;
 
 	public ICommand MuteCommand { get; set; }
 
@@ -132,10 +133,10 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private readonly IHotkeyService _hotkeys;
 
-	private readonly Process _process;
+	private readonly Process? _process;
 
 	/// <param name="iconSource">A frozen image, shared with the other models of the same app (see <see cref="IconHelper.GetIconSource"/>)</param>
-	public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, ImageSource iconSource, Process proc, IHotkeyService hotkeys, IAudioProcessStateMediator stateNotificationMediator = null)
+	public AudioProcessModel(int volume, bool isMuted, string name, uint processId, string filePath, ImageSource? iconSource, Process? proc, IHotkeyService hotkeys, IAudioProcessStateMediator? stateNotificationMediator = null)
 	{
 		_hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
 		_volume = volume;
@@ -159,7 +160,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 		catch
 		{
-			proc.Dispose();
+			proc?.Dispose();
 		}
 
 		Sessions = new ObservableCollection<AudioSessionModel>();
@@ -227,10 +228,10 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown) => SetVolumeHotkeys(volUp, volDown, out _);
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown) => SetVolumeHotkeys(volUp, volDown, out _);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	public bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey failed)
+	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 	{
 		failed = null;
 		try
@@ -304,7 +305,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private int _exitedInvoked;
 
-	private void OnProcessExited(object sender, EventArgs e)
+	private void OnProcessExited(object? sender, EventArgs e)
 	{
 		if(sender is Process process)
 			process.Exited -= OnProcessExited;
@@ -312,7 +313,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	}
 
 	private static readonly TimeSpan ExitCheckInterval = TimeSpan.FromSeconds(5);
-	private System.Threading.Timer _exitCheck;
+	private System.Threading.Timer? _exitCheck;
 
 	/// <summary>
 	/// For an app whose process can't be watched for its exit (it refuses even a handle to wait on, e.g. a game guarded by anti-cheat):
@@ -346,7 +347,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	private void CheckExit()
 	{
 		//compared by path when it's known: process IDs are reused
-		string path = System.IO.Path.IsPathFullyQualified(FilePath) ? FilePath : null;
+		string? path = System.IO.Path.IsPathFullyQualified(FilePath) ? FilePath : null;
 		uint[] processIds;
 		lock(_sessionsLock)
 		{
@@ -409,9 +410,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		Exited?.Invoke(this);
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
+	public event PropertyChangedEventHandler? PropertyChanged;
 
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	private bool _disposed;

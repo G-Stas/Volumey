@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using Volumey.Controls;
 using Volumey.Helper;
 
@@ -42,27 +43,27 @@ public interface IHotkeyService : IDisposable
 
 	void SetHotkeyManager(IHotkeyManager manager);
 
-	bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2);
+	bool RegisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2);
 
 	/// <param name="failed">The hotkey that couldn't be registered, null on success</param>
-	bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2, out HotKey failed);
+	bool RegisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2, out HotKey? failed);
 
-	void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2);
+	void UnregisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2);
 
-	bool RegisterHotkey(HotKey hotkey);
+	bool RegisterHotkey(HotKey? hotkey);
 
-	void UnregisterHotkey(HotKey hotkey);
+	void UnregisterHotkey(HotKey? hotkey);
 
-	bool RegisterOpenMixerHotkey(HotKey hotkey);
+	bool RegisterOpenMixerHotkey(HotKey? hotkey);
 
-	void UnregisterOpenMixerHotkey(HotKey hotkey);
+	void UnregisterOpenMixerHotkey(HotKey? hotkey);
 
-	ErrorMessageType HotkeyIsValid(HotKey hotkey);
+	ErrorMessageType HotkeyIsValid(HotKey? hotkey);
 
-	ErrorMessageType HotkeysAreValid(HotKey up, HotKey down);
+	ErrorMessageType HotkeysAreValid(HotKey? up, HotKey? down);
 
 	/// <summary>
 	/// Checks a volume up/down pair hotkey by hotkey (see <see cref="HotkeyService.CheckHotkeysPair"/>)
 	/// </summary>
-	(ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey up, HotKey down);
+	(ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey? up, HotKey? down);
 }

@@ -1,3 +1,4 @@
+#nullable enable
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,10 +11,10 @@ namespace Volumey.ViewModel;
 public sealed partial class DeviceProviderViewModel : ObservableObject
 {
 	[ObservableProperty]
-	public partial OutputDeviceModel SelectedDevice { get; set; }
+	public partial OutputDeviceModel? SelectedDevice { get; set; }
 
 	[ObservableProperty]
-	public partial OutputDeviceModel DefaultDevice { get; set; }
+	public partial OutputDeviceModel? DefaultDevice { get; set; }
 
 	public IDeviceProvider DeviceProvider { get; }
 
@@ -32,7 +33,7 @@ public sealed partial class DeviceProviderViewModel : ObservableObject
 		shell.Exit += () => DeviceProvider.Dispose();
 	}
 
-	private void OnDefaultDeviceSwitched(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceSwitched(OutputDeviceModel? newDevice)
 	{
 		//update default device property and selected device property if default device was the selected device in app
 		dispatcher.Invoke(() =>

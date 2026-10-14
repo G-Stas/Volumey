@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -49,7 +50,7 @@ public sealed partial class AboutViewModel : ObservableObject
 	[ObservableProperty]
 	public partial string UpdateStatus { get; private set; } = string.Empty;
 
-	private string updateStatusKey;
+	private string? updateStatusKey;
 
 	internal AboutViewModel(SupportLinks supportLinks)
 	{
@@ -96,7 +97,7 @@ public sealed partial class AboutViewModel : ObservableObject
 #endif
 	}
 
-	private void SetUpdateStatus(string key)
+	private void SetUpdateStatus(string? key)
 	{
 		updateStatusKey = key;
 		UpdateStatus = key == null ? string.Empty : TranslationSource.Instance[key];
@@ -111,7 +112,7 @@ public sealed partial class AboutViewModel : ObservableObject
 	[RelayCommand]
 	private Task OpenSupportLink(SupportLink link) => OpenWebPage(link?.Url);
 
-	internal static async Task OpenWebPage(string url)
+	internal static async Task OpenWebPage(string? url)
 	{
 		if(string.IsNullOrEmpty(url))
 			return;

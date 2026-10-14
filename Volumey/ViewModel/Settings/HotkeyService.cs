@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
@@ -15,15 +16,15 @@ namespace Volumey.ViewModel.Settings;
 /// </summary>
 public sealed class HotkeyService : IHotkeyService
 {
-	private static ILog logger;
+	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(HotkeyService));
 
 	/// <summary>
 	/// Raised when the first hotkey manager is set and hotkeys can be registered
 	/// </summary>
-	public event Action Activated;
+	public event Action? Activated;
 
-	private Action<HotKey> _hotkeyPressed;
+	private Action<HotKey>? _hotkeyPressed;
 	public event Action<HotKey> HotkeyPressed
 	{
 		add
@@ -34,7 +35,7 @@ public sealed class HotkeyService : IHotkeyService
 		}
 		remove => _hotkeyPressed -= value;
 	}
-	public event Action OpenHotkeyPressed;
+	public event Action? OpenHotkeyPressed;
 	/// <summary>
 	/// Indicates whether a hotkey manager instance is set and hotkeys can be registered.
 	/// </summary>
@@ -42,8 +43,8 @@ public sealed class HotkeyService : IHotkeyService
 
 	public int VolumeStep { get; private set; } = 1;
 
-	private HotKey openMixer;
-	private IHotkeyManager hotkeyManager;
+	private HotKey? openMixer;
+	private IHotkeyManager? hotkeyManager;
 
 	/// <summary>
 	/// Keeps track of hotkeys and amount of its users to prevent early unregistering of hotkeys.
@@ -80,11 +81,11 @@ public sealed class HotkeyService : IHotkeyService
 	/// <summary>
 	/// Registers both hotkeys, or neither: if the second one fails, the first is released again.
 	/// </summary>
-	public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2) => RegisterHotkeysPair(hotkey1, hotkey2, out _);
+	public bool RegisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2) => RegisterHotkeysPair(hotkey1, hotkey2, out _);
 
 	/// <inheritdoc cref="RegisterHotkeysPair(HotKey, HotKey)"/>
 	/// <param name="failed">The hotkey that couldn't be registered (the settings show the error under its box), null on success</param>
-	public bool RegisterHotkeysPair(HotKey hotkey1, HotKey hotkey2, out HotKey failed)
+	public bool RegisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2, out HotKey? failed)
 	{
 		failed = hotkey1;
 		if(!RegisterHotkey(hotkey1))
@@ -100,7 +101,7 @@ public sealed class HotkeyService : IHotkeyService
 		return true;
 	}
 
-	public void UnregisterHotkeysPair(HotKey hotkey1, HotKey hotkey2)
+	public void UnregisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2)
 	{
 		UnregisterHotkey(hotkey1);
 		UnregisterHotkey(hotkey2);
@@ -111,7 +112,7 @@ public sealed class HotkeyService : IHotkeyService
 	/// (e.g. another app owns the combination in blocking mode). The managers accept a combination that is already registered,
 	/// so several features can share one.
 	/// </summary>
-	public bool RegisterHotkey(HotKey hotkey)
+	public bool RegisterHotkey(HotKey? hotkey)
 	{
 		if(hotkeyManager == null || hotkey == null)
 			return false;
@@ -131,7 +132,7 @@ public sealed class HotkeyService : IHotkeyService
 	/// <summary>
 	/// Releases one user of the hotkey; the last one unregisters it.
 	/// </summary>
-	public void UnregisterHotkey(HotKey hotkey)
+	public void UnregisterHotkey(HotKey? hotkey)
 	{
 		if(hotkeyManager == null || hotkey == null)
 			return;
@@ -148,7 +149,7 @@ public sealed class HotkeyService : IHotkeyService
 		}
 	}
 
-	public bool RegisterOpenMixerHotkey(HotKey hotkey)
+	public bool RegisterOpenMixerHotkey(HotKey? hotkey)
 	{
 		if(!RegisterHotkey(hotkey))
 			return false;
@@ -156,7 +157,7 @@ public sealed class HotkeyService : IHotkeyService
 		return true;
 	}
 
-	public void UnregisterOpenMixerHotkey(HotKey hotkey)
+	public void UnregisterOpenMixerHotkey(HotKey? hotkey)
 	{
 		if(hotkey == null)
 			return;
@@ -165,7 +166,7 @@ public sealed class HotkeyService : IHotkeyService
 		UnregisterHotkey(hotkey);
 	}
 
-	public ErrorMessageType HotkeyIsValid(HotKey hotkey)
+	public ErrorMessageType HotkeyIsValid(HotKey? hotkey)
 	{
 		if(hotkey == null)
 			return ErrorMessageType.OpenReg;
@@ -176,7 +177,7 @@ public sealed class HotkeyService : IHotkeyService
 		return ErrorMessageType.None;
 	}
 
-	public ErrorMessageType HotkeysAreValid(HotKey up, HotKey down)
+	public ErrorMessageType HotkeysAreValid(HotKey? up, HotKey? down)
 	{
 		if(up == null || down == null)
 			return ErrorMessageType.VolumeReg;
@@ -194,13 +195,13 @@ public sealed class HotkeyService : IHotkeyService
 	/// Checks a volume up/down pair hotkey by hotkey, so the settings can show an error under the box that has it.
 	/// A missing hotkey is <see cref="ErrorMessageType.Missing"/>; two equal hotkeys are reported on the second one.
 	/// </summary>
-	public (ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey up, HotKey down)
+	public (ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey? up, HotKey? down)
 	{
-		ErrorMessageType Check(HotKey hotkey) => hotkey == null ? ErrorMessageType.Missing : HotkeyIsValid(hotkey);
+		ErrorMessageType Check(HotKey? hotkey) => hotkey == null ? ErrorMessageType.Missing : HotkeyIsValid(hotkey);
 
 		var upError = Check(up);
 		var downError = Check(down);
-		if(downError == ErrorMessageType.None && down.Equals(up))
+		if(downError == ErrorMessageType.None && down is not null && down.Equals(up))
 			downError = ErrorMessageType.Diff;
 		return (upError, downError);
 	}

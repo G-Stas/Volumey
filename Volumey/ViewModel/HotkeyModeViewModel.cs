@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.DataProvider;
 using Volumey.Helper;
@@ -51,7 +52,7 @@ sealed partial class HotkeyModeViewModel : ObservableObject
 		SetupHotkeyManager();
 	}
 
-	private Action<int> HotkeyManagerMessageHandler;
+	private Action<int>? HotkeyManagerMessageHandler;
 
 	public Action<int> GetHotkeyMessageHandler()
 		=> WindowsHotkeyMessageHandlerBridge;

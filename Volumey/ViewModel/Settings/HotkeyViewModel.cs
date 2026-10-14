@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using log4net;
@@ -16,7 +17,7 @@ public abstract partial class HotkeyViewModel : ObservableObject
 
 	protected readonly IHotkeyService hotkeys;
 
-	private ILog _logger;
+	private ILog? _logger;
 	protected ILog Logger => _logger ??= LogManager.GetLogger(GetType());
 
 	protected HotkeyViewModel(IHotkeyService hotkeys)

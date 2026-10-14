@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -21,23 +22,23 @@ internal sealed class ScreenSelection
 	public ScreenInfo Selected { get; private set; }
 
 	private readonly IScreenInfoProvider provider;
-	private readonly Func<string> rememberedName;
-	private readonly Action<string> remember;
-	private readonly Func<Dispatcher> uiDispatcher;
+	private readonly Func<string?> rememberedName;
+	private readonly Action<string?> remember;
+	private readonly Func<Dispatcher?> uiDispatcher;
 	private readonly Action<ScreenInfo> shown;
 	private readonly ILog logger;
 
 	/// <summary>
 	/// Raised on the UI thread before the list of screens is replaced
 	/// </summary>
-	public event Action ScreensChanging;
+	public event Action? ScreensChanging;
 
 	/// <param name="rememberedName">Reads the remembered screen's name from the settings</param>
 	/// <param name="remember">Writes the name of a screen the user picked to the settings</param>
 	/// <param name="uiDispatcher">The UI thread that owns the window which follows the selection</param>
 	/// <param name="shown">Called on the UI thread with the screen that is used now</param>
-	public ScreenSelection(IScreenInfoProvider provider, Func<string> rememberedName, Action<string> remember,
-		Func<Dispatcher> uiDispatcher, Action<ScreenInfo> shown, ILog logger)
+	public ScreenSelection(IScreenInfoProvider provider, Func<string?> rememberedName, Action<string?> remember,
+		Func<Dispatcher?> uiDispatcher, Action<ScreenInfo> shown, ILog logger)
 	{
 		this.provider = provider;
 		this.rememberedName = rememberedName;
@@ -109,7 +110,7 @@ internal sealed class ScreenSelection
 			else
 				//without waiting: the pool thread isn't held while the UI thread is busy (e.g. laying out the mixer that just opened)
 				dispatcher.InvokeAsync(Apply).Task.Forget(logger, "Failed to check the screen for availability");
-		}).ContinueWith(task => logger.Error("Failed to check the screen for availability", task.Exception.Flatten()),
+		}).ContinueWith(task => logger.Error("Failed to check the screen for availability", task.Exception?.Flatten()),
 			TaskContinuationOptions.OnlyOnFaulted);
 	}
 }

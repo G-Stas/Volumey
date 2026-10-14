@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿#nullable enable
+using System.Text;
 using System.Windows.Input;
 using Volumey.Controls;
 using Volumey.Helper;
@@ -10,14 +11,14 @@ public sealed class SystemHotkey
 {
 	public Key SystemKey { get; set; }
 
-	public HotKey Replacement { get; set; }
+	public HotKey? Replacement { get; set; }
 
 	public SystemHotkey(Key sysKey)
 	{
 		SystemKey = sysKey;
 	}
 
-	public SystemHotkey(Key sysKey, HotKey replacement)
+	public SystemHotkey(Key sysKey, HotKey? replacement)
 	{
 		SystemKey = sysKey;
 		Replacement = replacement;
@@ -52,7 +53,7 @@ public sealed class SystemHotkey
 		return sb.ToString();
 	}
 
-	public override bool Equals(object obj)
+	public override bool Equals(object? obj)
 	{
 		if(obj is SystemHotkey other)
 			return other.SystemKey == SystemKey;

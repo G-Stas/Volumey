@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -193,7 +194,7 @@ public sealed partial class NotificationViewModel : ObservableObject
 
 	private readonly IDeviceProvider _deviceProvider;
 	private readonly INotificationService _notifications;
-	private OutputDeviceModel _currentDefaultDevice;
+	private OutputDeviceModel? _currentDefaultDevice;
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(NotificationViewModel));
 
@@ -222,7 +223,7 @@ public sealed partial class NotificationViewModel : ObservableObject
 	}
 
 	//e.g. a game switching the resolution, or a monitor that turns on late
-	private void OnDisplaySettingsChanged(object sender, EventArgs e) => screens.Refresh();
+	private void OnDisplaySettingsChanged(object? sender, EventArgs e) => screens.Refresh();
 
 	[RelayCommand]
 	private void Loaded() => screens.Refresh();
@@ -267,10 +268,10 @@ public sealed partial class NotificationViewModel : ObservableObject
 		_currentDefaultDevice = null;
 	}
 
-	private void OnDefaultDeviceChanged(OutputDeviceModel newDevice)
+	private void OnDefaultDeviceChanged(OutputDeviceModel? newDevice)
 		=> SwitchDefaultDeviceAsync(newDevice).Forget(Logger, "Failed to move the OSD notifications to the new default device");
 
-	private async Task SwitchDefaultDeviceAsync(OutputDeviceModel newDevice)
+	private async Task SwitchDefaultDeviceAsync(OutputDeviceModel? newDevice)
 	{
 		//swap before the first await: another switch may come in while this one waits
 		var oldDevice = _currentDefaultDevice;

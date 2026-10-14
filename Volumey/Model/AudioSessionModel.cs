@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -15,7 +16,7 @@ namespace Volumey.Model;
 /// </summary>
 public sealed class AudioSessionModel : IManagedAudioSession
 {
-	private string _name;
+	private string _name = string.Empty;
 	public string Name
 	{
 		get => _name;
@@ -69,19 +70,19 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		}
 	}
 
-	public ImageSource IconSource { get; set; }
+	public ImageSource? IconSource { get; set; }
 
 	public ICommand MuteCommand { get; set; }
 
 	private readonly IAudioSessionStateNotifications sessionStateNotifications;
 	private readonly IAudioSessionVolume sessionVolume;
-	public event Action<AudioSessionModel> SessionEnded;
+	public event Action<AudioSessionModel>? SessionEnded;
 	/// <summary>The session stopped playing, on a COM thread (also when its app exits: Windows keeps the session, inactive)</summary>
-	public event Action<AudioSessionModel> Deactivated;
-	public event Action<int, Guid> VolumeChanged;
-	public event Action<bool, Guid> MuteStateChanged;
+	public event Action<AudioSessionModel>? Deactivated;
+	public event Action<int, Guid>? VolumeChanged;
+	public event Action<bool, Guid>? MuteStateChanged;
 
-	private static ILog logger;
+	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(AudioSessionModel));
 
 	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
@@ -177,8 +178,8 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		Logger.Info($"Failed to change state of the audio session, HRESULT 0x{e.HResult:X8}", e);
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	public event PropertyChangedEventHandler? PropertyChanged;
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	private bool _disposed;

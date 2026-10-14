@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.DataProvider;
@@ -10,7 +11,7 @@ public sealed class LangSettings : ObservableObject
 {
 	public static List<string> Languages => TranslationSource.Languages;
 
-	private string selectedLanguage;
+	private string selectedLanguage = string.Empty;
 	public string SelectedLanguage
 	{
 		get => selectedLanguage;

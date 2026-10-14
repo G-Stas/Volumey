@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -28,9 +29,9 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	/// </summary>
 	public ObservableCollection<AudioProcessModel> Processes { get; }
 
-	private IImmutableList<AudioProcessModel> _cachedImmutableProcesses;
+	private IImmutableList<AudioProcessModel>? _cachedImmutableProcesses;
 
-	private Action<OutputDeviceModel> _disabled;
+	private Action<OutputDeviceModel>? _disabled;
 	internal event Action<OutputDeviceModel> Disabled
 	{
 		add
@@ -41,14 +42,14 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		}
 		remove => _disabled -= value;
 	}
-	internal event Action<AudioProcessModel> ProcessCreated;
+	internal event Action<AudioProcessModel>? ProcessCreated;
 
 	/// <summary>
 	/// Windows reconfigured the device's audio engine: its format changed, or spatial sound was turned on or off.
 	/// It disconnects all sessions then, and the device's objects stop working (AUDCLNT_E_DEVICE_INVALIDATED),
 	/// so the model has to be replaced by a new one. Raised once, on any thread.
 	/// </summary>
-	internal event Action<OutputDeviceModel> Invalidated;
+	internal event Action<OutputDeviceModel>? Invalidated;
 	private int invalidated;
 	private volatile bool disposed;
 	public string Id => Master.Id;
@@ -62,7 +63,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 
 	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 
-	private static log4net.ILog logger;
+	private static log4net.ILog? logger;
 	private static log4net.ILog Logger => logger ??= log4net.LogManager.GetLogger(typeof(OutputDeviceModel));
 
 	public OutputDeviceModel(IDevice device, IDeviceStateNotificationHandler deviceStateNotifications, ISessionProvider sessionProvider,
@@ -95,11 +96,11 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		Processes.CollectionChanged += OnProcessesCollectionChanged;
 	}
 
-	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown)
+	internal bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown)
 		=> Master.SetVolumeHotkeys(volUp: volUp, volDown: volDown);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	internal bool SetVolumeHotkeys(HotKey volUp, HotKey volDown, out HotKey failed)
+	internal bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 		=> Master.SetVolumeHotkeys(volUp, volDown, out failed);
 
 	/// <summary>
@@ -124,7 +125,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 			device.SetChannelVolume(channel, level);
 	}
 
-	private Action channelVolumesChanged;
+	private Action? channelVolumesChanged;
 	/// <summary>
 	/// A channel level or the device volume changed; raised on the UI thread
 	/// </summary>
@@ -167,7 +168,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	internal void ResetStateNotificationMediator(bool force = false)
 		=> Master.ResetStateMediator(force);
 
-	internal bool SetMuteHotkey(HotKey key)
+	internal bool SetMuteHotkey(HotKey? key)
 		=> Master.SetMuteHotkey(key);
 
 	internal void ResetMuteHotkeys()
@@ -211,7 +212,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	/// </summary>
 	/// <param name="sender"></param>
 	/// <param name="e"></param>
-	private void OnProcessesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+	private void OnProcessesCollectionChanged(object? sender,NotifyCollectionChangedEventArgs e)
 	{
 		_cachedImmutableProcesses = null;
 	}
@@ -358,12 +359,12 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		}
 	}
 
-	internal bool CompareId(string deviceId) =>
+	internal bool CompareId(string? deviceId) =>
 		string.Equals(Id, deviceId, StringComparison.Ordinal);
 
 	//never raised: the bound properties don't change, but without INotifyPropertyChanged WPF tracks bindings to the model
 	//through PropertyDescriptor, which keeps the model alive
-	public event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
+	public event PropertyChangedEventHandler? PropertyChanged { add { } remove { } }
 
 	/// <summary>
 	/// Stops all notifications right away; the apps and the device's COM objects are released afterwards

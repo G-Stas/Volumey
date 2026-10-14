@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using Nucs.JsonSettings.NotifyChanges;
@@ -10,14 +11,14 @@ public sealed class GeneralSettings : SettingsSection
 {
 	public AppTheme Theme { get; set; } = AppTheme.System;
 	/// <summary>Culture name of the UI language. Null means the system language.</summary>
-	public string Language { get; set; }
+	public string? Language { get; set; }
 	public int VolumeStep { get; set; } = 1;
 	public bool VolumeLimitEnabled { get; set; }
 	public int VolumeLimit { get; set; } = 50;
 	public bool AppVolumeSyncEnabled { get; set; }
 	/// <summary>Localized name of the system sounds session and the system language it was resolved for.</summary>
-	public string SystemSoundsName { get; set; }
-	public string SystemSoundsLanguage { get; set; }
+	public string? SystemSoundsName { get; set; }
+	public string? SystemSoundsLanguage { get; set; }
 }
 
 [NotifyChanges]
@@ -39,7 +40,7 @@ public sealed class WindowSettings : SettingsSection
 	public double Width { get; set; }
 	public double Height { get; set; }
 	/// <summary>Device name of the screen the window opens on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
-	public string ScreenName { get; set; }
+	public string? ScreenName { get; set; }
 }
 
 /// <summary>
@@ -48,12 +49,12 @@ public sealed class WindowSettings : SettingsSection
 [NotifyChanges]
 public sealed class HotkeySettings : SettingsSection
 {
-	public HotKey OpenMixer { get; set; }
-	public HotKey DeviceVolumeUp { get; set; }
-	public HotKey DeviceVolumeDown { get; set; }
-	public HotKey DeviceMute { get; set; }
-	public HotKey ForegroundVolumeUp { get; set; }
-	public HotKey ForegroundVolumeDown { get; set; }
+	public HotKey? OpenMixer { get; set; }
+	public HotKey? DeviceVolumeUp { get; set; }
+	public HotKey? DeviceVolumeDown { get; set; }
+	public HotKey? DeviceMute { get; set; }
+	public HotKey? ForegroundVolumeUp { get; set; }
+	public HotKey? ForegroundVolumeDown { get; set; }
 	public bool PreventResettingVolumeBalance { get; set; }
 	/// <summary>
 	/// True: hotkeys are registered with Windows and other apps don't get the keys (RegisterHotKey).
@@ -79,5 +80,5 @@ public sealed class NotificationSettings : SettingsSection
 	public int DisplayTimeSeconds { get; set; } = 3;
 	public bool ReactToAllVolumeChanges { get; set; }
 	/// <summary>Device name of the screen the notifications show on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
-	public string ScreenName { get; set; }
+	public string? ScreenName { get; set; }
 }
