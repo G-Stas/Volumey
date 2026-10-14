@@ -1,5 +1,9 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using log4net;
 using Volumey.DataProvider;
@@ -47,10 +51,30 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppVolumeSyncViewModel));
 
-	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider)
+	/// <summary>
+	/// Runs a queued sync later; the sync reads the device volume when it runs
+	/// </summary>
+	private readonly Action<Action> postSync;
+	private int syncQueued;
+
+	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider) : this(deviceProvider, null) { }
+
+	/// <param name="postSync">Runs a queued sync; the UI thread's dispatcher at background priority by default</param>
+	internal AppVolumeSyncViewModel(IDeviceProvider deviceProvider, Action<Action> postSync)
 	{
 		this.deviceProvider = deviceProvider;
+		this.postSync = postSync ?? PostToDispatcher;
 		IsOn = SettingsProvider.Settings.General.AppVolumeSyncEnabled;
+	}
+
+	//after input and rendering: the device volume changes of a slider drag that arrive meanwhile are synced once
+	private static void PostToDispatcher(Action sync)
+	{
+		var dispatcher = Application.Current?.Dispatcher;
+		if(dispatcher == null)
+			sync();
+		else
+			dispatcher.InvokeAsync(sync, DispatcherPriority.Background);
 	}
 
 	/// <summary>
@@ -104,7 +128,15 @@ public sealed class AppVolumeSyncViewModel : ObservableObject
 		if(sender is MasterSessionModel masterSession && e.PropertyName == nameof(MasterSessionModel.Volume))
 		{
 			MasterVolume = masterSession.Volume;
-			SyncSessionVolume().Forget(Logger, "Failed to sync the app volumes with the device volume");
+			//each app's volume is written once for the changes that come before the queued sync runs
+			if(Interlocked.Exchange(ref syncQueued, 1) == 0)
+				postSync(RunQueuedSync);
 		}
+	}
+
+	private void RunQueuedSync()
+	{
+		Volatile.Write(ref syncQueued, 0);
+		SyncSessionVolume().Forget(Logger, "Failed to sync the app volumes with the device volume");
 	}
 }

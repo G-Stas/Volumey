@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests.ViewModels;
@@ -17,6 +19,31 @@ public class VolumeSyncAndLimitTests : ViewModelTestBase
 		device.Master.Volume = 30;
 
 		Assert.AreEqual(30, app.Volume);
+	}
+
+	[TestMethod]
+	public void DeviceVolumeChangesBeforeAQueuedSyncAreSyncedOnce()
+	{
+		var app = CreateProcess("app", 50);
+		var device = CreateDevice("1", "Speakers", app);
+		SetDefaultDevice(device);
+		var queued = new List<Action>();
+		var sync = new AppVolumeSyncViewModel(DeviceProvider.Object, queued.Add) { IsOn = true };
+
+		//a slider drag
+		device.Master.Volume = 40;
+		device.Master.Volume = 35;
+		device.Master.Volume = 30;
+		Assert.HasCount(1, queued);
+		Assert.AreEqual(50, app.Volume);
+
+		queued[0]();
+		Assert.AreEqual(30, app.Volume);
+
+		device.Master.Volume = 20;
+		Assert.HasCount(2, queued);
+		queued[1]();
+		Assert.AreEqual(20, app.Volume);
 	}
 
 	[TestMethod]
