@@ -168,6 +168,21 @@ public class ConvertersTests
 		Assert.AreEqual(Binding.DoNothing, visibility.Convert(new object[] { other, null }, typeof(bool), null, Culture));
 	}
 
+	[TestMethod]
+	public void OnlyTheDefaultDeviceIsMarkedInADeviceList()
+	{
+		var device = OutputDeviceModelTests.GetDeviceMock("1", "One", new Mock<IDeviceStateNotificationHandler>().Object);
+		var other = OutputDeviceModelTests.GetDeviceMock("2", "Two", new Mock<IDeviceStateNotificationHandler>().Object);
+		var mark = new DefaultDeviceTagConverter();
+
+		Assert.AreEqual(Visibility.Visible, mark.Convert(new object[] { device, device }, typeof(Visibility), null, Culture));
+		Assert.AreEqual(Visibility.Collapsed, mark.Convert(new object[] { other, device }, typeof(Visibility), null, Culture));
+		//no default device (all unplugged)
+		Assert.AreEqual(Visibility.Collapsed, mark.Convert(new object[] { other, null }, typeof(Visibility), null, Culture));
+		Assert.AreEqual("Default", mark.Convert(new object[] { device, device, "Default" }, typeof(string), null, Culture));
+		Assert.AreEqual(string.Empty, mark.Convert(new object[] { other, device, "Default" }, typeof(string), null, Culture));
+	}
+
 	[STATestMethod]
 	public void DefaultDeviceIconOnlyForTheDefault()
 	{

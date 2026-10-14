@@ -12,6 +12,7 @@
     <UserControl.Resources>
         <converters:NoDeviceToVisibilityConverter x:Key="NoDeviceToVisibilityConverter" />
         <converters:DeviceIsDefaultToVisibilityPropertiesConverter x:Key="DeviceIsDefaultToVisibilityPropertiesConverter"/>
+        <converters:DefaultDeviceTagConverter x:Key="DefaultDeviceTagConverter"/>
     </UserControl.Resources>
 
     <!-- the devices on the content, not on the control: where the mixer places it is bound on the control -->
@@ -40,9 +41,29 @@
                     IsSynchronizedWithCurrentItem="False"
                     HorizontalAlignment="Stretch"
                     AutomationProperties.Name="{lc:Localization Mixer_OutputDevice}">
+                    <ComboBox.ItemContainerStyle>
+                        <!-- the name and the "Default" tag for screen readers: the template's text isn't exposed -->
+                        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                            <Setter Property="AutomationProperties.Name" Value="{Binding Master.DeviceFriendlyName}" />
+                            <Setter Property="AutomationProperties.ItemStatus">
+                                <Setter.Value>
+                                    <MultiBinding Converter="{StaticResource DefaultDeviceTagConverter}">
+                                        <Binding />
+                                        <Binding Path="DataContext.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="[Devices_DefaultTag]" />
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
                                 <Image
                                     Source="{Binding Master.IconSource}"
                                     Width="16"
@@ -50,9 +71,24 @@
                                     Margin="0 0 12 0"
                                     RenderOptions.BitmapScalingMode="HighQuality" />
                                 <TextBlock
+                                    Grid.Column="1"
                                     Text="{Binding Master.DeviceFriendlyName}"
                                     TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
+                                <!-- the default device's checkmark, like the tray menu's device list -->
+                                <ui:SymbolIcon
+                                    Grid.Column="2"
+                                    Margin="12 0 0 0"
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Symbol="Checkmark24">
+                                    <ui:SymbolIcon.Visibility>
+                                        <MultiBinding Converter="{StaticResource DefaultDeviceTagConverter}">
+                                            <Binding />
+                                            <Binding Path="DataContext.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                        </MultiBinding>
+                                    </ui:SymbolIcon.Visibility>
+                                </ui:SymbolIcon>
+                            </Grid>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>

@@ -202,10 +202,11 @@ public class MixerPageTests : UiTest
 		string defaultName = mixer.FindFirstDescendant(cf => cf.ByAutomationId("DeviceVolumeSlider"))!.Name;
 
 		var picker = mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox).And(cf.ByName("Output device")))!.AsComboBox();
-		picker.Expand();
+		//real clicks, not a selection through UI Automation: the list is a popup, and the window's drag handling sees its presses too
+		picker.Click();
+		Assert.IsTrue(Eventually(() => picker.ExpandCollapseState == ExpandCollapseState.Expanded), "the device list didn't open");
 		var other = picker.Items.First(i => !i.IsSelected);
-		other.Select();
-		picker.Collapse();
+		other.Click();
 
 		Assert.IsTrue(Eventually(() => App.Mixer.FindFirstDescendant(cf => cf.ByAutomationId("DeviceVolumeSlider"))!.Name != defaultName),
 			"the mixer still shows the default device");
