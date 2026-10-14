@@ -52,6 +52,21 @@ public class DeviceProviderTests
 	}
 
 	[TestMethod]
+	public void ADeviceReportedTwiceIsListedOnce()
+	{
+		var devicesCount = model.ActiveDevices.Count;
+		var first = OutputDeviceModelTests.GetDeviceMock("222", "headphones", deviceStateNotifMock.Object);
+		var second = OutputDeviceModelTests.GetDeviceMock("222", "headphones", deviceStateNotifMock.Object);
+
+		deviceStateNotifMock.Raise(m => m.ActiveDeviceAdded += null, first);
+		deviceStateNotifMock.Raise(m => m.ActiveDeviceAdded += null, second);
+
+		Assert.AreEqual(devicesCount + 1, model.ActiveDevices.Count);
+		Assert.Contains(first, model.ActiveDevices);
+		Assert.DoesNotContain(second, model.ActiveDevices);
+	}
+
+	[TestMethod]
 	public void DeviceDisabledEvent_DisabledDeviceShouldBeRemoved()
 	{
 		var deviceCount = model.ActiveDevices.Count;

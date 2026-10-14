@@ -263,6 +263,17 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		Logger.Info($"Output device added: [{newDevice.Master.DeviceFriendlyName}]");
 		dispatcher.Invoke(() =>
 		{
+			//Windows can report a new device twice (added, then its state changed to active): one model per device
+			foreach(var device in ActiveDevices)
+			{
+				if(device.CompareId(newDevice.Id))
+				{
+					Logger.Info($"The device is already listed: [{newDevice.Master.DeviceFriendlyName}]");
+					newDevice.Dispose();
+					return;
+				}
+			}
+
 			newDevice.Disabled += OnDeviceDisabled;
 			newDevice.Invalidated += OnDeviceInvalidated;
 			ActiveDevices.Add(newDevice);
