@@ -91,26 +91,37 @@ public class HotKeyBox : TextBox
 
 	public override void OnApplyTemplate()
 	{
+		//the template is applied again on a theme switch: the handlers are removed first so they aren't added twice
 		PreviewKeyDown -= TextBoxOnPreviewKeyDown2;
-		GotFocus -= TextBoxOnGotFocus;
-		LostFocus -= TextBoxOnLostFocus;
+		PreviewKeyUp -= OnPreviewKeyUp;
+		GotKeyboardFocus -= TextBoxOnGotFocus;
+		LostKeyboardFocus -= TextBoxOnLostFocus;
+		IsVisibleChanged -= OnIsVisibleChanged;
+		Unloaded -= OnUnloaded;
 		TextChanged -= TextBoxOnTextChanged;
 
 		base.OnApplyTemplate();
 
 		PreviewKeyDown += TextBoxOnPreviewKeyDown2;
-		PreviewKeyUp -= OnPreviewKeyUp;
 		PreviewKeyUp += OnPreviewKeyUp;
 		//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
 		//which would leave every hotkey ignored (and swallowed) until focus moved inside the window again
 		GotKeyboardFocus += TextBoxOnGotFocus;
 		LostKeyboardFocus += TextBoxOnLostFocus;
-		IsVisibleChanged += (s, e) => { if(!IsVisible) StopEditing(); };
-		Unloaded += (s, e) => StopEditing();
+		IsVisibleChanged += OnIsVisibleChanged;
+		Unloaded += OnUnloaded;
 		TextChanged += TextBoxOnTextChanged;
 
 		UpdateText();
 	}
+
+	private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+	{
+		if(!IsVisible)
+			StopEditing();
+	}
+
+	private void OnUnloaded(object sender, RoutedEventArgs e) => StopEditing();
 
 	private void TextBoxOnTextChanged(object sender, TextChangedEventArgs args)
 	{
