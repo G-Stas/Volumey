@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <!-- Lowest Windows version the app runs on (matches the Store package TargetPlatformMinVersion) -->
-    <SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <!-- CsWin32's generated declarations use pointers -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
