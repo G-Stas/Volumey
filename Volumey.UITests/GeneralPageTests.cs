@@ -193,6 +193,24 @@ public class GeneralPageTests : UiTest
 	}
 
 	[TestMethod]
+	public void TheVolumeStepBoxArrowsSaveTheStep()
+	{
+		OpenPage();
+		Settings.TypeNumber("VolumeStepBox", 5);
+		App.WaitForSettings(s => s["General"]?["VolumeStep"]?.GetValue<int>() == 5, "5 saved");
+
+		//the arrows change the value without focusing the box
+		var box = Settings.Find("VolumeStepBox");
+		void Click(string arrow) => (box.FindFirstDescendant(cf => cf.ByAutomationId(arrow)) ?? throw new InvalidOperationException(arrow + " not found")).AsButton().Invoke();
+		Click("PART_InlineIncrementButton");
+		App.WaitForSettings(s => s["General"]?["VolumeStep"]?.GetValue<int>() == 6, "the up arrow's 6 saved");
+
+		Click("PART_InlineDecrementButton");
+		Click("PART_InlineDecrementButton");
+		App.WaitForSettings(s => s["General"]?["VolumeStep"]?.GetValue<int>() == 4, "the down arrow's 4 saved");
+	}
+
+	[TestMethod]
 	public void TheHotkeyModeNoteOpensTheGeneralPage()
 	{
 		StartApp();
