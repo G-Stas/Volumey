@@ -298,10 +298,4 @@ public partial class NotificationViewModel : ObservableObject
 	{
 		newProcess.SetStateMediator(_notifications);
 	}
-
-
-	~NotificationViewModel()
-	{
-		SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
-	}
 }

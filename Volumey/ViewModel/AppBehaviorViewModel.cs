@@ -388,9 +388,4 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	[RelayCommand]
 	private void Loaded() => screens.Refresh();
-
-	~AppBehaviorViewModel()
-	{
-		SystemEvents.DisplaySettingsChanged -= OnSystemDisplaySettingsChanged;
-	}
 }
