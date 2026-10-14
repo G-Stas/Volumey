@@ -8,6 +8,8 @@
                 <!-- WPF-UI: the theme (ThemeViewModel switches it) and the Fluent styles of the stock and WPF-UI controls -->
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
+                <!-- WPF-UI's ui:Button style with its pressed foreground fixed (see the file); before the styles based on it -->
+                <ResourceDictionary Source="View/Styles/WpfUiButton.xaml"/>
                 <ResourceDictionary Source="View/Controls/VolumeSlider.xaml"/>
                 <ResourceDictionary Source="View/Styles/Mixer.xaml"/>
             </ResourceDictionary.MergedDictionaries>
