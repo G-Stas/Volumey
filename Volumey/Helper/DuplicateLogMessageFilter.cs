@@ -3,7 +3,7 @@ using log4net.Filter;
 
 namespace Volumey.Helper;
 
-public class DuplicateLogMessageFilter : FilterSkeleton
+public sealed class DuplicateLogMessageFilter : FilterSkeleton
 {
 	private string lastMsg;
 	public override FilterDecision Decide(LoggingEvent loggingEvent)

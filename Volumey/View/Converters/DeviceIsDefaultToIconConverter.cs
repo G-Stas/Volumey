@@ -9,7 +9,7 @@ namespace Volumey.View.Converters;
 /// <summary>
 /// The checkmark of the default device in the tray menu's device list
 /// </summary>
-public class DeviceIsDefaultToIconConverter : IMultiValueConverter
+public sealed class DeviceIsDefaultToIconConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

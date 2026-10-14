@@ -18,7 +18,7 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.Model;
 
-public class AudioProcessModel : IManagedMasterAudioSession
+public sealed class AudioProcessModel : IManagedMasterAudioSession
 {
 	private static readonly log4net.ILog Logger = log4net.LogManager.GetLogger(typeof(AudioProcessModel));
 

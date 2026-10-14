@@ -10,7 +10,7 @@ namespace Volumey.View.Converters;
 /// A screen as the screen picker shows it:"DISPLAY1 · 2560 × 1440 (main)".
 /// The second value is the current language, only bound so "(main)" follows it
 /// </summary>
-public class ScreenNameConverter : IMultiValueConverter
+public sealed class ScreenNameConverter : IMultiValueConverter
 {
 	private const string DevicePrefix = @"\\.\";
 

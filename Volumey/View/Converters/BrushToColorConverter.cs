@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace Volumey.View.Converters;
 
-public class BrushToColorConverter : IValueConverter
+public sealed class BrushToColorConverter : IValueConverter
 {
 	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 	{

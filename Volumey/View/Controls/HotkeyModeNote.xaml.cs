@@ -6,7 +6,7 @@ namespace Volumey.View.Controls;
 /// <summary>
 /// The note about the hotkey mode under a settings page's hotkeys
 /// </summary>
-public partial class HotkeyModeNote
+public sealed partial class HotkeyModeNote
 {
 	/// <summary>True: hotkeys keep their keys to Volumey; false: other apps get the keys too</summary>
 	public static readonly DependencyProperty KeysBlockedProperty

@@ -7,7 +7,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// <summary>
 /// Controls the volume of a master session
 /// </summary>
-class MasterAudioSessionVolume : IAudioSessionVolume
+sealed class MasterAudioSessionVolume : IAudioSessionVolume
 {
 	private readonly AudioEndpointVolume audioVolume;
 	//own lock object: locking the NAudio object could interfere with locks NAudio takes on it

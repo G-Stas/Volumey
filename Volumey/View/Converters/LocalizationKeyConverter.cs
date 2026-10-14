@@ -5,7 +5,7 @@ using Volumey.Localization;
 
 namespace Volumey.View.Converters;
 
-public class LocalizationKeyConverter : IMultiValueConverter
+public sealed class LocalizationKeyConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

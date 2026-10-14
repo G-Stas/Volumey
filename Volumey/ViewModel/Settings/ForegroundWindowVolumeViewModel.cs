@@ -13,7 +13,7 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
+public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 {
 	[ObservableProperty]
 	public partial HotKey VolumeUpHotkey { get; set; }

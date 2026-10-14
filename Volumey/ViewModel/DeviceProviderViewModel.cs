@@ -7,7 +7,7 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel;
 
-public partial class DeviceProviderViewModel : ObservableObject
+public sealed partial class DeviceProviderViewModel : ObservableObject
 {
 	[ObservableProperty]
 	public partial OutputDeviceModel SelectedDevice { get; set; }

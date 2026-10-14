@@ -33,7 +33,7 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.Controls;
 
-public class HotKeyBox : TextBox
+public sealed class HotKeyBox : TextBox
 {
 	private static int WM_Hotkey = 786;
 

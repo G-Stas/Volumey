@@ -9,7 +9,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// <summary>
 /// Provides notification when an audio session is created.
 /// </summary>
-class AudioSessionProvider : ISessionProvider
+sealed class AudioSessionProvider : ISessionProvider
 {
 	public event Action<object, SessionCreatedEventArgs>? SessionCreated;
 	public event Action? DeviceInvalidated;

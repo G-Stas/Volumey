@@ -9,7 +9,7 @@ namespace Volumey.View.DialogContent;
 /// <summary>
 /// Store build: offers the Store page when an update is available
 /// </summary>
-public partial class UpdateDialog
+public sealed partial class UpdateDialog
 {
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(UpdateDialog));
 

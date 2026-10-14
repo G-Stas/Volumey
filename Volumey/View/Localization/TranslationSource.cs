@@ -8,7 +8,7 @@ using Volumey.DataProvider;
 
 namespace Volumey.Localization;
 
-public class TranslationSource : INotifyPropertyChanged
+public sealed class TranslationSource : INotifyPropertyChanged
 {
 	public static readonly List<string> Languages = new List<string>
 	{

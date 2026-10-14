@@ -4,7 +4,7 @@ using Volumey.DataProvider;
 
 namespace Volumey.ViewModel.Settings;
 
-public partial class OpenHotkeyViewModel : HotkeyViewModel
+public sealed partial class OpenHotkeyViewModel : HotkeyViewModel
 {
 	[ObservableProperty]
 	public partial HotKey Hotkey { get; set; }

@@ -2,7 +2,7 @@
 
 namespace Volumey.View.SettingsPage;
 
-public partial class MixerPage
+public sealed partial class MixerPage
 {
 	internal MixerPage(MixerPageViewModel vm)
 	{

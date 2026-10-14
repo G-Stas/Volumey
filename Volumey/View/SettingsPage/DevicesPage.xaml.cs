@@ -2,7 +2,7 @@
 
 namespace Volumey.View.SettingsPage;
 
-public partial class DevicesPage
+public sealed partial class DevicesPage
 {
 	internal DevicesPage(DevicesPageViewModel vm)
 	{

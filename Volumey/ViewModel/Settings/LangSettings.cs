@@ -6,7 +6,7 @@ using Volumey.Localization;
 
 namespace Volumey.ViewModel.Settings;
 
-public class LangSettings : ObservableObject
+public sealed class LangSettings : ObservableObject
 {
 	public static List<string> Languages => TranslationSource.Languages;
 

@@ -29,7 +29,7 @@ using Windows.Win32.UI.Input.KeyboardAndMouse;
 namespace Volumey.Controls;
 
 [Serializable]
-public class HotKey : IEquatable<HotKey>
+public sealed class HotKey : IEquatable<HotKey>
 {
 	private const int VK_MENU = 18;
 	private const int VK_CONTROL = 17;

@@ -10,7 +10,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// <summary>
 /// Device settings through the undocumented IPolicyConfig interface (what Windows' sound settings use): the default device, the format
 /// </summary>
-public class PolicyClient
+public sealed class PolicyClient
 {
 	[ComImport, Guid(GuidValue.External.PolicyConfigCOM)]
 	private class PolicyClientCOM { }

@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace Volumey.Controls;
 
-public class VolumeSlider : Slider
+public sealed class VolumeSlider : Slider
 {
 	private Thumb _thumb;
 

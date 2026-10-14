@@ -7,7 +7,7 @@ using log4net;
 
 namespace Volumey.View.Converters;
 
-public partial class TrayIconConverter
+public sealed partial class TrayIconConverter
 {
 	internal abstract class TrayIconProvider
 	{

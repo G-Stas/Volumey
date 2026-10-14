@@ -11,7 +11,7 @@ namespace Volumey.ViewModel.Settings;
 /// <summary>
 /// The Media keys page: one hotkey per media key, which Volumey answers by pressing that media key
 /// </summary>
-public class SystemHotkeysViewModel : HotkeyViewModel
+public sealed class SystemHotkeysViewModel : HotkeyViewModel
 {
 	private static readonly Key[] MediaKeys = { Key.MediaPlayPause, Key.MediaPreviousTrack, Key.MediaNextTrack, Key.MediaStop };
 

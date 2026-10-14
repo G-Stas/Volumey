@@ -13,7 +13,7 @@ using Volumey.Services;
 
 namespace Volumey.ViewModel.Settings;
 
-public partial class NotificationViewModel : ObservableObject
+public sealed partial class NotificationViewModel : ObservableObject
 {
 	public NotificationPosition[] Positions { get; } =
 	{

@@ -6,7 +6,7 @@ using Volumey.ViewModel.Settings;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
 
-public class SessionCreatedEventArgs : EventArgs
+public sealed class SessionCreatedEventArgs : EventArgs
 {
 	public AudioSessionModel SessionModel { get; }
 	private readonly AudioSessionControl sessionControl;

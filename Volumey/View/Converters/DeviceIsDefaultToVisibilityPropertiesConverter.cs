@@ -6,7 +6,7 @@ using Volumey.Model;
 
 namespace Volumey.View.Converters;
 
-public class DeviceIsDefaultToVisibilityPropertiesConverter : IMultiValueConverter
+public sealed class DeviceIsDefaultToVisibilityPropertiesConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace Volumey.View.Converters;
 
-public class MultipleVisibilityToSingleVisibilityConverter : IMultiValueConverter
+public sealed class MultipleVisibilityToSingleVisibilityConverter : IMultiValueConverter
 {
 	public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{

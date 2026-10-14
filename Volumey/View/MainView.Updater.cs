@@ -6,7 +6,7 @@ using Volumey.View.DialogContent;
 
 namespace Volumey.View;
 
-public partial class MainView
+public sealed partial class MainView
 {
 	private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
 	{

@@ -6,7 +6,7 @@ using Volumey.DataProvider;
 
 namespace Volumey.View.Converters;
 
-public partial class TrayIconConverter : IMultiValueConverter
+public sealed partial class TrayIconConverter : IMultiValueConverter
 {
 	internal enum IconType
 	{

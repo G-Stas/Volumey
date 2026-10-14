@@ -8,7 +8,7 @@ namespace Volumey.View;
 /// <summary>
 /// The settings, a window of their own (the mixer window only has the mixer). Each page brings its own view model
 /// </summary>
-public partial class SettingsWindow
+public sealed partial class SettingsWindow
 {
 	internal SettingsWindow(INavigationViewPageProvider pages)
 	{

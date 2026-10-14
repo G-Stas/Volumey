@@ -7,7 +7,7 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// <summary>
 /// Provides notifications of changes in the volume level and muting state of an audio endpoint device.
 /// </summary>
-class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
+sealed class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
 {
 	public event Action<VolumeChangedEventArgs>? VolumeChanged;
 	private readonly AudioEndpointVolume endpointVolume;

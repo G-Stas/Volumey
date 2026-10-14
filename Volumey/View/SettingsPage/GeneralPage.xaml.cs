@@ -4,7 +4,7 @@ using Wpf.Ui.Controls;
 
 namespace Volumey.View.SettingsPage;
 
-public partial class GeneralPage
+public sealed partial class GeneralPage
 {
 	internal GeneralPage(GeneralPageViewModel vm)
 	{

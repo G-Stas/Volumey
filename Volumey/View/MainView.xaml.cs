@@ -29,7 +29,7 @@ namespace Volumey.View;
 /// otherwise a normal resizable window whose size and position are remembered. It also owns the tray icon
 /// and the window messages (hotkeys, restart, second start)
 /// </summary>
-public partial class MainView
+public sealed partial class MainView
 {
 	private IntPtr Hwnd;
 

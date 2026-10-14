@@ -18,7 +18,7 @@ namespace Volumey;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App
+public sealed partial class App
 {
 	private ILog logger;
 	private ILog Logger => logger ??= LogManager.GetLogger(typeof(App));
