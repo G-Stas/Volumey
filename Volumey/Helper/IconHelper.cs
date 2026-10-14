@@ -89,12 +89,66 @@ static class IconHelper
 	/// (not remembered: the next app with this path tries again)
 	/// </summary>
 	internal static ImageSource GetIconSource(string path, Func<string, Icon> extract)
+		=> GetCached(path, p =>
+		{
+			using var icon = extract(p);
+			return icon?.GetAsImageSource();
+		});
+
+	/// <summary>
+	/// An app's icon from its executable as a frozen image: the file's first icon, or the first one that shows something when the first
+	/// is empty (some programs have an empty first icon and give their window another one, e.g. Warcraft III's war3.exe).
+	/// Null if none of them shows anything
+	/// </summary>
+	internal static ImageSource GetAppIconSource(string exePath) => GetCached(exePath, ReadAppIcon);
+
+	private static ImageSource GetCached(string path, Func<string, ImageSource> read)
 	{
 		if(iconSources.TryGetValue(path, out var cached))
 			return cached;
-		using var icon = extract(path);
-		var source = icon?.GetAsImageSource();
+		var source = read(path);
 		return source == null ? null : iconSources.GetOrAdd(path, source);
+	}
+
+	//an empty first icon is rare: the file's other icons are looked at only then, and only the first few
+	private const int MaxIconsTried = 8;
+
+	private static ImageSource ReadAppIcon(string exePath)
+	{
+		using(var first = Icon.ExtractAssociatedIcon(exePath))
+		{
+			var source = first?.GetAsImageSource();
+			if(source == null || HasVisiblePixels(source))
+				return source;
+		}
+		//the number of icons in the file
+		int count = (int)Math.Min(PInvoke.ExtractIconEx(exePath, -1, default, default), MaxIconsTried);
+		for(int index = 1; index < count; index++)
+		{
+			using var icon = GetFromDll(exePath, index);
+			var source = icon?.GetAsImageSource();
+			if(source != null && HasVisiblePixels(source))
+				return source;
+		}
+		return null;
+	}
+
+	/// <summary>Whether any pixel of the image isn't fully transparent</summary>
+	internal static bool HasVisiblePixels(ImageSource source)
+	{
+		if(source is not BitmapSource bitmap)
+			return true;
+		if(bitmap.Format != PixelFormats.Bgra32)
+			bitmap = new FormatConvertedBitmap(bitmap, PixelFormats.Bgra32, null, 0);
+		int stride = bitmap.PixelWidth * 4;
+		var pixels = new byte[stride * bitmap.PixelHeight];
+		bitmap.CopyPixels(pixels, stride, 0);
+		for(int alpha = 3; alpha < pixels.Length; alpha += 4)
+		{
+			if(pixels[alpha] != 0)
+				return true;
+		}
+		return false;
 	}
 
 	private static ImageSource genericExeIconSource;

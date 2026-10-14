@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.Helper;
 
@@ -44,6 +46,31 @@ public class IconHelperTests
 		Assert.IsNull(IconHelper.GetIconSource(path, Extract));
 		Assert.IsNull(IconHelper.GetIconSource(path, Extract));
 		Assert.AreEqual(2, reads);
+	}
+
+	[TestMethod]
+	public void AnEmptyIconIsToldApartFromOneThatShowsSomething()
+	{
+		BitmapSource Square(byte alpha)
+		{
+			var pixels = new byte[4 * 4 * 4];
+			for(int i = 0; i < pixels.Length; i += 4)
+				pixels[i + 3] = alpha;
+			return BitmapSource.Create(4, 4, 96, 96, PixelFormats.Bgra32, null, pixels, 4 * 4);
+		}
+
+		Assert.IsFalse(IconHelper.HasVisiblePixels(Square(0)));
+		Assert.IsTrue(IconHelper.HasVisiblePixels(Square(1)));
+	}
+
+	[TestMethod]
+	public void AnAppsIconComesFromItsExecutable()
+	{
+		var icon = IconHelper.GetAppIconSource(Path.Combine(Environment.SystemDirectory, "notepad.exe"));
+
+		Assert.IsNotNull(icon);
+		Assert.IsTrue(IconHelper.HasVisiblePixels(icon));
+		Assert.IsTrue(icon.IsFrozen);
 	}
 
 	[TestMethod]

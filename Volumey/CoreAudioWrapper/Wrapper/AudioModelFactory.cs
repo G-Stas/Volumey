@@ -303,7 +303,7 @@ internal static class AudioModelFactory
 		ImageSource? icon = null;
 		if(path != null)
 		{
-			try { icon = IconHelper.GetIconSource(path, Icon.ExtractAssociatedIcon); }
+			try { icon = IconHelper.GetAppIconSource(path); }
 			catch(Exception e)
 			{
 				//e.g. a file the user may not read; the session's own icon path is tried next
