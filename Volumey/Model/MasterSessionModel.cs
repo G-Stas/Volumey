@@ -354,5 +354,6 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		StateNotificationMediator?.NotifyOfDisposing(this);
 		notificationHandler.VolumeChanged -= OnVolumeChanged;
 		notificationHandler.Dispose();
+		_icon?.Dispose();
 	}
 }

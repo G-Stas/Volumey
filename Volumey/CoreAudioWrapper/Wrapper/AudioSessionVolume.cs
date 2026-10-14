@@ -28,23 +28,15 @@ public sealed class AudioSessionVolume : IAudioSessionVolume
 	public float GetVolume() => sAudioVol.Volume;
 
 	/// <summary>
-	/// Set the volume of the audio session.
+	/// Set the volume of the audio session. The caller writes only a value that differs from the one it knows,
+	/// so the current volume isn't read from Windows first.
 	/// The context is ignored: session volume is always written with an empty event context (see <see cref="SessionEchoFilter"/>).
 	/// </summary>
 	public void SetVolume(int newVolume, Guid context)
 	{
 		newVolume = Math.Clamp(newVolume, 0, 100);
-
-		int systemSessionVolume = -1;
-		try { systemSessionVolume = VolumePercent.FromScalar(GetVolume()); }
-		catch { }
-
-		//prevent setting volume in system if the audio session already has the same value
-		if(systemSessionVolume != newVolume)
-		{
-			EchoFilter.OnVolumeWritten(newVolume);
-			sAudioVol.Volume = VolumePercent.ToScalar(newVolume);
-		}
+		EchoFilter.OnVolumeWritten(newVolume);
+		sAudioVol.Volume = VolumePercent.ToScalar(newVolume);
 	}
 
 	/// <summary>

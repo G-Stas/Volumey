@@ -669,6 +669,29 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void OnlyTheSelectedDeviceOnAVisiblePageFollowsItsChannelLevels()
+	{
+		SetDefaultDevice(CreateDevice("1", "Speakers", At48, out var speakers, Option24At48));
+		ActiveDevices.Add(CreateDevice("2", "Headphones", At48, out var headphones, Option24At48));
+		var vm = new DefaultDeviceHotkeysViewModel(DeviceProvider.Object, Hotkeys);
+		WaitFor(() => speakers.Invocations.Any(i => i.Method.Name == nameof(IDevice.GetChannelVolumes)), "the device's settings weren't read");
+		speakers.VerifyAdd(m => m.ChannelVolumesChanged += It.IsAny<Action>(), Times.Never);
+
+		vm.SetPageShown(true);
+		speakers.VerifyAdd(m => m.ChannelVolumesChanged += It.IsAny<Action>(), Times.Once);
+
+		vm.SelectedDevice = vm.Devices.Single(d => d.Name == "Headphones");
+		speakers.VerifyRemove(m => m.ChannelVolumesChanged -= It.IsAny<Action>(), Times.Once);
+		WaitFor(() => headphones.Invocations.Any(i => i.Method.Name == "add_" + nameof(IDevice.ChannelVolumesChanged)),
+			"the selected device doesn't follow its channel levels");
+
+		//the settings window is hidden or another page is shown
+		vm.SetPageShown(false);
+		headphones.VerifyRemove(m => m.ChannelVolumesChanged -= It.IsAny<Action>(), Times.Once);
+		speakers.VerifyAdd(m => m.ChannelVolumesChanged += It.IsAny<Action>(), Times.Once);
+	}
+
+	[TestMethod]
 	public void MediaKeyHotkeyIsSetChangedAndCleared()
 	{
 		ActivateHotkeys();

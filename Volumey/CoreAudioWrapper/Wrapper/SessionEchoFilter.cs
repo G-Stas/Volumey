@@ -54,23 +54,50 @@ internal sealed class SessionEchoFilter
 	/// </summary>
 	internal bool IsEcho(int newVolume, bool newMute)
 	{
+		if(IsOwnWrite(newVolume, newMute))
+			return true;
+		Remember(newVolume, newMute);
+		return false;
+	}
+
+	/// <summary>
+	/// Returns true if the reported state is the result of an own write, without remembering a state that isn't
+	/// (a callback can be outdated: <see cref="Remember"/> it once it's known to be current)
+	/// </summary>
+	internal bool IsOwnWrite(int newVolume, bool newMute)
+	{
 		lock(sync)
 		{
 			long now = clock();
-			pending.RemoveAll(p => now - p.Time > EchoWindowMs);
-
-			int index = pending.FindIndex(p => p.Volume == newVolume && p.Mute == newMute);
-			if(index >= 0)
+			for(int i = pending.Count - 1; i >= 0; i--)
 			{
-				//callbacks arrive in the order of the writes, so the earlier writes won't be reported anymore.
-				//The matched write stays: Windows may deliver the same event several times to one handler
-				pending.RemoveRange(0, index);
-				return true;
+				if(now - pending[i].Time > EchoWindowMs)
+					pending.RemoveAt(i);
 			}
 
+			for(int index = 0; index < pending.Count; index++)
+			{
+				if(pending[index].Volume == newVolume && pending[index].Mute == newMute)
+				{
+					//callbacks arrive in the order of the writes, so the earlier writes won't be reported anymore.
+					//The matched write stays: Windows may deliver the same event several times to one handler
+					pending.RemoveRange(0, index);
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// Remembers a state that wasn't caused by an own write as the current state
+	/// </summary>
+	internal void Remember(int newVolume, bool newMute)
+	{
+		lock(sync)
+		{
 			volume = newVolume;
 			mute = newMute;
-			return false;
 		}
 	}
 }

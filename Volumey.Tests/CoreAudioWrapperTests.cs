@@ -55,6 +55,20 @@ public class CoreAudioWrapperTests
 	}
 
 	[TestMethod]
+	public void AnOutdatedCallbackIsntRememberedAsTheCurrentState()
+	{
+		//an outside change of the volume to 30, then a mute write: the mute echo reports the volume Windows has (30)
+		var filter = CreateFilter();
+		Assert.IsFalse(filter.IsOwnWrite(30, false));
+		filter.Remember(30, false);
+		//an outdated callback is checked but not remembered
+		Assert.IsFalse(filter.IsOwnWrite(80, false));
+		filter.OnMuteWritten(true);
+
+		Assert.IsTrue(filter.IsOwnWrite(30, true));
+	}
+
+	[TestMethod]
 	public void EchoOfALaterWriteConsumesEarlierWrites()
 	{
 		var filter = CreateFilter();

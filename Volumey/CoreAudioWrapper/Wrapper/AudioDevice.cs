@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading;
-using System.Windows.Media;
 using log4net;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
@@ -38,11 +37,6 @@ public sealed class AudioDevice : IDevice
 	public string GetFriendlyName() => GetProperty<string>(PropertyKeys.PKEY_Device_FriendlyName) ?? string.Empty;
 
 	public string GetDeviceDesc() => GetProperty<string>(PropertyKeys.PKEY_Device_DeviceDesc) ?? string.Empty;
-
-	public ImageSource? GetIconSource()
-	{
-		return GetIcon().GetAsImageSource();
-	}
 
 	/// <summary>
 	/// A new icon owned by the caller, or null

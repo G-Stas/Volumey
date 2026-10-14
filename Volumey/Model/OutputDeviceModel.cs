@@ -144,8 +144,20 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		}
 	}
 
-	//a COM thread: passed on without waiting (see DeviceStateNotificationsHandler)
-	private void OnChannelVolumesChanged() => dispatcher.InvokeAsync(() => channelVolumesChanged?.Invoke());
+	private int channelVolumesQueued;
+
+	//a COM thread: passed on without waiting (see DeviceStateNotificationsHandler).
+	//The listeners read the levels when it runs, so the changes that arrive meanwhile don't queue more
+	private void OnChannelVolumesChanged()
+	{
+		if(Interlocked.Exchange(ref channelVolumesQueued, 1) != 0)
+			return;
+		dispatcher.InvokeAsync(() =>
+		{
+			Volatile.Write(ref channelVolumesQueued, 0);
+			channelVolumesChanged?.Invoke();
+		});
+	}
 
 	internal void ResetVolumeHotkeys() => Master.ResetVolumeHotkeys();
 

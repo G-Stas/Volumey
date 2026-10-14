@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -131,37 +132,66 @@ public partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 
 		long started = Stopwatch.GetTimestamp();
-		Process process = null;
+		AudioProcessModel foundProcess = null;
+		IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
+		string processName = null;
 		string filePath = string.Empty;
 		Exception pathError = null;
 		try
 		{
-			process = Process.GetProcessById((int)foregroundWindowProcId);
-			filePath = process.MainModule.FileName;
-		}
-		catch(Exception e)
-		{
-			//e.g. a game protected by anti-cheat doesn't let other processes read its modules
-			pathError = e;
-		}
-
-		AudioProcessModel foundProcess = null;
-		IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
-		try
-		{
 			curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
-			foundProcess = curDeviceProcesses.FirstOrDefault(p => p.ProcessId == foregroundWindowProcId || p.RawProcessName.Equals(process?.ProcessName) || p.FilePath.Equals(filePath));
+			//the process id matches most of the time; the process is only opened when it doesn't
+			foundProcess = FindByProcessId(curDeviceProcesses, foregroundWindowProcId);
+			if(foundProcess == null)
+			{
+				(processName, filePath, pathError) = GetProcessNameAndPath(foregroundWindowProcId);
+				foundProcess = FindByNameOrPath(curDeviceProcesses, processName, filePath);
+			}
 		}
 		catch { }
-		HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, SafeName(process), filePath, pathError, curDeviceProcesses, foundProcess,
+		HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, processName, filePath, pathError, curDeviceProcesses, foundProcess,
 			Stopwatch.GetElapsedTime(started).TotalMilliseconds);
 		return (foundProcess != null, foundProcess);
 	}
 
-	private static string SafeName(Process process)
+	private static AudioProcessModel FindByProcessId(IImmutableList<AudioProcessModel> processes, uint processId)
 	{
-		try { return process?.ProcessName; }
-		catch { return null; }
+		foreach(var process in processes)
+		{
+			if(process.ProcessId == processId)
+				return process;
+		}
+		return null;
+	}
+
+	private static AudioProcessModel FindByNameOrPath(IImmutableList<AudioProcessModel> processes, string processName, string filePath)
+	{
+		foreach(var process in processes)
+		{
+			if(process.RawProcessName.Equals(processName) || process.FilePath.Equals(filePath))
+				return process;
+		}
+		return null;
+	}
+
+	/// <summary>
+	/// Reads the path with QueryFullProcessImageName, which also works for elevated apps and games protected by anti-cheat
+	/// (they don't let other processes read their modules). The name falls back to the process list when the path can't be read.
+	/// </summary>
+	private static (string name, string path, Exception pathError) GetProcessNameAndPath(uint processId)
+	{
+		string path = NativeMethods.GetProcessImagePath((int)processId, out int error);
+		if(path != null)
+			return (Path.GetFileNameWithoutExtension(path), path, null);
+
+		string name = null;
+		try
+		{
+			using var process = Process.GetProcessById((int)processId);
+			name = process.ProcessName;
+		}
+		catch { }
+		return (name, string.Empty, new Win32Exception(error));
 	}
 
 	private uint GetForegroundWindowProcessId()
