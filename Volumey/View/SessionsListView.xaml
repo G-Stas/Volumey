@@ -42,6 +42,12 @@
 
     <ItemsControl x:Name="ItemsControl"
                   ItemsSource="{Binding SelectedDevice.Processes}">
+        <!-- a row's name for screen readers; without it they read the item's type name -->
+        <ItemsControl.ItemContainerStyle>
+            <Style TargetType="ContentPresenter">
+                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+            </Style>
+        </ItemsControl.ItemContainerStyle>
         <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <StackPanel>
@@ -137,6 +143,11 @@
                                 <Binding Path="Sessions.Count" Converter="{StaticResource SeveralSessionsToVisibility}"/>
                             </MultiBinding>
                         </ItemsControl.Visibility>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
                         <ItemsControl.Template>
                             <ControlTemplate TargetType="ItemsControl">
                                 <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">

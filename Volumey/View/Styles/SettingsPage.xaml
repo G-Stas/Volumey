@@ -30,6 +30,10 @@
     <Style TargetType="ui:CardControl" BasedOn="{StaticResource {x:Type ui:CardControl}}">
         <Setter Property="Margin" Value="0 0 0 4" />
     </Style>
+    <!-- the expand button gets the card's AutomationProperties.Name, so every CardExpander needs one -->
+    <Style TargetType="ui:CardExpander" BasedOn="{StaticResource {x:Type ui:CardExpander}}">
+        <Setter Property="controls:ExpanderButtonName.IsEnabled" Value="True" />
+    </Style>
     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
         <Setter Property="Width" Value="220" />
     </Style>
