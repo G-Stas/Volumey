@@ -13,6 +13,12 @@ public sealed partial class OsdPill
 	/// </summary>
 	public const double ShadowMargin = 12;
 
+	/// <summary>
+	/// The pill's size in the OSD with the room for its shadow (the border's minimum width, which its content never exceeds, and height)
+	/// </summary>
+	public const double OuterWidth = 220 + 2 * ShadowMargin;
+	public const double OuterHeight = 48 + 2 * ShadowMargin;
+
 	public OsdPill()
 	{
 		InitializeComponent();

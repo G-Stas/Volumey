@@ -42,6 +42,7 @@ public sealed partial class OsdWindow
 		SourceInitialized += OnSourceInitialized;
 		//WPF resizes the window to the suggested rectangle when it lands on a screen with another scale; put it back over the work area
 		DpiChanged += (_, _) => Dispatcher.InvokeAsync(ApplyWorkArea);
+		SizeChanged += (_, _) => UpdatePlacement();
 	}
 
 	//never activated, not even by a click on a pill (a game in front keeps the focus), and not in Alt+Tab
@@ -101,9 +102,13 @@ public sealed partial class OsdWindow
 		bool center = Pills.HorizontalAlignment == HorizontalAlignment.Center;
 		//the distances are to the pill itself: its margin (room for the shadow) is part of them.
 		//The distance from the side doesn't apply to a centered OSD
-		double h = center ? 0 : Math.Max(0, horizontalIndent - OsdPill.ShadowMargin);
-		double v = Math.Max(0, verticalIndent - OsdPill.ShadowMargin);
-		Pills.Margin = new Thickness(h, top ? v : 0, h, top ? 0 : v);
+		//On a small screen the distances shrink so the pills stay on it
+		double h = center ? 0 : Clamp(horizontalIndent - OsdPill.ShadowMargin, ActualWidth - OsdPill.OuterWidth);
+		double v = Clamp(verticalIndent - OsdPill.ShadowMargin, ActualHeight - Pills.Children.Count * OsdPill.OuterHeight);
+		bool left = Pills.HorizontalAlignment == HorizontalAlignment.Left;
+		Pills.Margin = new Thickness(left ? h : 0, top ? v : 0, left ? 0 : h, top ? 0 : v);
+
+		static double Clamp(double value, double room) => Math.Max(0, Math.Min(value, room));
 	}
 
 	/// <summary>
@@ -143,6 +148,7 @@ public sealed partial class OsdWindow
 			Pills.Children.Insert(0, pill);
 		else
 			Pills.Children.Add(pill);
+		UpdatePlacement();
 
 		if(!IsVisible)
 			Show();
@@ -177,6 +183,7 @@ public sealed partial class OsdWindow
 	{
 		entry.Timer?.Stop();
 		Pills.Children.Remove(entry.Pill);
+		UpdatePlacement();
 		//a new pill for the same key may have replaced this one meanwhile
 		if(entries.TryGetValue(key, out var current) && current == entry)
 			entries.Remove(key);
