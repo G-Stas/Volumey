@@ -40,6 +40,7 @@ static class Startup
 	[STAThread]
 	private static void Main()
 	{
+		EnvironmentArgs.Apply(Environment.GetCommandLineArgs());
 		bool isRestarting = false;
 		bool mutexAcquired = false;
 		foreach(var arg in Environment.GetCommandLineArgs())
@@ -119,8 +120,6 @@ static class Startup
 
 #if(DEBUG)
 	private const string PathToDebugLogConfig = @"";
-	/// <summary>Path of a plain-text log file for debug builds, e.g. set by scripts/run-dev.ps1</summary>
-	private const string DebugLogFileVariable = "VOLUMEY_LOG_FILE";
 #endif
 
 	private static bool TryAcquireMutex(TimeSpan timeout)
@@ -187,7 +186,7 @@ static class Startup
 			var repo = LogManager.GetRepository(Assembly.GetExecutingAssembly());
 			XmlConfigurator.Configure(repo, file);
 		}
-		else if(Environment.GetEnvironmentVariable(DebugLogFileVariable) is string logFile && logFile.Length > 0)
+		else if(Environment.GetEnvironmentVariable(EnvironmentArgs.LogFileVariable) is string logFile && logFile.Length > 0)
 		{
 			var appender = new FileAppender
 			{

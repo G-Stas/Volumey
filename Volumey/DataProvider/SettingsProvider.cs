@@ -10,6 +10,7 @@ using Nucs.JsonSettings.Autosave;
 using Nucs.JsonSettings.Modulation.Recovery;
 using Volumey.Controls;
 using Volumey.DataProvider.Settings;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.DataProvider;
@@ -23,13 +24,11 @@ public static class SettingsProvider
 	private const string SettingsFileName = "settings.json";
 	/// <summary>BinaryFormatter settings file of Volumey 1.x, imported once when settings.json is created</summary>
 	private const string LegacySettingsFileName = "appconfig";
-	/// <summary>Overrides the settings folder, e.g. to run a dev build without touching the real settings</summary>
-	private const string SettingsDirVariable = "VOLUMEY_SETTINGS_DIR";
 
 	//use LocalApplicationData path to access local app data store instead of using Windows.Storage because
 	//it's unstable when certain applications like GIMP are launched as described in this issue:
 	//https://github.com/microsoft/ProjectReunion/issues/101
-	internal static readonly string SettingsDir = Environment.GetEnvironmentVariable(SettingsDirVariable) is string dir && dir.Length > 0
+	internal static readonly string SettingsDir = Environment.GetEnvironmentVariable(EnvironmentArgs.SettingsDirVariable) is string dir && dir.Length > 0
 		? dir
 		: Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ConfigFolderName);
 

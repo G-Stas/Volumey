@@ -136,6 +136,17 @@ public class Win32CallsTests
 	}
 
 	[TestMethod]
+	public void TheRestartKeepsTheSettingsFolderOverride()
+	{
+		var environmentArgs = EnvironmentArgs.Build(name => name == EnvironmentArgs.SettingsDirVariable ? @"C:\Temp\Volumey dev" : null);
+
+		new WindowMessages(win32.Object, Window).RegisterRestart(environmentArgs);
+
+		win32.Verify(m => m.RegisterApplicationRestart("-minimized \"-env:VOLUMEY_SETTINGS_DIR=C:\\Temp\\Volumey dev\"",
+			(REGISTER_APPLICATION_RESTART_FLAGS)0x8), Times.Once);
+	}
+
+	[TestMethod]
 	public void OpeningTheTitleBarMenuGreysOutMinimizeAndMaximize()
 	{
 		var menu = (IntPtr)0x5678;
