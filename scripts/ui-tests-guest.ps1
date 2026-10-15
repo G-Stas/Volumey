@@ -24,8 +24,22 @@ $arguments = @('--no-ansi', '--progress', 'off')
 if ($filters) { $arguments += @('--filter', ($filters -join '&')) }
 
 $env:VOLUMEY_UITEST_EXE = Join-Path $PSScriptRoot 'app\Volumey.exe'
-& (Join-Path $PSScriptRoot 'tests\Volumey.UITests.exe') @arguments *> $log
-$code = $LASTEXITCODE
+#output into files and waiting for the test process alone: an app a failed test left running inherits the output handles,
+#and a pipe (*>) would wait for it too
+$errors = Join-Path $out 'errors.log'
+#the test process shares this console and writes in its code page: UTF-8, not the OEM one
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$tests = Start-Process (Join-Path $PSScriptRoot 'tests\Volumey.UITests.exe') -ArgumentList ($arguments | ForEach-Object { "`"$_`"" }) `
+    -NoNewWindow -PassThru -RedirectStandardOutput $log -RedirectStandardError $errors
+#Windows PowerShell only keeps the exit code when the handle was taken while the process ran
+$null = $tests.Handle
+$tests.WaitForExit()
+$code = $tests.ExitCode
+if ((Get-Item $errors).Length -gt 0) { Get-Content $errors | Add-Content $log }
+Remove-Item $errors
+
+#apps a failed test left running (Volumey, the test audio app's copies)
+Get-Process | Where-Object { $_.Path -and ($_.Path.StartsWith($PSScriptRoot) -or $_.Path.StartsWith($data)) } | Stop-Process -Force -ErrorAction SilentlyContinue
 Set-Content (Join-Path $out 'exitcode.txt') $code
 
 #the folders a failed test kept, without the copies of the test audio app
