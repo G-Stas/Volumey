@@ -175,8 +175,15 @@ public class MixerPageTests : UiTest
 	{
 		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = false, ["Width"] = 400, ["Height"] = 500 } });
 		var mixer = ShownMixer();
+		//the window opens by the tray, at the screen's edge: grown there it reaches into the next screen, and on one at another scale
+		//Windows changes its size again
+		using(Screens.PhysicalPixels())
+		{
+			var workArea = Screens.WorkArea(VolumeyApp.Handle(mixer));
+			mixer.Patterns.Transform.Pattern.Move(workArea.X + 100, workArea.Y + 100);
+		}
 		mixer.Patterns.Transform.Pattern.Resize(480, 600);
-		Assert.IsTrue(Eventually(() => (int)App.Mixer.BoundingRectangle.Width == 480), "the window wasn't resized");
+		Assert.IsTrue(Eventually(() => (int)App.Mixer.BoundingRectangle.Width == 480), $"the window wasn't resized: {App.Mixer.BoundingRectangle}");
 
 		//the size is saved when the app exits (like the position), so it quits the way a person does
 		App.ExitByTray();
