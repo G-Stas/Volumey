@@ -321,7 +321,9 @@ internal sealed class VolumeyApp : IDisposable
 		string prefix = Audio.HasOutputDevice ? Audio.DefaultDeviceName + ":" : "No output device detected";
 		AutomationElement? Find(AutomationElement? root)
 			=> root?.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))
-			        .FirstOrDefault(e => e.Name.StartsWith(prefix) && (e.AutomationId == "NotifyItemIcon" || e.Parent?.ClassName == "ToolbarWindow32"));
+			        .FirstOrDefault(e => IsIcon(e) && (e.AutomationId == "NotifyItemIcon" || e.Parent?.ClassName == "ToolbarWindow32"));
+		//an icon that goes away while it's looked at (the previous test's app) has no properties anymore
+		bool IsIcon(AutomationElement e) => e.Properties.Name.TryGetValue(out string? name) && name.StartsWith(prefix);
 		var desktop = Automation.GetDesktop();
 		var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
 		var icon = Retry.WhileNull(() => Find(taskbar), TimeSpan.FromSeconds(5)).Result;
@@ -331,7 +333,7 @@ internal sealed class VolumeyApp : IDisposable
 		AutomationElement? InFlyout()
 		{
 			var found = Find(desktop.FindFirstChild(cf => cf.ByClassName("NotifyIconOverflowWindow")))
-			            ?? desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(e => e.Name.StartsWith(prefix));
+			            ?? desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(IsIcon);
 			return found is { IsOffscreen: false } ? found : null;
 		}
 		//the hidden icons button toggles the flyout: clicked only while the flyout is closed
