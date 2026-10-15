@@ -5,17 +5,21 @@
 .DESCRIPTION
   Copies only the builds (no sources, no .git) into the guest with vmrun, runs them there on the signed-in desktop and copies
   the result back to %TEMP%\Volumey-uitests-vm: result.log, and data.zip with the data folders of failed tests.
+  The VM and its Windows sign-in come from a settings file outside the repository (-Config, by default
+  %USERPROFILE%\.volumey-uitests-vm), one key=value per line:
+    vmx=D:\VMs\Windows 10\Windows 10.vmx
+    user=<the guest's Windows user>
+    password=<its password>
   The guest needs the .NET 10 Desktop Runtime (x64), VMware Tools, its user signed in with the desktop unlocked and shown, and a
   password on that user (vmrun can't sign in to a Windows guest without one). Its screen should be at least 1920x1080.
   The tests click and press keys inside the guest only: the host's keyboard and mouse stay free.
 
 .EXAMPLE
-  ./scripts/run-ui-tests-vm.ps1 -Vmx 'D:\VMs\Windows 10\Windows 10.vmx' -GuestUser user
-  ./scripts/run-ui-tests-vm.ps1 -Filter MediaKeysTests -NoBuild   # with VOLUMEY_UITEST_VMX and VOLUMEY_UITEST_VM_USER set
+  ./scripts/run-ui-tests-vm.ps1                                  # everything
+  ./scripts/run-ui-tests-vm.ps1 -Filter MediaKeysTests -NoBuild   # one class, without building first
 #>
 param(
-    [string]$Vmx = $env:VOLUMEY_UITEST_VMX,
-    [string]$GuestUser = $env:VOLUMEY_UITEST_VM_USER,
+    [string]$Config = (Join-Path $env:USERPROFILE '.volumey-uitests-vm'),
     [string]$Filter = '',
     [switch]$NoAudio,
     [switch]$NoBuild
@@ -27,14 +31,18 @@ $testsDir = Join-Path $repo 'Volumey.UITests\bin\x64\Debug\net10.0-windows10.0.1
 $vmrun = Join-Path ${env:ProgramFiles(x86)} 'VMware\VMware Workstation\vmrun.exe'
 if (-not (Test-Path $vmrun)) { $vmrun = Join-Path $env:ProgramFiles 'VMware\VMware Workstation\vmrun.exe' }
 if (-not (Test-Path $vmrun)) { throw 'vmrun.exe not found: install VMware Workstation' }
-if (-not $Vmx -or -not (Test-Path $Vmx)) { throw 'Pass the VM''s .vmx file with -Vmx (or set VOLUMEY_UITEST_VMX)' }
-if (-not $GuestUser) { throw 'Pass the guest''s Windows user with -GuestUser (or set VOLUMEY_UITEST_VM_USER)' }
 
-#the guest password: VOLUMEY_UITEST_VM_PASSWORD, else asked for
-$password = $env:VOLUMEY_UITEST_VM_PASSWORD
-if (-not $password) {
-    $password = (Get-Credential -UserName $GuestUser -Message 'The VM''s Windows password').GetNetworkCredential().Password
+if (-not (Test-Path $Config)) { throw "Write the VM's settings into $Config (see the script's help: Get-Help $PSCommandPath -Full)" }
+$settings = @{}
+foreach ($line in Get-Content $Config) {
+    $key, $value = $line -split '=', 2
+    if ($value) { $settings[$key.Trim()] = $value.Trim() }
 }
+$Vmx = $settings['vmx']
+$GuestUser = $settings['user']
+$password = $settings['password']
+if (-not $Vmx -or -not (Test-Path $Vmx)) { throw "vmx= in $Config isn't an existing .vmx file" }
+if (-not $GuestUser -or -not $password) { throw "$Config needs user= and password= (the guest's Windows sign-in)" }
 
 function Invoke-Vmrun {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Arguments)

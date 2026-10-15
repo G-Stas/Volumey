@@ -31,11 +31,19 @@ If a test fails, it keeps its data folder (`settings.json` and `volumey.log` in 
 `run-ui-tests-vm.ps1` builds here and runs the tests inside a VMware Workstation VM, for example on another Windows version. It copies only the builds into the guest (no sources, no `.git`), runs them on the guest's desktop with `ui-tests-guest.ps1` and copies the output back to `%TEMP%\Volumey-uitests-vm`. Your own keyboard and mouse stay free.
 
 ```powershell
-./scripts/run-ui-tests-vm.ps1 -Vmx 'D:\VMs\Windows 10\Windows 10.vmx' -GuestUser user
-./scripts/run-ui-tests-vm.ps1 -Filter TrayTests -NoBuild   # VOLUMEY_UITEST_VMX and VOLUMEY_UITEST_VM_USER set
+./scripts/run-ui-tests-vm.ps1                              # everything
+./scripts/run-ui-tests-vm.ps1 -Filter TrayTests -NoBuild   # one class, without building first
 ```
 
-The script asks for the guest's password (or reads `VOLUMEY_UITEST_VM_PASSWORD`). The guest needs:
+It reads the VM and the guest's sign-in from `%USERPROFILE%\.volumey-uitests-vm` (another file with `-Config`), outside the repository:
+
+```
+vmx=D:\VMs\Windows 10\Windows 10.vmx
+user=<the guest's Windows user>
+password=<its password>
+```
+
+The guest needs:
 
 - VMware Tools and the .NET 10 Desktop Runtime (x64)
 - a password on its Windows user: `vmrun` can't sign in without one
