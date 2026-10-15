@@ -42,7 +42,8 @@
             <TextBlock Text="{lc:Localization AppHotkeys_Foreground}" Style="{StaticResource SectionHeader}" />
             <!-- the hotkeys can be edited while it's off; turning it on registers them -->
             <ui:CardExpander Icon="{ui:SymbolIcon WindowApps24}" IsExpanded="True" Margin="0 0 0 4"
-                             DataContext="{Binding Foreground}">
+                             DataContext="{Binding Foreground}"
+                             AutomationProperties.Name="{lc:Localization AppHotkeys_ForegroundTitle}">
                 <ui:CardExpander.Header>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -111,6 +112,12 @@
                     </TextBlock.Style>
                 </TextBlock>
                 <ItemsControl ItemsSource="{Binding Apps}" Focusable="False" AutomationProperties.AutomationId="AppList">
+                    <!-- a row's name for screen readers; without it they read the item's type name -->
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="AutomationProperties.Name" Value="{Binding ProcessName}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <ui:CardExpander Margin="0 0 0 4" AutomationProperties.Name="{Binding ProcessName}">

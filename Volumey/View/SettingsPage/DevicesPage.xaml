@@ -51,7 +51,8 @@
             <TextBlock Text="{lc:Localization Devices_VolumeSection}" Style="{StaticResource SectionHeader}" />
             <StackPanel DataContext="{Binding DeviceVolume}">
                 <!-- the hotkeys can be edited while they're off; turning them on registers them -->
-                <ui:CardExpander Icon="{ui:SymbolIcon Speaker224}" IsExpanded="True" Margin="0 0 0 4">
+                <ui:CardExpander Icon="{ui:SymbolIcon Speaker224}" IsExpanded="True" Margin="0 0 0 4"
+                                 AutomationProperties.Name="{lc:Localization Devices_VolumeHotkeys}">
                     <ui:CardExpander.Header>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -297,7 +298,8 @@
 
                     <!-- exclusive mode, as Windows' sound settings show it: priority only matters while apps may take the device -->
                     <ui:CardExpander Icon="{ui:SymbolIcon LockClosed24}" IsExpanded="True" Margin="0 0 0 4"
-                                     Visibility="{Binding HasExclusiveMode, Converter={StaticResource BoolToVisibility}}">
+                                     Visibility="{Binding HasExclusiveMode, Converter={StaticResource BoolToVisibility}}"
+                                     AutomationProperties.Name="{lc:Localization Devices_AllowExclusive}">
                         <ui:CardExpander.Header>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -335,7 +337,8 @@
 
                     <!-- left/right balance (the first two channels), live: the device volume and Windows change it too -->
                     <ui:CardExpander Icon="{ui:SymbolIcon ArrowSwap24}" IsExpanded="True" Margin="0 0 0 4"
-                                     Visibility="{Binding HasBalance, Converter={StaticResource BoolToVisibility}}">
+                                     Visibility="{Binding HasBalance, Converter={StaticResource BoolToVisibility}}"
+                                     AutomationProperties.Name="{lc:Localization Devices_Balance}">
                         <ui:CardExpander.Header>
                             <StackPanel>
                                 <TextBlock Text="{lc:Localization Devices_Balance}" />

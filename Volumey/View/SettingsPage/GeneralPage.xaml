@@ -91,7 +91,8 @@
 
             <TextBlock Text="{lc:Localization General_Hotkeys}" Style="{StaticResource SectionHeader}" />
             <!-- the hotkey mode as two explained choices (Hotkeys.BlockInSystem) -->
-            <ui:CardExpander Icon="{ui:SymbolIcon Keyboard24}" IsExpanded="True" Margin="0 0 0 4">
+            <ui:CardExpander Icon="{ui:SymbolIcon Keyboard24}" IsExpanded="True" Margin="0 0 0 4"
+                             AutomationProperties.Name="{lc:Localization General_HotkeyMode}">
                 <ui:CardExpander.Header>
                     <StackPanel>
                         <TextBlock Text="{lc:Localization General_HotkeyMode}" />
@@ -103,6 +104,8 @@
                 <StackPanel Margin="34 0 0 0">
                     <RadioButton Margin="0 0 0 12"
                                  AutomationProperties.AutomationId="BlockHotkeysRadio"
+                                 AutomationProperties.Name="{lc:Localization General_KeepKeys}"
+                                 AutomationProperties.HelpText="{lc:Localization General_KeepKeysHint}"
                                  IsChecked="{Binding HotkeyMode.BlockHotkeysInSystem}">
                         <StackPanel>
                             <TextBlock Text="{lc:Localization General_KeepKeys}" />
@@ -110,6 +113,8 @@
                         </StackPanel>
                     </RadioButton>
                     <RadioButton AutomationProperties.AutomationId="ShareHotkeysRadio"
+                                 AutomationProperties.Name="{lc:Localization General_ShareKeys}"
+                                 AutomationProperties.HelpText="{lc:Localization General_ShareKeysHint}"
                                  IsChecked="{Binding HotkeyMode.BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}">
                         <StackPanel>
                             <TextBlock Text="{lc:Localization General_ShareKeys}" />
