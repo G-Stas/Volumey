@@ -64,7 +64,7 @@ public class AppHotkeysTests : UiTest
 		Assert.IsTrue(Eventually(() => new[] { foregroundUp, foregroundDown, appUp, appDown }.All(c => c.IsHeldByAnotherApp())),
 			"the hotkeys aren't registered after the restart");
 		Assert.IsTrue(Settings.IsOn("ForegroundToggle"), "the foreground switch is off after the restart");
-		var row = Settings.Find("AppList").FindFirstDescendant(cf => cf.ByName(testApp.DisplayName))
+		var row = AppRow(testApp.DisplayName)
 		          ?? throw new AssertFailedException("The app's row is gone after the restart");
 		row.Patterns.ExpandCollapse.PatternOrDefault?.Expand();
 		var upBox = Retry.WhileNull(() => row.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName(testApp.DisplayName + " volume up"))),
@@ -111,10 +111,14 @@ public class AppHotkeysTests : UiTest
 		Settings.Find("CloseButton").AsButton().Invoke();
 	}
 
+	/// <summary>A saved app's card: the element named after the app that expands (the list item around it has the same name)</summary>
+	private AutomationElement? AppRow(string app)
+		=> Settings.Find("AppList").FindAllDescendants(cf => cf.ByName(app)).FirstOrDefault(e => e.Patterns.ExpandCollapse.IsSupported);
+
 	/// <summary>The saved app's row, expanded, and one of its hotkey boxes</summary>
 	private AutomationElement AppBox(string app, string which)
 	{
-		var row = Settings.Find("AppList").FindFirstDescendant(cf => cf.ByName(app)) ?? throw new AssertFailedException("No row for " + app);
+		var row = AppRow(app) ?? throw new AssertFailedException("No row for " + app);
 		row.Patterns.ExpandCollapse.PatternOrDefault?.Expand();
 		return Retry.WhileNull(() => row.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName($"{app} volume {which}"))),
 			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"No volume {which} box for {app}");
@@ -285,7 +289,7 @@ public class AppHotkeysTests : UiTest
 		});
 		Assert.IsTrue(up.IsHeldByAnotherApp(), "a saved app's hotkey isn't registered while the app runs");
 
-		var row = Settings.Find("AppList").FindFirstDescendant(cf => cf.ByName(testApp.DisplayName)) ?? throw new AssertFailedException("No row for the app");
+		var row = AppRow(testApp.DisplayName) ?? throw new AssertFailedException("No row for the app");
 		row.Patterns.ExpandCollapse.PatternOrDefault?.Expand();
 		var upBox = Retry.WhileNull(() => row.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName(testApp.DisplayName + " volume up"))),
 			TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException("No volume up box in the app's row");
