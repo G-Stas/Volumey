@@ -35,7 +35,7 @@ If a test fails, it keeps its data folder (`settings.json` and `volumey.log` in 
 ./scripts/run-ui-tests-vm.ps1 -Filter TrayTests -NoBuild   # one class, without building first
 ```
 
-It reads the VM and the guest's sign-in from `%USERPROFILE%\.volumey-uitests-vm` (another file with `-Config`), outside the repository:
+It reads the VM and the guest's sign-in from `ui-tests-vm.settings` in the repository's root (git ignores it; another file with `-Config`):
 
 ```
 vmx=D:\VMs\Windows 10\Windows 10.vmx

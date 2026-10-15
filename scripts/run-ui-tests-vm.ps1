@@ -5,8 +5,8 @@
 .DESCRIPTION
   Copies only the builds (no sources, no .git) into the guest with vmrun, runs them there on the signed-in desktop and copies
   the result back to %TEMP%\Volumey-uitests-vm: result.log, and data.zip with the data folders of failed tests.
-  The VM and its Windows sign-in come from a settings file outside the repository (-Config, by default
-  %USERPROFILE%\.volumey-uitests-vm), one key=value per line:
+  The VM and its Windows sign-in come from a settings file that git ignores (-Config, by default ui-tests-vm.settings in the
+  repository's root), one key=value per line:
     vmx=D:\VMs\Windows 10\Windows 10.vmx
     user=<the guest's Windows user>
     password=<its password>
@@ -19,7 +19,7 @@
   ./scripts/run-ui-tests-vm.ps1 -Filter MediaKeysTests -NoBuild   # one class, without building first
 #>
 param(
-    [string]$Config = (Join-Path $env:USERPROFILE '.volumey-uitests-vm'),
+    [string]$Config = (Join-Path (Split-Path $PSScriptRoot -Parent) 'ui-tests-vm.settings'),
     [string]$Filter = '',
     [switch]$NoAudio,
     [switch]$NoBuild

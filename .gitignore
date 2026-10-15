@@ -17,6 +17,8 @@ Volumey.Package/AppPackages/
 Volumey.Package/Volumey.Package.wapproj.user
 # Loggly input key for Release/Store builds (see Volumey/Helper/RemoteLogging.cs)
 loggly.key
+# VM and guest sign-in for scripts/run-ui-tests-vm.ps1
+ui-tests-vm.settings
 Volumey.Package/BundleArtifacts/
 TestResults/
 # release zips (scripts/build-release.ps1)
