@@ -20,7 +20,7 @@ Remove-Item $data -Recurse -Force -ErrorAction SilentlyContinue
 $filters = @()
 if ($NoAudio) { $filters += 'TestCategory!=Audio' }
 if ($Filter) { $filters += "FullyQualifiedName~$Filter" }
-$arguments = @('--no-ansi', '--no-progress')
+$arguments = @('--no-ansi', '--progress', 'off')
 if ($filters) { $arguments += @('--filter', ($filters -join '&')) }
 
 $env:VOLUMEY_UITEST_EXE = Join-Path $PSScriptRoot 'app\Volumey.exe'

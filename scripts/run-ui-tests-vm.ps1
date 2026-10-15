@@ -79,6 +79,19 @@ Invoke-Vmrun runProgramInGuest $Vmx $powershell -NoProfile -Command "Remove-Item
 Invoke-Vmrun CopyFileFromHostToGuest $Vmx $zip "$guest\stage.zip" | Out-Null
 Invoke-Vmrun runProgramInGuest $Vmx $powershell -NoProfile -Command "Expand-Archive '$guest\stage.zip' '$guest\run'" | Out-Null
 
+#the app and the tests need the .NET 10 Desktop Runtime: without it the guest gets Microsoft's installer, downloaded once
+& $vmrun -T ws -gu $GuestUser -gp $password runProgramInGuest $Vmx $powershell -NoProfile -Command "if (-not (Test-Path 'C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\10.*')) { exit 1 }" 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    $installer = Join-Path $work 'windowsdesktop-runtime-10-win-x64.exe'
+    if (-not (Test-Path $installer)) {
+        Write-Host 'Downloading the .NET 10 Desktop Runtime'
+        Invoke-WebRequest 'https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe' -OutFile $installer
+    }
+    Write-Host 'Installing the .NET 10 Desktop Runtime in the VM'
+    Invoke-Vmrun CopyFileFromHostToGuest $Vmx $installer "$guest\runtime.exe" | Out-Null
+    Invoke-Vmrun runProgramInGuest $Vmx "$guest\runtime.exe" /install /quiet /norestart | Out-Null
+}
+
 $guestArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "$guest\run\ui-tests-guest.ps1")
 if ($NoAudio) { $guestArguments += '-NoAudio' }
 if ($Filter) { $guestArguments += @('-Filter', $Filter) }
