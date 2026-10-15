@@ -33,10 +33,12 @@ internal sealed class WindowMessages
 	}
 
 	/// <summary>
-	/// Lets Windows restart the app (minimized) when it's closed for an update while running
+	/// Lets Windows restart the app (minimized) when it's closed for an update while running, with the folder overrides of a dev or test run
 	/// </summary>
-	public void RegisterRestart()
-		=> win32.RegisterApplicationRestart(Startup.MinimizedArg, REGISTER_APPLICATION_RESTART_FLAGS.RESTART_NO_REBOOT);
+	public void RegisterRestart() => RegisterRestart(EnvironmentArgs.FromEnvironment());
+
+	internal void RegisterRestart(string environmentArgs)
+		=> win32.RegisterApplicationRestart(Startup.MinimizedArg + environmentArgs, REGISTER_APPLICATION_RESTART_FLAGS.RESTART_NO_REBOOT);
 
 	public void Handle(int message, IntPtr wParam, IntPtr lParam)
 	{
