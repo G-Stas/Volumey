@@ -225,4 +225,26 @@ public class Win32CallsTests
 			Directory.Delete(folder, recursive: true);
 		}
 	}
+
+	[TestMethod]
+	public void AShortcutKeepsItsArgumentsWhenItIsPointedElsewhere()
+	{
+		string folder = Path.Combine(Path.GetTempPath(), "Volumey-tests-" + Guid.NewGuid().ToString("N"));
+		Directory.CreateDirectory(folder);
+		try
+		{
+			string link = Path.Combine(folder, "Volumey.lnk");
+			string arguments = "\"-env:VOLUMEY_SETTINGS_DIR=C:\\Temp\\Volumey dev\"";
+
+			SystemIntegrationHelper.SaveShortcut(link, Path.Combine(Environment.SystemDirectory, "notepad.exe"), arguments);
+			Assert.AreEqual(arguments, SystemIntegrationHelper.ReadShortcutArguments(link));
+
+			SystemIntegrationHelper.SaveShortcut(link, Path.Combine(Environment.SystemDirectory, "calc.exe"));
+			Assert.AreEqual(arguments, SystemIntegrationHelper.ReadShortcutArguments(link));
+		}
+		finally
+		{
+			Directory.Delete(folder, recursive: true);
+		}
+	}
 }

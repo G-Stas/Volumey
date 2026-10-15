@@ -144,6 +144,8 @@ public class GeneralPageTests : UiTest
 		Assert.IsTrue(Eventually(() => RunEntry()?.Contains(VolumeyApp.ExePath, StringComparison.OrdinalIgnoreCase) == true),
 			$"no autostart entry for the app: {RunEntry()}");
 		Assert.IsTrue(RunEntry()!.Contains("-minimized"), "the autostart entry doesn't start the app minimized");
+		Assert.IsTrue(RunEntry()!.Contains($"\"-env:VOLUMEY_SETTINGS_DIR={App.DataDir}"),
+			$"the autostart entry doesn't keep the settings folder: {RunEntry()}");
 
 		Settings.SetSwitch("StartWithWindowsToggle", false);
 		Assert.IsTrue(Eventually(() => RunEntry() == null), "the autostart entry is still there");

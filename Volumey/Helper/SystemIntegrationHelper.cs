@@ -27,18 +27,37 @@ internal static class SystemIntegrationHelper
 	private static readonly string StartupRegistryKeyName = "Volumey" + Startup.InstanceSuffix;
 	private static readonly string StartMenuLinkName = "Volumey" + Startup.InstanceSuffix + ".lnk";
 	private static readonly string? StartupRegistryValue;
+	private static readonly string? ExePath = Environment.ProcessPath;
 
 	static SystemIntegrationHelper()
 	{
-		string? exePath = Environment.ProcessPath;
-		if(string.IsNullOrEmpty(exePath))
+		if(string.IsNullOrEmpty(ExePath))
 		{
 			Logger.Error("Failed to retrieve .exe path.");
 			return;
 		}
-		//quoted: an unquoted path with spaces is ambiguous to Windows (it may run another program or nothing).
-		//Older unquoted entries get rewritten by CheckIfStartupRegistryKeyExists on the next start
-		StartupRegistryValue = $"\"{exePath}\" {Startup.MinimizedArg}";
+		StartupRegistryValue = StartupCommandLine(ExePath, EnvironmentArgs.FromEnvironment());
+	}
+
+	/// <summary>
+	/// The autostart entry's command line. The path is quoted: an unquoted path with spaces is ambiguous to Windows
+	/// (it may run another program or nothing)
+	/// </summary>
+	internal static string StartupCommandLine(string exePath, string environmentArgs)
+		=> $"\"{exePath}\" {Startup.MinimizedArg}{environmentArgs}";
+
+	/// <summary>
+	/// The autostart entry pointed at <paramref name="exePath"/>, or null when it already starts it minimized. The entry keeps its own
+	/// folder overrides rather than taking the running instance's, so a test run with other folders doesn't take over the entry
+	/// of the dev run that created it. Older unquoted entries are rewritten.
+	/// </summary>
+	internal static string? RepointStartupCommandLine(string commandLine, string exePath)
+	{
+		var current = StartupCommandLine(exePath, "");
+		if(commandLine.StartsWith(current, StringComparison.OrdinalIgnoreCase)
+		   && (commandLine.Length == current.Length || commandLine[current.Length] == ' '))
+			return null;
+		return StartupCommandLine(exePath, EnvironmentArgs.FindIn(commandLine));
 	}
 
 	private static readonly string StartMenuProgramsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
@@ -96,13 +115,12 @@ internal static class SystemIntegrationHelper
 			using(var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64))
 			using(var key = baseKey.OpenSubKey(StartupRegistryPath, true))
 			{
-				var value = key?.GetValue(StartupRegistryKeyName);
-				if(key != null && !string.IsNullOrEmpty(value?.ToString()))
+				var value = key?.GetValue(StartupRegistryKeyName)?.ToString();
+				if(key != null && !string.IsNullOrEmpty(value))
 				{
-					if(StartupRegistryValue == null || StartupRegistryValue.Equals(value))
-						return true;
-					//Update registry startup path to the currently launched .exe if values are not equals
-					key.SetValue(StartupRegistryKeyName, StartupRegistryValue);
+					//points the entry at the running exe, so a moved build keeps starting
+					if(!string.IsNullOrEmpty(ExePath) && RepointStartupCommandLine(value, ExePath) is string repointed)
+						key.SetValue(StartupRegistryKeyName, repointed);
 					return true;
 				}
 				return false;
@@ -119,11 +137,10 @@ internal static class SystemIntegrationHelper
 	{
 		try
 		{
-			var exePath = Environment.ProcessPath;
-			if(string.IsNullOrEmpty(exePath))
+			if(string.IsNullOrEmpty(ExePath))
 				return false;
 
-			SaveShortcut(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), exePath);
+			SaveShortcut(Path.Combine(StartMenuProgramsPath, StartMenuLinkName), ExePath, EnvironmentArgs.FromEnvironment().TrimStart());
 			return true;
 		}
 		catch(Exception e)
@@ -164,9 +181,8 @@ internal static class SystemIntegrationHelper
 		try
 		{
 			string linkPath = Path.Combine(StartMenuProgramsPath, StartMenuLinkName);
-			string? exePath = Environment.ProcessPath;
-			if(exePath != null && !ReadShortcutTarget(linkPath).Equals(exePath))
-				SaveShortcut(linkPath, exePath);
+			if(ExePath != null && !ReadShortcutTarget(linkPath).Equals(ExePath))
+				SaveShortcut(linkPath, ExePath);
 		}
 		catch { }
 	}
@@ -174,7 +190,10 @@ internal static class SystemIntegrationHelper
 	/// <summary>
 	/// Creates a shortcut to <paramref name="targetPath"/>, or points an existing one there (keeping its other settings, e.g. its icon)
 	/// </summary>
-	internal static void SaveShortcut(string linkPath, string targetPath)
+	/// <param name="linkPath"/>
+	/// <param name="targetPath"/>
+	/// <param name="arguments">The shortcut's arguments; null keeps an existing shortcut's own, as when a moved exe re-points it</param>
+	internal static void SaveShortcut(string linkPath, string targetPath, string? arguments = null)
 	{
 		var link = (IShellLinkW)new ShellLink();
 		try
@@ -183,6 +202,8 @@ internal static class SystemIntegrationHelper
 			if(File.Exists(linkPath))
 				file.Load(linkPath, 2 /*STGM_READWRITE*/);
 			link.SetPath(targetPath);
+			if(arguments != null)
+				link.SetArguments(arguments);
 			file.Save(linkPath, false);
 		}
 		//released now rather than when the garbage collector gets to it
@@ -202,6 +223,24 @@ internal static class SystemIntegrationHelper
 			var buffer = new char[32768];
 			var data = new WIN32_FIND_DATAW();
 			link.GetPath(buffer, ref data, 0).ThrowOnFailure();
+			int end = Array.IndexOf(buffer, '\0');
+			return new string(buffer, 0, end < 0 ? buffer.Length : end);
+		}
+		finally { Marshal.FinalReleaseComObject(link); }
+	}
+
+	/// <summary>
+	/// The arguments a shortcut passes to its target
+	/// </summary>
+	internal static string ReadShortcutArguments(string linkPath)
+	{
+		var link = (IShellLinkW)new ShellLink();
+		try
+		{
+			((IPersistFile)link).Load(linkPath, 0 /*STGM_READ*/);
+			//INFOTIPSIZE: the longest arguments a shortcut keeps
+			var buffer = new char[1024];
+			link.GetArguments(buffer);
 			int end = Array.IndexOf(buffer, '\0');
 			return new string(buffer, 0, end < 0 ? buffer.Length : end);
 		}

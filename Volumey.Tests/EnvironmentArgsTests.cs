@@ -82,6 +82,15 @@ public class EnvironmentArgsTests
 	}
 
 	[TestMethod]
+	public void TheOverridesAreFoundInACommandLine()
+	{
+		var overrides = EnvironmentArgs.Build(name => name + @"\dir\");
+
+		Assert.AreEqual(overrides, EnvironmentArgs.FindIn("\"C:\\Volumey.exe\" -minimized" + overrides + " -other"));
+		Assert.AreEqual("", EnvironmentArgs.FindIn("\"C:\\Volumey.exe\" -minimized"));
+	}
+
+	[TestMethod]
 	public void OnlyTheOverridesCanBeSet()
 	{
 		var applied = new Dictionary<string, string>();
