@@ -182,7 +182,7 @@
     <value>Как в системе</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Значок устройства по умолчанию в области уведомлений</value>
+    <value>Значок устройства по умолчанию в трее</value>
   </data>
   <data name="General_TrayIconHint" xml:space="preserve">
     <value>Вместо значка Volumey</value>
@@ -209,16 +209,16 @@
     <value>Оставлять клавиши только Volumey</value>
   </data>
   <data name="General_KeepKeysHint" xml:space="preserve">
-    <value>Другие приложения не получают эти клавиши. Работает, даже если в фокусе приложение администратора.</value>
+    <value>Другие приложения не получают эти нажатия. Работает, даже если в фокусе приложение запущенное от имени администратора.</value>
   </data>
   <data name="General_ShareKeys" xml:space="preserve">
-    <value>Передавать клавиши и другим приложениям</value>
+    <value>Передавать нажатия другим приложениям</value>
   </data>
   <data name="General_ShareKeysHint" xml:space="preserve">
-    <value>Для игр с теми же клавишами. Не работает, когда в фокусе приложение администратора.</value>
+    <value>Для игр использующих те же клавиши. Не работает, когда в фокусе приложение запущенное от имени администратора.</value>
   </data>
   <data name="General_VolumeStep" xml:space="preserve">
-    <value>Шаг громкости</value>
+    <value>Шаг изменения громкости</value>
   </data>
   <data name="General_VolumeStepHint" xml:space="preserve">
     <value>За одно нажатие</value>
@@ -254,7 +254,7 @@
     <value>Всплывающий режим</value>
   </data>
   <data name="MixerPage_PopupHint" xml:space="preserve">
-    <value>Открывается над областью уведомлений и скрывается при щелчке за его пределами. Если выключено — обычное окно.</value>
+    <value>Открывается рядом с треем и скрывается при потере фокуса. Если выключено - обычное окно.</value>
   </data>
   <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
     <value>Поверх других окон</value>
@@ -461,7 +461,7 @@
     <value>Показ изменений громкости на экране.</value>
   </data>
   <data name="Notifications_Osd" xml:space="preserve">
-    <value>Экранный индикатор</value>
+    <value>Отображение уведомлений</value>
   </data>
   <data name="Notifications_OsdHint" xml:space="preserve">
     <value>При изменениях с помощью сочетаний клавиш Volumey</value>
@@ -527,7 +527,7 @@
     <value>Версия {0} · {1}</value>
   </data>
   <data name="About_GitHubBuild" xml:space="preserve">
-    <value>Выпуск GitHub</value>
+    <value>GitHub релиз</value>
   </data>
   <data name="About_StoreBuild" xml:space="preserve">
     <value>Microsoft Store</value>
@@ -557,7 +557,7 @@
     <value>github.com/G-Stas/Volumey</value>
   </data>
   <data name="About_Report" xml:space="preserve">
-    <value>Сообщить о проблеме или предложить функцию</value>
+    <value>Сообщить о проблеме или предложить фичу</value>
   </data>
   <data name="About_ReportHint" xml:space="preserve">
     <value>GitHub Issues</value>
@@ -569,7 +569,7 @@
     <value>Запоминать положение микшера</value>
   </data>
   <data name="MixerPage_RememberPositionHint" xml:space="preserve">
-    <value>Открывается там, где вы его оставили. Если выключено — у области уведомлений.</value>
+    <value>Открывается там, где вы его оставили. Если выключено - рядом с треем.</value>
   </data>
   <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
     <value>Уже используется в Volumey</value>
