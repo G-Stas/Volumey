@@ -1,16 +1,18 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Volumey.Helper;
 
 /// <summary>
 /// Carries the folder overrides of a dev or test run through the command line as <c>"-env:NAME=value"</c> arguments.
-/// Windows restarts an app with the user's environment, not the one the app was started with, so without them
-/// a restarted dev build would use the real settings.
+/// Windows restarts an app, and starts the autostart entry and the Start menu shortcut, with the user's environment,
+/// not the one the app was started with, so without them a dev build started that way would use the real settings.
 /// </summary>
-internal static class EnvironmentArgs
+internal static partial class EnvironmentArgs
 {
 	/// <summary>Overrides the settings folder, e.g. to run a dev build without touching the real settings</summary>
 	internal const string SettingsDirVariable = "VOLUMEY_SETTINGS_DIR";
@@ -36,6 +38,15 @@ internal static class EnvironmentArgs
 		}
 		return args.ToString();
 	}
+
+	/// <summary>
+	/// The override arguments of a command line written by <see cref="Build"/>, each with a leading space
+	/// </summary>
+	internal static string FindIn(string commandLine)
+		=> string.Concat(QuotedArg().Matches(commandLine).Select(match => " " + match.Value));
+
+	[GeneratedRegex("\"" + Prefix + "[^\"]*\"")]
+	private static partial Regex QuotedArg();
 
 	/// <summary>
 	/// Sets the overrides found in the arguments, before anything reads them
