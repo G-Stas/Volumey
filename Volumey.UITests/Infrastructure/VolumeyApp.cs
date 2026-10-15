@@ -364,15 +364,25 @@ internal sealed class VolumeyApp : IDisposable
 
 	/// <summary>
 	/// Right-clicks the tray icon and returns the item of its menu (a WPF context menu: "Open mixer", "Settings", "Output device",
-	/// "Sound control panel", "Sound settings", "Exit")
+	/// "Sound control panel", "Sound settings", "Exit").
+	/// The Windows 11 tray can drop a right-click that comes the moment the pointer jumps onto the icon while another window
+	/// has the focus: the pointer rests on the icon first, and an icon that opened no menu is right-clicked once more.
 	/// </summary>
 	public AutomationElement TrayMenuItem(string name)
 	{
-		TrayIcon().RightClick();
-		return Retry.WhileNull(() => app!.GetAllTopLevelWindows(Automation)
-		                                .Select(w => w.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuItem).And(cf.ByName(name))))
-		                                .FirstOrDefault(i => i != null), TimeSpan.FromSeconds(5)).Result
-		       ?? throw new InvalidOperationException($"No \"{name}\" in the tray menu");
+		AutomationElement? Item() => app!.GetAllTopLevelWindows(Automation)
+		                                 .Select(w => w.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuItem).And(cf.ByName(name))))
+		                                 .FirstOrDefault(i => i != null);
+		for(int attempt = 0; attempt < 2; attempt++)
+		{
+			var icon = TrayIcon();
+			FlaUI.Core.Input.Mouse.MoveTo(icon.GetClickablePoint());
+			Thread.Sleep(300);
+			icon.RightClick();
+			if(Retry.WhileNull(Item, TimeSpan.FromSeconds(attempt == 0 ? 3 : 5)).Result is { } item)
+				return item;
+		}
+		throw new InvalidOperationException($"No \"{name}\" in the tray menu");
 	}
 
 	/// <summary>Exits the app with the tray menu, the way a person quits it (it saves the window's place and size then)</summary>
