@@ -73,6 +73,7 @@ public abstract class UiTest
 			TestContext.WriteLine("Data folder (settings, log): " + App.DataDir);
 		}
 		App?.Dispose();
+		VolumeyApp.CloseTrayOverflow();
 		if(bindingErrors.Count > 0)
 			Assert.Fail("The app logged binding errors:\n" + string.Join("\n", bindingErrors));
 	}

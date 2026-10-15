@@ -327,15 +327,37 @@ internal sealed class VolumeyApp : IDisposable
 		var icon = Retry.WhileNull(() => Find(taskbar), TimeSpan.FromSeconds(5)).Result;
 		if(icon is { IsOffscreen: false })
 			return icon;
-		//a new icon may be among the hidden ones (always on a fresh PC like a CI runner): open their flyout and click it there
-		(taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons")) ?? taskbar?.FindFirstDescendant(cf => cf.ByAutomationId("1502")))?.Click();
-		return Retry.WhileNull(() =>
-		                       {
-			                       var found = Find(desktop.FindFirstChild(cf => cf.ByClassName("NotifyIconOverflowWindow")))
-			                                   ?? desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(e => e.Name.StartsWith(prefix));
-			                       return found is { IsOffscreen: false } ? found : null;
-		                       }, TimeSpan.FromSeconds(5)).Result
+		//a new icon may be among the hidden ones (always on a fresh PC like a CI runner): click it in their flyout
+		AutomationElement? InFlyout()
+		{
+			var found = Find(desktop.FindFirstChild(cf => cf.ByClassName("NotifyIconOverflowWindow")))
+			            ?? desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(e => e.Name.StartsWith(prefix));
+			return found is { IsOffscreen: false } ? found : null;
+		}
+		//the hidden icons button toggles the flyout: clicked only while the flyout is closed
+		if(InFlyout() is { } shown)
+			return shown;
+		HiddenIconsButton(taskbar)?.Click();
+		return Retry.WhileNull(InFlyout, TimeSpan.FromSeconds(5)).Result
 		       ?? throw new InvalidOperationException($"No visible tray icon whose tooltip starts with \"{prefix}\"");
+	}
+
+	private static AutomationElement? HiddenIconsButton(AutomationElement? taskbar)
+		=> taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons")) ?? taskbar?.FindFirstDescendant(cf => cf.ByAutomationId("1502"));
+
+	/// <summary>
+	/// Closes Windows 10's hidden icons flyout if it's open. It stays open after a tray menu item is invoked through UI Automation
+	/// (nothing takes the focus from it), also once the app's icon is gone, and a click on the hidden icons button would then close
+	/// it instead of opening it.
+	/// </summary>
+	public static void CloseTrayOverflow()
+	{
+		var flyout = FindTopLevelWindow("NotifyIconOverflowWindow", null);
+		if(flyout == IntPtr.Zero || !IsWindowVisible(flyout))
+			return;
+		using var automation = new UIA3Automation();
+		HiddenIconsButton(automation.GetDesktop().FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd")))?.Click();
+		Retry.WhileTrue(() => IsWindowVisible(flyout), TimeSpan.FromSeconds(2));
 	}
 
 	/// <summary>
@@ -435,6 +457,9 @@ internal sealed class VolumeyApp : IDisposable
 
 	[DllImport("user32.dll", CharSet = CharSet.Unicode)]
 	private static extern int GetClassName(IntPtr hwnd, System.Text.StringBuilder className, int maxCount);
+
+	[DllImport("user32.dll", EntryPoint = "FindWindowW", CharSet = CharSet.Unicode)]
+	private static extern IntPtr FindTopLevelWindow(string? className, string? windowName);
 
 	[DllImport("user32.dll", CharSet = CharSet.Unicode)]
 	private static extern uint RegisterWindowMessage(string lpString);
