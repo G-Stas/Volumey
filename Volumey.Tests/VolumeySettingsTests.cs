@@ -116,6 +116,55 @@ public class VolumeySettingsTests
 	}
 
 	[TestMethod]
+	public void ASaveWaitsForAnotherProcessToLetGoOfTheFile()
+	{
+		var settings = Load().EnableAutosave();
+		settings.SaveNow();
+		System.Threading.Tasks.Task flush;
+		using(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
+		{
+			settings.General.Theme = AppTheme.Dark;
+			flush = System.Threading.Tasks.Task.Run(settings.Flush);
+			System.Threading.Thread.Sleep(VolumeySettings.SaveRetryDelay * 2);
+			Assert.IsFalse(flush.IsCompleted, "Flush gave up while the file was in use");
+		}
+
+		Assert.IsTrue(flush.Wait(5000), "Flush didn't return after the file was released");
+		Assert.AreEqual(AppTheme.Dark, Load().General.Theme);
+	}
+
+	[TestMethod]
+	public void ASaveGivesUpAndLogsWhenTheFileStaysInUse()
+	{
+		var repository = (log4net.Repository.Hierarchy.Hierarchy)log4net.LogManager.GetRepository(typeof(VolumeySettings).Assembly);
+		bool wasConfigured = repository.Configured;
+		var log = new log4net.Appender.MemoryAppender();
+		log4net.Config.BasicConfigurator.Configure(repository, log);
+		try
+		{
+			var settings = Load().EnableAutosave();
+			settings.SaveNow();
+			string before = File.ReadAllText(file);
+			using(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
+			{
+				settings.General.Theme = AppTheme.Dark;
+				var flush = System.Threading.Tasks.Task.Run(settings.Flush);
+				Assert.IsTrue(flush.Wait(VolumeySettings.SaveRetryDelay * VolumeySettings.SaveAttempts * 5), "Flush didn't give up");
+			}
+
+			Assert.AreEqual(before, File.ReadAllText(file));
+			var error = Assert.ContainsSingle(log.GetEvents());
+			Assert.AreEqual("Failed to save the settings", error.RenderedMessage);
+			Assert.IsInstanceOfType<IOException>(error.ExceptionObject.InnerException ?? error.ExceptionObject);
+		}
+		finally
+		{
+			repository.Root.RemoveAppender(log);
+			repository.Configured = wasConfigured;
+		}
+	}
+
+	[TestMethod]
 	public void SectionShouldNotifyOnlyOnChange()
 	{
 		var general = new GeneralSettings();
