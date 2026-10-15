@@ -18,12 +18,10 @@ internal sealed class VolumeyApp : IDisposable
 {
 	private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(30);
 
-	public static string RepoRoot { get; } = FindRepoRoot();
-
 	/// <summary>The app under test: VOLUMEY_UITEST_EXE, or the Debug build in the repository</summary>
 	public static string ExePath { get; } = Environment.GetEnvironmentVariable("VOLUMEY_UITEST_EXE") is { Length: > 0 } exe
 		? exe
-		: Path.Combine(RepoRoot, "Volumey", "bin", "x64", "Debug", "net10.0-windows10.0.19041.0", "win-x64", "Volumey.exe");
+		: Path.Combine(FindRepoRoot(), "Volumey", "bin", "x64", "Debug", "net10.0-windows10.0.19041.0", "win-x64", "Volumey.exe");
 
 	public string DataDir { get; }
 	public string SettingsFile => Path.Combine(DataDir, "settings.json");

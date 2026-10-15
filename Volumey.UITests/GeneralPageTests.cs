@@ -27,9 +27,9 @@ public class GeneralPageTests : UiTest
 		Settings.Open("NavGeneral", "ThemeBox");
 	}
 
-	/// <summary>A translated text, read from the app's resx file of that language</summary>
+	/// <summary>A translated text, read from the app's resx file of that language (copied next to the tests)</summary>
 	private static string Translation(string language, string key)
-		=> XDocument.Load(Path.Combine(VolumeyApp.RepoRoot, "Volumey", "Resources", $"Resources.{language}.resx"))
+		=> XDocument.Load(Path.Combine(AppContext.BaseDirectory, "resx", $"Resources.{language}.resx"))
 		            .Root!.Elements("data").First(d => (string?)d.Attribute("name") == key).Element("value")!.Value;
 
 	[TestMethod]

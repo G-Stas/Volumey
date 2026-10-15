@@ -20,4 +20,18 @@
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
   </ItemGroup>
 
+  <!-- the translation tests compare the app's texts with its resx files -->
+  <ItemGroup>
+    <None Include="..\Volumey\Resources\Resources.*.resx" Link="resx\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- the test audio app (scripts/test-audio-app), published into audio-app next to the tests, so a test run needs no SDK -->
+  <PropertyGroup>
+    <TestAudioAppDir>$(MSBuildThisFileDirectory)..\scripts\test-audio-app\</TestAudioAppDir>
+  </PropertyGroup>
+  <Target Name="PublishTestAudioApp" AfterTargets="Build"
+          Inputs="$(TestAudioAppDir)Program.cs;$(TestAudioAppDir)TestAudioApp.csproj" Outputs="$(OutDir)audio-app\testaudio.exe">
+    <Exec Command="dotnet publish &quot;$(TestAudioAppDir)TestAudioApp.csproj&quot; -c Release -o &quot;$(OutDir)audio-app&quot; --nologo -v q" />
+  </Target>
+
 </Project>

@@ -8,11 +8,11 @@ namespace Volumey.UITests.Infrastructure;
 
 /// <summary>
 /// A process that plays silence (scripts/test-audio-app) under its own exe name, so it gets its own audio session and mixer row.
-/// It never touches other apps or the device. Built once per test run into %TEMP%\Volumey-uitests\audio-app.
+/// It never touches other apps or the device. Built with the tests into audio-app next to them (Volumey.UITests.csproj).
 /// </summary>
 internal sealed class TestAudioApp : IDisposable
 {
-	private static readonly Lazy<string> Build = new(BuildApp);
+	private static readonly string BuildDir = Path.Combine(AppContext.BaseDirectory, "audio-app");
 
 	public Process Process { get; }
 
@@ -29,7 +29,9 @@ internal sealed class TestAudioApp : IDisposable
 		Name = name;
 		string dir = Path.Combine(Path.GetTempPath(), "Volumey-uitests", "apps", name);
 		Directory.CreateDirectory(dir);
-		foreach(var file in Directory.GetFiles(Build.Value))
+		if(!File.Exists(Path.Combine(BuildDir, "testaudio.exe")))
+			throw new InvalidOperationException($"The test audio app isn't built: {Path.Combine(BuildDir, "testaudio.exe")} doesn't exist");
+		foreach(var file in Directory.GetFiles(BuildDir))
 		{
 			try
 			{
@@ -97,22 +99,5 @@ internal sealed class TestAudioApp : IDisposable
 		{
 		}
 		Process.Dispose();
-	}
-
-	private static string BuildApp()
-	{
-		string output = Path.Combine(Path.GetTempPath(), "Volumey-uitests", "audio-app");
-		string project = Path.Combine(VolumeyApp.RepoRoot, "scripts", "test-audio-app", "TestAudioApp.csproj");
-		var publish = Process.Start(new ProcessStartInfo("dotnet", $"publish \"{project}\" -c Release -o \"{output}\"")
-		{
-			UseShellExecute = false,
-			RedirectStandardOutput = true,
-			RedirectStandardError = true
-		})!;
-		string log = publish.StandardOutput.ReadToEnd() + publish.StandardError.ReadToEnd();
-		publish.WaitForExit();
-		if(publish.ExitCode != 0)
-			throw new InvalidOperationException("Building the test audio app failed:\n" + log);
-		return output;
 	}
 }
