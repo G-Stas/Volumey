@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.IO;
 using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -61,6 +62,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	/// <summary>
 	/// Writes a scheduled save now, e.g. when the app exits. Returns once the file is written, also when the timer's write
 	/// had already taken the change and is still running: the app exits right after, which would cut that write off.
+	/// While another process has the file open, the write is tried again for about a second (see <see cref="SaveAttempts"/>).
 	/// </summary>
 	public void Flush()
 	{
@@ -74,16 +76,42 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 			}
 			if(file == null)
 				return;
-			try
+			for(int attempt = 1;; attempt++)
 			{
-				SaveNow(file);
-			}
-			catch(Exception e)
-			{
-				//also runs on a timer thread, where an exception would end the app
-				log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
+				try
+				{
+					SaveNow(file);
+					return;
+				}
+				catch(Exception e) when(attempt < SaveAttempts && IsFileInUse(e))
+				{
+					Thread.Sleep(SaveRetryDelay);
+				}
+				catch(Exception e)
+				{
+					//also runs on a timer thread, where an exception would end the app
+					log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
+					return;
+				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// How often <see cref="Flush"/> tries to write the file while another process has it open (an antivirus scan,
+	/// a backup or a cloud sync usually lets go of it within a second), and how long it waits between tries.
+	/// </summary>
+	internal const int SaveAttempts = 6;
+	internal static readonly TimeSpan SaveRetryDelay = TimeSpan.FromMilliseconds(200);
+
+	private const int ErrorSharingViolation = 32;
+	private const int ErrorLockViolation = 33;
+
+	//JsonSettings wraps the IOException of the write in its own exception
+	private static bool IsFileInUse(Exception e)
+	{
+		var io = e as IOException ?? e.InnerException as IOException;
+		return io != null && (io.HResult & 0xFFFF) is ErrorSharingViolation or ErrorLockViolation;
 	}
 
 	/// <summary>
