@@ -56,11 +56,26 @@ public class AboutPageTests : UiTest
 	private AutomationElement? BrowserTab(string titleStart)
 		=> App.Automation.GetDesktop().FindAllChildren(cf => cf.ByControlType(ControlType.Window)).FirstOrDefault(w => w.Name.StartsWith(titleStart));
 
+	private static bool GitHubIsReachable()
+	{
+		try
+		{
+			using var client = new System.Net.Sockets.TcpClient();
+			return client.ConnectAsync("github.com", 443).Wait(TimeSpan.FromSeconds(5));
+		}
+		catch(Exception e) when(e is AggregateException or System.Net.Sockets.SocketException)
+		{
+			return false;
+		}
+	}
+
 	private void OpensInTheBrowser(string linkId, string titleStart)
 	{
 		//a CI runner has no browser set up (it would show its first-run pages, not GitHub's)
 		if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true")
 			Assert.Inconclusive("No browser on the CI runner");
+		if(!GitHubIsReachable())
+			Assert.Inconclusive("github.com can't be reached: the page can't load");
 		OpenPage();
 		bool wasOpen = BrowserTab(titleStart) != null;
 
