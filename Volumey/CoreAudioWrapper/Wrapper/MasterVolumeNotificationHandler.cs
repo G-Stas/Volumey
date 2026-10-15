@@ -1,61 +1,50 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Volumey.CoreAudioWrapper.CoreAudio;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+﻿#nullable enable
+using System;
+using NAudio.CoreAudioApi;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+/// <summary>
+/// Provides notifications of changes in the volume level and muting state of an audio endpoint device.
+/// </summary>
+sealed class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
 {
-    /// <summary>
-    /// Provides notifications of changes in the volume level and muting state of an audio endpoint device. 
-    /// </summary>
-    class MasterVolumeNotificationHandler : IMasterVolumeNotificationHandler
-    {
-        public event Action<VolumeChangedEventArgs> VolumeChanged;
-        private IAudioEndpointVolume endpointVolume;
+	public event Action<VolumeChangedEventArgs>? VolumeChanged;
+	private readonly AudioEndpointVolume endpointVolume;
 
-        public MasterVolumeNotificationHandler(IAudioEndpointVolume eVolume)
-        {
-            this.endpointVolume = eVolume;
-        }
+	public MasterVolumeNotificationHandler(AudioEndpointVolume eVolume)
+	{
+		endpointVolume = eVolume;
+	}
 
-        public int OnNotify(IntPtr notifyData)
-        {
-            //https://github.com/naudio/NAudio/blob/master/NAudio/CoreAudioApi/AudioEndpointVolumeCallback.cs
-            //"Since AUDIO_VOLUME_NOTIFICATION_DATA is dynamic in length based on the
-            //number of audio channels available we cannot just call PtrToStructure 
-            //to get all data, thats why it is split up into two steps, first the static
-            //data is marshalled into the data structure, then with some IntPtr math the
-            //remaining floats are read from memory."
+	//NAudio raises it on the synchronization context the endpoint volume was created on (the UI thread), or on a COM thread without one
+	private void OnNotify(AudioVolumeNotificationData data)
+	{
+		//don't fire event if callback was called because of changes of volume inside the app
+		if(IsOwnVolumeChange(data.EventContext))
+			return;
 
-            //get only static data:
-            AUDIO_VOLUME_NOTIFICATION_DATA data = Marshal.PtrToStructure<AUDIO_VOLUME_NOTIFICATION_DATA>(notifyData);
+		int newVolumeValue = VolumePercent.FromScalar(data.MasterVolume);
 
-            //don't fire event if callback was called because of changes of volume inside the app
-            if(data.guidEventContext.Equals(GuidValue.Internal.VolumeGUID))
-                return 0;
-            
-			int newVolumeValue = Convert.ToInt32(data.masterVolume * 100);
-            
-            //prevent invoking event if new volume value is not the same as the actual device volume value
-            this.endpointVolume.GetMasterVolumeLevelScalar(out float volumeLevel);
-            var actualVolumeValue = Convert.ToInt32(volumeLevel * 100);
-            if(newVolumeValue != actualVolumeValue)
-			    return 0;
-            this.VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, data.isMuted));
-            Marshal.DestroyStructure<AUDIO_VOLUME_NOTIFICATION_DATA>(notifyData);
-            return 0;
-        }
+		//prevent invoking event if new volume value is not the same as the actual device volume value
+		int actualVolumeValue;
+		try { actualVolumeValue = VolumePercent.FromScalar(endpointVolume.MasterVolumeLevelScalar); }
+		catch { return; }
+		if(newVolumeValue != actualVolumeValue)
+			return;
+		VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, data.Muted));
+	}
 
-        public void RegisterMVolumeNotifications() => 
-            Marshal.ThrowExceptionForHR(this.endpointVolume.RegisterControlChangeNotify(this));
+	/// <summary>
+	/// A change the mixer made itself, which it already shows. Balance changes aren't: they can move the device volume (see <see cref="GuidValue.Internal.BalanceGUID"/>)
+	/// </summary>
+	internal static bool IsOwnVolumeChange(Guid context) => context.Equals(GuidValue.Internal.VolumeGUID);
 
-        private void UnregisterMVolumeNotifications() =>
-            this.endpointVolume.UnregisterControlChangeNotify(this);
+	public void RegisterMVolumeNotifications() => endpointVolume.OnVolumeNotification += OnNotify;
 
-        public void Dispose()
-        {
-            this.UnregisterMVolumeNotifications();
-            this.VolumeChanged = null;
-        }
-    }
+	public void Dispose()
+	{
+		endpointVolume.OnVolumeNotification -= OnNotify;
+		VolumeChanged = null;
+	}
 }

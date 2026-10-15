@@ -1,10 +1,10 @@
-﻿namespace Volumey.View
+﻿#nullable enable
+namespace Volumey.View;
+
+public sealed partial class SessionsListView
 {
-	public partial class SessionsListView
+	public SessionsListView()
 	{
-		public SessionsListView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

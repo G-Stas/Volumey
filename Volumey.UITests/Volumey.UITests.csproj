@@ -1,0 +1,37 @@
+<Project Sdk="MSTest.Sdk/4.5.1">
+
+  <!-- UI tests: drive the built Debug app (Volumey\bin\x64\Debug) through UI Automation (FlaUI) and real key presses, with an isolated
+       data folder. They take over the keyboard and mouse and change real app and device volumes (restored afterwards), so they never run
+       with the other tests: start them with scripts/run-ui-tests.ps1. They don't reference the app; they test what a user sees. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <IsPackable>false</IsPackable>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RootNamespace>Volumey.UITests</RootNamespace>
+    <Configurations>Debug;Release;Store</Configurations>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+  </ItemGroup>
+
+  <!-- the translation tests compare the app's texts with its resx files -->
+  <ItemGroup>
+    <None Include="..\Volumey\Resources\Resources.*.resx" Link="resx\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- the test audio app (scripts/test-audio-app), published into audio-app next to the tests, so a test run needs no SDK -->
+  <PropertyGroup>
+    <TestAudioAppDir>$(MSBuildThisFileDirectory)..\scripts\test-audio-app\</TestAudioAppDir>
+  </PropertyGroup>
+  <Target Name="PublishTestAudioApp" AfterTargets="Build"
+          Inputs="$(TestAudioAppDir)Program.cs;$(TestAudioAppDir)TestAudioApp.csproj" Outputs="$(OutDir)audio-app\testaudio.exe">
+    <Exec Command="dotnet publish &quot;$(TestAudioAppDir)TestAudioApp.csproj&quot; -c Release -o &quot;$(OutDir)audio-app&quot; --nologo -v q" />
+  </Target>
+
+</Project>

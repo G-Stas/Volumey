@@ -1,0 +1,166 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.MixerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization"
+      xmlns:converters="clr-namespace:Volumey.View.Converters"
+      xmlns:controls="clr-namespace:Volumey.Controls"
+      xmlns:viewControls="clr-namespace:Volumey.View.Controls"
+      Title="{lc:Localization Nav_Mixer}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
+    <!-- the Foreground: see GeneralPage -->
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:HotkeysRegisteredToEnabledConverter x:Key="NotRegisteredToEnabled" />
+            <converters:PropertyIsNullToEnabledConverter x:Key="NotNullToEnabled" />
+            <converters:ScreenNameConverter x:Key="ScreenNameConverter" />
+            <!-- the screen picker only shows with more than one screen -->
+            <converters:CollectionCountToVisibilityConverter x:Key="SeveralToVisibility" CountLimit="1" />
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolls
+         but takes the mouse wheel, so only the scroll bar scrolls) -->
+        <StackPanel Margin="16 4 40 32">
+            <TextBlock Text="{lc:Localization Nav_Mixer}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{lc:Localization MixerPage_Description}" Style="{StaticResource PageDescription}" />
+            <!-- what the hotkey mode means for this page's hotkeys, at the top -->
+            <viewControls:HotkeyModeNote KeysBlocked="{Binding HotkeyMode.BlockHotkeysInSystem}" />
+
+            <TextBlock Text="{lc:Localization MixerPage_Opening}" Style="{StaticResource SectionHeader}" />
+            <ui:CardControl Icon="{ui:SymbolIcon Keyboard24}" DataContext="{Binding OpenHotkey}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_OpenHotkey}" />
+                        <TextBlock Text="{lc:Localization MixerPage_OpenHotkeyHint}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding ErrorMessage}" Style="{StaticResource SettingError}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <!-- the hotkey can be edited while it's off, and turned on once there is one -->
+                <StackPanel Orientation="Horizontal">
+                    <controls:HotKeyBox HotKey="{Binding Hotkey}"
+                                        IsEnabled="{Binding IsOn, Converter={StaticResource NotRegisteredToEnabled}}"
+                                        Margin="0 0 12 0"
+                                        AutomationProperties.Name="{lc:Localization MixerPage_OpenHotkey}"
+                                        AutomationProperties.AutomationId="OpenHotkeyBox" />
+                    <ui:ToggleSwitch IsChecked="{Binding IsOn}"
+                                     IsEnabled="{Binding Hotkey, Converter={StaticResource NotNullToEnabled}}"
+                                     AutomationProperties.Name="{lc:Localization MixerPage_OpenHotkey}"
+                                     AutomationProperties.AutomationId="OpenHotkeyToggle" />
+                </StackPanel>
+            </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon WindowArrowUp24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_Popup}" />
+                        <TextBlock Text="{lc:Localization MixerPage_PopupHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Window.PopupEnabled}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_Popup}"
+                                 AutomationProperties.AutomationId="PopupToggle" />
+            </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon Pin24}" Header="{lc:Localization MixerPage_AlwaysOnTop}">
+                <ui:ToggleSwitch IsChecked="{Binding Window.AlwaysOnTop}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_AlwaysOnTop}"
+                                 AutomationProperties.AutomationId="AlwaysOnTopToggle" />
+            </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon Desktop24}"
+                            DataContext="{Binding Window}"
+                            Visibility="{Binding AllScreens.Count, Converter={StaticResource SeveralToVisibility}}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_Screen}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ComboBox Width="260"
+                          ItemsSource="{Binding AllScreens}"
+                          SelectedItem="{Binding SelectedScreen, Mode=TwoWay}"
+                          IsSynchronizedWithCurrentItem="True"
+                          AutomationProperties.Name="{lc:Localization MixerPage_Screen}"
+                          AutomationProperties.AutomationId="ScreenBox">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ScreenNameConverter}">
+                                        <Binding />
+                                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </ui:CardControl>
+            <!-- next to the screen choice; shown with one screen too -->
+            <ui:CardControl Icon="{ui:SymbolIcon Location24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_RememberPosition}" />
+                        <TextBlock Text="{lc:Localization MixerPage_RememberPositionHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Window.RememberPosition}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_RememberPosition}"
+                                 AutomationProperties.AutomationId="RememberPositionToggle" />
+            </ui:CardControl>
+
+            <TextBlock Text="{lc:Localization MixerPage_Layout}" Style="{StaticResource SectionHeader}" />
+            <ui:CardControl Icon="{ui:SymbolIcon PanelBottom20}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_DeviceBottom}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Window.DeviceViewAtTheBottom}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_DeviceBottom}"
+                                 AutomationProperties.AutomationId="DeviceBottomToggle" />
+            </ui:CardControl>
+
+            <TextBlock Text="{lc:Localization MixerPage_AppVolumes}" Style="{StaticResource SectionHeader}" />
+            <ui:CardControl Icon="{ui:SymbolIcon Speaker124}" DataContext="{Binding VolumeLimit}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_VolumeLimit}" />
+                        <TextBlock Text="{lc:Localization MixerPage_VolumeLimitHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <!-- PropertyChanged: the arrows change the value without focusing the box, so the binding's default (on losing focus) wouldn't save it -->
+                    <ui:NumberBox Width="140"
+                                  Minimum="1"
+                                  Maximum="99"
+                                  SmallChange="1"
+                                  LargeChange="5"
+                                  MaxDecimalPlaces="0"
+                                  SpinButtonPlacementMode="Inline"
+                                  ClearButtonEnabled="False"
+                                  Value="{Binding VolumeLimit, UpdateSourceTrigger=PropertyChanged}"
+                                  controls:DigitsOnly.IsEnabled="True"
+                                  controls:NumberBoxCommit.IsEnabled="True"
+                                  AutomationProperties.Name="{lc:Localization MixerPage_VolumeLimit}"
+                                  AutomationProperties.AutomationId="VolumeLimitBox" />
+                    <TextBlock Text="%" Margin="8 0 12 0" VerticalAlignment="Center" Style="{StaticResource Caption}" />
+                    <ui:ToggleSwitch IsChecked="{Binding IsOn}"
+                                     AutomationProperties.Name="{lc:Localization MixerPage_VolumeLimit}"
+                                     AutomationProperties.AutomationId="VolumeLimitToggle" />
+                </StackPanel>
+            </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon ArrowSync24}" DataContext="{Binding AppVolumeSync}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_Sync}" />
+                        <TextBlock Text="{lc:Localization MixerPage_SyncHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding IsOn}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_Sync}"
+                                 AutomationProperties.AutomationId="SyncToggle" />
+            </ui:CardControl>
+        </StackPanel>
+</Page>

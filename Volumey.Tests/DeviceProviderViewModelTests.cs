@@ -1,58 +1,66 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reflection;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Model;
+using Volumey.Services;
 using Volumey.ViewModel;
-using Xunit;
 
-namespace Volumey.Tests
+namespace Volumey.Tests;
+
+[TestClass]
+public class DeviceProviderViewModelTests
 {
-	public class DeviceProviderViewModelTests
+	private DeviceProviderViewModel model;
+	private Mock<IDeviceProvider> deviceProviderMock;
+
+	public DeviceProviderViewModelTests()
 	{
-		private DeviceProviderViewModel model;
-		private Mock<IDeviceProvider> deviceProviderMock;
+		deviceProviderMock = new Mock<IDeviceProvider>();
 
-		public DeviceProviderViewModelTests()
-		{
-			this.deviceProviderMock = new Mock<IDeviceProvider>();
-			
-			var deviceStateNotif = new Mock<IDeviceStateNotificationHandler>();
-			var device1 = OutputDeviceModelTests.GetDeviceMock("1", "speakers", deviceStateNotif.Object);
-			var device2 = OutputDeviceModelTests.GetDeviceMock("2", "headphones", deviceStateNotif.Object);
-			var activeDevices = new ObservableCollection<OutputDeviceModel> {device1, device2};
+		var deviceStateNotif = new Mock<IDeviceStateNotificationHandler>();
+		var device1 = OutputDeviceModelTests.GetDeviceMock("1", "speakers", deviceStateNotif.Object);
+		var device2 = OutputDeviceModelTests.GetDeviceMock("2", "headphones", deviceStateNotif.Object);
+		var activeDevices = new ObservableCollection<OutputDeviceModel> { device1, device2 };
 
-			this.deviceProviderMock.Setup(m => m.ActiveDevices).Returns(activeDevices);
-			this.deviceProviderMock.Setup(m => m.DefaultDevice).Returns(device1);
-			this.deviceProviderMock.Setup(m => m.NoOutputDevices).Returns(false);
-			
-			FieldInfo instance = typeof(DeviceProvider).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static);
-			instance.SetValue(null, deviceProviderMock.Object);
-			
-			this.model = new DeviceProviderViewModel();
-		}
+		deviceProviderMock.Setup(m => m.ActiveDevices).Returns(activeDevices);
+		deviceProviderMock.Setup(m => m.DefaultDevice).Returns(device1);
+		deviceProviderMock.Setup(m => m.NoOutputDevices).Returns(false);
+		model = new DeviceProviderViewModel(deviceProviderMock.Object, new Mock<IAppShell>().Object);
+	}
 
-		[Fact]
-		public void DeviceDisabledEvent_DisabledSelectedDeviceShouldChangeToDefaultDevice()
-		{
-			//select not default output device
-			var disabledDevice = this.model.SelectedDevice = this.deviceProviderMock.Object.ActiveDevices[1];
+	[TestMethod]
+	public void DeviceDisabledEvent_DisabledSelectedDeviceShouldChangeToDefaultDevice()
+	{
+		//select not default output device
+		var disabledDevice = model.SelectedDevice = deviceProviderMock.Object.ActiveDevices[1];
 
-			this.deviceProviderMock.Raise(m => m.DeviceDisabled += null, disabledDevice);
-			
-			Assert.Equal(this.deviceProviderMock.Object.DefaultDevice, this.model.SelectedDevice);
-		}
+		deviceProviderMock.Raise(m => m.DeviceDisabled += null, disabledDevice);
 
-		[Fact]
-		public void DefaultDeviceChangedEvent_SelectedDeviceShouldChangeToNewDefaultDevice()
-		{
-			var newDefaultDevice = this.deviceProviderMock.Object.ActiveDevices[1];
+		Assert.AreEqual(deviceProviderMock.Object.DefaultDevice, model.SelectedDevice);
+	}
 
-			this.deviceProviderMock.Setup(m => m.DefaultDevice).Returns(newDefaultDevice);
-			this.deviceProviderMock.Raise(m => m.DefaultDeviceChanged += null, newDefaultDevice);
-			
-			Assert.Equal(newDefaultDevice, this.model.SelectedDevice);
-		}
+	[TestMethod]
+	public void DefaultDeviceChangedEvent_SelectedDeviceShouldChangeToNewDefaultDevice()
+	{
+		var newDefaultDevice = deviceProviderMock.Object.ActiveDevices[1];
+
+		deviceProviderMock.Setup(m => m.DefaultDevice).Returns(newDefaultDevice);
+		deviceProviderMock.Raise(m => m.DefaultDeviceChanged += null, newDefaultDevice);
+
+		Assert.AreEqual(newDefaultDevice, model.SelectedDevice);
+	}
+
+	[TestMethod]
+	public void ReplacedSelectedDeviceIsSelectedAgain()
+	{
+		var oldDevice = model.SelectedDevice = deviceProviderMock.Object.ActiveDevices[1];
+		var newDevice = OutputDeviceModelTests.GetDeviceMock("2", "headphones", new Mock<IDeviceStateNotificationHandler>().Object);
+
+		deviceProviderMock.Raise(m => m.DeviceReplaced += null, oldDevice, newDevice);
+
+		Assert.AreEqual(newDevice, model.SelectedDevice);
 	}
 }

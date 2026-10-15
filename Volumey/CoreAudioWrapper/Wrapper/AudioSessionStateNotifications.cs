@@ -1,134 +1,110 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using System.Windows.Media;
-using Volumey.CoreAudioWrapper.CoreAudio.Enums;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
-using Volumey.Helper;
+﻿#nullable enable
+using System;
+using System.Threading.Tasks;
+using log4net;
+using NAudio.CoreAudioApi;
+using NAudio.CoreAudioApi.Interfaces;
+using NAudioDisconnectReason = NAudio.CoreAudioApi.Interfaces.AudioSessionDisconnectReason;
+using NAudioSessionState = NAudio.CoreAudioApi.Interfaces.AudioSessionState;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+/// <summary>
+/// Provides notifications of session-related events such as changes in the volume level, display name, and session state.
+/// Owns the session control and releases it on dispose.
+/// </summary>
+public sealed class AudioSessionStateNotifications : IAudioSessionStateNotifications, IAudioSessionEventsHandler
 {
-    /// <summary>
-    /// Provides notifications of session-related events such as changes in the volume level, display name, and session state.
-    /// </summary>
-    public sealed class AudioSessionStateNotifications : IAudioSessionStateNotifications
-    {
-        public event Action SessionEnded;
-        public event Action<VolumeChangedEventArgs> VolumeChanged;
-        public event Action<ImageSource> IconPathChanged;
-        public event Action<string> NameChanged;
-        public event Action<AudioSessionDisconnectReason> Disconnected;
-        public event Action<AudioSessionState> StateChanged;
-        private readonly IAudioSessionControl2 sessionControl;
-        private readonly ISimpleAudioVolume sVolume;
+	public event Action? SessionEnded;
+	public event Action? Deactivated;
+	public event Action<VolumeChangedEventArgs>? VolumeChanged;
+	public event Action<string>? NameChanged;
+	public event Action<AudioSessionDisconnectReason>? Disconnected;
+	private readonly AudioSessionControl sessionControl;
+	private readonly SessionEchoFilter echoFilter;
+	private bool disposed;
 
-        public AudioSessionStateNotifications(IAudioSessionControl2 sControl)
-        {
-            this.sessionControl = sControl;
-            this.sVolume = (ISimpleAudioVolume)sControl;
-        }
+	internal AudioSessionStateNotifications(AudioSessionControl sControl, SessionEchoFilter echoFilter)
+	{
+		sessionControl = sControl;
+		this.echoFilter = echoFilter;
+	}
 
-        public int OnChannelVolumeChanged(uint channelCount, float[] channelVolumes, int changedChannel,
-            ref Guid eventContext) => 0;
+	public void OnChannelVolumeChanged(uint channelCount, IntPtr newVolumes, uint channelIndex) { }
 
-        public int OnDisplayNameChanged(string newDisplayName, ref Guid eventContext)
-        {
-            this.NameChanged?.Invoke(newDisplayName);
-            return 0;
-        }
+	public void OnDisplayNameChanged(string newDisplayName)
+		=> NameChanged?.Invoke(newDisplayName);
 
-        public int OnGroupingParamChanged(ref Guid newGroupingParam, ref Guid eventContext) => 0;
+	public void OnGroupingParamChanged(ref Guid groupingId) { }
 
-        //gets called when system process icon has changed
-        public int OnIconPathChanged(string newIconPath, ref Guid eventContext)
-        {
-            if(string.IsNullOrEmpty(newIconPath))
-                return 0;
+	//a session's icon is read once when it's created; changes aren't shown
+	public void OnIconPathChanged(string newIconPath) { }
 
-            ImageSource icon = null;
-            App.Current.Dispatcher.Invoke(() =>
-            {
-                try
-                {
-                    string[] iconPathId = newIconPath.Split(",");
-                    if(iconPathId.Length < 2)
-                        throw new Exception();
-                    string path = iconPathId[0];
-                    int id = int.Parse(iconPathId[1]);
-                    icon = IconHelper.GetFromDll(filePath: path, id).GetAsImageSource();
-                }
-                catch { }
+	public void OnSessionDisconnected(NAudioDisconnectReason disconnectReason)
+		=> Disconnected?.Invoke((AudioSessionDisconnectReason)disconnectReason);
 
-                if(icon == null)
-                {
-                    try
-                    {
-                        icon = IconHelper.GetFromFilePath(newIconPath).GetAsImageSource();
-                    }
-                    catch { }
-                }
+	public void OnVolumeChanged(float newVolume, bool newMuteState)
+	{
+		int newVolumeValue = VolumePercent.FromScalar(newVolume);
 
-                if(icon != null)
-                    this.IconPathChanged?.Invoke(icon);
-            });
-            return 0;
-        }
+		//don't fire event if callback was called because of changes of volume inside the app.
+		//Checked first: it needs no calls to Windows, and most callbacks are echoes while the app changes the volume
+		if(echoFilter != null && echoFilter.IsOwnWrite(newVolumeValue, newMuteState))
+			return;
 
-        public int OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason)
-        {
-            this.Disconnected?.Invoke(disconnectReason);
-            return 0;
-        }
+		//prevent invoking event if the new state is not the same as the actual session state (an outdated callback)
+		try
+		{
+			var simpleVolume = sessionControl.SimpleAudioVolume;
+			if(newVolumeValue != VolumePercent.FromScalar(simpleVolume.Volume) || newMuteState != simpleVolume.Mute)
+				return;
+		}
+		catch
+		{
+			return;
+		}
 
-        public int OnSimpleVolumeChanged(float newVolume, bool newMuteState, ref Guid eventContext)
-        {
-            //don't fire event if callback was called because of changes of volume inside the app
-            if(eventContext.Equals(GuidValue.Internal.VolumeGUID))
-                return 0;
-            
-            int newVolumeValue = Convert.ToInt32(newVolume * 100);
+		echoFilter?.Remember(newVolumeValue, newMuteState);
+		VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, newMuteState));
+	}
 
-            //prevent invoking event if new volume value is not the same as the actual session volume value
-            this.sVolume.GetMasterVolume(out float volume);
-            var actualVolumeValue = Convert.ToInt32(volume * 100);
-            if(newVolumeValue != actualVolumeValue)
-                return 0;
-            this.VolumeChanged?.Invoke(new VolumeChangedEventArgs(newVolumeValue, newMuteState));
-            return 0;
-        }
+	public void OnStateChanged(NAudioSessionState newState)
+	{
+		if(newState == NAudioSessionState.AudioSessionStateExpired)
+			SessionEnded?.Invoke();
+		else if(newState == NAudioSessionState.AudioSessionStateInactive)
+			Deactivated?.Invoke();
+	}
 
-        public int OnStateChanged(AudioSessionState newState)
-        {
-            if(newState == AudioSessionState.Expired)
-            {
-                this.SessionEnded?.Invoke();
-            }
-            else
-                this.StateChanged?.Invoke(newState);
+	public void RegisterNotifications()
+		=> sessionControl.RegisterEventClient(this);
 
-            return 0;
-        }
+	public void Dispose()
+	{
+		if(disposed)
+			return;
+		disposed = true;
+		//on the thread pool: unregistering and releasing wait for running session callbacks, and those may wait for the UI thread,
+		//where most disposals happen (the same deadlock as releasing a device on the UI thread)
+		var control = sessionControl;
+		_ = Task.Run(() =>
+		{
+			try { control.UnRegisterEventClient(this); }
+			catch { }
+			try { control.Dispose(); }
+			catch(Exception e) { LogManager.GetLogger(typeof(AudioSessionStateNotifications)).Warn("Failed to release an audio session", e); }
+		});
+	}
+}
 
-        public void RegisterNotifications()
-            => Marshal.ThrowExceptionForHR(this.sessionControl.RegisterAudioSessionNotification(this));
+public readonly struct VolumeChangedEventArgs
+{
+	public int NewVolume { get; }
+	public bool IsMuted { get; }
 
-        private void UnregisterNotifications()
-            => this.sessionControl.UnregisterAudioSessionNotification(this);
-
-        public void Dispose()
-        {
-            this.UnregisterNotifications();
-        }
-    }
-
-    public readonly struct VolumeChangedEventArgs
-    {
-        public int NewVolume { get; }
-        public bool IsMuted { get; }
-
-        public VolumeChangedEventArgs(int newVol, bool newState)
-        {
-            NewVolume = newVol;
-            IsMuted = newState;
-        }
-    }
+	public VolumeChangedEventArgs(int newVol, bool newState)
+	{
+		NewVolume = newVol;
+		IsMuted = newState;
+	}
 }

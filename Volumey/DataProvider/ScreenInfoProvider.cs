@@ -1,33 +1,24 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using Volumey.Model;
 using WpfScreenHelper;
 
-namespace Volumey.DataProvider
+namespace Volumey.DataProvider;
+
+public sealed class ScreenInfoProvider : IScreenInfoProvider
 {
-	public class ScreenInfoProvider : IScreenInfoProvider
+	public IEnumerable<ScreenInfo> GetAllScreensInfo()
 	{
-		public ScreenInfo GetPrimaryScreenInfo()
-		{
-			var screen = Screen.PrimaryScreen;
-			return new ScreenInfo(screen.DeviceName, screen.Primary, screen.WorkingArea.Width, screen.WorkingArea.Height,
-			                      screen.Bounds.Width, screen.Bounds.Height,
-			                      screen.WorkingArea.Left, screen.WorkingArea.Right, 
-			                      screen.WorkingArea.Top, screen.WorkingArea.Bottom, screen.ScaleFactor); 
-		}
+		List<ScreenInfo> screens = new List<ScreenInfo>();
 
-		public IEnumerable<ScreenInfo> GetAllScreensInfo()
+		foreach(var screen in Screen.AllScreens)
 		{
-			List<ScreenInfo> screens = new List<ScreenInfo>();
-
-			foreach(var screen in Screen.AllScreens)
-			{
-				var current = new ScreenInfo(screen.DeviceName, screen.Primary, screen.WorkingArea.Width, screen.WorkingArea.Height,
-												screen.Bounds.Width, screen.Bounds.Height,
-			                                    screen.WorkingArea.Left, screen.WorkingArea.Right,
-			                                    screen.WorkingArea.Top, screen.WorkingArea.Bottom, screen.ScaleFactor); 
-				screens.Add(current);
-			}
-			return screens;
+			var current = new ScreenInfo(screen.DeviceName, screen.Primary, screen.WorkingArea.Width, screen.WorkingArea.Height,
+											screen.Bounds.Width, screen.Bounds.Height,
+											screen.WorkingArea.Left, screen.WorkingArea.Right,
+											screen.WorkingArea.Top, screen.WorkingArea.Bottom, screen.ScaleFactor);
+			screens.Add(current);
 		}
+		return screens;
 	}
 }

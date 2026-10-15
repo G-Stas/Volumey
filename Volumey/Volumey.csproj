@@ -1,9 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Lowest Windows version the app runs on (matches the Store package TargetPlatformMinVersion) -->
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
+    <!-- CsWin32's generated declarations use pointers -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- nullable reference types are turned on per file (#nullable enable); in those files their warnings are errors -->
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
     <Platforms>x64</Platforms>
     <RootNamespace>Volumey</RootNamespace>
     <StartupObject>Volumey.Startup</StartupObject>
@@ -11,26 +17,24 @@
     <ApplicationIcon>Resources\Icons\icon.ico</ApplicationIcon>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Configurations>Debug;Release;Store</Configurations>
-    <SelfContained>False</SelfContained>
+    <!-- The Store MSIX carries its own .NET runtime; the GitHub zip build needs the .NET Desktop Runtime installed -->
+    <SelfContained Condition="'$(Configuration)'=='Store'">True</SelfContained>
+    <SelfContained Condition="'$(Configuration)'!='Store'">False</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyVersion>1.5.4.0</AssemblyVersion>
     <Version>1.5.4.0</Version>
   </PropertyGroup>
 
+  <!-- portable PDBs: with Windows PDBs (pdbonly/full) the settings weaver rewrites the symbols through the native symbol writer,
+       which sometimes crashes the build -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Store|x64'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>$(DefineConstants)TRACE</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Store|x64'">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>$(DefineConstants)TRACE;STORE</DefineConstants>
     <Optimize>True</Optimize>
@@ -41,18 +45,36 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autoupdater.NET.Official" Version="1.8.2" />
+    <PackageReference Include="Autoupdater.NET.Official" Version="1.9.3" />
     <PackageReference Include="log4net-loggly" Version="9.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="7.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.19041.1" />
+    <!-- Override vulnerable transitive versions pulled in by log4net-loggly (log4net 2.0.8, Newtonsoft.Json 10.0.3) -->
+    <PackageReference Include="log4net" Version="3.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-    <PackageReference Include="ModernWpfUI" Version="0.9.4" />
-    <PackageReference Include="MSFT.ParallelExtensionsExtras" Version="1.2.0" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <!-- Fluent (Windows 11) controls and themes -->
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <!-- Core Audio (devices, endpoint volume, audio sessions) -->
+    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+    <!-- Non-blocking global hotkeys (low-level keyboard hook); ships the native uiohook.dll -->
+    <PackageReference Include="SharpHook" Version="8.0.0" />
+    <!-- Tray icon (successor of Hardcodet.NotifyIcon.Wpf) -->
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
+    <!-- Settings (settings.json): autosave and change notifications are woven into the settings classes at build time -->
+    <PackageReference Include="Nucs.JsonSettings" Version="2.3.2" />
+    <PackageReference Include="Nucs.JsonSettings.Autosave" Version="2.3.2" />
+    <PackageReference Include="Nucs.JsonSettings.NotifyChanges" Version="2.3.2" />
     <PackageReference Include="WpfScreenHelper" Version="2.1.0" />
+    <!-- generates the Win32 declarations listed in NativeMethods.txt -->
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.360" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Volumey.Tests" />
+    <InternalsVisibleTo Include="Volumey.IntegrationTests" />
+    <!-- Moq's proxies, for mocking internal interfaces (IWin32) -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -102,7 +124,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Hardcodet.NotifyIcon.Wpf.dll" />
     <Resource Include="Resources\Icons\TrayDark\high.ico" />
     <Resource Include="Resources\Icons\TrayDark\low.ico" />
     <Resource Include="Resources\Icons\TrayDark\mid.ico" />
@@ -139,20 +160,19 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="log4net.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+  <!-- The Loggly input key of Release/Store builds (Helper/RemoteLogging): from the environment variable VOLUMEY_LOGGLY_INPUT_KEY
+       or the git-ignored loggly.key at the repository root. Without one the build doesn't send logs. -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <LogglyInputKey Condition="'$(LogglyInputKey)' == ''">$(VOLUMEY_LOGGLY_INPUT_KEY)</LogglyInputKey>
+    <LogglyKeyFile>$(MSBuildThisFileDirectory)..\loggly.key</LogglyKeyFile>
+    <LogglyInputKey Condition="'$(LogglyInputKey)' == '' And Exists('$(LogglyKeyFile)')">$([System.IO.File]::ReadAllText('$(LogglyKeyFile)').Trim())</LogglyInputKey>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(LogglyInputKey)' != ''">
+    <AssemblyMetadata Include="LogglyInputKey" Value="$(LogglyInputKey)" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Hardcodet.NotifyIcon.Wpf, Version=1.1.0.0, Culture=neutral, PublicKeyToken=682384a853a08aad">
-      <HintPath>Resources\Hardcodet.NotifyIcon.Wpf.dll</HintPath>
-    </Reference>
-    <Reference Include="Notification.Wpf, Version=6.1.0.1, Culture=neutral, PublicKeyToken=1acac493089262b5">
-      <HintPath>Resources\Notification.Wpf.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+  <Target Name="ReportNoLogglyKey" BeforeTargets="CoreCompile" Condition="'$(Configuration)' != 'Debug' And '$(LogglyInputKey)' == ''">
+    <Message Importance="high" Text="No Loggly input key (VOLUMEY_LOGGLY_INPUT_KEY or loggly.key): this build doesn't send logs" />
+  </Target>
 
   <ItemGroup>
     <Resource Include="Resources\Icons\ButtonIcon\boosty.png" />

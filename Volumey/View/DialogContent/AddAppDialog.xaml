@@ -1,0 +1,90 @@
+﻿<ui:ContentDialog x:Class="Volumey.View.DialogContent.AddAppDialog"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                  xmlns:lc="clr-namespace:Volumey.Localization"
+                  xmlns:controls="clr-namespace:Volumey.Controls"
+                  Title="{lc:Localization AppHotkeys_AddTitle}"
+                  PrimaryButtonText="{lc:Localization AppHotkeys_Add}"
+                  CloseButtonText="{lc:Localization AppHotkeys_Cancel}"
+                  DefaultButton="Primary"
+                  Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                  controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
+    <!-- App hotkeys page, "Add app". Add stays disabled until an app and both hotkeys are set
+         (see the code-behind); an error (e.g. a hotkey in use) shows here and the dialog stays open -->
+    <ui:ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ui:ContentDialog.Resources>
+    <Grid Width="400">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel VerticalAlignment="Center" Margin="0 0 16 0">
+            <TextBlock Text="{lc:Localization AppHotkeys_App}" />
+            <TextBlock Text="{lc:Localization AppHotkeys_AppHint}" Style="{StaticResource Caption}" />
+        </StackPanel>
+        <ComboBox Grid.Column="1"
+                  ItemsSource="{Binding AddableProcesses}"
+                  SelectedItem="{Binding SelectedProcess}"
+                  IsSynchronizedWithCurrentItem="False"
+                  AutomationProperties.Name="{lc:Localization AppHotkeys_App}"
+                  AutomationProperties.AutomationId="AddAppBox">
+            <!-- screen readers read the app's name, not the model's type -->
+            <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                    <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                </Style>
+            </ComboBox.ItemContainerStyle>
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding IconSource}" Width="16" Height="16" Margin="0 0 8 0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0 4 0 0" Text="{lc:Localization AppHotkeys_NoRunningApps}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding AddableProcesses.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- each hotkey's error under its box; the labels line up with the boxes -->
+        <TextBlock Grid.Row="2" Margin="0 22 0 0" Text="{lc:Localization AppHotkeys_VolumeUp}" VerticalAlignment="Top" />
+        <StackPanel Grid.Row="2" Grid.Column="1" Width="220" Margin="0 16 0 0">
+            <controls:HotKeyBox Width="220"
+                                HotKey="{Binding VolumeUp}"
+                                AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeUp}"
+                                AutomationProperties.AutomationId="AddAppUpBox" />
+            <TextBlock Margin="0 4 0 0" Text="{Binding AddErrors.VolumeUp}" Style="{StaticResource SettingError}" />
+        </StackPanel>
+        <TextBlock Grid.Row="3" Margin="0 14 0 0" Text="{lc:Localization AppHotkeys_VolumeDown}" VerticalAlignment="Top" />
+        <StackPanel Grid.Row="3" Grid.Column="1" Width="220" Margin="0 8 0 0">
+            <controls:HotKeyBox Width="220"
+                                HotKey="{Binding VolumeDown}"
+                                AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeDown}"
+                                AutomationProperties.AutomationId="AddAppDownBox" />
+            <TextBlock Margin="0 4 0 0" Text="{Binding AddErrors.VolumeDown}" Style="{StaticResource SettingError}" />
+        </StackPanel>
+    </Grid>
+</ui:ContentDialog>

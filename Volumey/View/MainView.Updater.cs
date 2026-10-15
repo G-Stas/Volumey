@@ -1,46 +1,52 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Threading.Tasks;
 using System.Windows;
-using AutoUpdaterDotNET;
 using Volumey.Helper;
 using Volumey.View.DialogContent;
 
-namespace Volumey.View
+namespace Volumey.View;
+
+public sealed partial class MainView
 {
-	public partial class MainView
+	private void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
 	{
-		private async void OnLoaded(object sender, RoutedEventArgs routedEventArgs)
+		try
 		{
-			SetWindowPosition();
-			try
-			{
-				#if(STORE)
-					await CheckForStoreUpdate();
-				#else
-					await CheckForUpdate();
-				#endif
-			}
-			catch(Exception e)
-			{
-				Logger.Error($"Failed to check for update", e);
-			}
+			PlaceWindow();
 		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to position the window", e);
+		}
+#if(STORE)
+		CheckForStoreUpdate().Forget(Logger, "Failed to check for update");
+#else
+		CheckForUpdate();
+#endif
+#if(DEBUG)
+		//the Store build's update dialog, to look at it in a dev run (its OK button opens the Store page)
+		if(Environment.GetEnvironmentVariable("VOLUMEY_SHOW_UPDATE_DIALOG") == "1")
+			DisplayContentDialog(new UpdateDialog()).Forget(Logger, "Failed to show the update dialog");
+#endif
+	}
 
-		private async Task CheckForUpdate()
+	private void CheckForUpdate()
+	{
+		try
 		{
-			AutoUpdater.ShowSkipButton = false;
-			AutoUpdater.ReportErrors = false;
-			AutoUpdater.LetUserSelectRemindLater = false;
-			AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
-			AutoUpdater.RemindLaterAt = 1;
-			await App.Current.Dispatcher.InvokeAsync(() => AutoUpdater.Start("https://raw.githubusercontent.com/G-Stas/Volumey/main/LatestUpdateInfo.xml"));
+			UpdateHelper.StartAutoUpdater(userAsked: false);
 		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to check for update", e);
+		}
+	}
 
-		private async Task CheckForStoreUpdate()
-		{
-			var updateIsAvailable = await UpdateHelper.CheckIfUpdateIsAvailable().ConfigureAwait(false);
-			if(updateIsAvailable)
-				await App.Current.Dispatcher.InvokeAsync(async () => await DisplayContentDialog(new UpdateDialog()));
-		}
+	//runs on the UI thread: the awaits resume there, which the dialog needs
+	private async Task CheckForStoreUpdate()
+	{
+		if(await UpdateHelper.CheckIfUpdateIsAvailable())
+			await DisplayContentDialog(new UpdateDialog());
 	}
 }

@@ -1,10 +1,9 @@
-﻿using System;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+﻿#nullable enable
+using System;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public interface IMasterVolumeNotificationHandler : IDisposable
 {
-	public interface IMasterVolumeNotificationHandler : IAudioEndpointVolumeCallback, IDisposable
-	{
-		event Action<VolumeChangedEventArgs> VolumeChanged;
-	}
+	event Action<VolumeChangedEventArgs>? VolumeChanged;
 }

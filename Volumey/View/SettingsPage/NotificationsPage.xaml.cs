@@ -1,12 +1,16 @@
-﻿using System.Windows.Controls;
+﻿#nullable enable
+using Volumey.ViewModel.Settings;
 
-namespace Volumey.View.SettingsPage
+namespace Volumey.View.SettingsPage;
+
+public sealed partial class NotificationsPage
 {
-	public partial class NotificationsPage : Page
+	internal NotificationsPage(NotificationViewModel vm)
 	{
-		public NotificationsPage()
-		{
-			InitializeComponent();
-		}
+		DataContext = vm;
+		InitializeComponent();
+		//read the screens again when the page opens, and close the sample OSD when it's left
+		Loaded += (_, _) => vm.LoadedCommand.Execute(null);
+		Unloaded += (_, _) => vm.UnloadedCommand.Execute(null);
 	}
 }

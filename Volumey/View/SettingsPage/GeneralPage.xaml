@@ -1,0 +1,153 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.GeneralPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization"
+      xmlns:converters="clr-namespace:Volumey.View.Converters"
+      xmlns:controls="clr-namespace:Volumey.Controls"
+      Title="{lc:Localization Nav_General}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <!-- the Foreground: a page in a Frame doesn't inherit the window's text color, so plain text would be black in the dark theme
+         (until a theme switch at runtime); set it on every settings page (an implicit Page style doesn't reach subclasses) -->
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- no ScrollViewer here: WPF-UI's NavigationView puts each page in one (a second one inside never scrolls
+         but takes the mouse wheel, so only the scroll bar scrolls) -->
+        <StackPanel Margin="16 4 40 32">
+            <TextBlock Text="{lc:Localization Nav_General}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{lc:Localization General_Description}" Style="{StaticResource PageDescription}" />
+
+            <TextBlock Text="{lc:Localization General_Appearance}" Style="{StaticResource SectionHeader}" />
+            <ui:CardControl Icon="{ui:SymbolIcon Globe24}" Header="{lc:Localization General_Language}">
+                <ComboBox ItemsSource="{Binding Language.Languages}"
+                          SelectedItem="{Binding Language.SelectedLanguage}"
+                          AutomationProperties.Name="{lc:Localization General_Language}"
+                          AutomationProperties.AutomationId="LanguageBox" />
+            </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon DarkTheme24}" Header="{lc:Localization General_Theme}">
+                <ComboBox ItemsSource="{Binding Theme.AppThemes}"
+                          SelectedItem="{Binding Theme.SelectedTheme}"
+                          AutomationProperties.Name="{lc:Localization General_Theme}"
+                          AutomationProperties.AutomationId="ThemeBox">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource ThemeNameConverter}">
+                                        <Binding />
+                                        <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon Headphones24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization General_TrayIcon}" />
+                        <TextBlock Text="{lc:Localization General_TrayIconHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Window.DisplayDeviceIconAtTray}"
+                                 AutomationProperties.Name="{lc:Localization General_TrayIcon}"
+                                 AutomationProperties.AutomationId="TrayIconToggle" />
+            </ui:CardControl>
+
+            <!-- the Store build starts through the package's startup task and is always in the Start menu -->
+            <StackPanel x:Name="NonStoreSection" DataContext="{Binding Window}">
+                <TextBlock Text="{lc:Localization General_Startup}" Style="{StaticResource SectionHeader}" />
+                <ui:CardControl Icon="{ui:SymbolIcon Power24}">
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization General_StartWithWindows}" />
+                            <TextBlock Text="{lc:Localization General_StartWithWindowsHint}" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <ui:ToggleSwitch IsChecked="{Binding LaunchAtStartup}"
+                                     AutomationProperties.Name="{lc:Localization General_StartWithWindows}"
+                                     AutomationProperties.AutomationId="StartWithWindowsToggle" />
+                </ui:CardControl>
+                <ui:CardControl Icon="{ui:SymbolIcon Grid24}">
+                    <ui:CardControl.Header>
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization General_StartMenu}" />
+                        </StackPanel>
+                    </ui:CardControl.Header>
+                    <ui:ToggleSwitch IsChecked="{Binding AddToStartMenu}"
+                                     AutomationProperties.Name="{lc:Localization General_StartMenu}"
+                                     AutomationProperties.AutomationId="StartMenuToggle" />
+                </ui:CardControl>
+            </StackPanel>
+
+            <TextBlock Text="{lc:Localization General_Hotkeys}" Style="{StaticResource SectionHeader}" />
+            <!-- the hotkey mode as two explained choices (Hotkeys.BlockInSystem) -->
+            <ui:CardExpander Icon="{ui:SymbolIcon Keyboard24}" IsExpanded="True" Margin="0 0 0 4"
+                             AutomationProperties.Name="{lc:Localization General_HotkeyMode}">
+                <ui:CardExpander.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization General_HotkeyMode}" />
+                    </StackPanel>
+                </ui:CardExpander.Header>
+                <!-- no GroupName: WPF then groups the buttons by their panel. With a GroupName, the old and the new page instance
+                     (both in the window while WPF-UI changes pages) share the group: selecting a button in the new page
+                     unchecks its twin in the old one, whose binding writes the setting back (nothing or both selected) -->
+                <StackPanel Margin="34 0 0 0">
+                    <RadioButton Margin="0 0 0 12"
+                                 AutomationProperties.AutomationId="BlockHotkeysRadio"
+                                 AutomationProperties.Name="{lc:Localization General_KeepKeys}"
+                                 AutomationProperties.HelpText="{lc:Localization General_KeepKeysHint}"
+                                 IsChecked="{Binding HotkeyMode.BlockHotkeysInSystem}">
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization General_KeepKeys}" />
+                            <TextBlock Text="{lc:Localization General_KeepKeysHint}" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton AutomationProperties.AutomationId="ShareHotkeysRadio"
+                                 AutomationProperties.Name="{lc:Localization General_ShareKeys}"
+                                 AutomationProperties.HelpText="{lc:Localization General_ShareKeysHint}"
+                                 IsChecked="{Binding HotkeyMode.BlockHotkeysInSystem, Converter={StaticResource InverseBoolConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization General_ShareKeys}" />
+                            <TextBlock Text="{lc:Localization General_ShareKeysHint}" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </ui:CardExpander>
+            <ui:CardControl Icon="{ui:SymbolIcon Options24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization General_VolumeStep}" />
+                        <TextBlock Text="{lc:Localization General_VolumeStepHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <StackPanel Orientation="Horizontal">
+                    <!-- PropertyChanged: the arrows change the value without focusing the box, so the binding's default (on losing focus) wouldn't save it -->
+                    <ui:NumberBox Width="140"
+                                  Minimum="1"
+                                  Maximum="100"
+                                  SmallChange="1"
+                                  LargeChange="5"
+                                  MaxDecimalPlaces="0"
+                                  SpinButtonPlacementMode="Inline"
+                                  ClearButtonEnabled="False"
+                                  Value="{Binding AppHotkeys.VolumeStep, UpdateSourceTrigger=PropertyChanged}"
+                                  ValueChanged="OnNumberBoxValueChanged"
+                                  controls:DigitsOnly.IsEnabled="True"
+                                  controls:NumberBoxCommit.IsEnabled="True"
+                                  AutomationProperties.Name="{lc:Localization General_VolumeStep}"
+                                  AutomationProperties.AutomationId="VolumeStepBox" />
+                    <TextBlock Text="%" Margin="8 0 0 0" VerticalAlignment="Center" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl>
+        </StackPanel>
+</Page>

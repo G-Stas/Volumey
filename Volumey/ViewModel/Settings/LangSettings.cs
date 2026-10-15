@@ -1,44 +1,38 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.DataProvider;
 using Volumey.Localization;
 
-namespace Volumey.ViewModel.Settings
-{
-	public class LangSettings : INotifyPropertyChanged
-	{
-		public static List<string> Languages => TranslationSource.Languages;
+namespace Volumey.ViewModel.Settings;
 
-		private string selectedLanguage;
-		public string SelectedLanguage
+public sealed class LangSettings : ObservableObject
+{
+	public static List<string> Languages => TranslationSource.Languages;
+
+	private string selectedLanguage = string.Empty;
+	public string SelectedLanguage
+	{
+		get => selectedLanguage;
+		set
 		{
-			get => selectedLanguage;
-			set
+			if(selectedLanguage != value)
 			{
-				if(this.selectedLanguage != value)
-				{
-					this.selectedLanguage = value;
-					TranslationSource.SetLanguage(value);
-					ErrorDictionary.UpdateErrorDictionary();
-					OnPropertyChanged();
-				}
+				selectedLanguage = value;
+				TranslationSource.SetLanguage(value);
+				ErrorDictionary.UpdateErrorDictionary();
+				OnPropertyChanged();
 			}
 		}
+	}
 
-		internal LangSettings() => LoadLocalization();
-		
-		private void LoadLocalization()
-		{
-			try { TranslationSource.SetLanguage(new CultureInfo(SettingsProvider.Settings.AppLanguage)); }
-			catch { TranslationSource.SetDefaultLanguage(); }
-			finally { this.SelectedLanguage = TranslationSource.Instance.CurrentCulture.NativeName; }
-		}
-		
-		public event PropertyChangedEventHandler PropertyChanged;
+	internal LangSettings() => LoadLocalization();
 
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	private void LoadLocalization()
+	{
+		try { TranslationSource.SetLanguage(new CultureInfo(SettingsProvider.Settings.General.Language ?? TranslationSource.GetSystemLanguage())); }
+		catch { TranslationSource.SetDefaultLanguage(); }
+		finally { SelectedLanguage = TranslationSource.CurrentLanguageName; }
 	}
 }

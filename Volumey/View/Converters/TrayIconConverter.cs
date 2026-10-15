@@ -1,85 +1,89 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
 using Volumey.DataProvider;
 
-namespace Volumey.View.Converters
+namespace Volumey.View.Converters;
+
+public sealed partial class TrayIconConverter : IMultiValueConverter
 {
-	public partial class TrayIconConverter : IMultiValueConverter
+	internal enum IconType
 	{
-		internal enum IconType
+		High,
+		Mid,
+		Low,
+		Mute,
+		NoDevice,
+		DeviceIcon,
+		None
+	}
+
+	private IconType currentIconType = IconType.None;
+	private TrayIconProvider? currentIconProvider;
+	private Icon? curDeviceIcon;
+	//one provider per theme: a provider caches its icons, a new one on every theme switch would leak them
+	private LightIconProvider? lightIconProvider;
+	private DarkIconProvider? darkIconProvider;
+
+	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+	{
+		if(values[4] is bool displayDeviceIconAtTray && displayDeviceIconAtTray && values[5] is Icon defaultDeviceIcon)
 		{
-			High,
-			Mid,
-			Low,
-			Mute,
-			NoDevice,
-			DeviceIcon,
-			None
+			if(currentIconType == IconType.DeviceIcon && curDeviceIcon == defaultDeviceIcon)
+				return Binding.DoNothing;
+			currentIconType = IconType.DeviceIcon;
+			curDeviceIcon = defaultDeviceIcon;
+			return defaultDeviceIcon;
 		}
 
-		private IconType currentIconType = IconType.None;
-		private TrayIconProvider currentIconProvider;
-		private Icon curDeviceIcon;
-
-		public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+		if(values[3] is AppTheme theme)
 		{
-			if(values[4] is bool displayDeviceIconAtTray && displayDeviceIconAtTray && values[5] is Icon defaultDeviceIcon)
+			bool newIconProvider = false;
+			if(theme is AppTheme.Dark)
 			{
-				if(currentIconType == IconType.DeviceIcon && curDeviceIcon == defaultDeviceIcon)
-					return Binding.DoNothing;
-				currentIconType = IconType.DeviceIcon;
-				curDeviceIcon = defaultDeviceIcon;
-				return defaultDeviceIcon;
-			}
-			
-			if(values[3] is AppTheme theme)
-			{
-				bool newIconProvider = false;
-				if(theme is AppTheme.Dark)
+				if(currentIconProvider is not LightIconProvider)
 				{
-					if(!(currentIconProvider is LightIconProvider))
-					{
-						currentIconProvider = new LightIconProvider();
-						newIconProvider = true;
-					}
+					currentIconProvider = lightIconProvider ??= new LightIconProvider();
+					newIconProvider = true;
 				}
-				else
-				{
-					if(!(currentIconProvider is DarkIconProvider))
-					{
-						currentIconProvider = new DarkIconProvider();
-						newIconProvider = true;
-					}
-				}
-				return this.GetIcon(values, newIconProvider);
 			}
-			return Binding.DoNothing;
-		}
-
-		/// <summary></summary>
-		/// <param name="values"></param>
-		/// <param name="newIconProvider">Flag used to indicate that the color of the current icon has to change</param>
-		/// <returns></returns>
-		private object GetIcon(object[] values, bool newIconProvider)
-		{
-			var type = IconType.None;
-			if(values[0] is true) //NoOutputDevices
-				type = IconType.NoDevice;
 			else
 			{
-				if(values[2] is true) //isMuted
-					type = IconType.Mute;
-				else if(values[1] is int newVolume)
-					type = newVolume > 65 ? IconType.High : (newVolume < 35) ? IconType.Low : IconType.Mid;
+				if(currentIconProvider is not DarkIconProvider)
+				{
+					currentIconProvider = darkIconProvider ??= new DarkIconProvider();
+					newIconProvider = true;
+				}
 			}
-			if((this.currentIconType == type || type == IconType.None) && !newIconProvider) 
-				return Binding.DoNothing;
-			this.currentIconType = type;
-			return this.currentIconProvider.GetIcon(type);
+			return GetIcon(values, currentIconProvider, newIconProvider);
 		}
-
-		public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
+		return Binding.DoNothing;
 	}
+
+	/// <summary></summary>
+	/// <param name="values"></param>
+	/// <param name="iconProvider">The provider of the current theme</param>
+	/// <param name="newIconProvider">Flag used to indicate that the color of the current icon has to change</param>
+	/// <returns></returns>
+	private object? GetIcon(object[] values, TrayIconProvider iconProvider, bool newIconProvider)
+	{
+		var type = IconType.None;
+		if(values[0] is true) //NoOutputDevices
+			type = IconType.NoDevice;
+		else
+		{
+			if(values[2] is true) //isMuted
+				type = IconType.Mute;
+			else if(values[1] is int newVolume)
+				type = newVolume > 65 ? IconType.High : (newVolume < 35) ? IconType.Low : IconType.Mid;
+		}
+		if((currentIconType == type || type == IconType.None) && !newIconProvider)
+			return Binding.DoNothing;
+		currentIconType = type;
+		return iconProvider.GetIcon(type);
+	}
+
+	public object[]? ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
 }

@@ -1,104 +1,128 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using log4net;
-using Volumey.CoreAudioWrapper.CoreAudio;
-using Volumey.CoreAudioWrapper.CoreAudio.Enums;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+using NAudio.CoreAudioApi;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public sealed class DeviceEnumerator : IDeviceEnumerator
 {
-	public sealed class DeviceEnumerator : IDeviceEnumerator
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(DeviceEnumerator));
+
+	internal MMDeviceEnumerator Enumerator { get; }
+
+	/// <summary>
+	/// Given to the models it creates
+	/// </summary>
+	internal IHotkeyService Hotkeys { get; }
+
+	public DeviceEnumerator(IHotkeyService hotkeys)
 	{
-		private ILog logger;
-		private ILog Logger => logger ??=LogManager.GetLogger(typeof(DeviceEnumerator));
-		
-		public IMMDeviceEnumerator MMDeviceEnumerator { get; }
-		
-		public DeviceEnumerator() => this.MMDeviceEnumerator = GetCOMEnumerator();
+		Hotkeys = hotkeys ?? throw new ArgumentNullException(nameof(hotkeys));
+		Enumerator = new MMDeviceEnumerator();
+	}
 
-		public uint GetDeviceCount()
+	public uint GetDeviceCount()
+	{
+		try
 		{
-			try
-			{
-				Marshal.ThrowExceptionForHR(this.MMDeviceEnumerator.EnumAudioEndpoints(EDataFlow.Render, DeviceState.Active,
-				                                                          out IMMDeviceCollection collection));
-				collection.GetCount(out uint devicesCount);
-				return devicesCount;
-			}
-			catch(Exception e)
-			{
-				Logger.Error("Failed to get device count", e);
-			}
-			return 0;
+			using var collection = Enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+			return (uint)collection.Count;
+		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to get device count", e);
+		}
+		return 0;
+	}
+
+	public string? GetDefaultDeviceId()
+	{
+		if(GetDeviceCount() == 0)
+			return null;
+
+		string id = string.Empty;
+		try
+		{
+			if(!Enumerator.TryGetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia, out var dev))
+				return string.Empty;
+			using(dev)
+				id = dev.ID;
+		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to get default output device id", e);
+		}
+		return id;
+	}
+
+	public List<OutputDeviceModel> GetCurrentActiveDevices(IDeviceStateNotificationHandler dsn)
+	{
+		var devices = new List<OutputDeviceModel>();
+		MMDeviceCollection activeDevices;
+		int count;
+
+		try
+		{
+			activeDevices = Enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+			count = activeDevices.Count;
+		}
+		catch(Exception e)
+		{
+			Logger.Error($"Failed to get output devices collection", e);
+			return devices;
 		}
 
-		public string GetDefaultDeviceId()
+		using(activeDevices)
 		{
-			if(this.GetDeviceCount() == 0)
-				return null;
-
-			string id = string.Empty;
-			try
-			{
-				var dev = this.MMDeviceEnumerator.GetDefaultOutputDevice();
-				if(dev == null)
-					return string.Empty;
-				dev.GetId(out id);
-			}
-			catch(Exception e)
-			{
-				Logger.Error("Failed to get default output device id", e);
-			}
-			return id;
-		}
-
-		public List<OutputDeviceModel> GetCurrentActiveDevices(IDeviceStateNotificationHandler dsn)
-		{
-			var devices = new List<OutputDeviceModel>();
-			IMMDeviceCollection activeDevices = null;
-			uint count = 0;
-
-			try
-			{
-				Marshal.ThrowExceptionForHR(this.MMDeviceEnumerator.EnumAudioEndpoints(EDataFlow.Render, DeviceState.Active, out activeDevices));
-				activeDevices?.GetCount(out count);
-				if(count == 0)
-					return devices;
-			}
-			catch(Exception e)
-			{
-				Logger.Error($"Failed to get output devices collection", e);
-				return devices;
-			}
-
-			for(uint i = 0; i < count; i++)
+			for(int i = 0; i < count; i++)
 			{
 				try
 				{
-					IMMDevice dev = null;
-					activeDevices?.Item(i, out dev);
-					if(dev == null)
-						continue;
-					var device = new MMDevice(dev);
-					var deviceModel = device.GetOutputDeviceModel(dsn);
+					var device = new AudioDevice(activeDevices[i]);
+					var deviceModel = AudioModelFactory.CreateOutputDeviceModel(device, dsn, Hotkeys);
 					if(deviceModel != null)
 						devices.Add(deviceModel);
+					else
+						device.Dispose();
 				}
 				catch(Exception e)
 				{
 					Logger.Error($"Failed to enumerate output devices", e);
 				}
 			}
-			return devices;
 		}
+		return devices;
+	}
 
-		private static IMMDeviceEnumerator GetCOMEnumerator()
+	public OutputDeviceModel? CreateDeviceModel(string deviceId, IDeviceStateNotificationHandler dsn)
+	{
+		AudioDevice? device = null;
+		try
 		{
-			MMDeviceEnumerator comObj = new MMDeviceEnumerator();
-			IMMDeviceEnumerator deviceEnumerator = (IMMDeviceEnumerator) comObj;
-			return deviceEnumerator;
+			device = new AudioDevice(Enumerator.GetDevice(deviceId));
+			OutputDeviceModel? model = null;
+			if(device.GetDataFlow() == DataFlow.Render && device.GetState() == DeviceState.Active)
+				model = AudioModelFactory.CreateOutputDeviceModel(device, dsn, Hotkeys);
+			if(model == null)
+				ReleaseLater(device);
+			return model;
 		}
+		catch(Exception e)
+		{
+			Logger.Error("Failed to create the model of an output device", e);
+			ReleaseLater(device);
+			return null;
+		}
+	}
+
+	//a COM release waits for running audio callbacks, which may wait for the UI thread
+	private static void ReleaseLater(AudioDevice? device)
+	{
+		if(device != null)
+			_ = System.Threading.Tasks.Task.Run(device.Dispose);
 	}
 }

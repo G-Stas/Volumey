@@ -1,39 +1,33 @@
-﻿using log4net;
+#nullable enable
 using System;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Microsoft.Xaml.Behaviors.Core;
+using log4net;
+using Volumey.Helper;
+using Wpf.Ui.Controls;
 
-namespace Volumey.View.DialogContent
+namespace Volumey.View.DialogContent;
+
+/// <summary>
+/// Store build: offers the Store page when an update is available
+/// </summary>
+public sealed partial class UpdateDialog
 {
-	public partial class UpdateDialog
+	private static readonly ILog Logger = LogManager.GetLogger(typeof(UpdateDialog));
+
+	public UpdateDialog()
 	{
-		private ILog _logger;
-		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(UpdateDialog));
+		//WPF-UI's dialog style is implicit, which doesn't reach a subclass (without it: no dialog chrome, no buttons)
+		SetResourceReference(StyleProperty, typeof(ContentDialog));
+		InitializeComponent();
+	}
 
-		public ICommand PrimaryCommand { get; }
-		public ICommand CloseCommand { get; }
+	private void OnButtonClicked(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+		=> OnReviewResult(args.Button == ContentDialogButton.Primary ? "Y" : "L").Forget(Logger, "Failed to process the update dialog result");
 
-		public UpdateDialog()
-		{
-			this.PrimaryCommand = new ActionCommand(() => { OnReviewResult("Y"); });
-			this.CloseCommand = new ActionCommand(() => { OnReviewResult("L"); });
-			InitializeComponent();
-		}
-
-		private async void OnReviewResult(string param)
-		{
-			try
-			{
-				if(param.Equals("Y"))
-					await Windows.System.Launcher.LaunchUriAsync(new Uri("ms-windows-store://pdp/?productid=9MZCQ03MX0S3"));
-
-				Task.Run(() =>
-				{
-					Logger.Info($"Displaying an update request. Result: [{param}]");
-				});
-			}
-			catch(Exception exc) { Logger.Error("An exception occurred during update dialog result processing", exc); }
-		}
+	private static async Task OnReviewResult(string param)
+	{
+		if(param.Equals("Y"))
+			await Windows.System.Launcher.LaunchUriAsync(new Uri(UpdateHelper.StorePage));
+		Logger.Info($"Displaying an update request. Result: [{param}]");
 	}
 }

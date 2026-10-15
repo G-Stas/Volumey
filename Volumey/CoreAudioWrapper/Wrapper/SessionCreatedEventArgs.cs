@@ -1,18 +1,27 @@
-﻿using System;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+﻿#nullable enable
+using System;
+using NAudio.CoreAudioApi;
 using Volumey.Model;
+using Volumey.ViewModel.Settings;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public sealed class SessionCreatedEventArgs : EventArgs
 {
-	public class SessionCreatedEventArgs : EventArgs
-	{
-		public AudioSessionModel SessionModel;
-		public IAudioSessionControl SessionControl;
+	public AudioSessionModel SessionModel { get; }
+	private readonly AudioSessionControl sessionControl;
+	private readonly IHotkeyService hotkeys;
 
-		public SessionCreatedEventArgs(AudioSessionModel sessionModel, IAudioSessionControl sessionControl)
-		{
-			SessionModel = sessionModel;
-			SessionControl = sessionControl;
-		}
+	internal SessionCreatedEventArgs(AudioSessionModel sessionModel, AudioSessionControl sessionControl, IHotkeyService hotkeys)
+	{
+		this.hotkeys = hotkeys;
+		SessionModel = sessionModel;
+		this.sessionControl = sessionControl;
 	}
+
+	/// <summary>
+	/// Creates a process model for the new session when no existing process can hold it. Null if that fails.
+	/// </summary>
+	public AudioProcessModel? CreateProcessModel()
+		=> AudioModelFactory.CreateProcessModel(SessionModel, sessionControl, hotkeys, out _);
 }

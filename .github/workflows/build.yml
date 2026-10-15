@@ -1,0 +1,21 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ main, 'release/**' ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # builds the app as a dependency of the test project; the Store package (wapproj) needs Visual Studio MSBuild
+      - name: Test
+        run: dotnet test --project Volumey.Tests/Volumey.Tests.csproj -c Release -p:Platform=x64

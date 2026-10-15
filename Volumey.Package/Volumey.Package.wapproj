@@ -35,8 +35,8 @@
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.props" />
   <PropertyGroup>
     <ProjectGuid>ad0f301c-ebf5-4929-a4c3-ef76ee46b56e</ProjectGuid>
-    <TargetPlatformVersion>10.0.18362.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.26100.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <DefaultLanguage>en</DefaultLanguage>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
@@ -46,9 +46,10 @@
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
     <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
-    <PublishTrimmed>true</PublishTrimmed>
     <EntryPointProjectUniqueName>..\Volumey\Volumey.csproj</EntryPointProjectUniqueName>
-    <PackageCertificateThumbprint>4C35C87C27DF585ADB27E931920DB86F5AC13F96</PackageCertificateThumbprint>
+    <!-- The settings library's build-time weaving flows in through the app reference; there is no assembly to weave here -->
+    <AspectInjector_Enabled>false</AspectInjector_Enabled>
+    <PackageCertificateThumbprint>483A1669108C1FE08D5CDE635866D58EFC713248</PackageCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Never</AppxBundle>

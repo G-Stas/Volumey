@@ -1,10 +1,10 @@
-﻿namespace Volumey.CoreAudioWrapper.CoreAudio.Enums
+﻿#nullable enable
+namespace Volumey.CoreAudioWrapper.CoreAudio.Enums;
+
+public enum ERole
 {
-    public enum ERole 
-    { 
-        Console,
-        Multimedia,
-        Communications,
-        ERoleEnumCount
-    }
+	Console,
+	Multimedia,
+	Communications,
+	ERoleEnumCount
 }

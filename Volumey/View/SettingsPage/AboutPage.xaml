@@ -1,0 +1,113 @@
+﻿<Page x:Class="Volumey.View.SettingsPage.AboutPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:lc="clr-namespace:Volumey.Localization"
+      xmlns:converters="clr-namespace:Volumey.View.Converters"
+      Title="{lc:Localization Nav_About}"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <!-- the Foreground: see GeneralPage -->
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:LocalizationKeyConverter x:Key="LocalizationKey" />
+            <converters:LocalizedFormatConverter x:Key="LocalizedFormat" />
+            <!-- a link row: opens a web page, the arrow says it leaves the app -->
+            <Style x:Key="LinkCard" TargetType="ui:CardAction" BasedOn="{StaticResource {x:Type ui:CardAction}}">
+                <Setter Property="Margin" Value="0 0 0 4" />
+            </Style>
+        </ResourceDictionary>
+    </Page.Resources>
+
+    <!-- no ScrollViewer here: see GeneralPage -->
+    <StackPanel Margin="16 4 40 32">
+        <TextBlock Text="{lc:Localization Nav_About}" Style="{StaticResource PageTitle}" />
+
+        <ui:CardControl Margin="0 20 0 4" Padding="16">
+            <ui:CardControl.Header>
+                <!-- a grid, not a horizontal panel: the texts wrap instead of being cut off next to the button -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="56" Height="56" CornerRadius="8" Background="{DynamicResource AccentFillColorDefaultBrush}" Margin="0 0 16 0">
+                        <ui:SymbolIcon Symbol="Speaker224" FontSize="28" Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Volumey" FontSize="20" FontWeight="SemiBold" />
+                        <TextBlock AutomationProperties.AutomationId="VersionText">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="About_Version">
+                                    <Binding Path="Version" />
+                                    <Binding Path="BuildName" />
+                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock Text="{Binding UpdateStatus}" Margin="0 4 0 0" AutomationProperties.AutomationId="UpdateStatusText">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </ui:CardControl.Header>
+            <ui:Button Content="{lc:Localization About_CheckUpdates}"
+                       Command="{Binding CheckForUpdatesCommand}"
+                       AutomationProperties.AutomationId="CheckUpdatesButton" />
+        </ui:CardControl>
+
+        <TextBlock Text="{lc:Localization About_Links}" Style="{StaticResource SectionHeader}" />
+        <ui:CardAction Style="{StaticResource LinkCard}"
+                       Icon="{ui:SymbolIcon Code24}"
+                       Command="{Binding OpenSourceCodeCommand}"
+                       AutomationProperties.Name="{lc:Localization Nav_SourceCode}"
+                       AutomationProperties.AutomationId="SourceCodeLink">
+            <StackPanel>
+                <TextBlock Text="{lc:Localization Nav_SourceCode}" />
+                <TextBlock Text="{lc:Localization About_SourceCodeHint}" Style="{StaticResource Caption}" />
+            </StackPanel>
+        </ui:CardAction>
+        <ui:CardAction Style="{StaticResource LinkCard}"
+                       Icon="{ui:SymbolIcon ErrorCircle24}"
+                       Command="{Binding OpenIssuesCommand}"
+                       AutomationProperties.Name="{lc:Localization About_Report}"
+                       AutomationProperties.AutomationId="IssuesLink">
+            <StackPanel>
+                <TextBlock Text="{lc:Localization About_Report}" />
+                <TextBlock Text="{lc:Localization About_ReportHint}" Style="{StaticResource Caption}" />
+            </StackPanel>
+        </ui:CardAction>
+        <!-- the support links come from GitHub (links.json), one row each -->
+        <ItemsControl ItemsSource="{Binding SupportLinks}" Focusable="False" AutomationProperties.AutomationId="SupportLinks">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <ui:CardAction Style="{StaticResource LinkCard}"
+                                   Icon="{ui:SymbolIcon Heart24}"
+                                   Command="{Binding DataContext.OpenSupportLinkCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                   CommandParameter="{Binding}">
+                        <AutomationProperties.Name>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="[Nav_Support]" />
+                                <Binding Path="Name" />
+                            </MultiBinding>
+                        </AutomationProperties.Name>
+                        <StackPanel>
+                            <TextBlock Text="{lc:Localization Nav_Support}" />
+                            <TextBlock Text="{Binding Name}" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                    </ui:CardAction>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</Page>

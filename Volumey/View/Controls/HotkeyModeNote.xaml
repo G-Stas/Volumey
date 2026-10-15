@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="Volumey.View.Controls.HotkeyModeNote"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:lc="clr-namespace:Volumey.Localization"
+             x:Name="Note">
+    <!-- what the hotkey mode (General) means for the hotkeys of a settings page, with a link to General; at the top of every page
+         that sets hotkeys. A card: WPF-UI's InfoBar doesn't show content, so no link would fit there -->
+    <ui:CardControl Margin="0 12 0 0">
+        <ui:CardControl.Icon>
+            <ui:SymbolIcon Symbol="Info24" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+        </ui:CardControl.Icon>
+        <ui:CardControl.Header>
+            <TextBlock TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                        <Setter Property="Text" Value="{lc:Localization Hotkeys_BlockedInfo}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding KeysBlocked, ElementName=Note}" Value="False">
+                                <Setter Property="Text" Value="{lc:Localization Hotkeys_SharedInfo}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </ui:CardControl.Header>
+        <ui:HyperlinkButton Content="{lc:Localization Hotkeys_OpenGeneral}"
+                            Click="OnOpenGeneralClick"
+                            AutomationProperties.AutomationId="OpenGeneralLink" />
+    </ui:CardControl>
+</UserControl>

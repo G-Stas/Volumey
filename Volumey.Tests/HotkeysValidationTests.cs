@@ -1,66 +1,78 @@
 ﻿using System.Reflection;
 using System.Windows.Input;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.Controls;
 using Volumey.DataProvider;
 using Volumey.ViewModel.Settings;
-using Xunit;
 
-namespace Volumey.Tests
+namespace Volumey.Tests;
+
+[TestClass]
+public class HotkeysValidationTests
 {
-	public class HotkeysValidationTests
+	private readonly HotkeyService hotkeys = new HotkeyService();
+
+	[TestMethod]
+	public void HotkeysValidationShouldReturn_DiffError()
 	{
-		[Fact]
-		public void HotkeysValidationShouldReturn_DiffError()
-		{
-			//arrange
-			var upHotkey = new HotKey(Key.A);
-			var downHotkey = new HotKey(Key.A);
+		//arrange
+		var upHotkey = new HotKey(Key.A);
+		var downHotkey = new HotKey(Key.A);
 
-			//act
-			var errorType = HotkeysControl.HotkeysAreValid(upHotkey, downHotkey);
+		//act
+		var errorType = hotkeys.HotkeysAreValid(upHotkey, downHotkey);
 
-			//assert
-			Assert.True(errorType == ErrorMessageType.Diff);
-		}
+		//assert
+		Assert.IsTrue(errorType == ErrorMessageType.Diff);
+	}
 
-		[Fact]
-		public void NullsShouldNotPassHotkeysValidation()
-		{
-			//arrange
-			var hotkey = new HotKey(Key.A);
+	[TestMethod]
+	public void NullsShouldNotPassHotkeysValidation()
+	{
+		//arrange
+		var hotkey = new HotKey(Key.A);
 
-			//act and assert
-			Assert.True(HotkeysControl.HotkeysAreValid(null, hotkey) != ErrorMessageType.None);
-			Assert.True(HotkeysControl.HotkeysAreValid(hotkey, null) != ErrorMessageType.None);
-			Assert.True(HotkeysControl.HotkeyIsValid(null) != ErrorMessageType.None);
-		}
+		//act and assert
+		Assert.IsTrue(hotkeys.HotkeysAreValid(null, hotkey) != ErrorMessageType.None);
+		Assert.IsTrue(hotkeys.HotkeysAreValid(hotkey, null) != ErrorMessageType.None);
+		Assert.IsTrue(hotkeys.HotkeyIsValid(null) != ErrorMessageType.None);
+	}
 
-		[Fact]
-		public void HotkeysValidationShouldReturn_ExistsError()
-		{
-			var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
-			var settings = SettingsProvider.Settings.HotkeysSettings;
-			var muteKey = settings.GetType().GetField("DeviceMuteKey", BindingFlags.NonPublic | BindingFlags.Instance);
-			var muteModeKeys = settings.GetType().GetField("DeviceMuteModifiers", BindingFlags.NonPublic | BindingFlags.Instance);
-			
-			muteKey.SetValue(settings, existingHotkey.Key);
-			muteModeKeys.SetValue(settings, existingHotkey.ModifierKeys);
-			
-			//act and assert
-			Assert.True(HotkeysControl.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
-			Assert.True(HotkeysControl.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
-			            ErrorMessageType.HotkeyExists);
-		}
+	[TestMethod]
+	public void HotkeysValidationShouldReturn_ExistsError()
+	{
+		var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
+		SettingsProvider.Settings.Hotkeys.DeviceMute = existingHotkey;
 
-		[Fact]
-		public void SystemHotkeyShouldNotPassHotkeysValidation()
-		{
-			//arrange
-			var systemHotkey = new HotKey(Key.F12);
+		//act and assert
+		Assert.IsTrue(hotkeys.HotkeyIsValid(existingHotkey) == ErrorMessageType.HotkeyExists);
+		Assert.IsTrue(hotkeys.HotkeysAreValid(existingHotkey, new HotKey(Key.Down)) ==
+					ErrorMessageType.HotkeyExists);
+	}
 
-			//act and assert
-			Assert.True(HotkeysControl.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
-			Assert.True(HotkeysControl.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
-		}
+	[TestMethod]
+	public void SystemHotkeyShouldNotPassHotkeysValidation()
+	{
+		//arrange
+		var systemHotkey = new HotKey(Key.F12);
+
+		//act and assert
+		Assert.IsTrue(hotkeys.HotkeyIsValid(systemHotkey) == ErrorMessageType.F12);
+		Assert.IsTrue(hotkeys.HotkeysAreValid(systemHotkey, new HotKey(Key.A)) == ErrorMessageType.F12);
+	}
+
+	[TestMethod]
+	public void PairCheckReportsEachHotkeysOwnError()
+	{
+		var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
+		SettingsProvider.Settings.Hotkeys.DeviceMute = existingHotkey;
+		var free = new HotKey(Key.A, ModifierKeys.Control);
+
+		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.HotkeyExists), hotkeys.CheckHotkeysPair(free, existingHotkey));
+		Assert.AreEqual((ErrorMessageType.F12, ErrorMessageType.None), hotkeys.CheckHotkeysPair(new HotKey(Key.F12), free));
+		Assert.AreEqual((ErrorMessageType.Missing, ErrorMessageType.None), hotkeys.CheckHotkeysPair(null, free));
+		//two equal hotkeys: the second one gets the error
+		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.Diff), hotkeys.CheckHotkeysPair(free, free));
+		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.None), hotkeys.CheckHotkeysPair(free, new HotKey(Key.B, ModifierKeys.Control)));
 	}
 }

@@ -1,0 +1,16 @@
+﻿<Window x:Class="Volumey.View.OsdWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Volumey OSD"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        Focusable="False">
+    <!-- covers the work area of the OSD's screen; only the pills are drawn, clicks on the transparent rest go through to the
+         windows below (a layered window). The pills' panel sits in the chosen corner, the distances from the edges as its margin. -->
+    <StackPanel x:Name="Pills" />
+</Window>

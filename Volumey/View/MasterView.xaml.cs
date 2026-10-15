@@ -1,10 +1,10 @@
-﻿namespace Volumey.View
+﻿#nullable enable
+namespace Volumey.View;
+
+public sealed partial class MasterView
 {
-	public partial class MasterView
+	public MasterView()
 	{
-		public MasterView()
-		{
-			InitializeComponent();
-		}
+		InitializeComponent();
 	}
 }

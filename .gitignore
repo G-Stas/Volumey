@@ -5,8 +5,22 @@ Volumey/bin/
 Volumey/obj/
 Volumey.Tests/bin/
 Volumey.Tests/obj/
+Volumey.IntegrationTests/bin/
+Volumey.IntegrationTests/obj/
+Volumey.UITests/bin/
+Volumey.UITests/obj/
+scripts/test-audio-app/bin/
+scripts/test-audio-app/obj/
 Volumey.Package/bin/
 Volumey.Package/obj/
 Volumey.Package/AppPackages/
 Volumey.Package/Volumey.Package.wapproj.user
+# Loggly input key for Release/Store builds (see Volumey/Helper/RemoteLogging.cs)
+loggly.key
+# VM and guest sign-in for scripts/run-ui-tests-vm.ps1
+ui-tests-vm.settings
 Volumey.Package/BundleArtifacts/
+TestResults/
+# release zips (scripts/build-release.ps1)
+artifacts/
+Volumey.Package/Volumey.Package.assets.cache

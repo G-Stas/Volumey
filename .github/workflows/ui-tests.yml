@@ -1,0 +1,73 @@
+name: UI tests
+
+# Runs on pull requests that aren't drafts (also when a draft is marked ready for review) and by hand
+# (Actions -> UI tests -> Run workflow; GitHub shows the button only for workflows on the default branch).
+# The runner has a desktop but no audio device, so the tests that need one (category Audio) are skipped;
+# run everything locally with scripts/run-ui-tests.ps1.
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+jobs:
+  ui-tests:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      # the runner's screen is 1024x768: the 880 px settings window wouldn't fit, its lower controls would be off-screen
+      - name: Screen resolution
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Set-DisplayResolution -Width 1920 -Height 1080 -Force
+          Add-Type -AssemblyName System.Windows.Forms
+          "Screen: $([System.Windows.Forms.Screen]::PrimaryScreen.Bounds)"
+
+      - name: UI tests
+        shell: pwsh
+        env:
+          # failed tests keep their data folders under %TEMP%\Volumey-uitests; the artifact step uploads them from here.
+          # (runner.temp is only available in steps, not in the job's env)
+          TEMP: ${{ runner.temp }}
+          TMP: ${{ runner.temp }}
+        # each failed test also becomes an annotation and a line in the run's summary: both can be read without signing in,
+        # the step's log can't
+        run: |
+          # GitHub starts pwsh steps with $ErrorActionPreference = 'stop': the test run's first line on stderr would end the step
+          $ErrorActionPreference = 'Continue'
+          ./scripts/run-ui-tests.ps1 -NoAudio 2>&1 | Tee-Object -Variable log
+          $code = $LASTEXITCODE
+          $lines = @($log | ForEach-Object { "$_" -replace "`e\[[0-9;]*[A-Za-z]", '' })
+          $failed = @()
+          for($i = 0; $i -lt $lines.Count; $i++) {
+            if($lines[$i] -match '^failed (\S+)') {
+              $test = $Matches[1]
+              #the test's message: its indented lines up to the next result (without the stack trace)
+              $next = @()
+              for($j = $i + 1; $j -lt $lines.Count -and $lines[$j] -notmatch '^(passed|failed|skipped) ' -and $next.Count -lt 60; $j++) { $next += $lines[$j] }
+              $details = (@($next | Where-Object { $_ -match '^\s+\S' -and $_ -notmatch '^\s+at ' }) | ForEach-Object { $_.Trim() }) -join ' / '
+              $failed += [pscustomobject]@{ Test = $test; Details = $details }
+            }
+          }
+          foreach($f in $failed) {
+            Write-Output ("::error title={0}::{1}" -f $f.Test, ($f.Details -replace '%', '%25'))
+          }
+          $counts = ($lines | Where-Object { $_ -match '^\s+(total|failed|succeeded|skipped):' } | ForEach-Object { $_.Trim() }) -join ', '
+          Add-Content $env:GITHUB_STEP_SUMMARY "## UI tests without audio`n`n$counts`n"
+          foreach($f in $failed) { Add-Content $env:GITHUB_STEP_SUMMARY "- **$($f.Test)**: $($f.Details)" }
+          exit $code
+
+      - name: Data folders of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-data
+          path: ${{ runner.temp }}/Volumey-uitests
+          if-no-files-found: ignore

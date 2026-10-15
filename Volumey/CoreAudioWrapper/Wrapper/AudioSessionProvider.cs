@@ -1,48 +1,50 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using log4net;
-using Volumey.CoreAudioWrapper.CoreAudio.Interfaces;
+using NAudio.CoreAudioApi;
+using Volumey.ViewModel.Settings;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+/// <summary>
+/// Provides notification when an audio session is created.
+/// </summary>
+sealed class AudioSessionProvider : ISessionProvider
 {
-    /// <summary>
-    /// Provides notification when an audio session is created.
-    /// </summary>
-    class AudioSessionProvider : ISessionProvider
-    {
-        public event Action<object, SessionCreatedEventArgs> SessionCreated;
-        private IAudioSessionManager2 sessionManager;
+	public event Action<object, SessionCreatedEventArgs>? SessionCreated;
+	public event Action? DeviceInvalidated;
+	private readonly AudioSessionManager sessionManager;
+	private readonly IHotkeyService hotkeys;
 
-        internal AudioSessionProvider(IAudioSessionManager2 sessionManager)
-        {
-            this.sessionManager = sessionManager;
-            this.RegisterSessionNotifications();
-        }
+	internal AudioSessionProvider(AudioSessionManager sessionManager, IHotkeyService hotkeys)
+	{
+		this.hotkeys = hotkeys;
+		this.sessionManager = sessionManager;
+		this.sessionManager.OnSessionCreated += OnSessionCreated;
+	}
 
-        public int OnSessionCreated(IAudioSessionControl sessionControl)
-        {
-            var session = sessionControl.GetAudioSessionModel();
-            if(session != null)
-                this.SessionCreated?.Invoke(this, new SessionCreatedEventArgs(session, sessionControl));
-            return 0;
-        }
+	//NAudio raises it on a COM thread
+	private void OnSessionCreated(object sender, AudioSessionControl sessionControl)
+	{
+		try
+		{
+			var session = AudioModelFactory.CreateSessionModel(sessionControl);
+			if(session != null)
+				SessionCreated?.Invoke(this, new SessionCreatedEventArgs(session, sessionControl, hotkeys));
+		}
+		catch(AudioDeviceDisconnectedException e)
+		{
+			LogManager.GetLogger(typeof(AudioSessionProvider)).Info("A new audio session can't be read, the device was reconfigured", e);
+			DeviceInvalidated?.Invoke();
+		}
+		catch(Exception e)
+		{
+			LogManager.GetLogger(typeof(AudioSessionProvider)).Error("Failed to handle a new audio session", e);
+		}
+	}
 
-        private void RegisterSessionNotifications()
-        {
-            try { this.sessionManager?.RegisterSessionNotification(this); }
-            catch(Exception e)
-            {
-                LogManager.GetLogger(typeof(AudioSessionProvider)).Error($"Failed to register session provider notifications", e);
-            }
-        }
-
-        private void UnregisterSessionNotification()
-        {
-            this.sessionManager?.UnregisterSessionNotification(this);
-        }
-
-        public void Dispose()
-        {
-            this.UnregisterSessionNotification();
-        }
-    }
+	public void Dispose()
+	{
+		sessionManager.OnSessionCreated -= OnSessionCreated;
+	}
 }

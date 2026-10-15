@@ -1,15 +1,17 @@
-﻿using System;
+#nullable enable
+using System;
 
-namespace Volumey.CoreAudioWrapper.Wrapper
+namespace Volumey.CoreAudioWrapper.Wrapper;
+
+public interface IAudioSessionVolume
 {
-	public interface IAudioSessionVolume
-	{
-		float GetVolume();
+	float GetVolume();
 
-		void SetVolume(int newVolume, ref Guid context);
+	void SetVolume(int newVolume, Guid context);
 
-		bool GetMute();
+	bool GetMute();
 
-		void SetMute(bool newState);
-	}
+	/// <param name="context">The event context of the write (the device volume: Volumey's own changes carry <see cref="GuidValue.Internal.VolumeGUID"/>
+	/// and its notification is skipped, hotkey changes carry <see cref="GuidValue.Internal.Empty"/>); sessions ignore it (see SessionEchoFilter)</param>
+	void SetMute(bool newState, Guid context);
 }

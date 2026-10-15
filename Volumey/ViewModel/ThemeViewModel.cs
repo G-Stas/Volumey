@@ -1,150 +1,90 @@
-﻿using System.ComponentModel;
-using System.Windows.Media;
+﻿#nullable enable
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using ModernWpf;
+using System.Windows;
 using Volumey.DataProvider;
 using Volumey.Helper;
+using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
 
-namespace Volumey.ViewModel
+namespace Volumey.ViewModel;
+
+public sealed class ThemeViewModel : INotifyPropertyChanged
 {
-	public sealed class ThemeViewModel : INotifyPropertyChanged
+	public AppTheme[] AppThemes { get; } = { AppTheme.Light, AppTheme.Dark, AppTheme.System };
+
+	private AppTheme selectedTheme;
+	public AppTheme SelectedTheme
 	{
-		public AppTheme[] AppThemes { get; } = {AppTheme.Light, AppTheme.Dark, AppTheme.System};
-
-		private AppTheme selectedTheme;
-		public AppTheme SelectedTheme
+		get => selectedTheme;
+		set
 		{
-			get => selectedTheme;
-			set
-			{
-				selectedTheme = value;
-				this.SetTheme(value);
-				OnPropertyChanged();
-			}
+			selectedTheme = value;
+			SetTheme(value);
+			OnPropertyChanged();
+		}
+	}
+
+	private AppTheme windowsTheme;
+	/// <summary>
+	/// Used to display tray icon with appropriate to current windows theme colors
+	/// </summary>
+	public AppTheme WindowsTheme
+	{
+		get => windowsTheme;
+		set
+		{
+			windowsTheme = value;
+			OnPropertyChanged();
+		}
+	}
+
+	/// <summary>
+	/// The backdrop of the app's windows (Windows 11; older versions get the solid background)
+	/// </summary>
+	public static WindowBackdropType Backdrop => WindowBackdropType.Mica;
+
+	private readonly Windows.UI.ViewManagement.UISettings uiSettings = new();
+	private ApplicationTheme? appliedTheme;
+
+	public ThemeViewModel()
+	{
+		WindowsTheme = SystemColorHelper.WindowsTheme;
+		SelectedTheme = SettingsProvider.Settings.General.Theme;
+		SystemColorHelper.WindowsThemeChanged += WindowsThemeChanged;
+		//an accent change in Windows' settings (raised on a background thread)
+		uiSettings.ColorValuesChanged += (_, _) => Application.Current?.Dispatcher.InvokeAsync(ApplicationAccentColorManager.ApplySystemAccent);
+	}
+
+	private void WindowsThemeChanged(AppTheme newTheme)
+	{
+		WindowsTheme = newTheme;
+		if(selectedTheme == AppTheme.System)
+			SetTheme(AppTheme.System);
+	}
+
+	private void SetTheme(AppTheme newTheme)
+	{
+		if(newTheme == AppTheme.System)
+			newTheme = windowsTheme;
+
+		var theme = newTheme == AppTheme.Dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+		//tracked here: App.xaml starts WPF-UI in the dark theme, but nothing (accent) has been applied yet
+		if(appliedTheme != theme)
+		{
+			appliedTheme = theme;
+			//without updateAccent: WPF-UI derives the accent shades by shifting the colorization color, which turns a muted
+			//accent gray; ApplySystemAccent takes Windows' own shades (AccentLight1-3 in dark, AccentDark1-3 in light), like WinUI
+			ApplicationThemeManager.Apply(theme, Backdrop, updateAccent: false);
+			ApplicationAccentColorManager.ApplySystemAccent();
 		}
 
-		private AppTheme windowsTheme;
-		/// <summary>
-		/// Used to display tray icon with appropriate to current windows theme colors
-		/// </summary>
-		public AppTheme WindowsTheme
-		{
-			get => windowsTheme;
-			set
-			{
-				windowsTheme = value;
-				OnPropertyChanged();
-			}
-		}
+		SettingsProvider.Settings.General.Theme = selectedTheme;
+	}
 
-		private Brush _darkBackground;
-		private Brush _lightBackground;
-		
-		private Brush _darkForeground;
-		private Brush _lightForeground;
-
-		private Brush _buttonHoverDarkBackground;
-		private Brush _lightButtonHoverBackground;
-
-		private const string BackgroundKey = "SystemChromeMediumLowColorBrush";
-		private const string ButtonHoverKey = "SystemControlHighlightListLowBrush";
-		private const double BackgroundOpacity = 0.94;
-
-		public ThemeViewModel()
-		{
-			this.WindowsTheme = SystemColorHelper.WindowsTheme;
-			this.SelectedTheme = SettingsProvider.Settings.CurrentAppTheme;
-			SystemColorHelper.WindowsThemeChanged += WindowsThemeChanged;
-		}
-
-		private void WindowsThemeChanged(AppTheme newTheme)
-		{
-			this.WindowsTheme = newTheme;
-			if(this.selectedTheme == AppTheme.System)
-				this.SetTheme(AppTheme.System);
-		}
-
-		private void SetTheme(AppTheme newTheme)
-		{
-			if(newTheme == AppTheme.System)
-				newTheme = windowsTheme;
-
-			if(newTheme == AppTheme.Dark && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Dark)
-			{
-				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Dark;
-				UpdateNotificationColors(AppTheme.Dark);
-			}
-			else if(newTheme == AppTheme.Light && ThemeManager.Current.ApplicationTheme != ApplicationTheme.Light)
-			{
-				ThemeManager.Current.ApplicationTheme = ApplicationTheme.Light;
-				UpdateNotificationColors(AppTheme.Light);
-			}
-			
-			Task.Run(() =>
-			{
-				if(SettingsProvider.Settings.CurrentAppTheme != this.selectedTheme)
-				{
-					SettingsProvider.Settings.CurrentAppTheme = this.selectedTheme;
-					_ = SettingsProvider.SaveSettings();
-				}
-			});
-		}
-
-		private void UpdateNotificationColors(AppTheme newTheme)
-		{
-			if(newTheme == AppTheme.Dark)
-			{
-				if(_darkBackground == null)
-				{
-					if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
-					{
-						this._darkBackground = brush.CloneCurrentValue();
-						this._darkBackground.Opacity = BackgroundOpacity;
-						this._darkBackground.Freeze();
-					}
-				}
-				if(this._buttonHoverDarkBackground == null)
-				{
-					if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
-					{
-						this._buttonHoverDarkBackground = brush.CloneCurrentValue();
-						this._buttonHoverDarkBackground.Freeze();
-					}
-				}
-				if(_darkForeground == null)
-					this._darkForeground = Brushes.White;
-				NotificationManagerHelper.UpdateColors(this._darkBackground, this._darkForeground, this._buttonHoverDarkBackground);
-			}
-			else if(newTheme == AppTheme.Light)
-			{
-				if(_lightBackground == null)
-				{
-					if(App.Current.TryFindResource(BackgroundKey) is Brush brush)
-					{
-						this._lightBackground = brush.CloneCurrentValue();
-						this._lightBackground.Opacity = BackgroundOpacity;
-						this._lightBackground.Freeze();
-					}
-				}
-				if(this._lightButtonHoverBackground == null)
-				{
-					if(App.Current.TryFindResource(ButtonHoverKey) is Brush brush)
-					{
-						this._lightButtonHoverBackground = brush.CloneCurrentValue();
-						this._lightButtonHoverBackground.Freeze();
-					}
-				}
-				if(_lightForeground == null)
-					this._lightForeground = Brushes.Black;
-				NotificationManagerHelper.UpdateColors(this._lightBackground, this._lightForeground, this._lightButtonHoverBackground);
-			}
-		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-		private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+	public event PropertyChangedEventHandler? PropertyChanged;
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }

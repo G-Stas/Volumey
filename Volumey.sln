@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Volumey", "Volumey\Volumey.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Volumey.Tests", "Volumey.Tests\Volumey.Tests.csproj", "{D5D684ED-2EA1-40B2-BFE0-E1D153BD735F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Volumey.IntegrationTests", "Volumey.IntegrationTests\Volumey.IntegrationTests.csproj", "{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Volumey.UITests", "Volumey.UITests\Volumey.UITests.csproj", "{D17D04B3-36AD-414A-936C-B1DF37EBE62A}"
+EndProject
 Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "Volumey.Package", "Volumey.Package\Volumey.Package.wapproj", "{AD0F301C-EBF5-4929-A4C3-EF76EE46B56E}"
 EndProject
 Global
@@ -28,6 +32,18 @@ Global
 		{D5D684ED-2EA1-40B2-BFE0-E1D153BD735F}.Release|x64.Build.0 = Release|x64
 		{D5D684ED-2EA1-40B2-BFE0-E1D153BD735F}.Store|x64.ActiveCfg = Store|x64
 		{D5D684ED-2EA1-40B2-BFE0-E1D153BD735F}.Store|x64.Build.0 = Store|x64
+		{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}.Debug|x64.ActiveCfg = Debug|x64
+		{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}.Debug|x64.Build.0 = Debug|x64
+		{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}.Release|x64.ActiveCfg = Release|x64
+		{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}.Release|x64.Build.0 = Release|x64
+		{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}.Store|x64.ActiveCfg = Store|x64
+		{B2B20B17-7F42-4D50-BAC0-C1766FD9094D}.Store|x64.Build.0 = Store|x64
+		{D17D04B3-36AD-414A-936C-B1DF37EBE62A}.Debug|x64.ActiveCfg = Debug|x64
+		{D17D04B3-36AD-414A-936C-B1DF37EBE62A}.Debug|x64.Build.0 = Debug|x64
+		{D17D04B3-36AD-414A-936C-B1DF37EBE62A}.Release|x64.ActiveCfg = Release|x64
+		{D17D04B3-36AD-414A-936C-B1DF37EBE62A}.Release|x64.Build.0 = Release|x64
+		{D17D04B3-36AD-414A-936C-B1DF37EBE62A}.Store|x64.ActiveCfg = Store|x64
+		{D17D04B3-36AD-414A-936C-B1DF37EBE62A}.Store|x64.Build.0 = Store|x64
 		{AD0F301C-EBF5-4929-A4C3-EF76EE46B56E}.Debug|x64.ActiveCfg = Debug|x64
 		{AD0F301C-EBF5-4929-A4C3-EF76EE46B56E}.Debug|x64.Build.0 = Debug|x64
 		{AD0F301C-EBF5-4929-A4C3-EF76EE46B56E}.Debug|x64.Deploy.0 = Debug|x64

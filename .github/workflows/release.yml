@@ -1,0 +1,104 @@
+name: Release
+
+# Pushing a version tag (git tag v2.0.0.0 && git push origin v2.0.0.0) builds the GitHub zips (scripts/build-release.ps1) and
+# creates a DRAFT release with them: check it on the Releases page and press Publish. The tag must match <Version> in
+# Volumey/Volumey.csproj. Release notes: the downloads, then every commit since the previous version tag.
+# The Loggly key comes from the repository secret VOLUMEY_LOGGLY_INPUT_KEY.
+# A tag ending in -test is a dry run: same build and draft, without the Loggly key, then the draft and the tag are
+# deleted again.
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # the whole history and the tags: the notes list the commits since the previous version
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Check the version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $test = $tag.EndsWith('-test')
+          $tagVersion = $tag.TrimStart('v') -replace '-test$', ''
+          $version = ([xml](Get-Content Volumey/Volumey.csproj -Raw)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if($tagVersion -ne $version) { throw "The tag $tag doesn't match <Version>$version</Version> in Volumey.csproj" }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "test=$($test.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Build the zips
+        shell: pwsh
+        env:
+          VOLUMEY_LOGGLY_INPUT_KEY: ${{ secrets.VOLUMEY_LOGGLY_INPUT_KEY }}
+        run: |
+          if('${{ steps.version.outputs.test }}' -eq 'true') { ./scripts/build-release.ps1 -NoLoggly }
+          else { ./scripts/build-release.ps1 }
+
+      - name: Draft the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = '${{ steps.version.outputs.version }}'
+          $tag = '${{ github.ref_name }}'
+          $files = Get-ChildItem "artifacts/$version" -File | ForEach-Object FullName
+          $sums = Get-Content "artifacts/$version/SHA256SUMS.txt"
+
+          #the previous version: the highest v* tag below this one (dry-run tags don't count)
+          $current = [version]$version
+          $previous = git tag --list 'v*' | Where-Object { $_ -notmatch '-test$' -and $_ -match '^v(\d+(\.\d+){1,3})$' } |
+                      Where-Object { [version]$_.TrimStart('v') -lt $current } | Sort-Object { [version]$_.TrimStart('v') } | Select-Object -Last 1
+          $range = if($previous) { "$previous..$tag" } else { $tag }
+          $commits = git log --no-merges --format='- %s (%h)' $range
+
+          $notes = @()
+          $notes += '## Downloads'
+          $notes += ''
+          $notes += "- **Volumey_${version}_x64.zip**: everything included, starts on any Windows 10/11 PC (64-bit). The in-app update uses this one."
+          $notes += "- **Volumey_${version}_x64_framework-dependent.zip**: smaller, but **requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64)**. Without it, Windows asks you to install it before Volumey starts."
+          $notes += '- Or get it from the [Microsoft Store](https://apps.microsoft.com/detail/9mzcq03mx0s3), which keeps it up to date.'
+          $notes += ''
+          $notes += 'SHA-256:'
+          $notes += '```'
+          $notes += $sums
+          $notes += '```'
+          $notes += ''
+          $notes += if($previous) { "## Changes since $($previous.TrimStart('v'))" } else { '## Changes' }
+          $notes += ''
+          $notes += $commits
+          $notes -join "`n" | Set-Content release-notes.md -Encoding utf8
+
+          #a rerun replaces its own draft; a published release is never touched
+          $existing = gh release view $tag --json isDraft 2>$null | ConvertFrom-Json
+          if($existing) {
+            if(-not $existing.isDraft) { throw "$tag is already published" }
+            gh release delete $tag --yes
+          }
+          $title = if('${{ steps.version.outputs.test }}' -eq 'true') { "Volumey $version (dry run, deleted again)" } else { "Volumey $version" }
+          gh release create $tag @files --draft --verify-tag --title $title --notes-file release-notes.md
+          gh release view $tag --json isDraft,assets --jq '{draft: .isDraft, files: [.assets[].name]}'
+
+      - name: Remove the dry run
+        if: steps.version.outputs.test == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $assets = gh release view $tag --json assets --jq '.assets | length'
+          if([int]$assets -ne 3) { throw "The draft has $assets files, expected 3 (two zips and SHA256SUMS.txt)" }
+          gh release delete $tag --yes --cleanup-tag

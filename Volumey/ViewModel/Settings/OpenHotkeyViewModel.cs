@@ -1,117 +1,80 @@
-﻿using System;
-using System.Threading.Tasks;
-using log4net;
+#nullable enable
+using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
 using Volumey.DataProvider;
 
-namespace Volumey.ViewModel.Settings
+namespace Volumey.ViewModel.Settings;
+
+public sealed partial class OpenHotkeyViewModel : HotkeyViewModel
 {
-	public class OpenHotkeyViewModel : HotkeyViewModel
+	[ObservableProperty]
+	public partial HotKey Hotkey { get; set; }
+
+	private bool isOn;
+	public bool IsOn
 	{
-		private HotKey hotkey;
-		public HotKey Hotkey
+		get => isOn;
+		set
 		{
-			get => hotkey;
-			set
+			if(value)
 			{
-				this.hotkey = value;
-				OnPropertyChanged();
-			}
-		}
+				if(!hotkeyRegistered)
+					isOn = hotkeyRegistered = SaveHotkey();
 
-		private bool isOn;
-		public bool IsOn
-		{
-			get => this.isOn;
-			set
-			{
-				if(value)
-				{
-					if(!this.hotkeyRegistered)
-						this.isOn = this.hotkeyRegistered = SaveHotkey();
-					
-				}
-				else if(this.hotkeyRegistered)
-				{
-					ResetHotkey();
-					this.isOn = false;
-				}
-				OnPropertyChanged();
 			}
+			else if(hotkeyRegistered)
+			{
+				ResetHotkey();
+				isOn = false;
+			}
+			OnPropertyChanged();
 		}
+	}
 
-		private bool hotkeyRegistered;
-		
-		private ILog _logger;
-		private ILog Logger => _logger ??= LogManager.GetLogger(typeof(OpenHotkeyViewModel));
-		
-		internal OpenHotkeyViewModel()
+	private bool hotkeyRegistered;
+
+	internal OpenHotkeyViewModel(IHotkeyService hotkeys) : base(hotkeys)
+	{
+		if(SettingsProvider.Settings.Hotkeys.OpenMixer is HotKey openHotkey)
 		{
-			ErrorDictionary.LanguageChanged += () => this.SetErrorMessage(this.CurrentErrorType);
-
-			if(SettingsProvider.HotkeysSettings.OpenMixer is HotKey openHotkey)
-			{
-				this.hotkeyRegistered = this.isOn = true;
-				this.Hotkey = openHotkey;
-				if(HotkeysControl.IsActive)
-					this.RegisterLoadedHotkey();
-				else
-					HotkeysControl.Activated += RegisterLoadedHotkey;
-			}
+			hotkeyRegistered = isOn = true;
+			Hotkey = openHotkey;
+			RegisterWhenHotkeysActive(RegisterLoadedHotkey);
 		}
+	}
 
-		private void RegisterLoadedHotkey()
-		{
-			try
-			{
-				HotkeysControl.RegisterOpenMixerHotkey(this.Hotkey);
-			}
-			catch { }
-		}
-		
-		private bool SaveHotkey(object param = null)
-		{
-			if(HotkeysControl.HotkeyIsValid(this.hotkey) is var error && error != ErrorMessageType.None)
-			{
-				this.SetErrorMessage(error);
-				return false;
-			}
-			this.SetErrorMessage(ErrorMessageType.None);
-			try
-			{
-				if(HotkeysControl.RegisterOpenMixerHotkey(this.hotkey))
-				{
-					SettingsProvider.HotkeysSettings.OpenMixer = this.hotkey;
-					Task.Run(() =>
-					{
-						Logger.Info($"Registered open mixer hotkey: [{this.hotkey}]");
-						_ = SettingsProvider.SaveSettings();
-					});	
-					return true;
-				}
-			}
-			catch(Exception e)
-			{
-				Task.Run(() =>
-				{
-					Logger.Error($"Failed to register open mixer hotkey, hotkey: [{this.hotkey}]", e);
-				});
-			}
-			this.SetErrorMessage(ErrorMessageType.OpenReg);
+	private void RegisterLoadedHotkey()
+	{
+		//shows an error instead of silently doing nothing; it stays saved and is tried again on the next start
+		if(!hotkeys.RegisterOpenMixerHotkey(Hotkey))
+			SetErrorMessage(ErrorMessageType.OpenReg);
+	}
+
+	private bool SaveHotkey()
+	{
+		if(!IsValid(hotkeys.HotkeyIsValid(Hotkey)))
 			return false;
-		}
-
-		private void ResetHotkey(object param = null)
+		SetErrorMessage(ErrorMessageType.None);
+		if(hotkeys.RegisterOpenMixerHotkey(Hotkey))
 		{
-			try
-			{
-				this.hotkeyRegistered = false;
-				HotkeysControl.UnregisterOpenMixerHotkey(this.hotkey);
-			}
-			catch { }
-			this.SetErrorMessage(ErrorMessageType.None);
-			SettingsProvider.HotkeysSettings.OpenMixer = null;
-			_ = SettingsProvider.SaveSettings();
+			SettingsProvider.Settings.Hotkeys.OpenMixer = Hotkey;
+			Logger.Info($"Registered open mixer hotkey: [{Hotkey}]");
+			return true;
 		}
+		//the hotkey service logs why
+		SetErrorMessage(ErrorMessageType.OpenReg);
+		return false;
+	}
+
+	private void ResetHotkey()
+	{
+		try
+		{
+			hotkeyRegistered = false;
+			hotkeys.UnregisterOpenMixerHotkey(Hotkey);
+		}
+		catch { }
+		SetErrorMessage(ErrorMessageType.None);
+		SettingsProvider.Settings.Hotkeys.OpenMixer = null;
 	}
 }

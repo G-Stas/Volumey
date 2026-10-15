@@ -4,24 +4,13 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                   xmlns:lc="clr-namespace:Volumey.Localization"
-                  xmlns:ui="http://schemas.modernwpf.com/2019"
+                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                   mc:Ignorable="d"
                   PrimaryButtonText="{lc:Localization Notification_Yes}"
                   CloseButtonText="{lc:Localization Notification_Later}"
                   DefaultButton="Primary"
-                  DataContext="{Binding RelativeSource={RelativeSource Self}}"
-                  PrimaryButtonCommand="{Binding PrimaryCommand}"
-                  CloseButtonCommand="{Binding CloseCommand}"
-                  BorderThickness="0"
-                  CornerRadius="15">
-    <StackPanel
-        Orientation="Vertical"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center"
-        Margin="-10">
-        <TextBlock
-            Text="{lc:Localization NotificationMessage_Update}"
-            Width="250"
-            TextWrapping="WrapWithOverflow" />
-    </StackPanel>
+                  ButtonClicked="OnButtonClicked">
+    <TextBlock
+        Text="{lc:Localization NotificationMessage_Update}"
+        TextWrapping="Wrap" />
 </ui:ContentDialog>

@@ -1,0 +1,27 @@
+<Project Sdk="MSTest.Sdk/4.5.1">
+
+  <!-- Tests against real Windows audio (the default output device). They only change the volume of their own audio session. -->
+  <PropertyGroup>
+    <!-- Must match the app's TFM -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+
+    <IsPackable>false</IsPackable>
+
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+    <RootNamespace>Volumey.IntegrationTests</RootNamespace>
+
+    <Configurations>Debug;Release;Store</Configurations>
+
+    <!-- No settings classes here: don't run the settings library's build-time weaving inherited from the app's packages -->
+    <AspectInjector_Enabled>false</AspectInjector_Enabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Volumey\Volumey.csproj" />
+  </ItemGroup>
+
+</Project>

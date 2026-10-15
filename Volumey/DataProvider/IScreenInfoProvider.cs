@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using Volumey.Model;
 
-namespace Volumey.DataProvider
+namespace Volumey.DataProvider;
+
+public interface IScreenInfoProvider
 {
-	public interface IScreenInfoProvider
-	{
-		ScreenInfo GetPrimaryScreenInfo();
-		IEnumerable<ScreenInfo> GetAllScreensInfo();
-	}
+	IEnumerable<ScreenInfo> GetAllScreensInfo();
 }
