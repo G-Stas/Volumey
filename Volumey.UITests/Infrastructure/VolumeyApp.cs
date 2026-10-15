@@ -81,7 +81,17 @@ internal sealed class VolumeyApp : IDisposable
 		}
 		if(settings != null)
 			File.WriteAllText(volumey.SettingsFile, settings.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-		volumey.Launch();
+		try
+		{
+			volumey.Launch();
+		}
+		catch
+		{
+			//the test never gets the instance: stop the app here, or it blocks every later start, and keep its log
+			volumey.KeepDataDir = true;
+			volumey.Dispose();
+			throw;
+		}
 		return volumey;
 	}
 
@@ -100,7 +110,7 @@ internal sealed class VolumeyApp : IDisposable
 		foreach(var (name, value) in environment)
 			start.Environment[name] = value;
 		process = Process.Start(start) ?? throw new InvalidOperationException("Volumey didn't start");
-		app = Application.Attach(process);
+		app = Attach(process);
 
 		//the window starts hidden; a second start's message shows it (the hotkeys are registered by then, MainView's constructor)
 		var mixer = Retry.WhileNull(() =>
@@ -112,6 +122,26 @@ internal sealed class VolumeyApp : IDisposable
 		}, StartTimeout, TimeSpan.FromMilliseconds(500)).Result;
 		if(mixer == null)
 			throw new TimeoutException($"Volumey's window didn't show within {StartTimeout.TotalSeconds} s; see {LogFile}");
+	}
+
+	/// <summary>
+	/// FlaUI's Attach reads the process's main module, which fails with a partial ReadProcessMemory while a just started process
+	/// is still loading (seen on a slow VM): tried again until it works
+	/// </summary>
+	private static Application Attach(Process process)
+	{
+		var stopwatch = Stopwatch.StartNew();
+		while(true)
+		{
+			try
+			{
+				return Application.Attach(process);
+			}
+			catch(System.ComponentModel.Win32Exception) when(stopwatch.Elapsed < TimeSpan.FromSeconds(10) && !process.HasExited)
+			{
+				Thread.Sleep(100);
+			}
+		}
 	}
 
 	private static bool IsUnderTest(Process p)
@@ -282,25 +312,29 @@ internal sealed class VolumeyApp : IDisposable
 	/// <summary>
 	/// Volumey's tray icon: a taskbar button named after its tooltip ("&lt;default device&gt;: 92%"). Looked up in the hidden icons
 	/// flyout too, where Windows may put a new icon.
+	/// Windows 11 marks tray icons with the automation ID NotifyItemIcon; Windows 10 shows them as buttons of a toolbar
+	/// (ToolbarWindow32), its hidden icons button has the ID 1502 and its flyout is the NotifyIconOverflowWindow.
 	/// </summary>
 	public AutomationElement TrayIcon()
 	{
 		//without an output device (a CI runner) the tooltip says so instead
 		string prefix = Audio.HasOutputDevice ? Audio.DefaultDeviceName + ":" : "No output device detected";
-		AutomationElement? Find(AutomationElement root)
-			=> root.FindFirstDescendant(cf => cf.ByAutomationId("NotifyItemIcon").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)))
-			   is { } first && first.Name.StartsWith(prefix)
-				? first
-				: root.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(e => e.Name.StartsWith(prefix));
+		AutomationElement? Find(AutomationElement? root)
+			=> root?.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))
+			        .FirstOrDefault(e => e.Name.StartsWith(prefix) && (e.AutomationId == "NotifyItemIcon" || e.Parent?.ClassName == "ToolbarWindow32"));
 		var desktop = Automation.GetDesktop();
 		var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
-		var icon = Retry.WhileNull(() => taskbar == null ? null : Find(taskbar), TimeSpan.FromSeconds(5)).Result;
+		var icon = Retry.WhileNull(() => Find(taskbar), TimeSpan.FromSeconds(5)).Result;
 		if(icon is { IsOffscreen: false })
 			return icon;
 		//a new icon may be among the hidden ones (always on a fresh PC like a CI runner): open their flyout and click it there
-		taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))?.Click();
-		return Retry.WhileNull(() => desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon"))
-		                                    .FirstOrDefault(e => e.Name.StartsWith(prefix) && !e.IsOffscreen), TimeSpan.FromSeconds(5)).Result
+		(taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons")) ?? taskbar?.FindFirstDescendant(cf => cf.ByAutomationId("1502")))?.Click();
+		return Retry.WhileNull(() =>
+		                       {
+			                       var found = Find(desktop.FindFirstChild(cf => cf.ByClassName("NotifyIconOverflowWindow")))
+			                                   ?? desktop.FindAllDescendants(cf => cf.ByAutomationId("NotifyItemIcon")).FirstOrDefault(e => e.Name.StartsWith(prefix));
+			                       return found is { IsOffscreen: false } ? found : null;
+		                       }, TimeSpan.FromSeconds(5)).Result
 		       ?? throw new InvalidOperationException($"No visible tray icon whose tooltip starts with \"{prefix}\"");
 	}
 
