@@ -109,7 +109,8 @@ public class AboutPageTests : UiTest
 			""");
 		File.WriteAllText(Path.Combine(dir, "settings.json"),
 			new JsonObject { ["General"] = new JsonObject { ["Language"] = "en" } }.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-		StartAppIn(dir);
+		//the download fails (nothing listens on port 1), so the saved copy stays, whatever links.json on GitHub holds
+		StartAppIn(dir, new Dictionary<string, string> { ["VOLUMEY_LINKS_URL"] = "https://127.0.0.1:1/links.json" });
 		Settings.Open("NavAbout", "VersionText");
 
 		var links = Settings.Find("SupportLinks");

@@ -35,9 +35,9 @@ public abstract class UiTest
 	/// <summary>
 	/// Starts the app on a data folder the test prepared (files next to settings.json, e.g. links.json) and opens its settings window
 	/// </summary>
-	internal void StartAppIn(string dataDir)
+	internal void StartAppIn(string dataDir, IDictionary<string, string>? environment = null)
 	{
-		App = VolumeyApp.Start(dataDir: dataDir);
+		App = VolumeyApp.Start(dataDir: dataDir, environment: environment);
 		Settings = App.OpenSettings();
 	}
 

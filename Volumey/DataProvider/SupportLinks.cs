@@ -36,7 +36,14 @@ public sealed class SupportLinks
 
 	public ObservableCollection<SupportLink> Links { get; }
 
-	internal SupportLinks() : this(Path.Combine(SettingsProvider.SettingsDir, CacheFileName), () => Http.Value.GetStringAsync(FeedUrl)) { }
+	internal SupportLinks() : this(Path.Combine(SettingsProvider.SettingsDir, CacheFileName), () => Http.Value.GetStringAsync(DownloadUrl)) { }
+
+#if(DEBUG)
+	//another address for links.json in a dev run, e.g. an unreachable one to see the saved copy
+	private static string DownloadUrl => Environment.GetEnvironmentVariable("VOLUMEY_LINKS_URL") is { Length: > 0 } url ? url : FeedUrl;
+#else
+	private static string DownloadUrl => FeedUrl;
+#endif
 
 	internal SupportLinks(string cachePath, Func<Task<string>> download)
 	{
