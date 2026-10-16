@@ -27,39 +27,28 @@
 
         <ui:CardControl Margin="0 20 0 4" Padding="16">
             <ui:CardControl.Header>
-                <!-- a grid, not a horizontal panel: the texts wrap instead of being cut off next to the button -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border Width="56" Height="56" CornerRadius="8" Background="{DynamicResource AccentFillColorDefaultBrush}" Margin="0 0 16 0">
-                        <ui:SymbolIcon Symbol="Speaker224" FontSize="28" Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="Volumey" FontSize="20" FontWeight="SemiBold" />
-                        <TextBlock AutomationProperties.AutomationId="VersionText">
-                            <TextBlock.Text>
-                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="About_Version">
-                                    <Binding Path="Version" />
-                                    <Binding Path="BuildName" />
-                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                                </MultiBinding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                        <TextBlock Text="{Binding UpdateStatus}" Margin="0 4 0 0" AutomationProperties.AutomationId="UpdateStatusText">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
-                                    <Style.Triggers>
-                                        <Trigger Property="Text" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </StackPanel>
-                </Grid>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock AutomationProperties.AutomationId="VersionText">
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="About_Version">
+                                <Binding Path="Version" />
+                                <Binding Path="BuildName" />
+                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <TextBlock Text="{Binding UpdateStatus}" Margin="0 4 0 0" AutomationProperties.AutomationId="UpdateStatusText">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
             </ui:CardControl.Header>
             <ui:Button Content="{lc:Localization About_CheckUpdates}"
                        Command="{Binding CheckForUpdatesCommand}"
