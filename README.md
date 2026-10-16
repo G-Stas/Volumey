@@ -1,6 +1,6 @@
 <h3 align="center">
   <br>
-  <img width="300" src="https://i.imgur.com/yBMXIUz.png" alt="Volumey">
+  <img width="200" src=".github/images/icon.png" alt="Volumey">
   <br>
   Volumey
 </h3>

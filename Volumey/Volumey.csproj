@@ -21,8 +21,8 @@
     <SelfContained Condition="'$(Configuration)'=='Store'">True</SelfContained>
     <SelfContained Condition="'$(Configuration)'!='Store'">False</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyVersion>1.5.4.0</AssemblyVersion>
-    <Version>1.5.4.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <Version>2.0.0.0</Version>
   </PropertyGroup>
 
   <!-- portable PDBs: with Windows PDBs (pdbonly/full) the settings weaver rewrites the symbols through the native symbol writer,
