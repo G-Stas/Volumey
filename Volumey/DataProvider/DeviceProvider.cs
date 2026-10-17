@@ -212,9 +212,15 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			Logger.Info($"Device format set: {format.Bits} bit, {format.SamplesPerSec} Hz (container {format.ContainerBits})");
 			return true;
 		}
+		catch(DeviceFormatException e)
+		{
+			//Windows refused it; the Devices page says so and shows the current format again
+			Logger.Warn($"Windows refused the device format {format.Bits} bit, {format.SamplesPerSec} Hz (container {format.ContainerBits})", e);
+			return false;
+		}
 		catch(Exception e)
 		{
-			//undocumented interface: Windows may refuse the format or the call may stop working with an update
+			//undocumented interface: the call may stop working with an update
 			Logger.Error($"Failed to set the device format {format.Bits} bit, {format.SamplesPerSec} Hz", e);
 			return false;
 		}

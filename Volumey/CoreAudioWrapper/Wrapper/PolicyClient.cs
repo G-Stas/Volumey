@@ -33,7 +33,7 @@ public sealed class PolicyClient
 	/// option's bits and rate (channels and speaker layout stay), and the shared-mode mix format follows the rate. Windows then reconfigures
 	/// the device, which disconnects its sessions (Volumey rebuilds the device's model then).
 	/// </summary>
-	/// <exception cref="COMException">Windows refused the format (e.g. AUDCLNT_E_UNSUPPORTED_FORMAT)</exception>
+	/// <exception cref="DeviceFormatException">Windows refused the format (e.g. AUDCLNT_E_UNSUPPORTED_FORMAT) or reading the current one</exception>
 	public void SetDeviceFormat(string deviceId, DeviceFormatOption option)
 		//runs on the thread pool: an object of the calling thread (see WithPolicy)
 		=> WithPolicy(policy =>
@@ -135,14 +135,16 @@ public sealed class PolicyClient
 		}
 	}
 
+	/// <exception cref="DeviceFormatException">Windows refused a step; the message names it and the formats</exception>
 	private static void SetDeviceFormat(IPolicyConfig policy, string deviceId, DeviceFormatOption option)
 	{
-		byte[] device = ReadFormat(policy.GetDeviceFormat(deviceId, false, out var devicePtr), devicePtr);
-		byte[] mix = ReadFormat(policy.GetMixFormat(deviceId, out var mixPtr), mixPtr);
+		byte[] device = Step("Reading the device format", null, () => ReadFormat(policy.GetDeviceFormat(deviceId, false, out var devicePtr), devicePtr));
+		byte[] mix = Step("Reading the mix format", $"device {Describe(device)}", () => ReadFormat(policy.GetMixFormat(deviceId, out var mixPtr), mixPtr));
 		var current = DeviceFormat.FromWaveFormatEx(device) ?? throw new InvalidOperationException("The device's format couldn't be read");
 
 		byte[] newDevice = Extensible(current.Channels, option.SamplesPerSec, option.ContainerBits, option.Bits,
 			current.ChannelMask != 0 ? current.ChannelMask : DefaultChannelMask(current.Channels), PcmSubFormat);
+		string oldMix = Describe(mix);
 		//the mix format keeps its sample type (float) and layout, only the rate changes
 		WithRate(mix, option.SamplesPerSec);
 
@@ -152,13 +154,50 @@ public sealed class PolicyClient
 		{
 			Marshal.Copy(newDevice, 0, newDevicePtr, newDevice.Length);
 			Marshal.Copy(mix, 0, newMixPtr, mix.Length);
-			Marshal.ThrowExceptionForHR(policy.SetDeviceFormat(deviceId, newDevicePtr, newMixPtr));
+			Step("Setting the format",
+				$"device {Describe(device)} -> {Describe(newDevice)}, mix {oldMix} -> {Describe(mix)}",
+				() => Marshal.ThrowExceptionForHR(policy.SetDeviceFormat(deviceId, newDevicePtr, newMixPtr)));
 		}
 		finally
 		{
 			Marshal.FreeCoTaskMem(newDevicePtr);
 			Marshal.FreeCoTaskMem(newMixPtr);
 		}
+	}
+
+	private static T Step<T>(string step, string? formats, Func<T> call)
+	{
+		try
+		{
+			return call();
+		}
+		catch(COMException e)
+		{
+			throw new DeviceFormatException(formats == null ? $"{step} failed" : $"{step} failed: {formats}", e);
+		}
+	}
+
+	private static void Step(string step, string formats, Action call) => Step(step, formats, () => { call(); return 0; });
+
+	//KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+	private static readonly Guid FloatSubFormat = new Guid("00000003-0000-0010-8000-00aa00389b71");
+
+	/// <summary>A WAVEFORMATEX(TENSIBLE) for the log, e.g. "PCM 24/32 bit 2 ch 48000 Hz mask 0x3"</summary>
+	internal static string Describe(byte[] format)
+	{
+		if(format.Length < 16)
+			return $"{format.Length} bytes";
+		ushort tag = BinaryPrimitives.ReadUInt16LittleEndian(format);
+		ushort channels = BinaryPrimitives.ReadUInt16LittleEndian(format.AsSpan(2));
+		uint rate = BinaryPrimitives.ReadUInt32LittleEndian(format.AsSpan(4));
+		ushort bits = BinaryPrimitives.ReadUInt16LittleEndian(format.AsSpan(14));
+		if(tag != 0xFFFE || format.Length < 40)
+			return $"tag 0x{tag:X} {bits} bit {channels} ch {rate} Hz";
+		ushort validBits = BinaryPrimitives.ReadUInt16LittleEndian(format.AsSpan(18));
+		uint mask = BinaryPrimitives.ReadUInt32LittleEndian(format.AsSpan(20));
+		var subFormat = new Guid(format.AsSpan(24, 16));
+		string type = subFormat == PcmSubFormat ? "PCM" : subFormat == FloatSubFormat ? "float" : subFormat.ToString();
+		return $"{type} {validBits}/{bits} bit {channels} ch {rate} Hz mask 0x{mask:X}";
 	}
 
 	/// <summary>
