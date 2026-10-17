@@ -124,6 +124,13 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 			ReleaseLater(device);
 			throw;
 		}
+		catch(Exception e) when(DeviceNotReadyException.IsTransient(e))
+		{
+			//the device was removed between Windows' notification and this read
+			Logger.Debug("The output device is gone", e);
+			ReleaseLater(device);
+			return null;
+		}
 		catch(Exception e)
 		{
 			Logger.Error("Failed to create the model of an output device", e);

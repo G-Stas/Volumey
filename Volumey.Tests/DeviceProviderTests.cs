@@ -247,6 +247,9 @@ public class DeviceProviderTests
 		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80070651))));
 		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x88890008))));
 		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x88890004))));
+		//element not found (the device is gone), the audio service isn't running
+		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80070490))));
+		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x88890010))));
 		//access denied, a general failure
 		Assert.IsFalse(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80070005))));
 		Assert.IsFalse(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80004005))));
