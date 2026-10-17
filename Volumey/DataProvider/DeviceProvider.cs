@@ -133,7 +133,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			catch(Exception e)
 			{
 				//everything depends on this object: start without devices (the mixer shows that) and keep trying
-				Logger.Error($"Couldn't reach Windows audio after {QuickAttempts} attempts, trying again in the background", e);
+				Logger.Error(IsAudioServiceMissing(e)
+					? "The Windows Audio service isn't installed, starting without devices"
+					: $"Couldn't reach Windows audio after {QuickAttempts} attempts, trying again in the background", e);
 				var provider = new DeviceProvider();
 				provider.RetryConnectAsync(hotkeys).Forget(Logger, "Failed to retry reaching Windows audio");
 				return provider;
@@ -168,11 +170,18 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			});
 			if(connected)
 				return;
-			//every 12th retry (once an hour after the delay reached 5 minutes), so a lasting failure can't flood Loggly
-			if((retry + 1) % 12 == 0)
+			//every 12th retry (once an hour after the delay reached 5 minutes), so a lasting failure can't flood Loggly.
+			//Without the audio service the start's error said it all: it won't change while the app runs
+			if((retry + 1) % 12 == 0 && !IsAudioServiceMissing(lastError))
 				Logger.Error($"Still can't reach Windows audio after {QuickAttempts + retry + 1} attempts", lastError);
 		}
 	}
+
+	private const int ErrorServiceDoesNotExist = unchecked((int)0x80070424);
+
+	/// <summary>The Windows Audio service isn't installed (Windows editions or builds without it)</summary>
+	internal static bool IsAudioServiceMissing(Exception? e) => e?.HResult == ErrorServiceDoesNotExist;
+
 	public void SetDefaultDevice(string? id)
 	{
 		try

@@ -232,6 +232,15 @@ public class DeviceProviderTests
 	}
 
 	[TestMethod]
+	public void OnlyAMissingAudioServiceCountsAsMissing()
+	{
+		Assert.IsTrue(DeviceProvider.IsAudioServiceMissing(new COMException("missing", unchecked((int)0x80070424))));
+		//disabled: it can be started while the app runs
+		Assert.IsFalse(DeviceProvider.IsAudioServiceMissing(new COMException("disabled", unchecked((int)0x80070422))));
+		Assert.IsFalse(DeviceProvider.IsAudioServiceMissing(null));
+	}
+
+	[TestMethod]
 	public void WindowsErrorsOfADeviceBusyForAMomentAreTransient()
 	{
 		//device removed, unsupported format, device invalidated
