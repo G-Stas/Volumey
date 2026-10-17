@@ -308,7 +308,7 @@ public sealed class HotkeyService : IHotkeyService
 
 	private readonly Func<HotKey, bool> isRegisteredElsewhere;
 
-	public HotkeyService() : this(hotkey => HotkeyProbe.IsRegisteredElsewhere(Win32.Instance, hotkey)) { }
+	public HotkeyService() : this(hotkey => HotkeyProbe.IsRegisteredElsewhere(Win32.Instance, hotkey), () => new MouseHotkeyManager()) { }
 
 	/// <param name="isRegisteredElsewhere">Whether Windows refuses to register the combination because it's taken (tests pass a fake)</param>
 	/// <param name="createMouseManager">Starts listening to the mouse for mouse hotkeys; null: mouse hotkeys are refused</param>

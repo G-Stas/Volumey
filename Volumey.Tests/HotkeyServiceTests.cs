@@ -233,7 +233,10 @@ public class HotkeyServiceTests
 	[TestMethod]
 	public void WithoutMouseSupportMouseHotkeysAreRefused()
 	{
-		Assert.IsFalse(service.RegisterHotkey(Back));
+		var keyboardOnly = new HotkeyService(_ => false);
+		keyboardOnly.SetHotkeyManager(manager.Object);
+
+		Assert.IsFalse(keyboardOnly.RegisterHotkey(Back));
 		manager.Verify(m => m.RegisterHotkey(Back), Times.Never);
 	}
 
