@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -188,6 +189,58 @@ public class DeviceProviderTests
 
 		WaitFor(() => provider.DefaultDevice == fresh, "the device wasn't rebuilt on the second attempt", 5000);
 		enumerator.Verify(m => m.CreateDeviceModel("111", handler.Object), Times.Exactly(2));
+	}
+
+	[TestMethod]
+	public void RebuildingIsRetriedWhenWindowsRefusesTheDevice()
+	{
+		var (provider, enumerator, sessions, handler) = CreateWithInvalidatableDefault();
+		var fresh = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+		//AUDCLNT_E_UNSUPPORTED_FORMAT while Windows changes the format
+		var refused = new DeviceNotReadyException(new COMException("refused", unchecked((int)0x88890008)));
+		enumerator.SetupSequence(m => m.CreateDeviceModel("111", handler.Object)).Throws(refused).Returns(fresh);
+
+		sessions.Raise(m => m.DeviceInvalidated += null);
+
+		WaitFor(() => provider.DefaultDevice == fresh, "the device wasn't rebuilt on the second attempt", 5000);
+		enumerator.Verify(m => m.CreateDeviceModel("111", handler.Object), Times.Exactly(2));
+	}
+
+	[TestMethod]
+	public void WindowsDefaultDeviceReadLaterBecomesTheDefault()
+	{
+		//the default device "222" was refused at start, so another device stood in for it
+		var handler = new Mock<IDeviceStateNotificationHandler>();
+		var enumerator = new Mock<IDeviceEnumerator>();
+		var speakers = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+		enumerator.Setup(m => m.GetCurrentActiveDevices(handler.Object)).Returns(new List<OutputDeviceModel> { speakers });
+		enumerator.Setup(m => m.GetDefaultDeviceId()).Returns("222");
+		var provider = new DeviceProvider(enumerator.Object, handler.Object);
+		Assert.AreEqual(speakers, provider.DefaultDevice);
+		OutputDeviceModel announced = null;
+		provider.DefaultDeviceChanged += d => announced = d;
+
+		var other = OutputDeviceModelTests.GetDeviceMock("333", "other", handler.Object);
+		handler.Raise(m => m.ActiveDeviceAdded += null, other);
+		Assert.AreEqual(speakers, provider.DefaultDevice, "a device that isn't Windows' default doesn't become the default");
+		Assert.IsNull(announced);
+
+		var headphones = OutputDeviceModelTests.GetDeviceMock("222", "headphones", handler.Object);
+		handler.Raise(m => m.ActiveDeviceAdded += null, headphones);
+		Assert.AreEqual(headphones, provider.DefaultDevice);
+		Assert.AreEqual(headphones, announced);
+	}
+
+	[TestMethod]
+	public void WindowsErrorsOfADeviceBusyForAMomentAreTransient()
+	{
+		//device removed, unsupported format, device invalidated
+		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80070651))));
+		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x88890008))));
+		Assert.IsTrue(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x88890004))));
+		//access denied, a general failure
+		Assert.IsFalse(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80070005))));
+		Assert.IsFalse(DeviceNotReadyException.IsTransient(new COMException("", unchecked((int)0x80004005))));
 	}
 
 	private static (DeviceProvider, Mock<IDeviceEnumerator>, Mock<ISessionProvider>, Mock<IDeviceStateNotificationHandler>) CreateWithInvalidatableDefault()

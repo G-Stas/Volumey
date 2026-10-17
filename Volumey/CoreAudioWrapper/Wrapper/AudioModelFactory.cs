@@ -26,21 +26,32 @@ internal static class AudioModelFactory
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AudioModelFactory));
 
 	/// <returns>Null if the device's audio objects can't be read</returns>
+	/// <exception cref="DeviceNotReadyException">Windows refused the device for a moment; it can be read again later</exception>
 	internal static OutputDeviceModel? CreateOutputDeviceModel(AudioDevice device, IDeviceStateNotificationHandler deviceStateNotificationHandler, IHotkeyService hotkeys)
 	{
+		List<AudioProcessModel>? processes = null;
+		AudioSessionProvider? sessionProvider = null;
 		try
 		{
 			var sessionManager = device.Device.AudioSessionManager;
-			var processes = GetCurrentProcessList(sessionManager.Sessions, hotkeys);
-			var sessionProvider = new AudioSessionProvider(sessionManager, hotkeys);
+			processes = GetCurrentProcessList(sessionManager.Sessions, hotkeys);
+			sessionProvider = new AudioSessionProvider(sessionManager, hotkeys);
 			var master = CreateMaster(device, hotkeys);
 
 			return new OutputDeviceModel(device, deviceStateNotificationHandler, sessionProvider, master, processes);
 		}
 		catch(Exception e)
 		{
-			Logger.Error("Failed to create output device model", e);
-			return null;
+			//the app models registered for Windows' session events when they were created
+			sessionProvider?.Dispose();
+			processes?.ForEach(p => p.Dispose());
+			if(!DeviceNotReadyException.IsTransient(e))
+			{
+				Logger.Error("Failed to create output device model", e);
+				return null;
+			}
+			Logger.Warn("Windows refused the output device for now", e);
+			throw new DeviceNotReadyException(e);
 		}
 	}
 
@@ -66,7 +77,7 @@ internal static class AudioModelFactory
 										  volumeHandler,
 										  hotkeys);
 		}
-		catch(Exception e)
+		catch(Exception e) when(!DeviceNotReadyException.IsTransient(e))
 		{
 			Logger.Error("Failed to create master session", e);
 			throw;

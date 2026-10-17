@@ -12,4 +12,10 @@ public interface IDeviceStateNotificationHandler : IDisposable
 	public event Action<string>? FormatChanged;
 	public event Action<string>? DeviceDisabled;
 	public event Action<OutputDeviceModel>? ActiveDeviceAdded;
+
+	/// <summary>
+	/// Reads an active output device that Windows refused for a moment again with growing delays,
+	/// and raises <see cref="ActiveDeviceAdded"/> once it can be read
+	/// </summary>
+	void AddWhenReady(string deviceId);
 }

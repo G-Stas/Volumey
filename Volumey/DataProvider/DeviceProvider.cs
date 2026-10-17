@@ -288,6 +288,13 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 				DefaultDeviceChanged?.Invoke(DefaultDevice);
 				NoOutputDevices = false;
 			}
+			//Windows' default device that couldn't be read at first: its default device notification found no model
+			else if(DefaultDevice != newDevice && newDevice.CompareId(deviceEnumerator?.GetDefaultDeviceId()))
+			{
+				Logger.Info($"Default output device changed: [{newDevice.Master.DeviceFriendlyName}]");
+				DefaultDevice = newDevice;
+				DefaultDeviceChanged?.Invoke(DefaultDevice);
+			}
 		});
 	}
 
@@ -346,7 +353,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		//a device only becomes invalid after Connect, which sets both
 		if(deviceEnumerator == null || deviceStateNotificationHandler == null)
 			return false;
-		var fresh = deviceEnumerator.CreateDeviceModel(invalid.Id, deviceStateNotificationHandler);
+		OutputDeviceModel? fresh;
+		try { fresh = deviceEnumerator.CreateDeviceModel(invalid.Id, deviceStateNotificationHandler); }
+		catch(DeviceNotReadyException) { return false; }
 		if(fresh == null)
 			return false;
 
