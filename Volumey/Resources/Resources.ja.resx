@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>デバイスを下部に表示</value>
   </data>
+  <data name="MixerPage_LevelMeters" xml:space="preserve">
+    <value>レベル メーター</value>
+  </data>
+  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
+    <value>各アプリが再生している音の大きさをスライダー内に表示します。</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>アプリの音量</value>
   </data>

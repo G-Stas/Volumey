@@ -115,6 +115,32 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public bool AnyHotkeyRegistered { get; private set; }
 
+	private double _level;
+	/// <summary>
+	/// How loud the app plays (0..1, before its volume): its loudest unmuted session; set by the mixer's level meters
+	/// </summary>
+	public double Level
+	{
+		get => _level;
+		set
+		{
+			if(_level != value)
+			{
+				_level = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	/// <summary>The sessions at this moment: they can be added or removed on other threads</summary>
+	internal AudioSessionModel[] SessionsSnapshot()
+	{
+		lock(_sessionsLock)
+		{
+			return Sessions.ToArray();
+		}
+	}
+
 	/// <summary>
 	/// Session of the process which is used as reference to current process state i.e. its current volume and mute state 
 	/// </summary>

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Gerät unten anzeigen</value>
   </data>
+  <data name="MixerPage_LevelMeters" xml:space="preserve">
+    <value>Pegelanzeigen</value>
+  </data>
+  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
+    <value>Zeigt im Schieberegler, wie laut jede App gerade spielt.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App-Lautstärken</value>
   </data>

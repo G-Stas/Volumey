@@ -7,7 +7,9 @@
              xmlns:view="clr-namespace:Volumey.View"
              xmlns:converters="clr-namespace:Volumey.View.Converters"
              xmlns:lc="clr-namespace:Volumey.Localization"
-             mc:Ignorable="d">
+             xmlns:controls="clr-namespace:Volumey.Controls"
+             mc:Ignorable="d"
+             controls:VolumeSlider.ShowsLevel="{Binding Meters.ShowLevels}">
     <UserControl.Resources>
         <converters:DeviceViewPositionToDockConverter x:Key="DeviceViewPositionConverter"/>
     </UserControl.Resources>

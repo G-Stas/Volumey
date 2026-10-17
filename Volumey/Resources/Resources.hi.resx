@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>डिवाइस को नीचे दिखाएँ</value>
   </data>
+  <data name="MixerPage_LevelMeters" xml:space="preserve">
+    <value>स्तर मीटर</value>
+  </data>
+  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
+    <value>हर ऐप के स्लाइडर में दिखाता है कि वह कितनी तेज़ आवाज़ में चल रहा है।</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>ऐप वॉल्यूम</value>
   </data>

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Mostrar o dispositivo na parte inferior</value>
   </data>
+  <data name="MixerPage_LevelMeters" xml:space="preserve">
+    <value>Medidores de nível</value>
+  </data>
+  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
+    <value>Mostra no controle deslizante de cada aplicativo o quão alto ele está tocando.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Volume dos aplicativos</value>
   </data>

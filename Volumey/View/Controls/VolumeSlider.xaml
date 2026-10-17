@@ -1,17 +1,47 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="clr-namespace:Volumey.Controls">
+    xmlns:controls="clr-namespace:Volumey.Controls"
+    xmlns:converters="clr-namespace:Volumey.View.Converters">
 
-    <!-- the part of the track left of the thumb: the accent fill of Windows 11's sliders (WPF-UI 4.3's slider has none) -->
+    <converters:LevelWidthConverter x:Key="LevelWidth" />
+
+    <!-- the part of the track left of the thumb: the accent fill of Windows 11's sliders (WPF-UI 4.3's slider has none).
+         With level meters the fill is dimmed and the level is a bar over it, as long as that share of the fill as the sound is loud:
+         it ends where the sound is at this volume -->
     <Style x:Key="VolumeSliderFillButton" TargetType="RepeatButton" BasedOn="{StaticResource UiSliderButtonStyle}">
         <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RepeatButton">
-                    <Border Height="4"
-                            CornerRadius="2"
-                            Background="{TemplateBinding Background}" />
+                    <Grid x:Name="Root" Height="4">
+                        <Border x:Name="FillBar"
+                                CornerRadius="2"
+                                Background="{TemplateBinding Background}" />
+                        <Border x:Name="LevelBar"
+                                HorizontalAlignment="Left"
+                                CornerRadius="2"
+                                Visibility="Collapsed"
+                                Background="{DynamicResource AccentFillColorDefaultBrush}">
+                            <Border.Width>
+                                <MultiBinding Converter="{StaticResource LevelWidth}">
+                                    <Binding ElementName="Root" Path="ActualWidth" />
+                                    <Binding Path="Level" RelativeSource="{RelativeSource AncestorType=controls:VolumeSlider}" />
+                                </MultiBinding>
+                            </Border.Width>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- a muted slider shows no level and keeps its muted fill as it is -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ShowsLevel, RelativeSource={RelativeSource AncestorType=controls:VolumeSlider}}" Value="True" />
+                                <Condition Binding="{Binding IsMuted, RelativeSource={RelativeSource AncestorType=controls:VolumeSlider}}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="FillBar" Property="Opacity" Value="0.7" />
+                            <Setter TargetName="LevelBar" Property="Visibility" Value="Visible" />
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -80,13 +110,24 @@
         </Setter>
     </Style>
 
+    <!-- the part of the track right of the thumb; the track isn't drawn under the fill, so a dimmed fill (level meters)
+         shows over the window's background and not over the grey track -->
+    <Style x:Key="VolumeSliderTrackButton" TargetType="RepeatButton" BasedOn="{StaticResource UiSliderButtonStyle}">
+        <Setter Property="Background" Value="{DynamicResource SliderTrackFill}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Border Height="4"
+                            CornerRadius="2"
+                            Background="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- WPF-UI's horizontal slider template plus the fill and the Windows 11 thumb -->
     <ControlTemplate x:Key="VolumeSliderTemplate" TargetType="controls:VolumeSlider">
         <Grid>
-            <Border x:Name="TrackBackground"
-                    Height="4"
-                    Background="{DynamicResource SliderTrackFill}"
-                    CornerRadius="2" />
             <Track x:Name="PART_Track">
                 <Track.DecreaseRepeatButton>
                     <RepeatButton x:Name="Fill" Command="Slider.DecreaseLarge" Style="{StaticResource VolumeSliderFillButton}" />
@@ -95,7 +136,7 @@
                     <Thumb x:Name="Thumb" Style="{StaticResource VolumeSliderThumb}" />
                 </Track.Thumb>
                 <Track.IncreaseRepeatButton>
-                    <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource UiSliderButtonStyle}" />
+                    <RepeatButton x:Name="TrackBackground" Command="Slider.IncreaseLarge" Style="{StaticResource VolumeSliderTrackButton}" />
                 </Track.IncreaseRepeatButton>
             </Track>
         </Grid>
