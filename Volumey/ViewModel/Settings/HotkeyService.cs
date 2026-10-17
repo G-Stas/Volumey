@@ -11,8 +11,10 @@ using Volumey.Helper;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// The app's hotkeys: holds the hotkey manager, counts the users of each hotkey so several features can share one,
+/// The app's hotkeys: holds the hotkey managers, counts the users of each hotkey so several features can share one,
 /// raises the pressed hotkeys and validates new ones. One instance for the app (<see cref="Services.ServiceRegistration"/>).
+/// Keyboard hotkeys go to the keyboard manager (blocking or shared, <see cref="SetHotkeyManager"/>), mouse hotkeys to a mouse
+/// manager that only exists while a mouse hotkey is registered.
 /// </summary>
 public sealed class HotkeyService : IHotkeyService
 {
@@ -45,6 +47,8 @@ public sealed class HotkeyService : IHotkeyService
 
 	private HotKey? openMixer;
 	private IHotkeyManager? hotkeyManager;
+	private IHotkeyManager? mouseManager;
+	private readonly Func<IHotkeyManager>? createMouseManager;
 
 	/// <summary>
 	/// Keeps track of hotkeys and amount of its users to prevent early unregistering of hotkeys.
@@ -116,17 +120,63 @@ public sealed class HotkeyService : IHotkeyService
 	{
 		if(hotkeyManager == null || hotkey == null)
 			return false;
+		if(hotkey.Source == InputSource.Mouse && !IsUsableMouseHotkey(hotkey))
+		{
+			Logger.Warn($"Refused the mouse hotkey [{hotkey}]: an unknown button, or a click or the wheel without a modifier");
+			return false;
+		}
+		var manager = ManagerFor(hotkey, create: true);
+		if(manager == null)
+			return false;
 		try
 		{
-			hotkeyManager.RegisterHotkey(hotkey);
+			manager.RegisterHotkey(hotkey);
 		}
 		catch(Exception e)
 		{
 			Logger.Warn($"Failed to register hotkey [{hotkey}]", e);
+			ReleaseIdleMouseManager();
 			return false;
 		}
 		IncrementHotkeyUserCounter(hotkey);
 		return true;
+	}
+
+	/// <summary>A known button; clicks and the wheel only with a modifier (they are used all the time), side buttons also alone</summary>
+	internal static bool IsUsableMouseHotkey(HotKey hotkey)
+		=> hotkey.Button is { } button && MouseButtons.IsKnown(button)
+			&& (hotkey.ModifierKeys != ModifierKeys.None || !MouseButtons.NeedsModifier(button));
+
+	/// <param name="create">Starts the mouse manager for a mouse hotkey</param>
+	/// <returns>The hotkey's manager; null if there's none (no keyboard manager yet, mouse hotkeys not available)</returns>
+	private IHotkeyManager? ManagerFor(HotKey hotkey, bool create)
+	{
+		if(hotkey.Source != InputSource.Mouse)
+			return hotkeyManager;
+		if(mouseManager == null && create && createMouseManager != null)
+		{
+			try
+			{
+				mouseManager = createMouseManager();
+				mouseManager.HotkeyPressed += OnHotkeyPressed;
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Failed to start listening to the mouse", e);
+				mouseManager = null;
+			}
+		}
+		return mouseManager;
+	}
+
+	/// <summary>The mouse manager sees every mouse move: it's stopped once no mouse hotkey is left</summary>
+	private void ReleaseIdleMouseManager()
+	{
+		if(mouseManager == null || mouseManager.RegisteredHotkeysCount > 0)
+			return;
+		mouseManager.HotkeyPressed -= OnHotkeyPressed;
+		mouseManager.Dispose();
+		mouseManager = null;
 	}
 
 	/// <summary>
@@ -139,14 +189,19 @@ public sealed class HotkeyService : IHotkeyService
 		DecrementHotkeyUserCounter(hotkey, out bool lastUser);
 		if(!lastUser)
 			return;
+		var manager = ManagerFor(hotkey, create: false);
+		if(manager == null)
+			return;
 		try
 		{
-			hotkeyManager.UnregisterHotkey(hotkey);
+			manager.UnregisterHotkey(hotkey);
 		}
 		catch(Exception e)
 		{
 			Logger.Warn($"Failed to unregister hotkey [{hotkey}]", e);
 		}
+		if(manager == mouseManager)
+			ReleaseIdleMouseManager();
 	}
 
 	public bool RegisterOpenMixerHotkey(HotKey? hotkey)
@@ -212,8 +267,9 @@ public sealed class HotkeyService : IHotkeyService
 	}
 
 	/// <summary>
-	/// Sets the hotkey manager. On a later call the registered hotkeys move from the previous manager to the new one,
-	/// which is then the only one, and the previous manager is disposed. The user counts stay as they are.
+	/// Sets the keyboard hotkey manager. On a later call the registered keyboard hotkeys move from the previous manager to the new one,
+	/// and the previous manager is disposed. The user counts stay as they are. Mouse hotkeys stay with the mouse manager:
+	/// the hotkey mode only decides how keys are taken.
 	/// </summary>
 	public void SetHotkeyManager(IHotkeyManager hm)
 	{
@@ -255,15 +311,23 @@ public sealed class HotkeyService : IHotkeyService
 	public HotkeyService() : this(hotkey => HotkeyProbe.IsRegisteredElsewhere(Win32.Instance, hotkey)) { }
 
 	/// <param name="isRegisteredElsewhere">Whether Windows refuses to register the combination because it's taken (tests pass a fake)</param>
-	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere) => this.isRegisteredElsewhere = isRegisteredElsewhere;
+	/// <param name="createMouseManager">Starts listening to the mouse for mouse hotkeys; null: mouse hotkeys are refused</param>
+	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere, Func<IHotkeyManager>? createMouseManager = null)
+	{
+		this.isRegisteredElsewhere = isRegisteredElsewhere;
+		this.createMouseManager = createMouseManager;
+	}
 
 	/// <summary>
 	/// Who holds a combination that Windows delivered as a hotkey instead of as keys (a hotkey box only sees its key released).
 	/// </summary>
 	public HotkeyOwner FindOwner(HotKey hotkey)
 	{
-		if(hotkeyManager?.GetRegisteredHotkeys()?.Contains(hotkey) == true)
+		if(ManagerFor(hotkey, create: false)?.GetRegisteredHotkeys()?.Contains(hotkey) == true)
 			return HotkeyOwner.Volumey;
+		//only key combinations can be registered by other apps
+		if(hotkey.Source == InputSource.Mouse)
+			return HotkeyOwner.Nobody;
 		return isRegisteredElsewhere(hotkey) ? HotkeyOwner.AnotherApp : HotkeyOwner.Nobody;
 	}
 
@@ -281,5 +345,7 @@ public sealed class HotkeyService : IHotkeyService
 		//called again when the container is disposed on exit
 		hotkeyManager?.Dispose();
 		hotkeyManager = null;
+		mouseManager?.Dispose();
+		mouseManager = null;
 	}
 }
