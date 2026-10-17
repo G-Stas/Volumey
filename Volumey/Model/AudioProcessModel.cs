@@ -383,19 +383,19 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			}
 		}).Task.ContinueWith(_ =>
 		{
-			if(_trackedSession == endedSession)
+			//under the lock: the last session's end also ends the app, whose model is disposed on another thread meanwhile
+			lock(_sessionsLock)
 			{
-				_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
-				_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
-
-				lock(_sessionsLock)
+				if(_trackedSession == endedSession)
 				{
+					endedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
+					endedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
 					_trackedSession = Sessions.FirstOrDefault();
-				}
-				if(_trackedSession != null)
-				{
-					_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
-					_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
+					if(_trackedSession != null)
+					{
+						_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
+						_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
+					}
 				}
 			}
 			endedSession.Dispose();
@@ -434,14 +434,14 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 		_exitCheck?.Dispose();
 
-		if(_trackedSession != null)
-		{
-			_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
-			_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
-		}
-
 		lock(_sessionsLock)
 		{
+			if(_trackedSession != null)
+			{
+				_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
+				_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
+				_trackedSession = null;
+			}
 			foreach(AudioSessionModel session in Sessions)
 				session.Dispose();
 		}
