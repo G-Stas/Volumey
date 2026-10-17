@@ -93,12 +93,6 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnDeviceViewAtTheBottomChanged(bool value) => SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
 
-	/// <summary>The mixer's sliders show how loud each app and the device play (see <see cref="ViewModel.LevelMeters"/>)</summary>
-	[ObservableProperty]
-	public partial bool LevelMeters { get; set; }
-
-	partial void OnLevelMetersChanged(bool value) => SettingsProvider.Settings.Window.LevelMeters = value;
-
 	[ObservableProperty]
 	public partial bool DisplayDeviceIconAtTray { get; set; }
 
@@ -238,7 +232,6 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		AlwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
 		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
-		LevelMeters = SettingsProvider.Settings.Window.LevelMeters;
 		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;

@@ -330,12 +330,6 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Show the device at the bottom</value>
   </data>
-  <data name="MixerPage_LevelMeters" xml:space="preserve">
-    <value>Level meters</value>
-  </data>
-  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
-    <value>Shows how loud each app is playing inside its slider.</value>
-  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App volumes</value>
   </data>

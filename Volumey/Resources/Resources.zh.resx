@@ -271,12 +271,6 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>在底部显示设备</value>
   </data>
-  <data name="MixerPage_LevelMeters" xml:space="preserve">
-    <value>电平指示器</value>
-  </data>
-  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
-    <value>在每个应用的滑块中显示其当前的播放响度。</value>
-  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>应用音量</value>
   </data>
