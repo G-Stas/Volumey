@@ -81,6 +81,48 @@ public class ControlsTests
 	}
 
 	[TestMethod]
+	public void MouseHotkeysAreEqualBySourceButtonAndModifiers()
+	{
+		var hotkey = HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control);
+
+		Assert.AreEqual(HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control), hotkey);
+		Assert.AreEqual(HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control).GetHashCode(), hotkey.GetHashCode());
+		Assert.AreNotEqual(HotKey.Mouse(MouseButtons.XButton2, ModifierKeys.Control), hotkey);
+		Assert.AreNotEqual(HotKey.Mouse(MouseButtons.XButton1), hotkey);
+		//a keyboard hotkey with no key and the same modifiers is another hotkey
+		Assert.AreNotEqual(new HotKey(Key.None, ModifierKeys.Control), hotkey);
+		Assert.AreEqual(InputSource.Mouse, hotkey.Source);
+		Assert.AreEqual(Key.None, hotkey.Key);
+		Assert.AreEqual(InputSource.Keyboard, new HotKey(Key.F5).Source);
+		Assert.IsNull(new HotKey(Key.F5).Button);
+	}
+
+	[TestMethod]
+	public void OnlyTheSideButtonsWorkWithoutAModifier()
+	{
+		Assert.IsFalse(MouseButtons.NeedsModifier(MouseButtons.XButton1));
+		Assert.IsFalse(MouseButtons.NeedsModifier(MouseButtons.XButton2));
+		foreach(var button in new[] { MouseButtons.Left, MouseButtons.Right, MouseButtons.Middle, MouseButtons.WheelUp, MouseButtons.WheelDown,
+			         MouseButtons.WheelLeft, MouseButtons.WheelRight })
+			Assert.IsTrue(MouseButtons.NeedsModifier(button), button);
+		Assert.IsTrue(MouseButtons.IsWheel(MouseButtons.WheelLeft));
+		Assert.IsFalse(MouseButtons.IsWheel(MouseButtons.Middle));
+		Assert.IsTrue(MouseButtons.IsKnown(MouseButtons.WheelRight));
+		Assert.IsFalse(MouseButtons.IsKnown("Button6"));
+		Assert.IsFalse(MouseButtons.IsKnown(null));
+	}
+
+	[TestMethod]
+	public void MouseHotkeyTextListsModifiersBeforeTheButton()
+	{
+		var parts = HotKey.Mouse(MouseButtons.WheelUp, ModifierKeys.Control | ModifierKeys.Windows).ToString().Split('+');
+
+		Assert.HasCount(3, parts);
+		Assert.AreEqual("Windows", parts[1]);
+		Assert.AreEqual(MouseButtons.WheelUp, parts[2]);
+	}
+
+	[TestMethod]
 	public void HotkeyTextListsModifiersBeforeTheKey()
 	{
 		//modifier names come from the keyboard layout, so only the structure is checked

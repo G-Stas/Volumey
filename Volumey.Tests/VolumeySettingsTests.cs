@@ -71,6 +71,44 @@ public class VolumeySettingsTests
 	}
 
 	[TestMethod]
+	public void MouseHotkeysAreSavedAndKeyboardHotkeysStayAsBefore()
+	{
+		var settings = Load().EnableAutosave();
+		var mouse = HotKey.Mouse(MouseButtons.XButton2, ModifierKeys.Control);
+		settings.Hotkeys.DeviceVolumeUp = mouse;
+		settings.Hotkeys.DeviceMute = new HotKey(Key.M, ModifierKeys.Control);
+		settings.Flush();
+
+		string json = File.ReadAllText(file);
+		StringAssert.Contains(json, "\"Source\": \"Mouse\"");
+		StringAssert.Contains(json, "\"Button\": \"XButton2\"");
+		//a keyboard hotkey has only Key and ModifierKeys, as before mouse hotkeys
+		Assert.AreEqual(1, System.Text.RegularExpressions.Regex.Matches(json, "\"Source\"").Count);
+		var reloaded = Load();
+		Assert.AreEqual(mouse, reloaded.Hotkeys.DeviceVolumeUp);
+		Assert.AreEqual(new HotKey(Key.M, ModifierKeys.Control), reloaded.Hotkeys.DeviceMute);
+	}
+
+	[TestMethod]
+	public void AHotkeySavedWithoutASourceIsAKeyboardHotkey()
+	{
+		//how every hotkey was saved before mouse hotkeys
+		File.WriteAllText(file, """
+			{
+			  "Hotkeys": {
+			    "DeviceMute": { "Key": "F1", "ModifierKeys": "Control, Shift" }
+			  }
+			}
+			""");
+
+		var hotkey = Load().Hotkeys.DeviceMute;
+
+		Assert.AreEqual(new HotKey(Key.F1, ModifierKeys.Control | ModifierKeys.Shift), hotkey);
+		Assert.AreEqual(InputSource.Keyboard, hotkey!.Source);
+		Assert.IsNull(hotkey.Button);
+	}
+
+	[TestMethod]
 	public void ABurstOfChangesIsSavedOnceAfterTheDelay()
 	{
 		var settings = Load().EnableAutosave();

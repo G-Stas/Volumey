@@ -24,11 +24,15 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using Newtonsoft.Json;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace Volumey.Controls;
 
+/// <summary>
+/// A hotkey: a key, or a mouse button or wheel direction (<see cref="Source"/>, <see cref="Button"/>), with modifier keys
+/// </summary>
 [Serializable]
 public sealed class HotKey : IEquatable<HotKey>
 {
@@ -36,34 +40,46 @@ public sealed class HotKey : IEquatable<HotKey>
 	private const int VK_CONTROL = 17;
 	private const int VK_SHIFT = 16;
 
-	public HotKey(Key key, ModifierKeys modifierKeys = ModifierKeys.None)
+	//the parameter names match the saved properties: Json.NET builds hotkeys through this constructor,
+	//and passes the defaults for properties a file doesn't have
+	public HotKey(Key key, ModifierKeys modifierKeys = ModifierKeys.None, InputSource source = InputSource.Keyboard, string? button = null)
 	{
 		Key = key;
 		ModifierKeys = modifierKeys;
+		Source = source;
+		Button = button;
 	}
 
+	/// <summary>A mouse button or wheel direction (<see cref="MouseButtons"/>) with modifier keys</summary>
+	public static HotKey Mouse(string button, ModifierKeys modifierKeys = ModifierKeys.None)
+		=> new HotKey(Key.None, modifierKeys, InputSource.Mouse, button);
+
+	/// <summary>The key of a keyboard hotkey; <see cref="Key.None"/> for other sources</summary>
 	public Key Key { get; }
 
 	public ModifierKeys ModifierKeys { get; }
+
+	//not saved for keyboard hotkeys: a hotkey saved without them is a keyboard hotkey
+	[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public InputSource Source { get; }
+
+	/// <summary>The mouse button or wheel direction (<see cref="MouseButtons"/>); null for a keyboard hotkey</summary>
+	[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+	public string? Button { get; }
 
 	public override bool Equals(object? obj)
 	{
 		return obj is HotKey key && Equals(key);
 	}
 
-	public override int GetHashCode()
-	{
-		unchecked
-		{
-			return ((int)Key * 397) ^ (int)ModifierKeys;
-		}
-	}
+	public override int GetHashCode() => HashCode.Combine(Key, ModifierKeys, Source, Button);
 
 	public bool Equals(HotKey? other)
 	{
 		if(other is null)
 			return false;
-		return Key == other.Key && ModifierKeys == other.ModifierKeys;
+		return Key == other.Key && ModifierKeys == other.ModifierKeys && Source == other.Source
+			&& string.Equals(Button, other.Button, StringComparison.Ordinal);
 	}
 
 	public override string ToString() => string.Join("+", GetKeyNames());
@@ -82,7 +98,7 @@ public sealed class HotKey : IEquatable<HotKey>
 			names.Add(GetLocalizedKeyStringUnsafe(VK_SHIFT) ?? "Shift");
 		if((ModifierKeys & ModifierKeys.Windows) == ModifierKeys.Windows)
 			names.Add("Windows");
-		names.Add(GetLocalizedKeyString(Key));
+		names.Add(Source == InputSource.Mouse ? Button ?? string.Empty : GetLocalizedKeyString(Key));
 		return names;
 	}
 
