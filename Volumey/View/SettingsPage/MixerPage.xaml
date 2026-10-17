@@ -121,17 +121,6 @@
                                  AutomationProperties.Name="{lc:Localization MixerPage_DeviceBottom}"
                                  AutomationProperties.AutomationId="DeviceBottomToggle" />
             </ui:CardControl>
-            <ui:CardControl Icon="{ui:SymbolIcon Pulse24}">
-                <ui:CardControl.Header>
-                    <StackPanel>
-                        <TextBlock Text="{lc:Localization MixerPage_LevelMeters}" />
-                        <TextBlock Text="{lc:Localization MixerPage_LevelMetersHint}" Style="{StaticResource Caption}" />
-                    </StackPanel>
-                </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding Window.LevelMeters}"
-                                 AutomationProperties.Name="{lc:Localization MixerPage_LevelMeters}"
-                                 AutomationProperties.AutomationId="LevelMetersToggle" />
-            </ui:CardControl>
 
             <TextBlock Text="{lc:Localization MixerPage_AppVolumes}" Style="{StaticResource SectionHeader}" />
             <ui:CardControl Icon="{ui:SymbolIcon Speaker124}" DataContext="{Binding VolumeLimit}">

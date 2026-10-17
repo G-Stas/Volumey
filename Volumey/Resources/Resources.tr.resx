@@ -271,12 +271,6 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Aygıtı altta göster</value>
   </data>
-  <data name="MixerPage_LevelMeters" xml:space="preserve">
-    <value>Seviye göstergeleri</value>
-  </data>
-  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
-    <value>Her uygulamanın ne kadar yüksek sesle çaldığını kaydırıcısında gösterir.</value>
-  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Uygulama ses düzeyleri</value>
   </data>

@@ -9,7 +9,7 @@ using Volumey.Model;
 namespace Volumey.ViewModel;
 
 /// <summary>
-/// The level meters of the mixer: while the mixer is visible and the meters are on, reads the peaks of the shown device's sessions
+/// The level meters of the mixer: while the mixer is visible, reads the peaks of the shown device's sessions
 /// about 30 times a second and sets the <c>Level</c> of every session, app and the device. Peaks have no event in Windows, so they
 /// are polled; nothing is read while the mixer is hidden.
 /// </summary>
@@ -32,7 +32,7 @@ public sealed partial class LevelMeters : ObservableObject
 	private OutputDeviceModel? metered;
 
 	/// <summary>
-	/// Whether the mixer's sliders show levels: the meters are on and the shown device isn't muted
+	/// Whether the mixer's sliders show levels: while the shown device isn't muted
 	/// (a muted device plays nothing, so its apps show their plain volume)
 	/// </summary>
 	[ObservableProperty]
@@ -51,7 +51,7 @@ public sealed partial class LevelMeters : ObservableObject
 
 	private void OnStateChanged(object? sender, PropertyChangedEventArgs e)
 	{
-		if(e.PropertyName is nameof(AppBehaviorViewModel.WindowIsVisible) or nameof(AppBehaviorViewModel.LevelMeters)
+		if(e.PropertyName is nameof(AppBehaviorViewModel.WindowIsVisible)
 			or nameof(DeviceProviderViewModel.SelectedDevice))
 			Update();
 	}
@@ -78,7 +78,7 @@ public sealed partial class LevelMeters : ObservableObject
 				metered.Master.PropertyChanged += OnMasterChanged;
 		}
 
-		ShowLevels = window.LevelMeters && device is { Master.IsMuted: false };
+		ShowLevels = device is { Master.IsMuted: false };
 		bool run = ShowLevels && window.WindowIsVisible;
 		if(run && !timer.IsEnabled)
 		{
