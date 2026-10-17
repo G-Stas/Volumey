@@ -262,7 +262,7 @@ internal static class AudioModelFactory
 
 		try
 		{
-			var sessionVolume = new AudioSessionVolume(sControl.SimpleAudioVolume);
+			var sessionVolume = new AudioSessionVolume(sControl.SimpleAudioVolume, sControl.AudioMeterInformation);
 			var muteState = sessionVolume.GetMute();
 			var volume = sessionVolume.GetVolume();
 			var sessionId = sControl.GetSessionIdentifier;

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Afficher le périphérique en bas</value>
   </data>
+  <data name="MixerPage_LevelMeters" xml:space="preserve">
+    <value>Indicateurs de niveau</value>
+  </data>
+  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
+    <value>Affiche dans son curseur le niveau sonore actuel de chaque application.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Volume des applications</value>
   </data>

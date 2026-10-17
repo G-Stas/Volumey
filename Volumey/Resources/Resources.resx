@@ -330,6 +330,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value />
   </data>
+  <data name="MixerPage_LevelMeters" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_LevelMetersHint" xml:space="preserve">
+    <value />
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value />
   </data>

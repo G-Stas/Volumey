@@ -142,6 +142,7 @@
                     Margin="8 0"
                     Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
                     IsMuted="{Binding SelectedDevice.Master.IsMuted}"
+                    Level="{Binding SelectedDevice.Master.Level}"
                     AutomationProperties.Name="{Binding SelectedDevice.Master.DeviceFriendlyName}"
                     AutomationProperties.AutomationId="DeviceVolumeSlider" />
                 <TextBlock

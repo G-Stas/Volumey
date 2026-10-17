@@ -10,16 +10,34 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 public sealed class AudioSessionVolume : IAudioSessionVolume
 {
 	private readonly SimpleAudioVolume sAudioVol;
+	private readonly AudioMeterInformation? meter;
 
 	/// <summary>
 	/// Recognizes session callbacks caused by the writes of this object
 	/// </summary>
 	internal SessionEchoFilter EchoFilter { get; }
 
-	internal AudioSessionVolume(SimpleAudioVolume simpleAudioVolume)
+	internal AudioSessionVolume(SimpleAudioVolume simpleAudioVolume, AudioMeterInformation? meter = null)
 	{
 		sAudioVol = simpleAudioVolume ?? throw new ArgumentNullException(nameof(simpleAudioVolume));
+		this.meter = meter;
 		EchoFilter = new SessionEchoFilter(VolumePercent.FromScalar(GetVolume()), GetMute());
+	}
+
+	/// <summary>
+	/// The session's peak meter (measured before the session volume). Read many times a second while the mixer shows level meters:
+	/// a session that just ended fails, which reads as silence.
+	/// </summary>
+	public float GetPeak()
+	{
+		try
+		{
+			return meter?.MasterPeakValue ?? 0f;
+		}
+		catch
+		{
+			return 0f;
+		}
 	}
 
 	/// <summary>

@@ -119,6 +119,23 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
+	private double _level;
+	/// <summary>
+	/// How loud the device plays (0..1, before the device volume): the loudest app at its volume; set by the mixer's level meters
+	/// </summary>
+	public double Level
+	{
+		get => _level;
+		set
+		{
+			if(_level != value)
+			{
+				_level = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
 	public ICommand MuteCommand { get; set; }
 
 	private HotKey? volumeUp;

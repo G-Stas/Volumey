@@ -41,6 +41,37 @@ public sealed class VolumeSlider : Slider
 	public static bool GetIsMuted(UIElement element)
 		=> (bool)element.GetValue(IsMutedProperty);
 
+	/// <summary>
+	/// How loud the slider's app or device plays (0..1, before its volume): drawn as a bar over the fill, as that share of it,
+	/// so the bar ends where the sound is at this volume
+	/// </summary>
+	public static readonly DependencyProperty LevelProperty
+		= DependencyProperty.Register("Level",
+									  typeof(double),
+									  typeof(VolumeSlider),
+									  new PropertyMetadata(0d));
+
+	public double Level
+	{
+		get => (double)GetValue(LevelProperty);
+		set => SetValue(LevelProperty, value);
+	}
+
+	/// <summary>
+	/// Whether the slider shows its <see cref="Level"/> (the fill is dimmed then). Inherited: set once on the mixer for all its sliders.
+	/// </summary>
+	public static readonly DependencyProperty ShowsLevelProperty
+		= DependencyProperty.RegisterAttached("ShowsLevel",
+											  typeof(bool),
+											  typeof(VolumeSlider),
+											  new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.Inherits));
+
+	public static void SetShowsLevel(UIElement element, bool value)
+		=> element.SetValue(ShowsLevelProperty, value);
+
+	public static bool GetShowsLevel(UIElement element)
+		=> (bool)element.GetValue(ShowsLevelProperty);
+
 	protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
 	{
 		base.OnPreviewMouseLeftButtonDown(e);
