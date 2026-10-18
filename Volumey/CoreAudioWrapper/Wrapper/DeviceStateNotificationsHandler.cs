@@ -1,8 +1,10 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
 using NAudio.CoreAudioApi;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
@@ -93,9 +95,86 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 
 	private void AddIfActiveOutput(string deviceId)
 	{
-		//null for input or inactive devices; their objects are released off the UI thread
-		if(enumerator.CreateDeviceModel(deviceId, this) is OutputDeviceModel model)
-			ActiveDeviceAdded?.Invoke(model);
+		try
+		{
+			//null for input or inactive devices; their objects are released off the UI thread
+			if(enumerator.CreateDeviceModel(deviceId, this) is OutputDeviceModel model)
+				ActiveDeviceAdded?.Invoke(model);
+		}
+		catch(DeviceNotReadyException)
+		{
+			AddWhenReady(deviceId);
+		}
+	}
+
+	/// <summary>Delays of the attempts to read a device Windows refused, about a minute in all</summary>
+	private static readonly TimeSpan[] NotReadyDelays =
+	{
+		TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4),
+		TimeSpan.FromSeconds(8), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30)
+	};
+
+	//the devices being read again; on the UI thread
+	private readonly HashSet<string> notReadyDevices = new HashSet<string>();
+	private volatile bool disposed;
+
+	/// <summary>On the UI thread</summary>
+	public void AddWhenReady(string deviceId, bool atStart = false)
+	{
+		if(notReadyDevices.Add(deviceId))
+			RetryAddAsync(deviceId, atStart).Forget(Logger, "Failed to read a device again");
+	}
+
+	public bool IsAddingStartDevice { get; private set; }
+
+	private async Task RetryAddAsync(string deviceId, bool atStart)
+	{
+		Exception? lastError = null;
+		try
+		{
+			foreach(var delay in NotReadyDelays)
+			{
+				await Task.Delay(delay).ConfigureAwait(false);
+				if(disposed || App.Current?.Dispatcher is not { } dispatcher)
+					return;
+				bool done = await dispatcher.InvokeAsync(() =>
+				{
+					if(disposed)
+						return true;
+					try
+					{
+						//null once the device is gone or no longer active
+						if(enumerator.CreateDeviceModel(deviceId, this) is OutputDeviceModel model)
+						{
+							Logger.Info("Read the output device that Windows refused before");
+							IsAddingStartDevice = atStart;
+							try
+							{
+								ActiveDeviceAdded?.Invoke(model);
+							}
+							finally
+							{
+								IsAddingStartDevice = false;
+							}
+						}
+						return true;
+					}
+					catch(DeviceNotReadyException e)
+					{
+						lastError = e.InnerException;
+						return false;
+					}
+				});
+				if(done)
+					return;
+			}
+			Logger.Error($"Windows refused the output device {NotReadyDelays.Length + 1} times", lastError);
+		}
+		finally
+		{
+			if(App.Current?.Dispatcher is { } dispatcher)
+				_ = dispatcher.InvokeAsync(() => notReadyDevices.Remove(deviceId));
+		}
 	}
 
 	private void OnPropertyValueChanged(object? sender, DevicePropertyChangedEventArgs e)
@@ -133,6 +212,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 
 	public void Dispose()
 	{
+		disposed = true;
 		notificationClient.DefaultDeviceChanged -= OnDefaultDeviceChanged;
 		notificationClient.DeviceAdded -= OnDeviceAdded;
 		notificationClient.DeviceStateChanged -= OnDeviceStateChanged;

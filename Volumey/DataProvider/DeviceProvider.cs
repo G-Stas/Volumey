@@ -85,7 +85,13 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		}
 	}
 
-	public bool IsReadingDevices { get; private set; }
+	public bool IsReadingDevices
+	{
+		get => connecting || deviceStateNotificationHandler?.IsAddingStartDevice == true;
+		private set => connecting = value;
+	}
+
+	private bool connecting;
 
 	private void ReadDevices(IDeviceEnumerator enumerator, IDeviceStateNotificationHandler deviceStateHandler)
 	{
@@ -148,7 +154,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			catch(Exception e)
 			{
 				//everything depends on this object: start without devices (the mixer shows that) and keep trying
-				Logger.Error($"Couldn't reach Windows audio after {QuickAttempts} attempts, trying again in the background", e);
+				Logger.Error(IsAudioServiceMissing(e)
+					? "The Windows Audio service isn't installed, starting without devices"
+					: $"Couldn't reach Windows audio after {QuickAttempts} attempts, trying again in the background", e);
 				var provider = new DeviceProvider();
 				provider.RetryConnectAsync(hotkeys).Forget(Logger, "Failed to retry reaching Windows audio");
 				return provider;
@@ -183,11 +191,18 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			});
 			if(connected)
 				return;
-			//every 12th retry (once an hour after the delay reached 5 minutes), so a lasting failure can't flood Loggly
-			if((retry + 1) % 12 == 0)
+			//every 12th retry (once an hour after the delay reached 5 minutes), so a lasting failure can't flood Loggly.
+			//Without the audio service the start's error said it all: it won't change while the app runs
+			if((retry + 1) % 12 == 0 && !IsAudioServiceMissing(lastError))
 				Logger.Error($"Still can't reach Windows audio after {QuickAttempts + retry + 1} attempts", lastError);
 		}
 	}
+
+	private const int ErrorServiceDoesNotExist = unchecked((int)0x80070424);
+
+	/// <summary>The Windows Audio service isn't installed (Windows editions or builds without it)</summary>
+	internal static bool IsAudioServiceMissing(Exception? e) => e?.HResult == ErrorServiceDoesNotExist;
+
 	public void SetDefaultDevice(string? id)
 	{
 		try
@@ -218,9 +233,15 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			Logger.Info($"Device format set: {format.Bits} bit, {format.SamplesPerSec} Hz (container {format.ContainerBits})");
 			return true;
 		}
+		catch(DeviceFormatException e)
+		{
+			//Windows refused it; the Devices page says so and shows the current format again
+			Logger.Warn($"Windows refused the device format {format.Bits} bit, {format.SamplesPerSec} Hz (container {format.ContainerBits})", e);
+			return false;
+		}
 		catch(Exception e)
 		{
-			//undocumented interface: Windows may refuse the format or the call may stop working with an update
+			//undocumented interface: the call may stop working with an update
 			Logger.Error($"Failed to set the device format {format.Bits} bit, {format.SamplesPerSec} Hz", e);
 			return false;
 		}
@@ -303,6 +324,13 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 				DefaultDeviceChanged?.Invoke(DefaultDevice);
 				NoOutputDevices = false;
 			}
+			//Windows' default device that couldn't be read at first: its default device notification found no model
+			else if(DefaultDevice != newDevice && newDevice.CompareId(deviceEnumerator?.GetDefaultDeviceId()))
+			{
+				Logger.Info($"Default output device changed: [{newDevice.Master.DeviceFriendlyName}]");
+				DefaultDevice = newDevice;
+				DefaultDeviceChanged?.Invoke(DefaultDevice);
+			}
 		});
 	}
 
@@ -361,7 +389,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		//a device only becomes invalid after Connect, which sets both
 		if(deviceEnumerator == null || deviceStateNotificationHandler == null)
 			return false;
-		var fresh = deviceEnumerator.CreateDeviceModel(invalid.Id, deviceStateNotificationHandler);
+		OutputDeviceModel? fresh;
+		try { fresh = deviceEnumerator.CreateDeviceModel(invalid.Id, deviceStateNotificationHandler); }
+		catch(DeviceNotReadyException) { return false; }
 		if(fresh == null)
 			return false;
 

@@ -26,21 +26,32 @@ internal static class AudioModelFactory
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AudioModelFactory));
 
 	/// <returns>Null if the device's audio objects can't be read</returns>
+	/// <exception cref="DeviceNotReadyException">Windows refused the device for a moment; it can be read again later</exception>
 	internal static OutputDeviceModel? CreateOutputDeviceModel(AudioDevice device, IDeviceStateNotificationHandler deviceStateNotificationHandler, IHotkeyService hotkeys)
 	{
+		List<AudioProcessModel>? processes = null;
+		AudioSessionProvider? sessionProvider = null;
 		try
 		{
 			var sessionManager = device.Device.AudioSessionManager;
-			var processes = GetCurrentProcessList(sessionManager.Sessions, hotkeys);
-			var sessionProvider = new AudioSessionProvider(sessionManager, hotkeys);
+			processes = GetCurrentProcessList(sessionManager.Sessions, hotkeys);
+			sessionProvider = new AudioSessionProvider(sessionManager, hotkeys);
 			var master = CreateMaster(device, hotkeys);
 
 			return new OutputDeviceModel(device, deviceStateNotificationHandler, sessionProvider, master, processes);
 		}
 		catch(Exception e)
 		{
-			Logger.Error("Failed to create output device model", e);
-			return null;
+			//the app models registered for Windows' session events when they were created
+			sessionProvider?.Dispose();
+			processes?.ForEach(p => p.Dispose());
+			if(!DeviceNotReadyException.IsTransient(e))
+			{
+				Logger.Error("Failed to create output device model", e);
+				return null;
+			}
+			Logger.Warn("Windows refused the output device for now", e);
+			throw new DeviceNotReadyException(e);
 		}
 	}
 
@@ -66,7 +77,7 @@ internal static class AudioModelFactory
 										  volumeHandler,
 										  hotkeys);
 		}
-		catch(Exception e)
+		catch(Exception e) when(!DeviceNotReadyException.IsTransient(e))
 		{
 			Logger.Error("Failed to create master session", e);
 			throw;
@@ -290,10 +301,12 @@ internal static class AudioModelFactory
 
 	/// <summary>
 	/// Path errors that are expected and only logged as debug (not sent to Loggly): access denied (other users' processes,
-	/// games guarded by anti-cheat), a general failure and an invalid parameter (the process is exiting or has exited).
+	/// games guarded by anti-cheat), a general failure and an invalid parameter (the process is exiting or has exited),
+	/// and a drive that isn't ready (an app started from a drive that was removed since).
 	/// </summary>
 	private static bool IsExpectedPathError(int error)
-		=> error is (int)WIN32_ERROR.ERROR_ACCESS_DENIED or (int)WIN32_ERROR.ERROR_GEN_FAILURE or (int)WIN32_ERROR.ERROR_INVALID_PARAMETER;
+		=> error is (int)WIN32_ERROR.ERROR_ACCESS_DENIED or (int)WIN32_ERROR.ERROR_GEN_FAILURE or (int)WIN32_ERROR.ERROR_INVALID_PARAMETER
+			or (int)WIN32_ERROR.ERROR_NOT_READY;
 
 	/// <summary>Neither the process nor the system's process list had the path</summary>
 	private static void LogPathError(uint processId, int error)

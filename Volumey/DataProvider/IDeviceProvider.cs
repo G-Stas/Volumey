@@ -23,7 +23,8 @@ public interface IDeviceProvider : IDisposable
 	public bool NoOutputDevices { get; set; }
 
 	/// <summary>
-	/// True while the devices are read at start (also when that happens late, after Windows audio couldn't be reached),
+	/// True while the devices are read at start (also when that happens late: after Windows audio couldn't be reached,
+	/// or a device Windows refused at start that is read again),
 	/// so a <see cref="DefaultDeviceChanged"/> then is the start, not a device plugged in
 	/// </summary>
 	public bool IsReadingDevices { get; }

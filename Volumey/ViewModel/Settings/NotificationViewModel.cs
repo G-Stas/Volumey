@@ -73,8 +73,8 @@ public sealed partial class NotificationViewModel : ObservableObject
 	{
 		var previous = _defaultDeviceId;
 		_defaultDeviceId = device?.Id;
-		//the same device's model rebuilt; the devices read at start show nothing, a device plugged in when there was none does
-		if(device == null || previous == device.Id || (previous == null && _deviceProvider.IsReadingDevices))
+		//the same device's model rebuilt, and the devices read at start (also late), show nothing; a device plugged in when there was none does
+		if(device == null || previous == device.Id || _deviceProvider.IsReadingDevices)
 			return;
 		if(NotificationsEnabled && ShowDefaultDeviceChanges)
 			_notifications.ShowDefaultDevice(device.Master);
