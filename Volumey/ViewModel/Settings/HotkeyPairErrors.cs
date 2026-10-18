@@ -1,4 +1,6 @@
 #nullable enable
+using System.Collections.Generic;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
 using Volumey.Localization;
@@ -76,6 +78,15 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 		var kind = Equals(failed, up) ? AppHotkeyKind.Up : Equals(failed, down) ? AppHotkeyKind.Down : AppHotkeyKind.Mute;
 		Set(kind == AppHotkeyKind.Up ? error : ErrorMessageType.None, kind == AppHotkeyKind.Down ? error : ErrorMessageType.None,
 			kind == AppHotkeyKind.Mute ? error : ErrorMessageType.None);
+	}
+
+	/// <summary>
+	/// Shows <paramref name="error"/> under the box of each of <paramref name="failed"/> (an app's hotkeys the system refused), clears the others
+	/// </summary>
+	public void SetFailed(IReadOnlyCollection<HotKey> failed, HotKey? up, HotKey? down, HotKey? mute, ErrorMessageType error)
+	{
+		ErrorMessageType For(HotKey? hotkey) => hotkey != null && failed.Contains(hotkey) ? error : ErrorMessageType.None;
+		Set(For(up), For(down), For(mute));
 	}
 
 	public void Clear() => Set(ErrorMessageType.None, ErrorMessageType.None);

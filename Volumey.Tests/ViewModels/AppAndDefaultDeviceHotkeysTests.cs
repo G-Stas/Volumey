@@ -118,6 +118,34 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void ASavedHotkeyAnotherAppHoldsDoesntStopTheAppsOtherHotkeys()
+	{
+		var taken = new HotKey(Key.M, ModifierKeys.Control | ModifierKeys.Alt);
+		var newUp = new HotKey(Key.U, ModifierKeys.Control | ModifierKeys.Alt);
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down, Mute = taken } };
+		ActivateHotkeys();
+		HotkeyManager.Setup(m => m.RegisterHotkey(taken)).Throws(new System.InvalidOperationException("taken by another app"));
+		var spotify = CreateProcess("Spotify", 50);
+		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
+		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var app = vm.Apps.Single();
+
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], app.Errors.Mute);
+		Assert.AreEqual(string.Empty, app.Errors.VolumeUp);
+		HotkeyManager.Raise(m => m.HotkeyPressed += null, Up);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, spotify.Volume);
+
+		//changing another hotkey works, and the held one keeps its error
+		app.VolumeUp = newUp;
+		Assert.AreEqual(newUp, app.VolumeUp);
+		Assert.AreEqual(newUp, Settings.Hotkeys.Apps.Single().VolumeUp);
+		Assert.AreEqual(string.Empty, app.Errors.VolumeUp);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], app.Errors.Mute);
+		HotkeyManager.Raise(m => m.HotkeyPressed += null, newUp);
+		Assert.AreEqual(50 + 2 * Hotkeys.VolumeStep, spotify.Volume);
+	}
+
+	[TestMethod]
 	public void ClearingAnAppsLastHotkeyRemovesTheApp()
 	{
 		var muteKey = new HotKey(Key.M, ModifierKeys.Control | ModifierKeys.Alt);
@@ -933,6 +961,26 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 
 		vm.HotkeysRegistered = false;
 		Assert.IsNull(Settings.Hotkeys.ForegroundMute);
+	}
+
+	[TestMethod]
+	public void ASavedForegroundHotkeyAnotherAppHoldsDoesntStopTheOthers()
+	{
+		var taken = new HotKey(Key.M, ModifierKeys.Control | ModifierKeys.Alt);
+		Settings.Hotkeys.ForegroundVolumeUp = Up;
+		Settings.Hotkeys.ForegroundMute = taken;
+		HotkeyManager.Setup(m => m.RegisterHotkey(taken)).Throws(new System.InvalidOperationException("taken by another app"));
+		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		ActivateHotkeys();
+
+		HotkeyManager.Verify(m => m.RegisterHotkey(Up), Times.Once);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.Errors.Mute);
+		Assert.AreEqual(string.Empty, vm.Errors.VolumeUp);
+
+		//turning it off releases only what was registered
+		vm.HotkeysRegistered = false;
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(taken), Times.Never);
 	}
 
 	[TestMethod]

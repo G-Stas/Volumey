@@ -3,6 +3,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -87,14 +88,17 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 	}
 
+	/// <summary>The hotkeys registered now, released when it's turned off</summary>
+	private HotKey?[] registered = Array.Empty<HotKey?>();
+
 	private void RegisterLoadedHotkeys()
 	{
-		//saved hotkeys that fail now (e.g. another app took the combination) show an error instead of silently doing nothing;
-		//they stay saved and are tried again on the next start
-		if(hotkeys.RegisterHotkeys(AllHotkeys, out var failed))
-			hotkeys.HotkeyPressed += OnHotkeyPressed;
-		else
-			Errors.SetFor(failed, VolumeUpHotkey, VolumeDownHotkey, ErrorMessageType.VolumeReg);
+		//each on its own: a saved hotkey that fails now (e.g. another app took the combination) shows an error under its box
+		//and doesn't keep the others from working; it stays saved and is tried again on the next start
+		var failed = AllHotkeys.Where(hotkey => hotkey != null && !hotkeys.RegisterHotkey(hotkey)).Select(hotkey => hotkey!).ToList();
+		registered = AllHotkeys.Where(hotkey => hotkey != null && !failed.Contains(hotkey)).ToArray();
+		hotkeys.HotkeyPressed += OnHotkeyPressed;
+		Errors.SetFailed(failed, VolumeUpHotkey, VolumeDownHotkey, MuteHotkey, ErrorMessageType.VolumeReg);
 	}
 
 	private bool SaveHotkeys()
@@ -104,6 +108,7 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 			return false;
 		if(hotkeys.RegisterHotkeys(AllHotkeys, out var failed))
 		{
+			registered = AllHotkeys;
 			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = VolumeUpHotkey;
 			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = VolumeDownHotkey;
 			SettingsProvider.Settings.Hotkeys.ForegroundMute = MuteHotkey;
@@ -120,9 +125,10 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	{
 		try
 		{
-			hotkeys.UnregisterHotkeys(AllHotkeys);
+			hotkeys.UnregisterHotkeys(registered);
 		}
 		catch { }
+		registered = Array.Empty<HotKey?>();
 		Errors.Clear();
 		SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = null;
 		SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = null;

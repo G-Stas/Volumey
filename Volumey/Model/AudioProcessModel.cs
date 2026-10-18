@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -258,35 +259,52 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown) => SetVolumeHotkeys(volUp, volDown, out _);
 
 	/// <param name="failed">The hotkey the system refused, null otherwise</param>
+	/// <summary>Registers both volume hotkeys, or neither</summary>
 	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 	{
 		failed = null;
-		return volUp != null && volDown != null && SetHotkeys(volUp, volDown, null, out failed);
+		if(volUp == null || volDown == null)
+			return false;
+		if(SetHotkeys(volUp, volDown, null, out var refused))
+			return true;
+		ResetVolumeHotkeys();
+		failed = refused[0];
+		return false;
 	}
 
 	/// <summary>
-	/// Registers the app's hotkeys; each is optional, at least one is set. All of them or none: if one fails, nothing is registered.
+	/// Registers the app's hotkeys that are set, each on its own: one the system refuses doesn't keep the others from working
 	/// </summary>
-	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	public bool SetHotkeys(HotKey? volUp, HotKey? volDown, HotKey? mute, out HotKey? failed)
+	/// <param name="failed">The hotkeys the system refused</param>
+	/// <returns>False if any was refused</returns>
+	public bool SetHotkeys(HotKey? volUp, HotKey? volDown, HotKey? mute, out IReadOnlyList<HotKey> failed)
 	{
-		failed = null;
-		if(volUp == null && volDown == null && mute == null)
-			return false;
-		try
+		var refused = new List<HotKey>();
+		HotKey? Register(HotKey? hotkey)
 		{
-			if(_hotkeys.RegisterHotkeys(new[] { volUp, volDown, mute }, out failed))
+			if(hotkey == null)
+				return null;
+			try
 			{
-				_volumeUp = volUp;
-				_volumeDown = volDown;
-				_mute = mute;
-				_hotkeys.HotkeyPressed += OnHotkeyPressed;
-				AnyHotkeyRegistered = true;
-				return true;
+				if(_hotkeys.RegisterHotkey(hotkey))
+					return hotkey;
 			}
+			catch { }
+			refused.Add(hotkey);
+			return null;
 		}
-		catch { }
-		return false;
+
+		_volumeUp = Register(volUp);
+		_volumeDown = Register(volDown);
+		_mute = Register(mute);
+		failed = refused;
+		if(_volumeUp != null || _volumeDown != null || _mute != null)
+		{
+			_hotkeys.HotkeyPressed -= OnHotkeyPressed;
+			_hotkeys.HotkeyPressed += OnHotkeyPressed;
+			AnyHotkeyRegistered = true;
+		}
+		return refused.Count == 0;
 	}
 
 	public void ResetVolumeHotkeys()

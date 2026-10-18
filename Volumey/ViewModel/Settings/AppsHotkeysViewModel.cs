@@ -182,26 +182,24 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	/// </summary>
 	private void SetUpSaved(AudioProcessModel process, AppHotkeysItem app)
 	{
-		if(SetUp(process, app, out var failed))
-			app.Errors.Clear();
-		else
-			app.Errors.SetFor(failed, app.VolumeUp, app.VolumeDown, ErrorMessageType.VolumeReg);
+		SetUp(process, app, out var failed);
+		app.Errors.SetFailed(failed, app.VolumeUp, app.VolumeDown, app.Mute, ErrorMessageType.VolumeReg);
 	}
 
 	/// <summary>
-	/// Registers the app's hotkeys for a running process
+	/// Registers the app's hotkeys for a running process, each on its own: the ones the system refuses don't keep the others from working
 	/// </summary>
-	/// <param name="failed">The hotkey the system refused, null otherwise</param>
-	private bool SetUp(AudioProcessModel process, AppHotkeysItem app, out HotKey? failed)
+	/// <param name="failed">The hotkeys the system refused</param>
+	/// <returns>False if any was refused</returns>
+	private bool SetUp(AudioProcessModel process, AppHotkeysItem app, out IReadOnlyList<HotKey> failed)
 	{
-		if(!process.SetHotkeys(app.VolumeUp, app.VolumeDown, app.Mute, out failed))
-			return false;
+		bool all = process.SetHotkeys(app.VolumeUp, app.VolumeDown, app.Mute, out failed);
 		process.Exited += OnProcessExited;
 		LaunchedProcesses.Add(process);
 		app.Icon = process.IconSource;
 		if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
 			process.SetStateMediator(notifications);
-		return true;
+		return all;
 	}
 
 	/// <summary>
@@ -255,8 +253,9 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		var app = new AppHotkeysItem(this, process.Name, VolumeUp, VolumeDown, Mute);
 		if(!SetUp(process, app, out var failed))
 		{
-			//the hotkey service logs why
-			AddErrors.SetFor(failed, VolumeUp, VolumeDown, ErrorMessageType.VolumeReg);
+			//the dialog stays open with the error; the hotkeys that did register are released again (the hotkey service logs why)
+			Release(process);
+			AddErrors.SetFailed(failed, VolumeUp, VolumeDown, Mute, ErrorMessageType.VolumeReg);
 			return false;
 		}
 
@@ -305,15 +304,19 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 
 		//every running process of the app (it can run as several with the same name) gets the change
 		var processes = LaunchedProcesses.Where(p => p.Name == app.ProcessName).ToList();
+		var refused = new HashSet<HotKey>();
 		if(error == ErrorMessageType.None && processes.Count > 0)
 		{
+			//the hotkey service counts users: the first process registers a hotkey, the others only count, so one fails on the first or not at all
 			foreach(AudioProcessModel process in processes)
-				process.ResetVolumeHotkeys();
-			//the hotkey service counts users: the first process registers the hotkeys, the others only count, so it fails on the first or not at all
-			if(!processes.All(p => p.SetHotkeys(up, down, mute, out _)))
 			{
-				//the hotkey service logs why; the unchanged hotkeys were registered until now, so it's the changed one.
-				//Reset only releases what a process holds, so the ones the new hotkeys didn't reach are fine too
+				process.ResetVolumeHotkeys();
+				process.SetHotkeys(up, down, mute, out var failed);
+				refused.UnionWith(failed);
+			}
+			if(changed != null && refused.Contains(changed))
+			{
+				//the hotkey service logs why. Reset only releases what a process holds, so the old hotkeys go back as they were
 				foreach(AudioProcessModel process in processes)
 				{
 					process.ResetVolumeHotkeys();
@@ -330,7 +333,8 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			app.SetHotkeys(app.VolumeUp, app.VolumeDown, app.Mute);
 			return;
 		}
-		app.Errors.Clear();
+		//an unchanged hotkey that another app holds keeps its error
+		app.Errors.SetFailed(refused, up, down, mute, ErrorMessageType.VolumeReg);
 		app.SetHotkeys(up, down, mute);
 		Logger.Info($"Changed app hotkeys. App: [{app.ProcessName}] +vol: [{up}] -vol: [{down}] mute: [{mute}]");
 		SaveApps();
