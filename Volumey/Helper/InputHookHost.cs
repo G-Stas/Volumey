@@ -21,8 +21,6 @@ internal sealed class InputHookHost
 	/// <summary>Changes are gathered for this long before the hook is replaced: the app registers its hotkeys one by one at start</summary>
 	private static readonly TimeSpan Settle = TimeSpan.FromMilliseconds(150);
 
-	/// <summary>A pause between stopping a hook and starting the next: libuiohook isn't ready for a new one right after the last one ended</summary>
-	private static readonly TimeSpan AfterStop = TimeSpan.FromMilliseconds(300);
 
 	/// <summary>How long a hook may take to start or to stop</summary>
 	private static readonly TimeSpan HookTimeout = TimeSpan.FromSeconds(3);
@@ -40,7 +38,7 @@ internal sealed class InputHookHost
 
 	//only the worker (or Apply when not starting hooks) changes these
 	private IGlobalHook? hook;
-	private Task? hookRun;
+	private Thread? hookThread;
 	private ManualResetEventSlim? hookEnabled;
 	private GlobalHookType? running;
 
@@ -150,8 +148,7 @@ internal sealed class InputHookHost
 	{
 		if(wanted == running)
 			return;
-		if(Stop())
-			Thread.Sleep(AfterStop);
+		Stop();
 		if(wanted is not { } type)
 			return;
 
@@ -168,42 +165,49 @@ internal sealed class InputHookHost
 		var enabled = new ManualResetEventSlim();
 		newHook.HookEnabled += (_, _) => enabled.Set();
 		hookEnabled = enabled;
-		hookRun = newHook.RunAsync(type, useBackgroundThread: true);
-		hookRun.ContinueWith(t => Logger.Error($"The input hook ({type}) failed", t.Exception?.Flatten()), TaskContinuationOptions.OnlyOnFaulted);
+		//Run on an own thread, not RunAsync: RunAsync's task completes before its thread unsets the hook's callback in libuiohook,
+		//which is one for the whole process, so a hook started right after it would lose its callback and get no input
+		hookThread = new Thread(() =>
+		{
+			try
+			{
+				newHook.Run(type);
+			}
+			catch(Exception e)
+			{
+				Logger.Error($"The input hook ({type}) failed", e);
+			}
+		})
+		{
+			IsBackground = true,
+			Name = $"Input hook ({type})",
+		};
+		hookThread.Start();
 		if(!enabled.Wait(HookTimeout))
 			Logger.Warn($"The input hook ({type}) didn't start in time");
 	}
 
 	/// <summary>
-	/// Stops the hook and waits until it has. A hook stopped before it was fully started keeps running in libuiohook,
-	/// and the next one wouldn't work, so a starting hook is waited for first.
+	/// Stops the hook and waits until its thread has ended, which is when libuiohook is free for the next one.
+	/// A hook disposed before it has started isn't stopped (SharpHook only stops a running hook), so a starting hook is waited for first.
 	/// </summary>
-	/// <returns>Whether a hook was stopped</returns>
-	private bool Stop()
+	private void Stop()
 	{
 		if(hook == null)
-			return false;
+			return;
 		hook.KeyPressed -= OnKeyPressed;
 		hook.MousePressed -= OnMousePressed;
 		hook.MouseWheel -= OnMouseWheel;
 		hookEnabled?.Wait(HookTimeout);
 		hook.Dispose();
-		if(hookRun != null)
-		{
-			try
-			{
-				if(!hookRun.Wait(HookTimeout))
-					Logger.Warn("The input hook didn't stop in time");
-			}
-			catch(AggregateException) { }
-		}
+		if(hookThread != null && !hookThread.Join(HookTimeout))
+			Logger.Warn("The input hook didn't stop in time");
 		hook = null;
-		hookRun = null;
+		hookThread = null;
 		hookEnabled?.Dispose();
 		hookEnabled = null;
 		lock(sync)
 			running = null;
-		return true;
 	}
 
 	private void OnKeyPressed(object? sender, KeyboardHookEventArgs e) => KeyPressed?.Invoke(this, e);
