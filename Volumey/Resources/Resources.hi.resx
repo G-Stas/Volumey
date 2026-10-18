@@ -344,7 +344,7 @@
     <value>रद्द करें</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>अन्य ऐप्स को ये कुंजियाँ नहीं मिलतीं। आप इसे सामान्य में बदल सकते हैं।</value>
+    <value>अन्य ऐप्स को ये कुंजियाँ नहीं मिलतीं, लेकिन माउस बटन उन्हें हमेशा मिलते हैं। आप इसे सामान्य में बदल सकते हैं।</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>अन्य ऐप्स को भी ये कुंजियाँ मिलती हैं। व्यवस्थापक ऐप फ़ोकस में होने पर हॉटकी काम नहीं करतीं।</value>
@@ -455,7 +455,34 @@
     <value>{0} की हॉटकी साफ़ करें</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>कोई कुंजी संयोजन दबाएँ</value>
+    <value>कीबोर्ड या माउस पर कोई बटन दबाएँ</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>बायाँ क्लिक</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>दायाँ क्लिक</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>मध्य क्लिक</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>पीछे</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>आगे</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>व्हील ऊपर</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>व्हील नीचे</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>व्हील बाएँ</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>व्हील दाएँ</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>स्क्रीन पर वॉल्यूम परिवर्तन दिखाएँ।</value>

@@ -344,7 +344,7 @@
     <value>Cancelar</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Las demás aplicaciones no reciben estas teclas. Puedes cambiarlo en General.</value>
+    <value>Las demás aplicaciones no reciben estas teclas, pero siempre reciben los botones del mouse. Puedes cambiarlo en General.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Las demás aplicaciones también reciben estas teclas. Los atajos no funcionan mientras una aplicación de administrador tiene el foco.</value>
@@ -455,7 +455,34 @@
     <value>Borrar el atajo de {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Presiona una combinación de teclas</value>
+    <value>Presiona un botón del teclado o del mouse</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Clic izquierdo</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Clic derecho</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Clic central</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Adelante</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Rueda arriba</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Rueda abajo</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Rueda a la izquierda</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Rueda a la derecha</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Muestra los cambios de volumen en pantalla.</value>

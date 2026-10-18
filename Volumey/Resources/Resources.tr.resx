@@ -344,7 +344,7 @@
     <value>İptal</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Diğer uygulamalar bu tuşları almaz. Bunu Genel bölümünden değiştirebilirsiniz.</value>
+    <value>Diğer uygulamalar bu tuşları almaz, ancak fare düğmelerini her zaman alır. Bunu Genel bölümünden değiştirebilirsiniz.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Diğer uygulamalar da bu tuşları alır. Yönetici olarak çalışan bir uygulama odaktayken kısayol tuşları çalışmaz.</value>
@@ -455,7 +455,34 @@
     <value>Kısayol tuşunu temizle: {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Bir tuş bileşimine basın</value>
+    <value>Klavyede veya farede bir düğmeye basın</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Sol tık</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Sağ tık</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Orta tık</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Geri</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>İleri</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Tekerlek yukarı</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Tekerlek aşağı</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Tekerlek sola</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Tekerlek sağa</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Ses düzeyi değişikliklerini ekranda gösterin.</value>

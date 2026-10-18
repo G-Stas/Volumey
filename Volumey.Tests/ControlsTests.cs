@@ -119,7 +119,7 @@ public class ControlsTests
 
 		Assert.HasCount(3, parts);
 		Assert.AreEqual("Windows", parts[1]);
-		Assert.AreEqual(MouseButtons.WheelUp, parts[2]);
+		Assert.AreEqual(MouseButtons.DisplayName(MouseButtons.WheelUp), parts[2]);
 	}
 
 	[TestMethod]
@@ -148,6 +148,28 @@ public class ControlsTests
 
 		box.HotKey = null;
 		Assert.AreEqual(string.Empty, box.Text);
+	}
+
+	[STATestMethod]
+	public void AScreenReaderHearsWhatAnEmptyHotkeyBoxTakes()
+	{
+		//the empty box only shows a keyboard and a mouse icon
+		var box = new HotKeyBox { PlaceholderText = "Press a button on keyboard or mouse" };
+
+		Assert.AreEqual("Press a button on keyboard or mouse", System.Windows.Automation.AutomationProperties.GetHelpText(box));
+	}
+
+	[STATestMethod]
+	public void HotkeyBoxShowsAMouseHotkeyWithTheButtonsName()
+	{
+		var box = new HotKeyBox();
+
+		box.HotKey = HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control);
+
+		Assert.AreEqual(2, box.KeyNames.Count);
+		Assert.AreEqual(MouseButtons.DisplayName(MouseButtons.XButton1), box.KeyNames[1]);
+		Assert.AreNotEqual(MouseButtons.XButton1, box.KeyNames[1], "the name comes from the translations, not the saved name");
+		StringAssert.EndsWith(box.Text, MouseButtons.DisplayName(MouseButtons.XButton1));
 	}
 
 	[STATestMethod]

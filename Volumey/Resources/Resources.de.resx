@@ -344,7 +344,7 @@
     <value>Abbrechen</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Andere Apps erhalten diese Tasten nicht. Sie können dies unter „Allgemein“ ändern.</value>
+    <value>Andere Apps erhalten diese Tasten nicht, Maustasten aber immer. Sie können dies unter „Allgemein“ ändern.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Andere Apps erhalten diese Tasten ebenfalls. Tastenkombinationen funktionieren nicht, solange eine Administrator-App im Fokus ist.</value>
@@ -455,7 +455,34 @@
     <value>Tastenkombination für „{0}“ löschen</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Tastenkombination drücken</value>
+    <value>Taste auf Tastatur oder Maus drücken</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Linksklick</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Rechtsklick</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Mittelklick</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Vorwärts</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Rad nach oben</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Rad nach unten</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Rad nach links</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Rad nach rechts</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Lautstärkeänderungen auf dem Bildschirm anzeigen.</value>

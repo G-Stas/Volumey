@@ -33,4 +33,8 @@ public static class MouseButtons
 	public static bool NeedsModifier(string button) => button is not (XButton1 or XButton2);
 
 	public static bool IsWheel(string button) => button is WheelUp or WheelDown or WheelLeft or WheelRight;
+
+	/// <summary>The button's name in the UI language ("Back button"); the saved name if there's no translation</summary>
+	public static string DisplayName(string button)
+		=> Localization.TranslationSource.Instance[$"MouseButton_{button}"] is { Length: > 0 } name ? name : button;
 }
