@@ -71,15 +71,27 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void TheFirstDefaultDeviceAndARebuiltOneShowNothing()
+	public void TheDevicesReadLateAtStartAndARebuiltDeviceShowNothing()
 	{
 		Settings.Notifications.Enabled = true;
 		CreateNotifications();
-		//devices read late at start, or the first device plugged in
+		//Windows audio reached late at start
+		DeviceProvider.Setup(m => m.IsReadingDevices).Returns(true);
 		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		DeviceProvider.Setup(m => m.IsReadingDevices).Returns(false);
 		//the same device's model rebuilt after a format change
 		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
 		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void ADevicePluggedInWhenThereWasNoneShowsItInTheOsd()
+	{
+		Settings.Notifications.Enabled = true;
+		CreateNotifications();
+		var speakers = CreateDevice("speakers", "Speakers");
+		ChangeDefaultDevice(speakers);
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
 	}
 
 	[TestMethod]
