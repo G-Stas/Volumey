@@ -244,6 +244,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
 		ReadStartMenuStateAsync().Forget(Logger, "Failed to read the Start menu shortcut");
+		ReadSoundSettingsSupportAsync().Forget(Logger, "Failed to check the sound settings");
 
 		SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
 
@@ -392,8 +393,20 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[RelayCommand]
 	private static void SoundControlPanel() => SystemSoundUtilities.StartSoundControlPanel();
 
+	/// <summary>The tray menu's item, shown only while <see cref="CanOpenSoundSettings"/></summary>
 	[RelayCommand]
-	private static void SoundSettings() => SystemSoundUtilities.StartSoundSettings();
+	private static void SoundSettings() => SystemSoundUtilities.StartSoundSettings(fallBackToControlPanel: false);
+
+	/// <summary>The mixer's button, which is always there: the Sound control panel opens when Windows doesn't open the settings</summary>
+	[RelayCommand]
+	private static void MixerSoundSettings() => SystemSoundUtilities.StartSoundSettings(fallBackToControlPanel: true);
+
+	/// <summary>Whether Windows can open the sound settings (the Settings app may be removed)</summary>
+	[ObservableProperty]
+	public partial bool CanOpenSoundSettings { get; private set; } = true;
+
+	private async System.Threading.Tasks.Task ReadSoundSettingsSupportAsync()
+		=> CanOpenSoundSettings = await systemIntegration.CanOpenSoundSettingsAsync();
 
 	[RelayCommand]
 	private void Loaded() => screens.Refresh();

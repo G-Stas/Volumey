@@ -65,6 +65,7 @@
                 <MenuItem
                     Header="{lc:Localization TrayMenu_SoundSettings}"
                     Command="{Binding Window.SoundSettingsCommand}"
+                    Visibility="{Binding Window.CanOpenSoundSettings, Converter={StaticResource BoolToVisibility}}"
                     Icon="{ui:SymbolIcon Open24}" />
                 <Separator />
                 <MenuItem

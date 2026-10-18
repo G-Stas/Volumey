@@ -29,7 +29,7 @@
                            Padding="10 6"
                            Icon="{ui:SymbolIcon Open24}"
                            Content="{lc:Localization TrayMenu_SoundSettings}"
-                           Command="{Binding Window.SoundSettingsCommand}" />
+                           Command="{Binding Window.MixerSoundSettingsCommand}" />
                 <ui:Button DockPanel.Dock="Right"
                            Style="{StaticResource IconButton}"
                            ToolTip="{lc:Localization Mixer_OpenSettings}"

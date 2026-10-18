@@ -37,6 +37,27 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		=> new AppBehaviorViewModel(hotkeys ?? Hotkeys, screens.Object, shell.Object, systemIntegration.Object);
 
 	[TestMethod]
+	[DataRow(true)]
+	[DataRow(false)]
+	public void TheSoundSettingsAreOfferedOnlyWhenWindowsCanOpenThem(bool canOpen)
+	{
+		systemIntegration.Setup(m => m.CanOpenSoundSettingsAsync()).ReturnsAsync(canOpen);
+		var vm = CreateAppBehavior();
+		Assert.AreEqual(canOpen, vm.CanOpenSoundSettings);
+	}
+
+	[TestMethod]
+	public void TheSoundSettingsStayOfferedUntilTheCheckEnds()
+	{
+		var check = new System.Threading.Tasks.TaskCompletionSource<bool>();
+		systemIntegration.Setup(m => m.CanOpenSoundSettingsAsync()).Returns(check.Task);
+		var vm = CreateAppBehavior();
+		Assert.IsTrue(vm.CanOpenSoundSettings);
+		check.SetResult(false);
+		Assert.IsFalse(vm.CanOpenSoundSettings);
+	}
+
+	[TestMethod]
 	public void AChangedDistanceShowsTheSampleOsdWhereItLands()
 	{
 		Settings.Notifications.HorizontalIndent = 30;
