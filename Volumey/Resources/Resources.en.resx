@@ -403,7 +403,7 @@
     <value>Cancel</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Other apps don't get these keys. You can change this in General.</value>
+    <value>Other apps don&apos;t get these keys, but they always get mouse buttons. You can change this in General.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Other apps get these keys too. Hotkeys don't work while an admin app is in focus.</value>
@@ -514,7 +514,34 @@
     <value>Clear the hotkey for {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Press a key combination</value>
+    <value>Press a button on keyboard or mouse</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Left click</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Right click</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Middle click</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Wheel up</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Wheel down</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Wheel left</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Wheel right</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Show volume changes on screen.</value>

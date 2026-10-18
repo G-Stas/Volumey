@@ -344,7 +344,7 @@
     <value>Annuler</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Les autres applications ne reçoivent pas ces touches. Vous pouvez modifier ce comportement dans Général.</value>
+    <value>Les autres applications ne reçoivent pas ces touches, mais elles reçoivent toujours les boutons de la souris. Vous pouvez modifier ce comportement dans Général.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Les autres applications reçoivent aussi ces touches. Les raccourcis clavier ne fonctionnent pas lorsqu'une application administrateur est au premier plan.</value>
@@ -455,7 +455,34 @@
     <value>Effacer le raccourci clavier de {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Appuyez sur une combinaison de touches</value>
+    <value>Appuyez sur une touche du clavier ou un bouton de la souris</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Clic gauche</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Clic droit</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Clic central</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Précédent</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Suivant</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Molette vers le haut</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Molette vers le bas</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Molette vers la gauche</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Molette vers la droite</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Afficher les changements de volume à l'écran.</value>

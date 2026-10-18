@@ -98,7 +98,7 @@ public sealed class HotKey : IEquatable<HotKey>
 			names.Add(GetLocalizedKeyStringUnsafe(VK_SHIFT) ?? "Shift");
 		if((ModifierKeys & ModifierKeys.Windows) == ModifierKeys.Windows)
 			names.Add("Windows");
-		names.Add(Source == InputSource.Mouse ? Button ?? string.Empty : GetLocalizedKeyString(Key));
+		names.Add(Source == InputSource.Mouse ? MouseButtons.DisplayName(Button ?? string.Empty) : GetLocalizedKeyString(Key));
 		return names;
 	}
 

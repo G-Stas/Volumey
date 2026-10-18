@@ -344,7 +344,7 @@
     <value>Cancelar</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Outros aplicativos não recebem essas teclas. Você pode alterar isso em Geral.</value>
+    <value>Outros aplicativos não recebem essas teclas, mas sempre recebem os botões do mouse. Você pode alterar isso em Geral.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Outros aplicativos também recebem essas teclas. As teclas de atalho não funcionam enquanto um aplicativo de administrador está em foco.</value>
@@ -455,7 +455,34 @@
     <value>Limpar a tecla de atalho de {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Pressione uma combinação de teclas</value>
+    <value>Pressione um botão do teclado ou do mouse</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Clique esquerdo</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Clique direito</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Clique do meio</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Voltar</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Avançar</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Roda para cima</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Roda para baixo</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Roda para a esquerda</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Roda para a direita</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Mostrar as alterações de volume na tela.</value>

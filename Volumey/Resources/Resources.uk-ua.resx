@@ -344,7 +344,7 @@
     <value>Скасувати</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Інші програми не отримують ці клавіші. Це можна змінити в розділі "Загальні".</value>
+    <value>Інші програми не отримують ці клавіші, але кнопки миші отримують завжди. Це можна змінити в розділі &quot;Загальні&quot;.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Інші програми теж отримують ці клавіші. Сполучення клавіш не працюють, коли у фокусі програма адміністратора.</value>
@@ -455,7 +455,34 @@
     <value>Очистити сполучення клавіш: {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Натисніть сполучення клавіш</value>
+    <value>Натисніть кнопку на клавіатурі або миші</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>ЛКМ</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>ПКМ</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>СКМ</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Вперед</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Коліщатко вгору</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Коліщатко вниз</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Коліщатко вліво</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Коліщатко вправо</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Показувати зміни гучності на екрані.</value>

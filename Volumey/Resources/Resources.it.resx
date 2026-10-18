@@ -344,7 +344,7 @@
     <value>Annulla</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Le altre app non ricevono questi tasti. Puoi modificare questa opzione in Generale.</value>
+    <value>Le altre app non ricevono questi tasti, ma ricevono sempre i pulsanti del mouse. Puoi modificare questa opzione in Generale.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Anche le altre app ricevono questi tasti. I tasti di scelta rapida non funzionano quando è attiva un'app di amministratore.</value>
@@ -455,7 +455,34 @@
     <value>Cancella il tasto di scelta rapida per {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Premi una combinazione di tasti</value>
+    <value>Premi un tasto della tastiera o del mouse</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Clic sinistro</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Clic destro</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Clic centrale</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Indietro</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Avanti</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Rotellina su</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Rotellina giù</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Rotellina a sinistra</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Rotellina a destra</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Mostra le modifiche del volume sullo schermo.</value>

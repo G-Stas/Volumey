@@ -516,6 +516,33 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value />
   </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value />
+  </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value />
   </data>

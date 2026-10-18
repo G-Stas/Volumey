@@ -344,7 +344,7 @@
     <value>キャンセル</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>他のアプリにはこれらのキーが届きません。[全般] で変更できます。</value>
+    <value>他のアプリにはこれらのキーが届きませんが、マウス ボタンは常に届きます。[全般] で変更できます。</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>他のアプリにもこれらのキーが届きます。管理者として実行中のアプリにフォーカスがある間、ホットキーは動作しません。</value>
@@ -455,7 +455,34 @@
     <value>{0} のホットキーをクリア</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>キーの組み合わせを押してください</value>
+    <value>キーボードまたはマウスのボタンを押してください</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>左クリック</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>右クリック</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>中クリック</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>戻る</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>進む</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>ホイール上</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>ホイール下</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>ホイール左</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>ホイール右</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>音量の変化を画面に表示します。</value>

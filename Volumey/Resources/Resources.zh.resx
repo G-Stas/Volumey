@@ -344,7 +344,7 @@
     <value>取消</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>其他应用不会收到这些按键。可以在“常规”中更改。</value>
+    <value>其他应用不会收到这些按键，但始终会收到鼠标按钮。可以在“常规”中更改。</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>其他应用也会收到这些按键。管理员应用处于焦点时，快捷键无效。</value>
@@ -455,7 +455,34 @@
     <value>清除 {0} 的快捷键</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>按下组合键</value>
+    <value>按下键盘或鼠标上的按钮</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>左键单击</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>右键单击</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>中键单击</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>后退</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>前进</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>滚轮向上</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>滚轮向下</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>滚轮向左</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>滚轮向右</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>在屏幕上显示音量变化。</value>

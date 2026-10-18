@@ -344,7 +344,7 @@
     <value>Отмена</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Другие приложения не получают эти клавиши. Это можно изменить в разделе «Общие».</value>
+    <value>Другие приложения не получают эти клавиши, но кнопки мыши получают всегда. Это можно изменить в разделе «Общие».</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Другие приложения тоже получают эти клавиши. Сочетания не работают, когда в фокусе приложение администратора.</value>
@@ -455,7 +455,34 @@
     <value>Очистить сочетание клавиш: {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Нажмите сочетание клавиш</value>
+    <value>Нажмите кнопку на клавиатуре или мыши</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>ЛКМ</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>ПКМ</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>СКМ</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Вперёд</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Колесо вверх</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Колесо вниз</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Колесо влево</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Колесо вправо</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Показ изменений громкости на экране.</value>
