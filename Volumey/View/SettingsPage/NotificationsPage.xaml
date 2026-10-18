@@ -99,6 +99,17 @@
                              AutomationProperties.Name="{lc:Localization Notifications_ReactAllTitle}"
                              AutomationProperties.AutomationId="ReactAllToggle" />
         </ui:CardControl>
+        <ui:CardControl Icon="{ui:SymbolIcon Headphones24}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_DefaultDeviceTitle}" />
+                    <TextBlock Text="{lc:Localization Notifications_DefaultDeviceHint}" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl.Header>
+            <ui:ToggleSwitch IsChecked="{Binding ShowDefaultDeviceChanges}"
+                             AutomationProperties.Name="{lc:Localization Notifications_DefaultDeviceTitle}"
+                             AutomationProperties.AutomationId="DefaultDeviceOsdToggle" />
+        </ui:CardControl>
 
         <TextBlock Text="{lc:Localization Notifications_PositionHeader}" Style="{StaticResource SectionHeader}" />
         <!-- only with several screens -->

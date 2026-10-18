@@ -502,6 +502,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>包括其他应用和 Windows 进行的更改</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>默认设备更改</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>默认设备更改时显示新的输出设备</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>位置</value>
   </data>

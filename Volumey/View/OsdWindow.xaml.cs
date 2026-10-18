@@ -16,7 +16,7 @@ using Windows.Win32.UI.WindowsAndMessaging;
 namespace Volumey.View;
 
 /// <summary>
-/// The on-screen display: a pill per app or device whose volume changed (at most <see cref="MaxPills"/>), in a corner of a screen,
+/// The on-screen display: a pill per app or device whose volume changed, and one for a new default device (at most <see cref="MaxPills"/>), in a corner of a screen,
 /// each closing after the display time unless the mouse is over it. UI thread only.
 /// </summary>
 public sealed partial class OsdWindow
@@ -26,7 +26,7 @@ public sealed partial class OsdWindow
 
 	private sealed class Entry
 	{
-		public required OsdPill Pill;
+		public required FrameworkElement Pill;
 		public DispatcherTimer? Timer;
 		public bool Closing;
 	}
@@ -116,9 +116,20 @@ public sealed partial class OsdWindow
 	/// </summary>
 	/// <param name="displayTime">null: until <see cref="Close"/></param>
 	public void Show(string key, IManagedMasterAudioSession session, TimeSpan? displayTime)
+		=> Show(key, session, () => new OsdPill(session), displayTime);
+
+	/// <summary>
+	/// Shows the new default device's pill; a pill still shown for the previous switch shows the new device instead
+	/// </summary>
+	public void ShowDefaultDevice(string key, IManagedMasterAudioSession device, TimeSpan? displayTime)
+		=> Show(key, device, () => new OsdDevicePill(device), displayTime);
+
+	/// <param name="content">The pill's data context; a shown pill of the key takes it</param>
+	private void Show(string key, object content, Func<FrameworkElement> createPill, TimeSpan? displayTime)
 	{
 		if(entries.TryGetValue(key, out var entry) && !entry.Closing)
 		{
+			entry.Pill.DataContext = content;
 			RestartTimer(entry);
 			return;
 		}
@@ -131,7 +142,8 @@ public sealed partial class OsdWindow
 			Close(oldest.Key);
 		}
 
-		var pill = new OsdPill(session) { Opacity = 0 };
+		var pill = createPill();
+		pill.Opacity = 0;
 		entry = new Entry { Pill = pill };
 		if(displayTime is { } time)
 		{

@@ -561,6 +561,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Also changes from other apps and Windows</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Default device changes</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Show the new output device when the default one changes</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Position</value>
   </data>

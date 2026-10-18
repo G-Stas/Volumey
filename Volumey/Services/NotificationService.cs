@@ -83,6 +83,11 @@ internal sealed class NotificationService : INotificationService
 	public void CloseNotification(IManagedMasterAudioSession session)
 		=> Try(() => window?.Close(session.Id), "Failed to close notification");
 
+	private const string DefaultDeviceKey = "1F0B6C1E-5A3D-4C59-9E0B-2D6F2E8A7C41";
+
+	public void ShowDefaultDevice(IManagedMasterAudioSession device)
+		=> Try(() => Window.ShowDefaultDevice(DefaultDeviceKey, device, displayTime), "Failed to display the default device notification");
+
 	public IManagedMasterAudioSession Example
 	{
 		get

@@ -58,6 +58,55 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void ASwitchToAnotherDefaultDeviceShowsItInTheOsd()
+	{
+		Settings.Notifications.Enabled = true;
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		CreateNotifications();
+
+		ChangeDefaultDevice(headphones);
+		Notifications.Verify(m => m.ShowDefaultDevice(headphones.Master), Times.Once);
+	}
+
+	[TestMethod]
+	public void TheFirstDefaultDeviceAndARebuiltOneShowNothing()
+	{
+		Settings.Notifications.Enabled = true;
+		CreateNotifications();
+		//devices read late at start, or the first device plugged in
+		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		//the same device's model rebuilt after a format change
+		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	[DataRow(false, true)]
+	[DataRow(true, false)]
+	public void ADefaultDeviceSwitchShowsNothingWhileTheOsdOrItsSwitchIsOff(bool osd, bool deviceChanges)
+	{
+		Settings.Notifications.Enabled = osd;
+		Settings.Notifications.ShowDefaultDeviceChanges = deviceChanges;
+		SetDefaultDevice(CreateDevice("speakers", "Speakers"));
+		var vm = CreateNotifications();
+		Assert.AreEqual(deviceChanges, vm.ShowDefaultDeviceChanges);
+
+		ChangeDefaultDevice(CreateDevice("headphones", "Headphones"));
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void TheDefaultDeviceSwitchIsOnByDefaultAndSaved()
+	{
+		Assert.IsTrue(new NotificationSettings().ShowDefaultDeviceChanges);
+		var vm = CreateNotifications();
+		vm.ShowDefaultDeviceChanges = false;
+		Assert.IsFalse(Settings.Notifications.ShowDefaultDeviceChanges);
+	}
+
+	[TestMethod]
 	public void AChangedDistanceShowsTheSampleOsdWhereItLands()
 	{
 		Settings.Notifications.HorizontalIndent = 30;
