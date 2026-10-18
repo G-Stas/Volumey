@@ -97,7 +97,6 @@ public sealed class HotKeyBox : TextBox
 		PreviewKeyDown -= TextBoxOnPreviewKeyDown2;
 		PreviewKeyUp -= OnPreviewKeyUp;
 		PreviewMouseDown -= OnPreviewMouseDown;
-		PreviewMouseUp -= OnPreviewMouseUp;
 		PreviewMouseWheel -= OnPreviewMouseWheel;
 		GotKeyboardFocus -= TextBoxOnGotFocus;
 		LostKeyboardFocus -= TextBoxOnLostFocus;
@@ -110,7 +109,6 @@ public sealed class HotKeyBox : TextBox
 		PreviewKeyDown += TextBoxOnPreviewKeyDown2;
 		PreviewKeyUp += OnPreviewKeyUp;
 		PreviewMouseDown += OnPreviewMouseDown;
-		PreviewMouseUp += OnPreviewMouseUp;
 		PreviewMouseWheel += OnPreviewMouseWheel;
 		//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
 		//which would leave every hotkey ignored (and swallowed) until focus moved inside the window again
@@ -215,22 +213,14 @@ public sealed class HotKeyBox : TextBox
 		};
 		//a taken side button would also go back in the settings' navigation
 		if(button != null && TakeMouseButton(button))
-		{
 			e.Handled = true;
-			takenRightClick = button == MouseButtons.Right;
-		}
 	}
 
-	/// <summary>A right click the box took as its hotkey: its release would open the text box's menu</summary>
-	private bool takenRightClick;
-
-	private void OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
+	/// <summary>No menu: a text box's Copy/Cut/Paste have nothing to do in a hotkey box (a right click with a modifier is a hotkey)</summary>
+	protected override void OnContextMenuOpening(ContextMenuEventArgs e)
 	{
-		if(e.ChangedButton == MouseButton.Right && takenRightClick)
-		{
-			takenRightClick = false;
-			e.Handled = true;
-		}
+		e.Handled = true;
+		base.OnContextMenuOpening(e);
 	}
 
 	/// <summary>The wheel over the box while it's being edited, only with a modifier key held (a plain scroll scrolls the page)</summary>

@@ -260,7 +260,7 @@ public class MouseHotkeyTests : UiTest
 	}
 
 	[TestMethod]
-	public void PlainLeftAndRightClicksOnABoxAreJustClicks()
+	public void PlainLeftAndRightClicksOnABoxAreJustClicksAndOpenNoMenu()
 	{
 		StartApp();
 		Settings.Open("NavDevices", "DeviceMuteBox");
@@ -270,15 +270,13 @@ public class MouseHotkeyTests : UiTest
 		Click(MouseButton.Left);
 		Click(MouseButton.Right);
 		Assert.AreEqual(string.Empty, BoxText("DeviceMuteBox"), "a plain click was taken as a hotkey");
-		//a plain right click is the text box's menu; Esc goes to the menu then, not to the box
-		Assert.IsTrue(Eventually(() => UntitledWindows() > untitled, 1000), "a plain right click didn't open the box's menu");
-		Keyboard.Type(VirtualKeyShort.ESCAPE);
-		Assert.IsTrue(Eventually(() => UntitledWindows() == untitled), "the box's menu didn't close");
+		//a hotkey box has no Copy/Cut/Paste menu
+		Assert.IsFalse(Eventually(() => UntitledWindows() > untitled, 700), "a plain right click opened a menu");
 
 		PointAt("DeviceMuteBox");
 		WithCtrl(() => Click(MouseButton.Right));
 		Assert.AreEqual("Ctrl+Right click", BoxText("DeviceMuteBox"), "Ctrl+right click isn't taken");
-		Assert.IsFalse(Eventually(() => UntitledWindows() > untitled, 700), "a right click the box took also opened its menu");
+		Assert.IsFalse(Eventually(() => UntitledWindows() > untitled, 700), "a right click the box took opened a menu");
 		Settings.LeaveBox();
 	}
 
