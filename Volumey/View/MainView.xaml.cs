@@ -140,17 +140,75 @@ public sealed partial class MainView
 		BindingOperations.SetBinding(this, TrayIconImageProperty, (MultiBinding)TryFindResource("TrayIconBinding"));
 		BindingOperations.SetBinding(this, TrayToolTipTextProperty, (MultiBinding)TryFindResource("TrayTextTooltip"));
 
-		//TaskbarIcon creates itself on Loaded, but the window starts hidden, so it may never load.
-		//Efficiency mode stays off: it would throttle hotkeys and audio callbacks
-		UpdateTrayIcon(tray => tray.ForceCreate(enablesEfficiencyMode: false), "create");
+		CreateTrayIcon();
+	}
+
+	/// <summary>Delays of the attempts to create the tray icon again after Explorer refused it, then every minute</summary>
+	private static readonly TimeSpan[] TrayRetryDelays =
+		{ TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1) };
+
+	private DispatcherTimer? trayRetryTimer;
+	private int trayRetry;
+	/// <summary>Failed tray calls since the icon last worked; only the first of an outage is logged</summary>
+	private int trayFailures;
+	private System.Drawing.Icon? trayIconImage;
+
+	/// <summary>
+	/// Creates the tray icon (again) with the current icon and tooltip. Explorer can refuse it, e.g. while it starts at sign-in or is busy;
+	/// it only tells about its own restarts (H.NotifyIcon creates the icon again then), so a refused icon is retried here.
+	/// </summary>
+	private void CreateTrayIcon()
+	{
+		try
+		{
+			var tray = Tray.TrayIcon;
+			//a create that failed halfway may have added the icon; Create deletes a leftover first
+			_ = tray.TryRemove();
+			//not created: these only keep the values that Create uses
+			Tray.UpdateIcon(trayIconImage);
+			tray.UpdateToolTip(trayToolTip ?? string.Empty);
+			//TaskbarIcon creates itself on Loaded, but the window starts hidden, so it may never load.
+			//Efficiency mode stays off: it would throttle hotkeys and audio callbacks
+			Tray.ForceCreate(enablesEfficiencyMode: false);
+		}
+		catch(Exception e) when(e is InvalidOperationException or ObjectDisposedException or Win32Exception)
+		{
+			OnTrayFailed("create", e);
+			return;
+		}
+		if(trayFailures > 0)
+			Logger.Info($"Created the tray icon again after {trayFailures} failed tray calls");
+		trayFailures = 0;
+		trayRetry = 0;
+	}
+
+	/// <summary>A tray call failed: Explorer refused the icon or no longer has it. The icon is created again with growing delays</summary>
+	private void OnTrayFailed(string action, Exception e)
+	{
+		if(trayFailures++ == 0)
+			Logger.Warn($"Failed to {action} the tray icon, creating it again", e);
+		if(trayRetryTimer is { IsEnabled: true })
+			return;
+		trayRetryTimer ??= new DispatcherTimer(DispatcherPriority.Background, Dispatcher);
+		trayRetryTimer.Interval = TrayRetryDelays[Math.Min(trayRetry++, TrayRetryDelays.Length - 1)];
+		trayRetryTimer.Tick -= OnTrayRetryTick;
+		trayRetryTimer.Tick += OnTrayRetryTick;
+		trayRetryTimer.Start();
+	}
+
+	private void OnTrayRetryTick(object? sender, EventArgs e)
+	{
+		trayRetryTimer?.Stop();
+		CreateTrayIcon();
 	}
 
 	private static void OnTrayIconImageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 	{
-		var icon = e.NewValue as System.Drawing.Icon;
-		((MainView)d).UpdateTrayIcon(tray =>
+		var view = (MainView)d;
+		view.trayIconImage = e.NewValue as System.Drawing.Icon;
+		view.UpdateTrayIcon(tray =>
 		{
-			if(!tray.UpdateIcon(icon))
+			if(!tray.UpdateIcon(view.trayIconImage))
 				throw new InvalidOperationException("Shell_NotifyIcon failed");
 		}, "update the icon of");
 	}
@@ -193,19 +251,28 @@ public sealed partial class MainView
 		if(pendingTrayToolTip is not { } text)
 			return;
 		pendingTrayToolTip = null;
+		trayToolTip = text;
 		UpdateTrayIcon(tray => tray.TrayIcon.UpdateToolTip(text), "update the tooltip of");
 	}
 
+	/// <summary>The tooltip last sent, for creating the icon again</summary>
+	private string? trayToolTip;
+
+	/// <summary>
+	/// Changes the shell icon. While it's being created again only the new value is kept (CreateTrayIcon sends it);
+	/// a failed change means Explorer no longer has the icon, so it's created again
+	/// </summary>
 	private void UpdateTrayIcon(Action<TaskbarIcon> update, string action)
 	{
+		if(trayFailures > 0)
+			return;
 		try
 		{
 			update(Tray);
 		}
 		catch(Exception e) when(e is InvalidOperationException or ObjectDisposedException or Win32Exception)
 		{
-			//the icon is created again with the last icon and tooltip when the taskbar comes back
-			Logger.Warn($"Failed to {action} the tray icon", e);
+			OnTrayFailed(action, e);
 		}
 	}
 
