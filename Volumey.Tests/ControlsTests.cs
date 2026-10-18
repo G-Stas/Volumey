@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -148,6 +149,19 @@ public class ControlsTests
 
 		box.HotKey = null;
 		Assert.AreEqual(string.Empty, box.Text);
+	}
+
+	[STATestMethod]
+	public void AHotkeyBoxOpensNoMenu()
+	{
+		var box = new HotKeyBox();
+		var args = (ContextMenuEventArgs)System.Activator.CreateInstance(typeof(ContextMenuEventArgs),
+			System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new object[] { box, true }, null)!;
+		args.RoutedEvent = FrameworkElement.ContextMenuOpeningEvent;
+
+		box.RaiseEvent(args);
+
+		Assert.IsTrue(args.Handled, "the box let its Copy/Cut/Paste menu open");
 	}
 
 	[STATestMethod]
