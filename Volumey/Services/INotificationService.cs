@@ -15,7 +15,7 @@ public interface INotificationService : IAudioProcessStateMediator
 	void CloseNotification(IManagedMasterAudioSession session);
 
 	/// <summary>
-	/// Shows the new default output device's name for the display time; a later switch replaces it in the same pill
+	/// Shows the new default output device's name for the display time, in a pill of its own for each switch
 	/// </summary>
 	void ShowDefaultDevice(IManagedMasterAudioSession device);
 

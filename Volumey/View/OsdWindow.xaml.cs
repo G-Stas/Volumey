@@ -116,20 +116,18 @@ public sealed partial class OsdWindow
 	/// </summary>
 	/// <param name="displayTime">null: until <see cref="Close"/></param>
 	public void Show(string key, IManagedMasterAudioSession session, TimeSpan? displayTime)
-		=> Show(key, session, () => new OsdPill(session), displayTime);
+		=> Show(key, () => new OsdPill(session), displayTime);
 
 	/// <summary>
-	/// Shows the new default device's pill; a pill still shown for the previous switch shows the new device instead
+	/// Shows a new default device's pill
 	/// </summary>
 	public void ShowDefaultDevice(string key, IManagedMasterAudioSession device, TimeSpan? displayTime)
-		=> Show(key, device, () => new OsdDevicePill(device), displayTime);
+		=> Show(key, () => new OsdDevicePill(device), displayTime);
 
-	/// <param name="content">The pill's data context; a shown pill of the key takes it</param>
-	private void Show(string key, object content, Func<FrameworkElement> createPill, TimeSpan? displayTime)
+	private void Show(string key, Func<FrameworkElement> createPill, TimeSpan? displayTime)
 	{
 		if(entries.TryGetValue(key, out var entry) && !entry.Closing)
 		{
-			entry.Pill.DataContext = content;
 			RestartTimer(entry);
 			return;
 		}
