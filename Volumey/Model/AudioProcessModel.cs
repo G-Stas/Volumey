@@ -150,6 +150,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private HotKey? _volumeUp;
 	private HotKey? _volumeDown;
+	private HotKey? _mute;
 
 	public ICommand MuteCommand { get; set; }
 
@@ -260,12 +261,25 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	public bool SetVolumeHotkeys(HotKey? volUp, HotKey? volDown, out HotKey? failed)
 	{
 		failed = null;
+		return volUp != null && volDown != null && SetHotkeys(volUp, volDown, null, out failed);
+	}
+
+	/// <summary>
+	/// Registers the app's hotkeys; each is optional, at least one is set. All of them or none: if one fails, nothing is registered.
+	/// </summary>
+	/// <param name="failed">The hotkey the system refused, null otherwise</param>
+	public bool SetHotkeys(HotKey? volUp, HotKey? volDown, HotKey? mute, out HotKey? failed)
+	{
+		failed = null;
+		if(volUp == null && volDown == null && mute == null)
+			return false;
 		try
 		{
-			if(volUp != null && volDown != null && _hotkeys.RegisterHotkeysPair(volUp, volDown, out failed))
+			if(_hotkeys.RegisterHotkeys(new[] { volUp, volDown, mute }, out failed))
 			{
 				_volumeUp = volUp;
 				_volumeDown = volDown;
+				_mute = mute;
 				_hotkeys.HotkeyPressed += OnHotkeyPressed;
 				AnyHotkeyRegistered = true;
 				return true;
@@ -282,17 +296,14 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private void UnregisterHotkeys()
 	{
-		if(_volumeUp != null && _volumeDown != null)
+		try
 		{
-			try
-			{
-				_hotkeys.UnregisterHotkeysPair(_volumeUp, _volumeDown);
-			}
-			catch { }
+			_hotkeys.UnregisterHotkeys(new[] { _volumeUp, _volumeDown, _mute });
 		}
+		catch { }
 		_hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		AnyHotkeyRegistered = false;
-		_volumeUp = _volumeDown = null;
+		_volumeUp = _volumeDown = _mute = null;
 	}
 
 	public void SetVolume(int newValue, bool notify, Guid guid)
@@ -327,6 +338,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			SetVolume(Volume + _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 		else if(hotkey.Equals(_volumeDown))
 			SetVolume(Volume - _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+		//the whole app: all its sessions, like the mixer's mute button
+		else if(hotkey.Equals(_mute))
+			SetMute(!IsMuted, notify: true, GuidValue.Internal.Empty);
 	}
 
 	private int _exitedInvoked;

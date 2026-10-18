@@ -5,13 +5,14 @@ using Volumey.Controls;
 namespace Volumey.DataProvider.Settings;
 
 /// <summary>
-/// Volume hotkeys registered for an application, matched by its process name.
+/// Hotkeys registered for an application, matched by its process name; each is optional, an app has at least one.
 /// </summary>
 public sealed class AppHotkeysEntry
 {
 	public string ProcessName { get; set; } = string.Empty;
 	public HotKey? VolumeUp { get; set; }
 	public HotKey? VolumeDown { get; set; }
+	public HotKey? Mute { get; set; }
 }
 
 /// <summary>

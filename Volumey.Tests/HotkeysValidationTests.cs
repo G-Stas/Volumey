@@ -75,4 +75,22 @@ public class HotkeysValidationTests
 		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.Diff), hotkeys.CheckHotkeysPair(free, free));
 		Assert.AreEqual((ErrorMessageType.None, ErrorMessageType.None), hotkeys.CheckHotkeysPair(free, new HotKey(Key.B, ModifierKeys.Control)));
 	}
+
+	[TestMethod]
+	public void AppHotkeysAreEachOptionalButNotAllMissingAndNotTwice()
+	{
+		var existingHotkey = new HotKey(Key.F1, ModifierKeys.Control);
+		SettingsProvider.Settings.Hotkeys.DeviceMute = existingHotkey;
+		var a = new HotKey(Key.A, ModifierKeys.Control);
+		var b = new HotKey(Key.B, ModifierKeys.Control);
+		var none = ErrorMessageType.None;
+
+		Assert.AreEqual((ErrorMessageType.Missing, none, none), hotkeys.CheckAppHotkeys(null, null, null));
+		Assert.AreEqual((none, none, none), hotkeys.CheckAppHotkeys(a, null, null));
+		Assert.AreEqual((none, none, none), hotkeys.CheckAppHotkeys(null, null, a));
+		Assert.AreEqual((none, none, none), hotkeys.CheckAppHotkeys(a, b, null));
+		Assert.AreEqual((none, none, ErrorMessageType.Diff), hotkeys.CheckAppHotkeys(a, null, a));
+		Assert.AreEqual((none, none, ErrorMessageType.Diff), hotkeys.CheckAppHotkeys(null, b, b));
+		Assert.AreEqual((none, ErrorMessageType.HotkeyExists, none), hotkeys.CheckAppHotkeys(a, existingHotkey, b));
+	}
 }

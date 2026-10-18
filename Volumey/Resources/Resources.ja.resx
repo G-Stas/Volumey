@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} の音量を下げる</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>ミュートまたはミュート解除</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0} をミュートまたはミュート解除</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>{0} を削除</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>アプリ</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>既定のデバイスで再生中のアプリ</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>既定のデバイスで再生中のアプリは他にありません。</value>

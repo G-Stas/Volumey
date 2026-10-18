@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0}: sesi azalt</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Sesi kapat veya aç</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0}: sesi kapat veya aç</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Kaldır: {0}</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Uygulama</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Varsayılan aygıtta ses çalan uygulamalar</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Varsayılan aygıtta ses çalan başka uygulama yok.</value>

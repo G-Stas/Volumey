@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} leiser</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Stummschalten oder Stummschaltung aufheben</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0} stummschalten oder Stummschaltung aufheben</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>{0} entfernen</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>App</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Apps, die auf dem Standardgerät wiedergeben</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Keine anderen Apps geben auf dem Standardgerät wieder.</value>

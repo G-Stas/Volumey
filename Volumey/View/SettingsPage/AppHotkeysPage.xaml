@@ -22,6 +22,19 @@
                 <Setter Property="VerticalAlignment" Value="Top" />
                 <Setter Property="Margin" Value="0 6 0 0" />
             </Style>
+            <!-- a hotkey in a closed app card's header; collapsed while it isn't set -->
+            <Style x:Key="HeaderHotkey" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="TextWrapping" Value="NoWrap" />
+                <Style.Triggers>
+                    <Trigger Property="Text" Value="">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                    <Trigger Property="Text" Value="{x:Null}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
             <!-- the error of one hotkey, under its box -->
             <Style x:Key="HotkeyError" TargetType="TextBlock" BasedOn="{StaticResource SettingError}">
                 <Setter Property="MaxWidth" Value="180" />
@@ -68,6 +81,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock Text="{lc:Localization AppHotkeys_VolumeUp}" Style="{StaticResource HotkeyRowLabel}" />
                     <StackPanel Grid.Column="1" Margin="0 0 0 8">
@@ -78,12 +92,20 @@
                         <TextBlock Text="{Binding Errors.VolumeUp}" Style="{StaticResource HotkeyError}" />
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="{lc:Localization AppHotkeys_VolumeDown}" Style="{StaticResource HotkeyRowLabel}" />
-                    <StackPanel Grid.Row="1" Grid.Column="1">
+                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="0 0 0 8">
                         <controls:HotKeyBox HotKey="{Binding VolumeDownHotkey}"
                                             IsEnabled="{Binding HotkeysRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
                                             AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeDown}"
                                             AutomationProperties.AutomationId="ForegroundDownBox" />
                         <TextBlock Text="{Binding Errors.VolumeDown}" Style="{StaticResource HotkeyError}" />
+                    </StackPanel>
+                    <TextBlock Grid.Row="2" Text="{lc:Localization AppHotkeys_Mute}" Style="{StaticResource HotkeyRowLabel}" />
+                    <StackPanel Grid.Row="2" Grid.Column="1">
+                        <controls:HotKeyBox HotKey="{Binding MuteHotkey}"
+                                            IsEnabled="{Binding HotkeysRegistered, Converter={StaticResource NotRegisteredToEnabled}}"
+                                            AutomationProperties.Name="{lc:Localization AppHotkeys_Mute}"
+                                            AutomationProperties.AutomationId="ForegroundMuteBox" />
+                        <TextBlock Text="{Binding Errors.Mute}" Style="{StaticResource HotkeyError}" />
                     </StackPanel>
                 </Grid>
             </ui:CardExpander>
@@ -147,9 +169,26 @@
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding ProcessName}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="2" Margin="16 0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding VolumeUp}" Style="{StaticResource Caption}" HorizontalAlignment="Right" TextWrapping="NoWrap" />
-                                            <TextBlock Text="{Binding VolumeDown}" Style="{StaticResource Caption}" HorizontalAlignment="Right" TextWrapping="NoWrap" />
+                                        <!-- the hotkeys that are set: the volume keys stacked, the mute key beside them with a mute icon -->
+                                        <StackPanel Grid.Column="2" Margin="16 0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding VolumeUp}" Style="{StaticResource HeaderHotkey}" />
+                                                <TextBlock Text="{Binding VolumeDown}" Style="{StaticResource HeaderHotkey}" />
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12 0 0 0">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Mute}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+                                                <ui:SymbolIcon Symbol="SpeakerMute24" FontSize="14" Margin="0 0 4 0" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                <TextBlock Text="{Binding Mute}" Style="{StaticResource Caption}" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                                            </StackPanel>
                                         </StackPanel>
                                     </Grid>
                                 </ui:CardExpander.Header>
@@ -159,6 +198,7 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
@@ -176,7 +216,7 @@
                                         <TextBlock Text="{Binding Errors.VolumeUp}" Style="{StaticResource HotkeyError}" />
                                     </StackPanel>
                                     <TextBlock Grid.Row="1" Text="{lc:Localization AppHotkeys_VolumeDown}" Style="{StaticResource HotkeyRowLabel}" />
-                                    <StackPanel Grid.Row="1" Grid.Column="1">
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="0 0 0 8">
                                         <controls:HotKeyBox HotKey="{Binding VolumeDown}">
                                             <AutomationProperties.Name>
                                                 <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="AppHotkeys_AppVolumeDown">
@@ -187,7 +227,19 @@
                                         </controls:HotKeyBox>
                                         <TextBlock Text="{Binding Errors.VolumeDown}" Style="{StaticResource HotkeyError}" />
                                     </StackPanel>
-                                    <ui:Button Grid.Row="2"
+                                    <TextBlock Grid.Row="2" Text="{lc:Localization AppHotkeys_Mute}" Style="{StaticResource HotkeyRowLabel}" />
+                                    <StackPanel Grid.Row="2" Grid.Column="1">
+                                        <controls:HotKeyBox HotKey="{Binding Mute}">
+                                            <AutomationProperties.Name>
+                                                <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="AppHotkeys_AppMute">
+                                                    <Binding Path="ProcessName" />
+                                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                </MultiBinding>
+                                            </AutomationProperties.Name>
+                                        </controls:HotKeyBox>
+                                        <TextBlock Text="{Binding Errors.Mute}" Style="{StaticResource HotkeyError}" />
+                                    </StackPanel>
+                                    <ui:Button Grid.Row="3"
                                                Grid.Column="1"
                                                Margin="0 12 0 0"
                                                HorizontalAlignment="Right"

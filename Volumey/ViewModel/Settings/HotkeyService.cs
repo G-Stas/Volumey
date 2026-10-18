@@ -112,6 +112,37 @@ public sealed class HotkeyService : IHotkeyService
 	}
 
 	/// <summary>
+	/// Registers the hotkeys that are set (nulls are skipped), or none: if one fails, the ones before it are released again.
+	/// </summary>
+	/// <param name="failed">The hotkey that couldn't be registered, null on success</param>
+	public bool RegisterHotkeys(IReadOnlyList<HotKey?> hotkeys, out HotKey? failed)
+	{
+		var registered = new List<HotKey>();
+		foreach(var hotkey in hotkeys)
+		{
+			if(hotkey == null)
+				continue;
+			if(!RegisterHotkey(hotkey))
+			{
+				//release only what this call took: a combination may be shared with another feature
+				foreach(var taken in registered)
+					UnregisterHotkey(taken);
+				failed = hotkey;
+				return false;
+			}
+			registered.Add(hotkey);
+		}
+		failed = null;
+		return true;
+	}
+
+	public void UnregisterHotkeys(IReadOnlyList<HotKey?> hotkeys)
+	{
+		foreach(var hotkey in hotkeys)
+			UnregisterHotkey(hotkey);
+	}
+
+	/// <summary>
 	/// Registers the hotkey and counts this user. False, with nothing counted, if there's no manager yet or it refuses the hotkey
 	/// (e.g. another app owns the combination in blocking mode). The managers accept a combination that is already registered,
 	/// so several features can share one.
@@ -259,6 +290,26 @@ public sealed class HotkeyService : IHotkeyService
 		if(downError == ErrorMessageType.None && down is not null && down.Equals(up))
 			downError = ErrorMessageType.Diff;
 		return (upError, downError);
+	}
+
+	/// <summary>
+	/// Checks an app's or the foreground app's hotkeys box by box: each is optional, but at least one is set
+	/// (<see cref="ErrorMessageType.Missing"/> under the first box when none is), and a hotkey set twice is <see cref="ErrorMessageType.Diff"/>
+	/// on the later box. Each set hotkey is also checked with <see cref="HotkeyIsValid"/>.
+	/// </summary>
+	public (ErrorMessageType up, ErrorMessageType down, ErrorMessageType mute) CheckAppHotkeys(HotKey? up, HotKey? down, HotKey? mute)
+	{
+		if(up == null && down == null && mute == null)
+			return (ErrorMessageType.Missing, ErrorMessageType.None, ErrorMessageType.None);
+		ErrorMessageType Check(HotKey? hotkey, params HotKey?[] earlier)
+		{
+			if(hotkey == null)
+				return ErrorMessageType.None;
+			if(earlier.Any(other => hotkey.Equals(other)))
+				return ErrorMessageType.Diff;
+			return HotkeyIsValid(hotkey);
+		}
+		return (Check(up), Check(down, up), Check(mute, up, down));
 	}
 
 	public void SetVolumeStep(int newValue)

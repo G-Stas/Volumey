@@ -55,6 +55,7 @@ public sealed class HotkeySettings : SettingsSection
 	public HotKey? DeviceMute { get; set; }
 	public HotKey? ForegroundVolumeUp { get; set; }
 	public HotKey? ForegroundVolumeDown { get; set; }
+	public HotKey? ForegroundMute { get; set; }
 	public bool PreventResettingVolumeBalance { get; set; }
 	/// <summary>
 	/// True: hotkeys are registered with Windows and other apps don't get the keys (RegisterHotKey).

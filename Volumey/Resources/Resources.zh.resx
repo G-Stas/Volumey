@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>减小 {0} 音量</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>静音或取消静音</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>将 {0} 静音或取消静音</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>删除 {0}</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>应用</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>正在默认设备上播放的应用</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>没有其他应用正在默认设备上播放。</value>

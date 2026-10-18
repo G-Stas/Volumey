@@ -25,8 +25,8 @@ public class AppHotkeysTests : UiTest
 	private static JsonNode? SavedApp(JsonNode settings, string name)
 		=> settings["Hotkeys"]?["Apps"]?.AsArray().FirstOrDefault(a => a?["ProcessName"]?.GetValue<string>() == name);
 
-	/// <summary>Adds the running test app with the Add app dialog</summary>
-	private void AddInDialog(TestAudioApp testApp, Combo up, Combo down)
+	/// <summary>Adds the running test app with the Add app dialog; a null hotkey's box stays empty</summary>
+	private void AddInDialog(TestAudioApp testApp, Combo? up, Combo? down, Combo? mute = null)
 	{
 		Settings.Find("AddAppButton").AsButton().Invoke();
 		var apps = Settings.Find("AddAppBox").AsComboBox();
@@ -35,8 +35,12 @@ public class AppHotkeysTests : UiTest
 		           ?? throw new AssertFailedException($"{testApp.DisplayName} isn't in the dialog's list: {string.Join(", ", apps.Items.Select(i => i.Name))}");
 		item.Select();
 		apps.Collapse();
-		Settings.TypeHotkey("AddAppUpBox", up);
-		Settings.TypeHotkey("AddAppDownBox", down);
+		if(up != null)
+			Settings.TypeHotkey("AddAppUpBox", up);
+		if(down != null)
+			Settings.TypeHotkey("AddAppDownBox", down);
+		if(mute != null)
+			Settings.TypeHotkey("AddAppMuteBox", mute);
 		Settings.Find("PrimaryButton").AsButton().Invoke();
 	}
 
@@ -74,7 +78,7 @@ public class AppHotkeysTests : UiTest
 
 	[TestMethod]
 	[TestCategory("Audio")]
-	public void TheAddAppDialogNeedsAnAppAndBothHotkeysAndCancelSavesNothing()
+	public void TheAddAppDialogNeedsAnAppAndAHotkeyAndCancelSavesNothing()
 	{
 		using var testApp = Later(TestAudioApp.Start());
 		OpenPage();
@@ -90,9 +94,7 @@ public class AppHotkeysTests : UiTest
 		apps.Collapse();
 		Assert.IsFalse(AddEnabled(), "Add is enabled without hotkeys");
 		Settings.TypeHotkey("AddAppUpBox", up);
-		Assert.IsFalse(AddEnabled(), "Add is enabled with one hotkey");
-		Settings.TypeHotkey("AddAppDownBox", down);
-		Assert.IsTrue(Eventually(AddEnabled), "Add isn't enabled with an app and both hotkeys");
+		Assert.IsTrue(Eventually(AddEnabled), "Add isn't enabled with an app and one hotkey");
 
 		Settings.Find("CloseButton").AsButton().Invoke();
 		Thread.Sleep(800);
@@ -133,8 +135,19 @@ public class AppHotkeysTests : UiTest
 		}
 	};
 
+	/// <summary>Empties one of a saved app's hotkey boxes with Backspace</summary>
+	private void EmptyBox(string app, string which)
+	{
+		var box = AppBox(app, which);
+		Settings.Window.SetForeground();
+		box.Focus();
+		Keyboard.Type(VirtualKeyShort.BACK);
+		Wait.UntilInputIsProcessed();
+		Settings.LeaveBox();
+	}
+
 	[TestMethod]
-	public void EmptyingAnAppsHotkeySaysItNeedsBothAndKeepsTheOld()
+	public void EmptyingAHotkeyKeepsTheOthersAndEmptyingTheLastRemovesTheApp()
 	{
 		//a saved app that isn't running: its hotkeys are still shown and changed in place
 		const string app = "VolumeyUiNotRunning";
@@ -142,16 +155,33 @@ public class AppHotkeysTests : UiTest
 		var down = Combo.F(16);
 		OpenPage(SavedAppSettings(app, up, down));
 
-		var box = AppBox(app, "up");
-		Settings.Window.SetForeground();
-		box.Focus();
-		Keyboard.Type(VirtualKeyShort.BACK);
-		Wait.UntilInputIsProcessed();
-		Settings.LeaveBox();
+		EmptyBox(app, "up");
+		App.WaitForSettings(s => SavedApp(s, app) is { } a && a["VolumeUp"] == null && IsHotkey(a["VolumeDown"], down),
+			"volume up emptied, volume down kept");
+		Assert.IsTrue(string.IsNullOrEmpty(AppBox(app, "up").AsTextBox().Text), "the emptied box shows a hotkey again");
 
-		Assert.IsTrue(Settings.ShowsText("An app needs both hotkeys"), "no error for an emptied box");
-		Assert.IsTrue(IsHotkey(SavedApp(App.ReadSettings(), app)?["VolumeUp"], up), "the saved hotkey was removed");
-		Assert.IsFalse(string.IsNullOrEmpty(AppBox(app, "up").AsTextBox().Text), "the old hotkey isn't back in the box");
+		EmptyBox(app, "down");
+		App.WaitForSettings(s => SavedApp(s, app) == null, "the app removed with its last hotkey");
+		Assert.IsTrue(Eventually(() => AppRow(app) == null), "the app's card is still shown");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AnAppWithOnlyAMuteHotkeyIsMutedAndUnmuted()
+	{
+		using var testApp = Later(TestAudioApp.Start());
+		OpenPage();
+		var mute = Combo.F(18);
+
+		AddInDialog(testApp, null, null, mute);
+
+		App.WaitForSettings(s => SavedApp(s, testApp.DisplayName) is { } a && IsHotkey(a["Mute"], mute) && a["VolumeUp"] == null,
+			"the app's mute hotkey saved");
+		Assert.IsTrue(mute.IsHeldByAnotherApp(), "the mute hotkey isn't registered");
+		mute.Press();
+		Assert.AreEqual(true, Audio.WaitFor(() => testApp.Muted, true), "the mute hotkey didn't mute the app");
+		mute.Press();
+		Assert.AreEqual(false, Audio.WaitFor(() => testApp.Muted, false), "the mute hotkey didn't unmute the app");
 	}
 
 	[TestMethod]
@@ -216,9 +246,10 @@ public class AppHotkeysTests : UiTest
 		using var testApp = Later(TestAudioApp.Start("VolumeyUiForegroundApp", window: true));
 		var up = Combo.F(21);
 		var down = Combo.F(22);
+		var mute = Combo.F(23);
 		StartApp(new JsonObject
 		{
-			["Hotkeys"] = new JsonObject { ["ForegroundVolumeUp"] = HotkeyJson(up), ["ForegroundVolumeDown"] = HotkeyJson(down) }
+			["Hotkeys"] = new JsonObject { ["ForegroundVolumeUp"] = HotkeyJson(up), ["ForegroundVolumeDown"] = HotkeyJson(down), ["ForegroundMute"] = HotkeyJson(mute) }
 		});
 		Assert.IsTrue(Eventually(() => up.IsHeldByAnotherApp() && down.IsHeldByAnotherApp()), "the saved foreground hotkeys aren't registered");
 		int step = VolumeStep;
@@ -234,6 +265,10 @@ public class AppHotkeysTests : UiTest
 		Assert.AreEqual(100 - step, Audio.WaitFor(() => testApp.Volume, 100 - step), "volume down didn't lower the app in front");
 		up.Press();
 		Assert.AreEqual(100, Audio.WaitFor(() => testApp.Volume, 100), "volume up didn't raise the app in front");
+		mute.Press();
+		Assert.AreEqual(true, Audio.WaitFor(() => testApp.Muted, true), "the mute hotkey didn't mute the app in front");
+		mute.Press();
+		Assert.AreEqual(false, Audio.WaitFor(() => testApp.Muted, false), "the mute hotkey didn't unmute the app in front");
 	}
 
 	[TestMethod]
