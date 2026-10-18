@@ -457,6 +457,9 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value>Klavyede veya farede bir düğmeye basın</value>
   </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>veya</value>
+  </data>
   <data name="MouseButton_Left" xml:space="preserve">
     <value>Sol tık</value>
   </data>

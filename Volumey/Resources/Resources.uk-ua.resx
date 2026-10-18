@@ -457,6 +457,9 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value>Натисніть кнопку на клавіатурі або миші</value>
   </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>або</value>
+  </data>
   <data name="MouseButton_Left" xml:space="preserve">
     <value>ЛКМ</value>
   </data>

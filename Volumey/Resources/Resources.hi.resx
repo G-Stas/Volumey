@@ -457,6 +457,9 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value>कीबोर्ड या माउस पर कोई बटन दबाएँ</value>
   </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>या</value>
+  </data>
   <data name="MouseButton_Left" xml:space="preserve">
     <value>बायाँ क्लिक</value>
   </data>

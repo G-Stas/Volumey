@@ -457,6 +457,9 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value>按下键盘或鼠标上的按钮</value>
   </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>或</value>
+  </data>
   <data name="MouseButton_Left" xml:space="preserve">
     <value>左键单击</value>
   </data>

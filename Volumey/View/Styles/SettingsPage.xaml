@@ -81,10 +81,14 @@
                                                    FontSize="16"
                                                    VerticalAlignment="Center"
                                                    Foreground="{DynamicResource TextControlPlaceholderForeground}" />
+                                        <TextBlock Text="{lc:Localization HotkeyBox_Or}"
+                                                   Margin="6 0"
+                                                   VerticalAlignment="Center"
+                                                   TextWrapping="NoWrap"
+                                                   Foreground="{DynamicResource TextControlPlaceholderForeground}" />
                                         <TextBlock Text="&#xE962;"
                                                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                                    FontSize="16"
-                                                   Margin="8 0 0 0"
                                                    VerticalAlignment="Center"
                                                    Foreground="{DynamicResource TextControlPlaceholderForeground}" />
                                     </StackPanel>

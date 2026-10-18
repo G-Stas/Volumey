@@ -457,6 +457,9 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value>Appuyez sur une touche du clavier ou un bouton de la souris</value>
   </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>ou</value>
+  </data>
   <data name="MouseButton_Left" xml:space="preserve">
     <value>Clic gauche</value>
   </data>
