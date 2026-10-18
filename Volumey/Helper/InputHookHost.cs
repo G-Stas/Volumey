@@ -21,6 +21,9 @@ internal sealed class InputHookHost
 	/// <summary>Changes are gathered for this long before the hook is replaced: the app registers its hotkeys one by one at start</summary>
 	private static readonly TimeSpan Settle = TimeSpan.FromMilliseconds(150);
 
+	/// <summary>A pause between stopping a hook and starting the next: libuiohook isn't ready for a new one right after the last one ended</summary>
+	private static readonly TimeSpan AfterStop = TimeSpan.FromMilliseconds(300);
+
 	/// <summary>How long a hook may take to start or to stop</summary>
 	private static readonly TimeSpan HookTimeout = TimeSpan.FromSeconds(3);
 
@@ -147,7 +150,8 @@ internal sealed class InputHookHost
 	{
 		if(wanted == running)
 			return;
-		Stop();
+		if(Stop())
+			Thread.Sleep(AfterStop);
 		if(wanted is not { } type)
 			return;
 
@@ -174,10 +178,11 @@ internal sealed class InputHookHost
 	/// Stops the hook and waits until it has. A hook stopped before it was fully started keeps running in libuiohook,
 	/// and the next one wouldn't work, so a starting hook is waited for first.
 	/// </summary>
-	private void Stop()
+	/// <returns>Whether a hook was stopped</returns>
+	private bool Stop()
 	{
 		if(hook == null)
-			return;
+			return false;
 		hook.KeyPressed -= OnKeyPressed;
 		hook.MousePressed -= OnMousePressed;
 		hook.MouseWheel -= OnMouseWheel;
@@ -198,6 +203,7 @@ internal sealed class InputHookHost
 		hookEnabled = null;
 		lock(sync)
 			running = null;
+		return true;
 	}
 
 	private void OnKeyPressed(object? sender, KeyboardHookEventArgs e) => KeyPressed?.Invoke(this, e);
