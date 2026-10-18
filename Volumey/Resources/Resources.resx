@@ -561,6 +561,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value />
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value />
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value />
   </data>

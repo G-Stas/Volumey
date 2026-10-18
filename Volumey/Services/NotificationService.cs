@@ -83,6 +83,13 @@ internal sealed class NotificationService : INotificationService
 	public void CloseNotification(IManagedMasterAudioSession session)
 		=> Try(() => window?.Close(session.Id), "Failed to close notification");
 
+	/// <summary>Numbers the default device switches: each one gets its own pill, stacked like the volume pills</summary>
+	private int defaultDeviceSwitches;
+
+	public void ShowDefaultDevice(IManagedMasterAudioSession device)
+		=> Try(() => Window.ShowDefaultDevice($"default-device-{++defaultDeviceSwitches}", device, displayTime),
+			"Failed to display the default device notification");
+
 	public IManagedMasterAudioSession Example
 	{
 		get

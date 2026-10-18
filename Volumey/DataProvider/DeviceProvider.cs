@@ -74,6 +74,21 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	/// </summary>
 	internal void Connect(IDeviceEnumerator enumerator, IDeviceStateNotificationHandler deviceStateHandler)
 	{
+		IsReadingDevices = true;
+		try
+		{
+			ReadDevices(enumerator, deviceStateHandler);
+		}
+		finally
+		{
+			IsReadingDevices = false;
+		}
+	}
+
+	public bool IsReadingDevices { get; private set; }
+
+	private void ReadDevices(IDeviceEnumerator enumerator, IDeviceStateNotificationHandler deviceStateHandler)
+	{
 		deviceStateNotificationHandler = deviceStateHandler;
 		deviceEnumerator = enumerator;
 		deviceStateNotificationHandler.DefaultDeviceChanged += OnDefaultDeviceChanged;

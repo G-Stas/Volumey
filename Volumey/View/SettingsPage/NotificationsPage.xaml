@@ -88,7 +88,8 @@
                              AutomationProperties.Name="{lc:Localization Notifications_Osd}"
                              AutomationProperties.AutomationId="OsdToggle" />
         </ui:CardControl>
-        <ui:CardControl Icon="{ui:SymbolIcon Speaker224}">
+        <!-- this card and the next one only matter with the on-screen display on -->
+        <ui:CardControl Icon="{ui:SymbolIcon Speaker224}" IsEnabled="{Binding NotificationsEnabled}">
             <ui:CardControl.Header>
                 <StackPanel>
                     <TextBlock Text="{lc:Localization Notifications_ReactAllTitle}" />
@@ -98,6 +99,17 @@
             <ui:ToggleSwitch IsChecked="{Binding ReactToAllVolumeChanges}"
                              AutomationProperties.Name="{lc:Localization Notifications_ReactAllTitle}"
                              AutomationProperties.AutomationId="ReactAllToggle" />
+        </ui:CardControl>
+        <ui:CardControl Icon="{ui:SymbolIcon ArrowSwap24}" IsEnabled="{Binding NotificationsEnabled}">
+            <ui:CardControl.Header>
+                <StackPanel>
+                    <TextBlock Text="{lc:Localization Notifications_DefaultDeviceTitle}" />
+                    <TextBlock Text="{lc:Localization Notifications_DefaultDeviceHint}" Style="{StaticResource Caption}" />
+                </StackPanel>
+            </ui:CardControl.Header>
+            <ui:ToggleSwitch IsChecked="{Binding ShowDefaultDeviceChanges}"
+                             AutomationProperties.Name="{lc:Localization Notifications_DefaultDeviceTitle}"
+                             AutomationProperties.AutomationId="DefaultDeviceOsdToggle" />
         </ui:CardControl>
 
         <TextBlock Text="{lc:Localization Notifications_PositionHeader}" Style="{StaticResource SectionHeader}" />

@@ -502,6 +502,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>अन्य ऐप्स और Windows से हुए परिवर्तन भी</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस में बदलाव</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस बदलने पर नया आउटपुट डिवाइस दिखाएँ</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>स्थिति</value>
   </data>

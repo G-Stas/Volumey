@@ -502,6 +502,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Também alterações de outros aplicativos e do Windows</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Alterações do dispositivo padrão</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Mostrar o novo dispositivo de saída quando o padrão mudar</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Posição</value>
   </data>

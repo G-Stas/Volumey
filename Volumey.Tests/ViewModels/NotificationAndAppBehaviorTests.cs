@@ -58,6 +58,67 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void ASwitchToAnotherDefaultDeviceShowsItInTheOsd()
+	{
+		Settings.Notifications.Enabled = true;
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		CreateNotifications();
+
+		ChangeDefaultDevice(headphones);
+		Notifications.Verify(m => m.ShowDefaultDevice(headphones.Master), Times.Once);
+	}
+
+	[TestMethod]
+	public void TheDevicesReadLateAtStartAndARebuiltDeviceShowNothing()
+	{
+		Settings.Notifications.Enabled = true;
+		CreateNotifications();
+		//Windows audio reached late at start
+		DeviceProvider.Setup(m => m.IsReadingDevices).Returns(true);
+		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		DeviceProvider.Setup(m => m.IsReadingDevices).Returns(false);
+		//the same device's model rebuilt after a format change
+		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void ADevicePluggedInWhenThereWasNoneShowsItInTheOsd()
+	{
+		Settings.Notifications.Enabled = true;
+		CreateNotifications();
+		var speakers = CreateDevice("speakers", "Speakers");
+		ChangeDefaultDevice(speakers);
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
+	}
+
+	[TestMethod]
+	[DataRow(false, true)]
+	[DataRow(true, false)]
+	public void ADefaultDeviceSwitchShowsNothingWhileTheOsdOrItsSwitchIsOff(bool osd, bool deviceChanges)
+	{
+		Settings.Notifications.Enabled = osd;
+		Settings.Notifications.ShowDefaultDeviceChanges = deviceChanges;
+		SetDefaultDevice(CreateDevice("speakers", "Speakers"));
+		var vm = CreateNotifications();
+		Assert.AreEqual(deviceChanges, vm.ShowDefaultDeviceChanges);
+
+		ChangeDefaultDevice(CreateDevice("headphones", "Headphones"));
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void TheDefaultDeviceSwitchIsOnByDefaultAndSaved()
+	{
+		Assert.IsTrue(new NotificationSettings().ShowDefaultDeviceChanges);
+		var vm = CreateNotifications();
+		vm.ShowDefaultDeviceChanges = false;
+		Assert.IsFalse(Settings.Notifications.ShowDefaultDeviceChanges);
+	}
+
+	[TestMethod]
 	public void AChangedDistanceShowsTheSampleOsdWhereItLands()
 	{
 		Settings.Notifications.HorizontalIndent = 30;

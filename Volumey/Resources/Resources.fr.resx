@@ -502,6 +502,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Y compris ceux des autres applications et de Windows</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Changement du périphérique par défaut</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Afficher le nouveau périphérique de sortie quand celui par défaut change</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Position</value>
   </data>

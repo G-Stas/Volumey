@@ -502,6 +502,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Diğer uygulamalardan ve Windows'tan gelen değişiklikler de</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Varsayılan aygıt değişiklikleri</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Varsayılan aygıt değiştiğinde yeni çıkış aygıtını göster</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Konum</value>
   </data>

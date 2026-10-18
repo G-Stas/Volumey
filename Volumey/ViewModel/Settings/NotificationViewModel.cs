@@ -61,6 +61,25 @@ public sealed partial class NotificationViewModel : ObservableObject
 	//on the UI thread: the hotkey view models react to it and change their lists of apps
 	partial void OnNotificationsEnabledChanged(bool value) => SettingsProvider.Settings.Notifications.Enabled = value;
 
+	[ObservableProperty]
+	public partial bool ShowDefaultDeviceChanges { get; set; }
+
+	partial void OnShowDefaultDeviceChangesChanged(bool value) => SettingsProvider.Settings.Notifications.ShowDefaultDeviceChanges = value;
+
+	/// <summary>The default device the OSD last knew of, to tell a switch from the same device's model rebuilt after a format change</summary>
+	private string? _defaultDeviceId;
+
+	private void OnDefaultDeviceSwitched(OutputDeviceModel? device)
+	{
+		var previous = _defaultDeviceId;
+		_defaultDeviceId = device?.Id;
+		//the same device's model rebuilt; the devices read at start show nothing, a device plugged in when there was none does
+		if(device == null || previous == device.Id || (previous == null && _deviceProvider.IsReadingDevices))
+			return;
+		if(NotificationsEnabled && ShowDefaultDeviceChanges)
+			_notifications.ShowDefaultDevice(device.Master);
+	}
+
 	private bool _reactToAllChanges;
 	public bool ReactToAllVolumeChanges
 	{
@@ -213,6 +232,9 @@ public sealed partial class NotificationViewModel : ObservableObject
 		VerticalIndent = SettingsProvider.Settings.Notifications.VerticalIndent;
 		SelectedPosition = SettingsProvider.Settings.Notifications.Position;
 		ReactToAllVolumeChanges = SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges;
+		ShowDefaultDeviceChanges = SettingsProvider.Settings.Notifications.ShowDefaultDeviceChanges;
+		_defaultDeviceId = deviceProvider.DefaultDevice?.Id;
+		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceSwitched;
 
 		DisplayTime = SettingsProvider.Settings.Notifications.DisplayTimeSeconds;
 

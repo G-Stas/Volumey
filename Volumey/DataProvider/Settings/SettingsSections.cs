@@ -79,6 +79,8 @@ public sealed class NotificationSettings : SettingsSection
 	public NotificationPosition Position { get; set; } = NotificationPosition.TopLeft;
 	public int DisplayTimeSeconds { get; set; } = 3;
 	public bool ReactToAllVolumeChanges { get; set; }
+	/// <summary>The OSD shows the new default output device when it changes</summary>
+	public bool ShowDefaultDeviceChanges { get; set; } = true;
 	/// <summary>Device name of the screen the notifications show on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
 	public string? ScreenName { get; set; }
 }

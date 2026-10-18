@@ -502,6 +502,12 @@
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Також на зміни з інших програм і Windows</value>
   </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Зміна пристрою за замовчуванням</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Показувати новий пристрій виведення, коли змінюється пристрій за замовчуванням</value>
+  </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Розташування</value>
   </data>
