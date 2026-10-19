@@ -1,14 +1,13 @@
 ﻿#nullable enable
 using System.Windows;
 using System.Windows.Data;
-using Volumey.View.Converters;
 using Volumey.ViewModel.Settings;
 using Wpf.Ui.Controls;
 
 namespace Volumey.View.DialogContent;
 
 /// <summary>
-/// App hotkeys page: picks a running app and its two hotkeys. Add only closes the dialog when the app was added.
+/// App hotkeys page: picks a running app and its hotkeys. Add only closes the dialog when the app was added.
 /// </summary>
 public sealed partial class AddAppDialog
 {
@@ -26,16 +25,10 @@ public sealed partial class AddAppDialog
 	public override void OnApplyTemplate()
 	{
 		base.OnApplyTemplate();
-		//Add is disabled until an app and both hotkeys are set, as in Windows. Not through IsPrimaryButtonEnabled:
+		//Add is disabled until an app and at least one hotkey are set, as in Windows. Not through IsPrimaryButtonEnabled:
 		//WPF-UI hides the primary button when that's false, Windows (WinUI) only disables it
 		if(GetTemplateChild("PrimaryButton") is UIElement add)
-		{
-			var allSet = new MultiBinding { Converter = new AnyPropertyIsNullToEnabledConverter() };
-			allSet.Bindings.Add(new Binding(nameof(AppsHotkeysViewModel.SelectedProcess)));
-			allSet.Bindings.Add(new Binding(nameof(AppsHotkeysViewModel.VolumeUp)));
-			allSet.Bindings.Add(new Binding(nameof(AppsHotkeysViewModel.VolumeDown)));
-			BindingOperations.SetBinding(add, IsEnabledProperty, allSet);
-		}
+			BindingOperations.SetBinding(add, IsEnabledProperty, new Binding(nameof(AppsHotkeysViewModel.CanAdd)));
 	}
 
 	protected override void OnButtonClick(ContentDialogButton button)

@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0}: уменьшить громкость</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Выключить или включить звук</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0}: выключить или включить звук</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Удалить {0}</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Приложение</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Приложения, воспроизводящие звук на устройстве по умолчанию</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Другие приложения не воспроизводят звук на устройстве по умолчанию.</value>

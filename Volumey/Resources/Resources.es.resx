@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>Bajar volumen de {0}</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Silenciar o activar sonido</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Silenciar o activar sonido de {0}</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Quitar {0}</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Aplicación</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Aplicaciones que suenan en el dispositivo predeterminado</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>No hay otras aplicaciones sonando en el dispositivo predeterminado.</value>

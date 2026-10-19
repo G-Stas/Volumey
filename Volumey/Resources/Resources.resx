@@ -381,6 +381,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value />
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value />
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value />
   </data>
@@ -388,9 +394,6 @@
     <value />
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
-    <value />
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
     <value />
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">

@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0}: зменшити гучність</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Вимкнути або ввімкнути звук</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0}: вимкнути або ввімкнути звук</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Видалити: {0}</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Програма</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Програми, що відтворюють звук на пристрої за замовчуванням</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Інші програми не відтворюють звук на пристрої за замовчуванням.</value>

@@ -381,6 +381,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} volume down</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Mute or unmute</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Mute or unmute {0}</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Remove {0}</value>
   </data>
@@ -389,9 +395,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>App</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Apps playing on the default device</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>No other apps are playing on the default device.</value>

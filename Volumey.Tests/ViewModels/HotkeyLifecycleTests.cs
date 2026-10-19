@@ -55,7 +55,7 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void ASavedForegroundPairThatFailsAtStartupShowsAnError()
+	public void ASavedForegroundHotkeyThatFailsAtStartupShowsAnErrorAndTheOtherStillWorks()
 	{
 		Settings.Hotkeys.ForegroundVolumeUp = Up;
 		Settings.Hotkeys.ForegroundVolumeDown = Down;
@@ -68,9 +68,9 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 
 		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.Errors.VolumeDown);
 		Assert.AreEqual(string.Empty, vm.Errors.VolumeUp);
-		//the first hotkey of the pair isn't left registered
-		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
-		//and the pair stays saved for the next start
+		//the other hotkey stays registered
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Never);
+		//and both stay saved for the next start
 		Assert.AreEqual(Up, Settings.Hotkeys.ForegroundVolumeUp);
 	}
 

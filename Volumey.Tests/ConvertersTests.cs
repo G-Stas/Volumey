@@ -98,17 +98,6 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
-	public void AnyPropertyIsNullDisables()
-	{
-		var converter = new AnyPropertyIsNullToEnabledConverter();
-		Assert.AreEqual(true, Convert((IMultiValueConverter)converter, 1, "a"));
-		Assert.AreEqual(false, Convert((IMultiValueConverter)converter, 1, null));
-		Assert.AreEqual(false, converter.Convert((object[])null, typeof(bool), null, Culture));
-		Assert.AreEqual(false, Convert((IValueConverter)converter, null));
-		Assert.AreEqual(true, Convert((IValueConverter)converter, 1));
-	}
-
-	[TestMethod]
 	public void AnyPropertyIsTrue()
 	{
 		var converter = new AnyPropertyIsTrueConverter();

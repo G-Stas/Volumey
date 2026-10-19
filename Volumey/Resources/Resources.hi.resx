@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} वॉल्यूम घटाएँ</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>म्यूट या अनम्यूट करें</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0} को म्यूट या अनम्यूट करें</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>{0} निकालें</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>ऐप</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>डिफ़ॉल्ट डिवाइस पर चल रहे ऐप्स</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>डिफ़ॉल्ट डिवाइस पर कोई अन्य ऐप नहीं चल रहा है।</value>

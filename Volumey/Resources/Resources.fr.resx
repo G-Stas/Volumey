@@ -322,6 +322,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>Baisser le volume de {0}</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Désactiver ou activer le son</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Désactiver ou activer le son de {0}</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Supprimer {0}</value>
   </data>
@@ -330,9 +336,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Application</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Applications en cours de lecture sur le périphérique par défaut</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Aucune autre application n'est en cours de lecture sur le périphérique par défaut.</value>
