@@ -36,9 +36,8 @@ public sealed class WindowSettings : SettingsSection
 	/// <summary>Window mode's position, in physical pixels (see <see cref="PopupLeft"/>)</summary>
 	public double Left { get; set; }
 	public double Top { get; set; }
-	/// <summary>Size of the mixer in window mode (not in popup mode); 0 = not saved yet</summary>
+	/// <summary>Width of the mixer in window mode (not in popup mode); 0 = not saved yet. The height fits the apps each time it opens</summary>
 	public double Width { get; set; }
-	public double Height { get; set; }
 	/// <summary>Device name of the screen the window opens on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
 	public string? ScreenName { get; set; }
 }

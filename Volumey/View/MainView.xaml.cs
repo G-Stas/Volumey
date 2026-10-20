@@ -39,16 +39,15 @@ public sealed partial class MainView
 	private const int ScrollStep = 30;
 	private const int BorderIndent = 11;
 
-	//popup sizing: the height is computed once when it opens and doesn't change while it's
+	//sizing in both modes: the height is computed each time the mixer opens and doesn't change while it's
 	//visible; new apps go to the end of the scrolling list
 	private const double PopupWidth = 368; //WPF-UI's minimum window width (460) × 4/5; MainView.xaml lowers MinWidth to it
 	private const double RowHeight = 54;
 	private const int MinRows = 3;
 	private const double MaxShareOfWorkArea = 0.6;
 
-	//window mode before its size was ever saved
+	//window mode before its width was ever saved
 	private const double DefaultWindowWidth = PopupWidth; //one width for both modes
-	private const double DefaultWindowHeight = 540;
 
 	public static readonly DependencyProperty SelectedScreenProperty = DependencyProperty.Register("SelectedScreen", typeof(ScreenInfo), typeof(MainView), new PropertyMetadata(SelectedScreenChangedCallback));
 
@@ -290,7 +289,8 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// The popup has a fixed width and can't be resized; the window mode is resizable and gets its saved size
+	/// The popup has a fixed width and can't be resized; the window mode is resizable and gets its saved width
+	/// (the height fits the apps when it opens, see <see cref="FitHeight(double)"/>)
 	/// </summary>
 	private void ApplyMode()
 	{
@@ -306,7 +306,6 @@ public sealed partial class MainView
 			{
 				ResizeMode = ResizeMode.CanResize;
 				Width = vm.WindowWidth > 0 ? vm.WindowWidth : DefaultWindowWidth;
-				Height = vm.WindowHeight > 0 ? vm.WindowHeight : DefaultWindowHeight;
 			}
 		}
 		finally
@@ -334,13 +333,13 @@ public sealed partial class MainView
 		{
 			if(TryGetRememberedPosition(vm.PopupLeft, vm.PopupTop, out var position, out double workAreaHeight))
 			{
-				SizePopup(workAreaHeight);
+				FitHeight(workAreaHeight);
 				UpdateLayout();
 				MoveToRemembered(position);
 			}
 			else
 			{
-				SizePopup();
+				FitHeight();
 				//update layout before setting windows position to use actual height of the window when calculating its position
 				UpdateLayout();
 				SetWindowPosition();
@@ -459,15 +458,21 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// The popup's height: its fixed parts plus the apps list (at least <see cref="MinRows"/> rows),
-	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. Computed when it opens only
+	/// The mixer's height in both modes: its fixed parts (and the window mode's title bar) plus the apps list (at least <see cref="MinRows"/> rows),
+	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. Computed when it opens only;
+	/// a height the user drags the window to lasts until it closes
 	/// </summary>
-	private void SizePopup() => SizePopup((SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor);
+	private void FitHeight() => FitHeight((SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor);
 
 	/// <param name="workAreaHeight">The height of the work area of the screen it opens on, in DIPs</param>
-	private void SizePopup(double workAreaHeight)
+	private void FitHeight(double workAreaHeight)
 	{
-		var (chrome, apps) = Mixer.MeasureHeights(PopupWidth);
+		var (chrome, apps) = Mixer.MeasureHeights(Width);
+		if(TitleBar.Visibility == Visibility.Visible)
+		{
+			TitleBar.Measure(new Size(Width, double.PositiveInfinity));
+			chrome += TitleBar.DesiredSize.Height;
+		}
 		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea);
 		applyingPlacement = true;
 		Height = Math.Clamp(chrome + Math.Max(apps, MinRows * RowHeight), MinHeight, max);
@@ -475,25 +480,28 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// Window mode: its saved size; the saved position while it's remembered and still on a screen, otherwise next to the tray like the popup
+	/// Window mode: its saved width and a height that fits the apps; the saved position while it's remembered and still on a screen,
+	/// otherwise next to the tray like the popup
 	/// </summary>
 	private void RestoreWindowPlacement()
 	{
 		ApplyMode();
-		if(vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
+		if(vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out double workAreaHeight))
 		{
+			FitHeight(workAreaHeight);
 			UpdateLayout();
 			MoveToRemembered(position);
 		}
 		else
 		{
+			FitHeight();
 			UpdateLayout();
 			SetWindowPosition();
 		}
 	}
 
 	/// <summary>
-	/// Remembers the window mode's size (DIPs, so it scales with the screen) and position (physical pixels, see <see cref="TryGetRememberedPosition"/>),
+	/// Remembers the window mode's width (DIPs, so it scales with the screen) and position (physical pixels, see <see cref="TryGetRememberedPosition"/>),
 	/// saved to the settings on exit
 	/// </summary>
 	private void SaveWindowPlacement()
@@ -506,7 +514,6 @@ public sealed partial class MainView
 			vm.WindowTop = rect.top;
 		}
 		vm.WindowWidth = ActualWidth;
-		vm.WindowHeight = ActualHeight;
 	}
 
 	private enum TaskBarLocation { TOP, BOTTOM, LEFT, RIGHT }
@@ -681,7 +688,7 @@ public sealed partial class MainView
 	{
 		if(d is MainView view && view.IsVisible && view.vm.DisplayMinimalistic)
 		{
-			view.SizePopup();
+			view.FitHeight();
 			view.UpdateLayout();
 			view.SetWindowPosition();
 		}

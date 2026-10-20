@@ -25,8 +25,7 @@ public class MixerPositionTests : UiTest
 			["RememberPosition"] = remember,
 			["Left"] = Left,
 			["Top"] = Top,
-			["Width"] = 400,
-			["Height"] = 500
+			["Width"] = 400
 		}
 	};
 
@@ -51,7 +50,7 @@ public class MixerPositionTests : UiTest
 		StartMixer(WindowMode(remember: false));
 		var position = MixerPosition();
 		Assert.AreNotEqual(new Point(Left, Top), position, "the saved position was used although it isn't remembered");
-		Assert.AreEqual(400, App.Mixer.BoundingRectangle.Width, "the window mode's saved size wasn't used");
+		Assert.AreEqual(400, App.Mixer.BoundingRectangle.Width, "the window mode's saved width wasn't used");
 	}
 
 	[TestMethod]
