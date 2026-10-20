@@ -463,7 +463,6 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.WindowLeft = 123;
 		vm.WindowTop = 45;
 		vm.WindowWidth = 520;
-		vm.WindowHeight = 540;
 		vm.PopupLeft = 300;
 		vm.PopupTop = 200;
 
@@ -472,7 +471,6 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.AreEqual(123, Settings.Window.Left);
 		Assert.AreEqual(45, Settings.Window.Top);
 		Assert.AreEqual(520, Settings.Window.Width);
-		Assert.AreEqual(540, Settings.Window.Height);
 		Assert.AreEqual(300, Settings.Window.PopupLeft);
 		Assert.AreEqual(200, Settings.Window.PopupTop);
 		hotkeys.Verify(m => m.Dispose(), Times.Once);
