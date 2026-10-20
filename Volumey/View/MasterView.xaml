@@ -74,20 +74,23 @@
                                     Grid.Column="1"
                                     Text="{Binding Master.DeviceFriendlyName}"
                                     TextTrimming="CharacterEllipsis" />
-                                <!-- the default device's checkmark, like the tray menu's device list -->
-                                <ui:SymbolIcon
+                                <!-- the default device's tag, like the Devices page's list; only in the open list
+                                     (the closed box has no ComboBoxItem), where it would cut the name -->
+                                <TextBlock
                                     Grid.Column="2"
                                     Margin="12 0 0 0"
                                     VerticalAlignment="Center"
-                                    FontSize="16"
-                                    Symbol="Checkmark24">
-                                    <ui:SymbolIcon.Visibility>
+                                    TextWrapping="NoWrap"
+                                    Style="{StaticResource Caption}"
+                                    Visibility="{Binding Visibility, RelativeSource={RelativeSource AncestorType=ComboBoxItem}, FallbackValue=Collapsed}">
+                                    <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource DefaultDeviceTagConverter}">
                                             <Binding />
                                             <Binding Path="DataContext.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                            <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="[Devices_DefaultTag]" />
                                         </MultiBinding>
-                                    </ui:SymbolIcon.Visibility>
-                                </ui:SymbolIcon>
+                                    </TextBlock.Text>
+                                </TextBlock>
                             </Grid>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -113,7 +116,8 @@
                             <Binding Path="DefaultDevice"/>
                         </MultiBinding>
                     </ui:Button.IsEnabled>
-                    <ui:SymbolIcon Symbol="CheckmarkCircle24" FontSize="18" />
+                    <!-- Windows' own icon font: WPF-UI's Fluent System Icons have no such glyph -->
+                    <ui:FontIcon Glyph="&#xF623;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" />
                 </ui:Button>
             </Grid>
 
