@@ -21,6 +21,11 @@ public interface IDevice : IDisposable
 	DeviceFormat? GetDeviceFormat();
 
 	/// <summary>
+	/// True once Windows no longer has the device active (unplugged, disabled) or it can't be read any more
+	/// </summary>
+	bool IsGone();
+
+	/// <summary>
 	/// The formats the device can run at (Windows' list: what it takes in exclusive mode), by bits and rate; empty if they can't be read
 	/// </summary>
 	IReadOnlyList<DeviceFormatOption> GetSupportedFormats();

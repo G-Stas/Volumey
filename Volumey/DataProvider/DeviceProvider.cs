@@ -316,6 +316,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			newDevice.Disabled += OnDeviceDisabled;
 			newDevice.Invalidated += OnDeviceInvalidated;
 			ActiveDevices.Add(newDevice);
+			//built off the UI thread: Windows may have reconfigured it before anyone listened (a second rebuild of it ends at once)
+			if(newDevice.WasInvalidated)
+				OnDeviceInvalidated(newDevice);
 
 			if(NoOutputDevices)
 			{
@@ -363,6 +366,10 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	private void OnDeviceInvalidated(OutputDeviceModel invalid)
 		=> RebuildAsync(invalid).Forget(Logger, "Failed to rebuild a reconfigured device");
 
+	/// <summary>
+	/// Builds the new model on the thread pool: reading a device and its apps takes Windows calls per app (and seconds for a busy
+	/// Bluetooth device), which would freeze the UI. Only the swap runs on the UI thread, the only one that changes <see cref="ActiveDevices"/>.
+	/// </summary>
 	private async System.Threading.Tasks.Task RebuildAsync(OutputDeviceModel invalid)
 	{
 		foreach(var delay in RebuildDelays)
@@ -370,35 +377,51 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			await System.Threading.Tasks.Task.Delay(delay).ConfigureAwait(false);
 			if(disposed)
 				return;
+			var fresh = BuildDeviceModel(invalid.Id);
 			bool done = false;
-			dispatcher.Invoke(() => done = TryReplaceDevice(invalid));
+			dispatcher.Invoke(() => done = TryReplaceDevice(invalid, fresh));
 			if(done)
 				return;
 		}
 		Logger.Error($"Failed to rebuild the reconfigured device: [{invalid.Master.DeviceFriendlyName}]");
 	}
 
+	/// <returns>Null if the device can't be read yet</returns>
+	private OutputDeviceModel? BuildDeviceModel(string id)
+	{
+		//a device only becomes invalid after Connect, which sets both
+		if(deviceEnumerator is not { } enumerator || deviceStateNotificationHandler is not { } handler)
+			return null;
+		try { return enumerator.CreateDeviceModel(id, handler); }
+		catch(DeviceNotReadyException) { return null; }
+	}
+
+	/// <summary>On the UI thread. Takes over <paramref name="fresh"/>: it's listed, or disposed.</summary>
 	/// <returns>False if the new model couldn't be built yet</returns>
-	private bool TryReplaceDevice(OutputDeviceModel invalid)
+	private bool TryReplaceDevice(OutputDeviceModel invalid, OutputDeviceModel? fresh)
 	{
 		int index = ActiveDevices.IndexOf(invalid);
 		//it was disabled in the meantime
-		if(index < 0)
+		if(index < 0 || disposed)
+		{
+			fresh?.Dispose();
 			return true;
-
-		//a device only becomes invalid after Connect, which sets both
-		if(deviceEnumerator == null || deviceStateNotificationHandler == null)
-			return false;
-		OutputDeviceModel? fresh;
-		try { fresh = deviceEnumerator.CreateDeviceModel(invalid.Id, deviceStateNotificationHandler); }
-		catch(DeviceNotReadyException) { return false; }
+		}
 		if(fresh == null)
 			return false;
+		//before the check: Invalidated comes on any thread (a rebuild of an unlisted model ends at once)
+		fresh.Invalidated += OnDeviceInvalidated;
+		//reconfigured again or gone while it was being built (the old model's own notification removes it then)
+		if(!fresh.IsUsable())
+		{
+			fresh.Invalidated -= OnDeviceInvalidated;
+			fresh.Dispose();
+			return false;
+		}
 
 		invalid.Disabled -= OnDeviceDisabled;
 		invalid.Invalidated -= OnDeviceInvalidated;
 		fresh.Disabled += OnDeviceDisabled;
-		fresh.Invalidated += OnDeviceInvalidated;
 		//add the new model before the listeners switch to it, and remove the old one after that:
 		//replacing it in place makes a combo box that shows it lose its selection and write null back
 		ActiveDevices.Insert(index, fresh);
