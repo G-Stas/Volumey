@@ -337,12 +337,14 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.PopupEnabled = true;
 		vm.AlwaysOnTop = true;
 		vm.DeviceViewAtTheBottom = true;
+		vm.ShowDevicePicker = false;
 		vm.DisplayDeviceIconAtTray = true;
 		vm.SelectedScreen = Second;
 
 		Assert.IsTrue(Settings.Window.PopupMode);
 		Assert.IsTrue(Settings.Window.AlwaysOnTop);
 		Assert.IsTrue(Settings.Window.DeviceViewAtTheBottom);
+		Assert.IsFalse(Settings.Window.ShowDevicePicker);
 		Assert.IsTrue(Settings.Window.DisplayDeviceIconAtTray);
 		Assert.AreEqual(Second.Name, Settings.Window.ScreenName);
 		Assert.IsTrue(vm.DisplayMinimalistic);

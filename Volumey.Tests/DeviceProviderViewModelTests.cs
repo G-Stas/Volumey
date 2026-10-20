@@ -54,6 +54,16 @@ public class DeviceProviderViewModelTests
 	}
 
 	[TestMethod]
+	public void ShowDefaultDeviceSelectsTheDefaultDevice()
+	{
+		model.SelectedDevice = deviceProviderMock.Object.ActiveDevices[1];
+
+		model.ShowDefaultDevice();
+
+		Assert.AreEqual(deviceProviderMock.Object.DefaultDevice, model.SelectedDevice);
+	}
+
+	[TestMethod]
 	public void ReplacedSelectedDeviceIsSelectedAgain()
 	{
 		var oldDevice = model.SelectedDevice = deviceProviderMock.Object.ActiveDevices[1];

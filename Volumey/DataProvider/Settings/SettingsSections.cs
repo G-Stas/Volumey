@@ -27,6 +27,8 @@ public sealed class WindowSettings : SettingsSection
 	public bool PopupMode { get; set; }
 	public bool AlwaysOnTop { get; set; }
 	public bool DeviceViewAtTheBottom { get; set; }
+	/// <summary>The mixer's output device picker; without it the mixer shows the default device</summary>
+	public bool ShowDevicePicker { get; set; } = true;
 	public bool DisplayDeviceIconAtTray { get; set; }
 	/// <summary>The mixer opens where it was last (window mode: <see cref="Left"/>/<see cref="Top"/>, popup: <see cref="PopupLeft"/>/<see cref="PopupTop"/>), not next to the tray</summary>
 	public bool RememberPosition { get; set; }

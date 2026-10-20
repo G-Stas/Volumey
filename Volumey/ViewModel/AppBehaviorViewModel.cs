@@ -93,6 +93,12 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnDeviceViewAtTheBottomChanged(bool value) => SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
 
+	/// <summary>The mixer's output device picker; without it the mixer shows the default device</summary>
+	[ObservableProperty]
+	public partial bool ShowDevicePicker { get; set; }
+
+	partial void OnShowDevicePickerChanged(bool value) => SettingsProvider.Settings.Window.ShowDevicePicker = value;
+
 	[ObservableProperty]
 	public partial bool DisplayDeviceIconAtTray { get; set; }
 
@@ -229,6 +235,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		AlwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
 		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
+		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
 		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;

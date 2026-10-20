@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Aygıtı altta göster</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Aygıt seçiciyi göster</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Kapalı: karıştırıcı varsayılan aygıtı gösterir.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Uygulama ses düzeyleri</value>
   </data>

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>डिवाइस को नीचे दिखाएँ</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>डिवाइस चयनकर्ता दिखाएँ</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>बंद: मिक्सर डिफ़ॉल्ट डिवाइस दिखाता है।</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>ऐप वॉल्यूम</value>
   </data>

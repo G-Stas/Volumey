@@ -18,5 +18,11 @@ public sealed class MainViewModel
 		Devices = devices;
 		Theme = theme;
 		Meters = meters;
+		//without the picker there's no way to leave another device: the mixer goes back to the default one
+		window.PropertyChanged += (_, e) =>
+		{
+			if(e.PropertyName == nameof(AppBehaviorViewModel.ShowDevicePicker) && !window.ShowDevicePicker)
+				devices.ShowDefaultDevice();
+		};
 	}
 }

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Mostrar o dispositivo na parte inferior</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Mostrar o seletor de dispositivo</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Desativado: o mixer mostra o dispositivo padrão.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Volume dos aplicativos</value>
   </data>

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Показувати пристрій унизу</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Показувати вибір пристрою</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Вимк.: мікшер показує пристрій за замовчуванням.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Гучність програм</value>
   </data>
