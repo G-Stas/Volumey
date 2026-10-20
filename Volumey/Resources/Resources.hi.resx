@@ -622,6 +622,9 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>किसी अन्य ऐप द्वारा उपयोग में है</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Windows या सुरक्षा सॉफ़्टवेयर ने इसे ब्लॉक किया है।</value>
+  </data>
   <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
     <value>सेटिंग्स सहेजी नहीं जा सकतीं: डिस्क भर गई है।</value>
   </data>

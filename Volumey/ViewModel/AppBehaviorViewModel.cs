@@ -121,10 +121,15 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 				launchAtStartup = false;
 				systemIntegration.DisableLaunchAtStartup();
 			}
+			StartupBlocked = value && !launchAtStartup;
 			OnPropertyChanged();
 #endif
 		}
 	}
+
+	/// <summary>Windows refused the autostart entry (security software or a policy); the Startup section says so until it's closed</summary>
+	[ObservableProperty]
+	public partial bool StartupBlocked { get; set; }
 
 	//reading the shortcut is a call into the shell (about 20 ms): it's made on the thread pool, so the first window doesn't wait for it.
 	//Created on the UI thread, the view model gets the result there

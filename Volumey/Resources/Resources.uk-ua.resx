@@ -622,6 +622,9 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Використовується іншою програмою</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Заблоковано Windows або захисною програмою.</value>
+  </data>
   <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
     <value>Не вдається зберегти параметри: диск заповнено.</value>
   </data>

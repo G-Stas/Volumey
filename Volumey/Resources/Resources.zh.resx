@@ -622,6 +622,9 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>已被其他应用使用</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>已被 Windows 或安全软件阻止。</value>
+  </data>
   <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
     <value>无法保存设置：磁盘已满。</value>
   </data>

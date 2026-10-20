@@ -622,6 +622,9 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>En uso por otra aplicación</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Bloqueado por Windows o por software de seguridad.</value>
+  </data>
   <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
     <value>No se puede guardar la configuración: el disco está lleno.</value>
   </data>

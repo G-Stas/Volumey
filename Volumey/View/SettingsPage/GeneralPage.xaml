@@ -77,6 +77,11 @@
                                      AutomationProperties.Name="{lc:Localization General_StartWithWindows}"
                                      AutomationProperties.AutomationId="StartWithWindowsToggle" />
                 </ui:CardControl>
+                <ui:InfoBar Severity="Warning"
+                            IsOpen="{Binding StartupBlocked, Mode=TwoWay}"
+                            Message="{lc:Localization General_StartupBlocked}"
+                            Margin="0,0,0,4"
+                            AutomationProperties.AutomationId="StartupBlockedBar" />
                 <ui:CardControl Icon="{ui:SymbolIcon Grid24}">
                     <ui:CardControl.Header>
                         <StackPanel>
