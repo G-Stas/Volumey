@@ -622,4 +622,16 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>किसी अन्य ऐप द्वारा उपयोग में है</value>
   </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>सेटिंग्स सहेजी नहीं जा सकतीं: डिस्क भर गई है।</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>सेटिंग्स सहेजी नहीं जा सकतीं: पहुँच अस्वीकृत।</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>सेटिंग्स सहेजी नहीं जा सकतीं: फ़ाइल उपयोग में है।</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>सेटिंग्स सहेजी नहीं जा सकतीं।</value>
+  </data>
 </root>

@@ -681,4 +681,16 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Used by another app</value>
   </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Can't save settings: the disk is full.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Can't save settings: access denied.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Can't save settings: the file is in use.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Can't save settings.</value>
+  </data>
 </root>

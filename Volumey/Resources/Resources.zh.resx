@@ -622,4 +622,16 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>已被其他应用使用</value>
   </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>无法保存设置：磁盘已满。</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>无法保存设置：访问被拒绝。</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>无法保存设置：文件正在使用中。</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>无法保存设置。</value>
+  </data>
 </root>

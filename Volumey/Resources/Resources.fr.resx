@@ -622,4 +622,16 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Utilisé par une autre application</value>
   </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres : le disque est plein.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres : accès refusé.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres : le fichier est utilisé.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres.</value>
+  </data>
 </root>

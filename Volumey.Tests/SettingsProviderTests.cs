@@ -51,6 +51,34 @@ public class SettingsProviderTests
 	}
 
 	[TestMethod]
+	public void SettingsThatCantBeWrittenAtStartStayInUseAndAreReported()
+	{
+		var settings = SettingsProvider.LoadSettings(dir);
+		settings.General.VolumeStep = 7;
+		settings.Flush();
+
+		VolumeySettings reloaded;
+		//another program keeps the file open for reading only (it can be read, not written)
+		using(new FileStream(SettingsFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+			reloaded = SettingsProvider.LoadSettings(dir);
+
+		try
+		{
+			Assert.AreEqual(7, reloaded.General.VolumeStep, "the settings that were read are kept, not the defaults");
+			Assert.AreEqual(SaveFailure.InUse, SettingsSaveStatus.Current);
+
+			reloaded.General.VolumeStep = 8;
+			reloaded.Flush();
+			Assert.AreEqual(SaveFailure.None, SettingsSaveStatus.Current, "a write that works ends the error");
+			Assert.AreEqual(8, SettingsProvider.LoadSettings(dir).General.VolumeStep);
+		}
+		finally
+		{
+			SettingsSaveStatus.Report(null);
+		}
+	}
+
+	[TestMethod]
 	public void FirstLaunchImportsTheLegacySettingsAndKeepsThem()
 	{
 		Directory.CreateDirectory(dir);

@@ -622,4 +622,16 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>En uso por otra aplicación</value>
   </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>No se puede guardar la configuración: el disco está lleno.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>No se puede guardar la configuración: acceso denegado.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>No se puede guardar la configuración: el archivo está en uso.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>No se puede guardar la configuración.</value>
+  </data>
 </root>
