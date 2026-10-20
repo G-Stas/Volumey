@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Gerät unten anzeigen</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Geräteauswahl anzeigen</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Aus: Der Mixer zeigt das Standardgerät.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App-Lautstärken</value>
   </data>

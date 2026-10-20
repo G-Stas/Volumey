@@ -330,6 +330,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value />
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value />
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value />
   </data>

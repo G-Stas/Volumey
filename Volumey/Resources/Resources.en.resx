@@ -330,6 +330,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Show the device at the bottom</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Show the device picker</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>When off, the mixer shows the default device</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App volumes</value>
   </data>

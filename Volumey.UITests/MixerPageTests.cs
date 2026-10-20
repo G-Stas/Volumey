@@ -102,6 +102,20 @@ public class MixerPageTests : UiTest
 
 	[TestMethod]
 	[TestCategory("Audio")]
+	public void TheDevicePickerCanBeHidden()
+	{
+		OpenPage();
+		AutomationElement? Picker() => ShownMixer().FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox).And(cf.ByName("Output device")));
+		Assert.IsNotNull(Picker(), "the mixer has no device picker");
+
+		Settings.SetSwitch("DevicePickerToggle", false);
+		App.WaitForSettings(s => s["Window"]?["ShowDevicePicker"]?.GetValue<bool>() == false, "hidden picker saved");
+		Assert.IsTrue(Eventually(() => Picker() == null), "the device picker is still shown");
+		Assert.IsNotNull(ShownMixer().FindFirstDescendant(cf => cf.ByAutomationId("DeviceVolumeSlider")), "the device's slider is gone");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
 	public void TheVolumeLimitLowersANewApp()
 	{
 		OpenPage();

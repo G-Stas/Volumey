@@ -111,6 +111,17 @@
             </ui:CardControl>
 
             <TextBlock Text="{lc:Localization MixerPage_Layout}" Style="{StaticResource SectionHeader}" />
+            <ui:CardControl Icon="{ui:SymbolIcon Headphones24}">
+                <ui:CardControl.Header>
+                    <StackPanel>
+                        <TextBlock Text="{lc:Localization MixerPage_DevicePicker}" />
+                        <TextBlock Text="{lc:Localization MixerPage_DevicePickerHint}" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{Binding Window.ShowDevicePicker}"
+                                 AutomationProperties.Name="{lc:Localization MixerPage_DevicePicker}"
+                                 AutomationProperties.AutomationId="DevicePickerToggle" />
+            </ui:CardControl>
             <ui:CardControl Icon="{ui:SymbolIcon PanelBottom20}">
                 <ui:CardControl.Header>
                     <StackPanel>

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>在底部显示设备</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>显示设备选择器</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>关闭时，合成器显示默认设备。</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>应用音量</value>
   </data>

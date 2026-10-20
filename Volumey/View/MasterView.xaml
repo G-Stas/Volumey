@@ -13,122 +13,189 @@
         <converters:NoDeviceToVisibilityConverter x:Key="NoDeviceToVisibilityConverter" />
         <converters:DeviceIsDefaultToVisibilityPropertiesConverter x:Key="DeviceIsDefaultToVisibilityPropertiesConverter"/>
         <converters:DefaultDeviceTagConverter x:Key="DefaultDeviceTagConverter"/>
-    </UserControl.Resources>
 
-    <!-- the devices on the content, not on the control: where the mixer places it is bound on the control -->
-    <Grid DataContext="{Binding Devices}">
-        <TextBlock
-            Text="{lc:Localization Error_NoDevice}"
-            TextWrapping="Wrap"
-            Visibility="{Binding DeviceProvider.NoOutputDevices, ConverterParameter=Label, Converter={StaticResource NoDeviceToVisibilityConverter}}" />
+        <!-- the picker, the "make default" button and the device's slider -->
+        <DataTemplate x:Key="WithPicker">
+            <StackPanel>
+                <TextBlock
+                    Text="{lc:Localization Mixer_OutputDevice}"
+                    Style="{StaticResource Caption}"
+                    Margin="0 0 0 8" />
 
-        <StackPanel
-            Visibility="{Binding DeviceProvider.NoOutputDevices, ConverterParameter=Master, Converter={StaticResource NoDeviceToVisibilityConverter}}">
-            <TextBlock
-                Text="{lc:Localization Mixer_OutputDevice}"
-                Style="{StaticResource Caption}"
-                Margin="0 0 0 8" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <ComboBox
-                    ItemsSource="{Binding DeviceProvider.ActiveDevices}"
-                    SelectedItem="{Binding SelectedDevice}"
-                    IsSynchronizedWithCurrentItem="False"
-                    HorizontalAlignment="Stretch"
-                    AutomationProperties.Name="{lc:Localization Mixer_OutputDevice}">
-                    <ComboBox.ItemContainerStyle>
-                        <!-- the name and the "Default" tag for screen readers: the template's text isn't exposed -->
-                        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
-                            <Setter Property="AutomationProperties.Name" Value="{Binding Master.DeviceFriendlyName}" />
-                            <Setter Property="AutomationProperties.ItemStatus">
-                                <Setter.Value>
-                                    <MultiBinding Converter="{StaticResource DefaultDeviceTagConverter}">
-                                        <Binding />
-                                        <Binding Path="DataContext.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
-                                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="[Devices_DefaultTag]" />
-                                    </MultiBinding>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ComboBox.ItemContainerStyle>
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Image
-                                    Source="{Binding Master.IconSource}"
-                                    Width="16"
-                                    Height="16"
-                                    Margin="0 0 12 0"
-                                    RenderOptions.BitmapScalingMode="HighQuality" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    Text="{Binding Master.DeviceFriendlyName}"
-                                    TextTrimming="CharacterEllipsis" />
-                                <!-- the default device's tag, like the Devices page's list; only in the open list
-                                     (the closed box has no ComboBoxItem), where it would cut the name -->
-                                <TextBlock
-                                    Grid.Column="2"
-                                    Margin="12 0 0 0"
-                                    VerticalAlignment="Center"
-                                    TextWrapping="NoWrap"
-                                    Style="{StaticResource Caption}"
-                                    Visibility="{Binding Visibility, RelativeSource={RelativeSource AncestorType=ComboBoxItem}, FallbackValue=Collapsed}">
-                                    <TextBlock.Text>
+                    <ComboBox
+                        ItemsSource="{Binding DeviceProvider.ActiveDevices}"
+                        SelectedItem="{Binding SelectedDevice}"
+                        IsSynchronizedWithCurrentItem="False"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="{lc:Localization Mixer_OutputDevice}">
+                        <ComboBox.ItemContainerStyle>
+                            <!-- the name and the "Default" tag for screen readers: the template's text isn't exposed -->
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                <Setter Property="AutomationProperties.Name" Value="{Binding Master.DeviceFriendlyName}" />
+                                <Setter Property="AutomationProperties.ItemStatus">
+                                    <Setter.Value>
                                         <MultiBinding Converter="{StaticResource DefaultDeviceTagConverter}">
                                             <Binding />
                                             <Binding Path="DataContext.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
                                             <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="[Devices_DefaultTag]" />
                                         </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </Grid>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Image
+                                        Source="{Binding Master.IconSource}"
+                                        Width="16"
+                                        Height="16"
+                                        Margin="0 0 12 0"
+                                        RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding Master.DeviceFriendlyName}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <!-- the default device's tag, like the Devices page's list; only in the open list
+                                         (the closed box has no ComboBoxItem), where it would cut the name -->
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        Margin="12 0 0 0"
+                                        VerticalAlignment="Center"
+                                        TextWrapping="NoWrap"
+                                        Style="{StaticResource Caption}"
+                                        Visibility="{Binding Visibility, RelativeSource={RelativeSource AncestorType=ComboBoxItem}, FallbackValue=Collapsed}">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{StaticResource DefaultDeviceTagConverter}">
+                                                <Binding />
+                                                <Binding Path="DataContext.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="[Devices_DefaultTag]" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </Grid>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
-                <!-- shown while the picked device isn't the default one -->
-                <ui:Button
-                    Grid.Column="1"
-                    Style="{StaticResource IconButton}"
-                    Margin="4 0 0 0"
-                    ToolTip="{lc:Localization Mixer_MakeDefault}"
-                    AutomationProperties.Name="{lc:Localization Mixer_MakeDefault}"
-                    Command="{Binding SetDefaultDeviceCommand}">
-                    <ui:Button.Visibility>
-                        <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
-                            <Binding Path="SelectedDevice"/>
-                            <Binding Path="DefaultDevice"/>
-                        </MultiBinding>
-                    </ui:Button.Visibility>
-                    <ui:Button.IsEnabled>
-                        <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
-                            <Binding Path="SelectedDevice"/>
-                            <Binding Path="DefaultDevice"/>
-                        </MultiBinding>
-                    </ui:Button.IsEnabled>
-                    <!-- Windows' own icon font: WPF-UI's Fluent System Icons have no such glyph -->
-                    <ui:FontIcon Glyph="&#xF623;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" />
-                </ui:Button>
-            </Grid>
+                    <!-- shown while the picked device isn't the default one -->
+                    <ui:Button
+                        Grid.Column="1"
+                        Style="{StaticResource IconButton}"
+                        Margin="4 0 0 0"
+                        ToolTip="{lc:Localization Mixer_MakeDefault}"
+                        AutomationProperties.Name="{lc:Localization Mixer_MakeDefault}"
+                        Command="{Binding SetDefaultDeviceCommand}">
+                        <ui:Button.Visibility>
+                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
+                                <Binding Path="SelectedDevice"/>
+                                <Binding Path="DefaultDevice"/>
+                            </MultiBinding>
+                        </ui:Button.Visibility>
+                        <ui:Button.IsEnabled>
+                            <MultiBinding Converter="{StaticResource DeviceIsDefaultToVisibilityPropertiesConverter}">
+                                <Binding Path="SelectedDevice"/>
+                                <Binding Path="DefaultDevice"/>
+                            </MultiBinding>
+                        </ui:Button.IsEnabled>
+                        <!-- Windows' own icon font: WPF-UI's Fluent System Icons have no such glyph -->
+                        <ui:FontIcon Glyph="&#xF623;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18" />
+                    </ui:Button>
+                </Grid>
 
-            <Grid Margin="0 8 0 0">
+                <Grid Margin="0 8 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:Button
+                        Style="{StaticResource IconButton}"
+                        Tag="{Binding SelectedDevice.Master.IsMuted}"
+                        AutomationProperties.AutomationId="DeviceMuteButton"
+                        Command="{Binding SelectedDevice.Master.MuteCommand}">
+                        <AutomationProperties.Name>
+                            <MultiBinding Converter="{StaticResource MuteButtonName}">
+                                <Binding Path="SelectedDevice.Master.IsMuted" />
+                                <Binding Path="SelectedDevice.Master.DeviceFriendlyName" />
+                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                            </MultiBinding>
+                        </AutomationProperties.Name>
+                        <ui:SymbolIcon Style="{StaticResource MuteIcon}" />
+                    </ui:Button>
+                    <controls:VolumeSlider
+                        Grid.Column="1"
+                        Margin="8 0"
+                        Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
+                        IsMuted="{Binding SelectedDevice.Master.IsMuted}"
+                        Level="{Binding SelectedDevice.Master.Level}"
+                        AutomationProperties.Name="{Binding SelectedDevice.Master.DeviceFriendlyName}"
+                        AutomationProperties.AutomationId="DeviceVolumeSlider" />
+                    <TextBlock
+                        Grid.Column="2"
+                        Style="{StaticResource VolumeValue}"
+                        Text="{Binding SelectedDevice.Master.Volume}" />
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- without the picker the mixer shows the default device: its name over its slider, like an app's row -->
+        <DataTemplate x:Key="WithoutPicker">
+            <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="32" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Image
+                    Grid.RowSpan="2"
+                    Source="{Binding SelectedDevice.Master.IconSource}"
+                    Width="24"
+                    Height="24"
+                    RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock
+                    Grid.Column="1"
+                    Text="{Binding SelectedDevice.Master.DeviceFriendlyName}"
+                    FontSize="13"
+                    TextTrimming="CharacterEllipsis"
+                    Margin="10 0 0 0" />
+                <Grid Grid.Row="1" Grid.Column="1" Margin="10 0 0 0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:VolumeSlider
+                        Margin="0 0 8 0"
+                        Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
+                        IsMuted="{Binding SelectedDevice.Master.IsMuted}"
+                        Level="{Binding SelectedDevice.Master.Level}"
+                        AutomationProperties.Name="{Binding SelectedDevice.Master.DeviceFriendlyName}"
+                        AutomationProperties.AutomationId="DeviceVolumeSlider" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Style="{StaticResource VolumeValue}"
+                        Text="{Binding SelectedDevice.Master.Volume}" />
+                </Grid>
                 <ui:Button
+                    Grid.Row="1"
+                    Grid.Column="2"
                     Style="{StaticResource IconButton}"
+                    Margin="10 0 0 0"
                     Tag="{Binding SelectedDevice.Master.IsMuted}"
                     AutomationProperties.AutomationId="DeviceMuteButton"
                     Command="{Binding SelectedDevice.Master.MuteCommand}">
@@ -141,19 +208,31 @@
                     </AutomationProperties.Name>
                     <ui:SymbolIcon Style="{StaticResource MuteIcon}" />
                 </ui:Button>
-                <controls:VolumeSlider
-                    Grid.Column="1"
-                    Margin="8 0"
-                    Value="{Binding SelectedDevice.Master.Volume, UpdateSourceTrigger=PropertyChanged}"
-                    IsMuted="{Binding SelectedDevice.Master.IsMuted}"
-                    Level="{Binding SelectedDevice.Master.Level}"
-                    AutomationProperties.Name="{Binding SelectedDevice.Master.DeviceFriendlyName}"
-                    AutomationProperties.AutomationId="DeviceVolumeSlider" />
-                <TextBlock
-                    Grid.Column="2"
-                    Style="{StaticResource VolumeValue}"
-                    Text="{Binding SelectedDevice.Master.Volume}" />
             </Grid>
-        </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <!-- the devices are the content's DataContext, not the control's: where the mixer places it is bound on the control -->
+    <Grid>
+        <TextBlock
+            Text="{lc:Localization Error_NoDevice}"
+            TextWrapping="Wrap"
+            Visibility="{Binding Devices.DeviceProvider.NoOutputDevices, ConverterParameter=Label, Converter={StaticResource NoDeviceToVisibilityConverter}}" />
+
+        <ContentControl
+            Content="{Binding Devices}"
+            Focusable="False"
+            Visibility="{Binding Devices.DeviceProvider.NoOutputDevices, ConverterParameter=Master, Converter={StaticResource NoDeviceToVisibilityConverter}}">
+            <ContentControl.Style>
+                <Style TargetType="ContentControl">
+                    <Setter Property="ContentTemplate" Value="{StaticResource WithPicker}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Window.ShowDevicePicker}" Value="False">
+                            <Setter Property="ContentTemplate" Value="{StaticResource WithoutPicker}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ContentControl.Style>
+        </ContentControl>
     </Grid>
 </UserControl>
