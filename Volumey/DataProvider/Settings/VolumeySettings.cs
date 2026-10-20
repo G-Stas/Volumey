@@ -81,6 +81,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 				try
 				{
 					SaveNow(file);
+					SettingsSaveStatus.Report(null);
 					return;
 				}
 				catch(Exception e) when(attempt < SaveAttempts && IsFileInUse(e))
@@ -91,6 +92,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 				{
 					//also runs on a timer thread, where an exception would end the app
 					log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
+					SettingsSaveStatus.Report(e);
 					return;
 				}
 			}

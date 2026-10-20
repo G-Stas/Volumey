@@ -622,4 +622,19 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Başka bir uygulama tarafından kullanılıyor</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Windows veya güvenlik yazılımı tarafından engellendi.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor: disk dolu.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor: erişim reddedildi.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor: dosya kullanımda.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor.</value>
+  </data>
 </root>
