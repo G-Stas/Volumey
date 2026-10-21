@@ -3,9 +3,7 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using System.Security;
 using System.Text;
-using System.Windows;
 using System.Windows.Input;
 using log4net;
 using Microsoft.Win32;
@@ -80,11 +78,7 @@ internal static class SystemIntegrationHelper
 				return true;
 			}
 		}
-		catch(SecurityException e)
-		{
-			Logger.Error("Failed to enable launch at startup", e);
-			MessageBox.Show(e.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
-		}
+		//refused (security software, a policy): the General page says so
 		catch(Exception e)
 		{
 			Logger.Error("Failed to enable launch at startup", e);

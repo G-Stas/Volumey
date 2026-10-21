@@ -16,6 +16,8 @@ public sealed partial class SettingsWindow
 		InitializeComponent();
 		WindowBackdropType = ThemeViewModel.Backdrop;
 		Navigation.SetPageProviderService(pages);
+		//only the bar: the pages bring their own view models
+		SaveErrorBar.DataContext = new SettingsSaveErrorViewModel(Dispatcher);
 		Loaded += (_, _) => Navigation.Navigate(typeof(GeneralPage));
 	}
 

@@ -622,4 +622,19 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Em uso por outro aplicativo</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Bloqueado pelo Windows ou por software de segurança.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Não é possível salvar as configurações: o disco está cheio.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Não é possível salvar as configurações: acesso negado.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Não é possível salvar as configurações: o arquivo está em uso.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Não é possível salvar as configurações.</value>
+  </data>
 </root>

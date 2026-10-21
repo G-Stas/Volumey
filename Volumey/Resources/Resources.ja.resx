@@ -622,4 +622,19 @@
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>別のアプリで使用されています</value>
   </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Windows またはセキュリティ ソフトウェアによってブロックされました。</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>設定を保存できません: ディスクがいっぱいです。</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>設定を保存できません: アクセスが拒否されました。</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>設定を保存できません: ファイルが使用中です。</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>設定を保存できません。</value>
+  </data>
 </root>
