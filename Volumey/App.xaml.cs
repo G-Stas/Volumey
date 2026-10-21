@@ -67,6 +67,7 @@ public sealed partial class App
 	private readonly WindowUpdateFailureGuard compositionChangeFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 	private readonly WindowUpdateFailureGuard popupResizeFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 	private readonly WindowUpdateFailureGuard tabletRefreshFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
+	private readonly WindowUpdateFailureGuard textServicesFailures = new WindowUpdateFailureGuard(() => DateTime.UtcNow);
 
 	/// <summary>
 	/// Keeps the app alive on known WPF failures. Only the failed update is skipped;
@@ -84,6 +85,9 @@ public sealed partial class App
 	/// Skipped, the popup is positioned again the next time it opens.</item>
 	/// <item>WPF's pen and touch code (<c>WispLogic.RefreshTablets</c>) changes its tablet list while enumerating it when a pen or
 	/// touch device is added ("Collection was modified"). Skipped, a new tablet may not work in Volumey until a restart.</item>
+	/// <item>WPF's text services check (<c>TextServicesLoader.TIPsWantToRun</c>) reads the registry on the first input, and Windows
+	/// can deny the read (SecurityException), e.g. while the user's registry is unloaded at sign-out. Skipped, that input is dropped
+	/// and WPF reads the registry again on the next one.</item>
 	/// </list>
 	/// </summary>
 	private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
@@ -98,6 +102,8 @@ public sealed partial class App
 			(guard, failure) = (popupResizeFailures, "failed popup resize(s)");
 		else if(IsTabletRefreshFailure(e.Exception))
 			(guard, failure) = (tabletRefreshFailures, "failed pen and touch device refresh(es)");
+		else if(IsTextServicesRegistryFailure(e.Exception))
+			(guard, failure) = (textServicesFailures, "input(s) dropped: the text services registry read was denied");
 		else
 			return;
 		e.Handled = true;
@@ -120,6 +126,9 @@ public sealed partial class App
 
 	internal static bool IsTabletRefreshFailure(Exception exception)
 		=> exception is InvalidOperationException && exception.StackTrace?.Contains("System.Windows.Input.StylusWisp.WispLogic.RefreshTablets") == true;
+
+	internal static bool IsTextServicesRegistryFailure(Exception exception)
+		=> exception is System.Security.SecurityException && exception.StackTrace?.Contains("MS.Internal.TextServicesLoader.TIPsWantToRun") == true;
 
 	internal static void InitializeExecutionTimer()
 	{
