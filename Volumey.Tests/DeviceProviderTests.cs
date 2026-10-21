@@ -221,6 +221,61 @@ public class DeviceProviderTests
 	}
 
 	[TestMethod]
+	public void ADeviceReconfiguredAgainWhileItWasRebuiltIsBuiltOnceMore()
+	{
+		var (provider, enumerator, sessions, handler) = CreateWithInvalidatableDefault();
+		var staleSessions = new Mock<ISessionProvider>();
+		var stale = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object, staleSessions);
+		//Windows changed the format again before the new model was listed
+		staleSessions.Raise(m => m.DeviceInvalidated += null);
+		var fresh = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+		enumerator.SetupSequence(m => m.CreateDeviceModel("111", handler.Object)).Returns(stale).Returns(fresh);
+
+		sessions.Raise(m => m.DeviceInvalidated += null);
+
+		WaitFor(() => provider.DefaultDevice == fresh, "the device wasn't built again", 5000);
+		Assert.DoesNotContain(stale, provider.ActiveDevices);
+		Assert.HasCount(2, provider.ActiveDevices);
+	}
+
+	[TestMethod]
+	public void ADeviceDisabledWhileItWasRebuiltIsRemoved()
+	{
+		var (provider, enumerator, sessions, handler) = CreateWithInvalidatableDefault();
+		var old = provider.DefaultDevice;
+		var fresh = OutputDeviceModelTests.GetDeviceMock("111", "speakers", handler.Object);
+		enumerator.Setup(m => m.CreateDeviceModel("111", handler.Object)).Returns(() =>
+		{
+			//unplugged while the new model is read: the old model, still listed, gets the notification
+			handler.Raise(m => m.DeviceDisabled += null, "111");
+			return fresh;
+		});
+
+		sessions.Raise(m => m.DeviceInvalidated += null);
+
+		WaitFor(() => !provider.ActiveDevices.Contains(old), "the disabled device stayed listed");
+		System.Threading.Thread.Sleep(500);
+		Assert.DoesNotContain(fresh, provider.ActiveDevices);
+		Assert.HasCount(1, provider.ActiveDevices);
+	}
+
+	[TestMethod]
+	public void AnAddedDeviceThatWasReconfiguredBeforeItWasListedIsRebuilt()
+	{
+		var (provider, enumerator, _, handler) = CreateWithInvalidatableDefault();
+		var addedSessions = new Mock<ISessionProvider>();
+		var added = OutputDeviceModelTests.GetDeviceMock("222", "monitor", handler.Object, addedSessions);
+		//built off the UI thread, reconfigured before anyone listened to it
+		addedSessions.Raise(m => m.DeviceInvalidated += null);
+		var fresh = OutputDeviceModelTests.GetDeviceMock("222", "monitor", handler.Object);
+		enumerator.Setup(m => m.CreateDeviceModel("222", handler.Object)).Returns(fresh);
+
+		handler.Raise(m => m.ActiveDeviceAdded += null, added);
+
+		WaitFor(() => provider.ActiveDevices.Contains(fresh) && !provider.ActiveDevices.Contains(added), "the added device wasn't rebuilt");
+	}
+
+	[TestMethod]
 	public void WindowsDefaultDeviceReadLaterBecomesTheDefault()
 	{
 		//the default device "222" was refused at start, so another device stood in for it

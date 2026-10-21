@@ -63,6 +63,12 @@ public sealed class AudioDevice : IDevice
 
 	public DeviceState GetState() => Device.State;
 
+	public bool IsGone()
+	{
+		try { return Device.State != DeviceState.Active; }
+		catch { return true; }
+	}
+
 	public DeviceFormat? GetDeviceFormat()
 	{
 		try
