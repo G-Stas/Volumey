@@ -101,6 +101,27 @@ public class AppTests
 		Assert.IsFalse(App.IsTabletRefreshFailure(new PopupException(TabletStack)));
 	}
 
+	private sealed class RegistryDeniedException : System.Security.SecurityException
+	{
+		private readonly string stackTrace;
+		public RegistryDeniedException(string stackTrace) => this.stackTrace = stackTrace;
+
+		public override string StackTrace => stackTrace;
+	}
+
+	private const string TextServicesStack = "   at Microsoft.Win32.RegistryKey.OpenSubKey(String name, Boolean writable)\n" +
+											 "   at MS.Internal.TextServicesLoader.TIPsWantToRun()\n" +
+											 "   at MS.Internal.TextServicesLoader.get_ServicesInstalled()";
+
+	[TestMethod]
+	public void OnlyTheTextServicesRegistryFailureIsIgnored()
+	{
+		Assert.IsTrue(App.IsTextServicesRegistryFailure(new RegistryDeniedException(TextServicesStack)));
+
+		Assert.IsFalse(App.IsTextServicesRegistryFailure(new RegistryDeniedException("   at Volumey.Helper.SystemColorHelper.GetWindowsTheme()")));
+		Assert.IsFalse(App.IsTextServicesRegistryFailure(new TabletException(TextServicesStack)));
+	}
+
 	[TestMethod]
 	public void IgnoredFailuresAreReportedAtMostOncePerInterval()
 	{
