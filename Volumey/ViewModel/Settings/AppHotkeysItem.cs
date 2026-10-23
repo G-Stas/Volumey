@@ -7,7 +7,7 @@ using Volumey.Controls;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// One app on the App hotkeys page: its process name and volume hotkeys, which can be changed in place
+/// One app on the App hotkeys page: its process name and hotkeys (each optional, at least one), which can be changed in place
 /// (<see cref="AppsHotkeysViewModel"/> checks and registers a change, and puts the old hotkey back if it can't)
 /// </summary>
 public sealed partial class AppHotkeysItem : ObservableObject
@@ -27,37 +27,47 @@ public sealed partial class AppHotkeysItem : ObservableObject
 	/// </summary>
 	public HotkeyPairErrors Errors { get; } = new HotkeyPairErrors();
 
-	private HotKey volumeUp;
-	public HotKey VolumeUp
+	private HotKey? volumeUp;
+	public HotKey? VolumeUp
 	{
 		get => volumeUp;
-		set => owner.ChangeHotkey(this, value, volumeDown);
+		set => owner.ChangeHotkey(this, AppHotkeyKind.Up, value);
 	}
 
-	private HotKey volumeDown;
-	public HotKey VolumeDown
+	private HotKey? volumeDown;
+	public HotKey? VolumeDown
 	{
 		get => volumeDown;
-		set => owner.ChangeHotkey(this, volumeUp, value);
+		set => owner.ChangeHotkey(this, AppHotkeyKind.Down, value);
 	}
 
-	internal AppHotkeysItem(AppsHotkeysViewModel owner, string processName, HotKey volumeUp, HotKey volumeDown)
+	private HotKey? mute;
+	public HotKey? Mute
+	{
+		get => mute;
+		set => owner.ChangeHotkey(this, AppHotkeyKind.Mute, value);
+	}
+
+	internal AppHotkeysItem(AppsHotkeysViewModel owner, string processName, HotKey? volumeUp, HotKey? volumeDown, HotKey? mute)
 	{
 		this.owner = owner;
 		ProcessName = processName;
 		this.volumeUp = volumeUp;
 		this.volumeDown = volumeDown;
+		this.mute = mute;
 	}
 
 	/// <summary>
 	/// Takes the new hotkeys, or tells the hotkey boxes the current ones again (after a rejected change, a box still shows what was typed)
 	/// </summary>
-	internal void SetHotkeys(HotKey up, HotKey down)
+	internal void SetHotkeys(HotKey? up, HotKey? down, HotKey? newMute)
 	{
 		volumeUp = up;
 		volumeDown = down;
+		mute = newMute;
 		OnPropertyChanged(nameof(VolumeUp));
 		OnPropertyChanged(nameof(VolumeDown));
+		OnPropertyChanged(nameof(Mute));
 	}
 
 	[RelayCommand]

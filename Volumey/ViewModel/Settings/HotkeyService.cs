@@ -11,8 +11,10 @@ using Volumey.Helper;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// The app's hotkeys: holds the hotkey manager, counts the users of each hotkey so several features can share one,
+/// The app's hotkeys: holds the hotkey managers, counts the users of each hotkey so several features can share one,
 /// raises the pressed hotkeys and validates new ones. One instance for the app (<see cref="Services.ServiceRegistration"/>).
+/// Keyboard hotkeys go to the keyboard manager (blocking or shared, <see cref="SetHotkeyManager"/>), mouse hotkeys to a mouse
+/// manager that only exists while a mouse hotkey is registered.
 /// </summary>
 public sealed class HotkeyService : IHotkeyService
 {
@@ -45,6 +47,8 @@ public sealed class HotkeyService : IHotkeyService
 
 	private HotKey? openMixer;
 	private IHotkeyManager? hotkeyManager;
+	private IHotkeyManager? mouseManager;
+	private readonly Func<IHotkeyManager>? createMouseManager;
 
 	/// <summary>
 	/// Keeps track of hotkeys and amount of its users to prevent early unregistering of hotkeys.
@@ -108,6 +112,37 @@ public sealed class HotkeyService : IHotkeyService
 	}
 
 	/// <summary>
+	/// Registers the hotkeys that are set (nulls are skipped), or none: if one fails, the ones before it are released again.
+	/// </summary>
+	/// <param name="failed">The hotkey that couldn't be registered, null on success</param>
+	public bool RegisterHotkeys(IReadOnlyList<HotKey?> hotkeys, out HotKey? failed)
+	{
+		var registered = new List<HotKey>();
+		foreach(var hotkey in hotkeys)
+		{
+			if(hotkey == null)
+				continue;
+			if(!RegisterHotkey(hotkey))
+			{
+				//release only what this call took: a combination may be shared with another feature
+				foreach(var taken in registered)
+					UnregisterHotkey(taken);
+				failed = hotkey;
+				return false;
+			}
+			registered.Add(hotkey);
+		}
+		failed = null;
+		return true;
+	}
+
+	public void UnregisterHotkeys(IReadOnlyList<HotKey?> hotkeys)
+	{
+		foreach(var hotkey in hotkeys)
+			UnregisterHotkey(hotkey);
+	}
+
+	/// <summary>
 	/// Registers the hotkey and counts this user. False, with nothing counted, if there's no manager yet or it refuses the hotkey
 	/// (e.g. another app owns the combination in blocking mode). The managers accept a combination that is already registered,
 	/// so several features can share one.
@@ -116,17 +151,63 @@ public sealed class HotkeyService : IHotkeyService
 	{
 		if(hotkeyManager == null || hotkey == null)
 			return false;
+		if(hotkey.Source == InputSource.Mouse && !IsUsableMouseHotkey(hotkey))
+		{
+			Logger.Warn($"Refused the mouse hotkey [{hotkey}]: an unknown button, or a click or the wheel without a modifier");
+			return false;
+		}
+		var manager = ManagerFor(hotkey, create: true);
+		if(manager == null)
+			return false;
 		try
 		{
-			hotkeyManager.RegisterHotkey(hotkey);
+			manager.RegisterHotkey(hotkey);
 		}
 		catch(Exception e)
 		{
 			Logger.Warn($"Failed to register hotkey [{hotkey}]", e);
+			ReleaseIdleMouseManager();
 			return false;
 		}
 		IncrementHotkeyUserCounter(hotkey);
 		return true;
+	}
+
+	/// <summary>A known button; clicks and the wheel only with a modifier (they are used all the time), side buttons also alone</summary>
+	internal static bool IsUsableMouseHotkey(HotKey hotkey)
+		=> hotkey.Button is { } button && MouseButtons.IsKnown(button)
+			&& (hotkey.ModifierKeys != ModifierKeys.None || !MouseButtons.NeedsModifier(button));
+
+	/// <param name="create">Starts the mouse manager for a mouse hotkey</param>
+	/// <returns>The hotkey's manager; null if there's none (no keyboard manager yet, mouse hotkeys not available)</returns>
+	private IHotkeyManager? ManagerFor(HotKey hotkey, bool create)
+	{
+		if(hotkey.Source != InputSource.Mouse)
+			return hotkeyManager;
+		if(mouseManager == null && create && createMouseManager != null)
+		{
+			try
+			{
+				mouseManager = createMouseManager();
+				mouseManager.HotkeyPressed += OnHotkeyPressed;
+			}
+			catch(Exception e)
+			{
+				Logger.Error("Failed to start listening to the mouse", e);
+				mouseManager = null;
+			}
+		}
+		return mouseManager;
+	}
+
+	/// <summary>The mouse manager sees every mouse move: it's stopped once no mouse hotkey is left</summary>
+	private void ReleaseIdleMouseManager()
+	{
+		if(mouseManager == null || mouseManager.RegisteredHotkeysCount > 0)
+			return;
+		mouseManager.HotkeyPressed -= OnHotkeyPressed;
+		mouseManager.Dispose();
+		mouseManager = null;
 	}
 
 	/// <summary>
@@ -139,14 +220,19 @@ public sealed class HotkeyService : IHotkeyService
 		DecrementHotkeyUserCounter(hotkey, out bool lastUser);
 		if(!lastUser)
 			return;
+		var manager = ManagerFor(hotkey, create: false);
+		if(manager == null)
+			return;
 		try
 		{
-			hotkeyManager.UnregisterHotkey(hotkey);
+			manager.UnregisterHotkey(hotkey);
 		}
 		catch(Exception e)
 		{
 			Logger.Warn($"Failed to unregister hotkey [{hotkey}]", e);
 		}
+		if(manager == mouseManager)
+			ReleaseIdleMouseManager();
 	}
 
 	public bool RegisterOpenMixerHotkey(HotKey? hotkey)
@@ -206,14 +292,35 @@ public sealed class HotkeyService : IHotkeyService
 		return (upError, downError);
 	}
 
+	/// <summary>
+	/// Checks an app's or the foreground app's hotkeys box by box: each is optional, but at least one is set
+	/// (<see cref="ErrorMessageType.Missing"/> under the first box when none is), and a hotkey set twice is <see cref="ErrorMessageType.Diff"/>
+	/// on the later box. Each set hotkey is also checked with <see cref="HotkeyIsValid"/>.
+	/// </summary>
+	public (ErrorMessageType up, ErrorMessageType down, ErrorMessageType mute) CheckAppHotkeys(HotKey? up, HotKey? down, HotKey? mute)
+	{
+		if(up == null && down == null && mute == null)
+			return (ErrorMessageType.Missing, ErrorMessageType.None, ErrorMessageType.None);
+		ErrorMessageType Check(HotKey? hotkey, params HotKey?[] earlier)
+		{
+			if(hotkey == null)
+				return ErrorMessageType.None;
+			if(earlier.Any(other => hotkey.Equals(other)))
+				return ErrorMessageType.Diff;
+			return HotkeyIsValid(hotkey);
+		}
+		return (Check(up), Check(down, up), Check(mute, up, down));
+	}
+
 	public void SetVolumeStep(int newValue)
 	{
 		VolumeStep = newValue;
 	}
 
 	/// <summary>
-	/// Sets the hotkey manager. On a later call the registered hotkeys move from the previous manager to the new one,
-	/// which is then the only one, and the previous manager is disposed. The user counts stay as they are.
+	/// Sets the keyboard hotkey manager. On a later call the registered keyboard hotkeys move from the previous manager to the new one,
+	/// and the previous manager is disposed. The user counts stay as they are. Mouse hotkeys stay with the mouse manager:
+	/// the hotkey mode only decides how keys are taken.
 	/// </summary>
 	public void SetHotkeyManager(IHotkeyManager hm)
 	{
@@ -252,18 +359,26 @@ public sealed class HotkeyService : IHotkeyService
 
 	private readonly Func<HotKey, bool> isRegisteredElsewhere;
 
-	public HotkeyService() : this(hotkey => HotkeyProbe.IsRegisteredElsewhere(Win32.Instance, hotkey)) { }
+	public HotkeyService() : this(hotkey => HotkeyProbe.IsRegisteredElsewhere(Win32.Instance, hotkey), () => new MouseHotkeyManager()) { }
 
 	/// <param name="isRegisteredElsewhere">Whether Windows refuses to register the combination because it's taken (tests pass a fake)</param>
-	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere) => this.isRegisteredElsewhere = isRegisteredElsewhere;
+	/// <param name="createMouseManager">Starts listening to the mouse for mouse hotkeys; null: mouse hotkeys are refused</param>
+	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere, Func<IHotkeyManager>? createMouseManager = null)
+	{
+		this.isRegisteredElsewhere = isRegisteredElsewhere;
+		this.createMouseManager = createMouseManager;
+	}
 
 	/// <summary>
 	/// Who holds a combination that Windows delivered as a hotkey instead of as keys (a hotkey box only sees its key released).
 	/// </summary>
 	public HotkeyOwner FindOwner(HotKey hotkey)
 	{
-		if(hotkeyManager?.GetRegisteredHotkeys()?.Contains(hotkey) == true)
+		if(ManagerFor(hotkey, create: false)?.GetRegisteredHotkeys()?.Contains(hotkey) == true)
 			return HotkeyOwner.Volumey;
+		//only key combinations can be registered by other apps
+		if(hotkey.Source == InputSource.Mouse)
+			return HotkeyOwner.Nobody;
 		return isRegisteredElsewhere(hotkey) ? HotkeyOwner.AnotherApp : HotkeyOwner.Nobody;
 	}
 
@@ -281,5 +396,7 @@ public sealed class HotkeyService : IHotkeyService
 		//called again when the container is disposed on exit
 		hotkeyManager?.Dispose();
 		hotkeyManager = null;
+		mouseManager?.Dispose();
+		mouseManager = null;
 	}
 }

@@ -22,7 +22,20 @@ public interface IDeviceProvider : IDisposable
 
 	public bool NoOutputDevices { get; set; }
 
+	/// <summary>
+	/// True while the devices are read at start (also when that happens late: after Windows audio couldn't be reached,
+	/// or a device Windows refused at start that is read again),
+	/// so a <see cref="DefaultDeviceChanged"/> then is the start, not a device plugged in
+	/// </summary>
+	public bool IsReadingDevices { get; }
+
 	public void SetDefaultDevice(string? deviceId);
+
+	/// <summary>
+	/// The device Volumey itself asked Windows to make the default (<see cref="SetDefaultDevice"/>, a few seconds at most), until the
+	/// switch to it is reported; null otherwise. Tells a switch the user made in Volumey from one made outside it.
+	/// </summary>
+	public string? RequestedDefaultDeviceId { get; }
 
 	/// <summary>
 	/// Sets the format the device runs at (on the thread pool: Windows reconfigures the device during the call). False if the change failed;

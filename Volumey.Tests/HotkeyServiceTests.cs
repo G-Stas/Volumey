@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -123,6 +124,140 @@ public class HotkeyServiceTests
 		Assert.AreEqual(HotkeyOwner.Volumey, owners.FindOwner(Shared));
 		Assert.AreEqual(HotkeyOwner.AnotherApp, owners.FindOwner(Other));
 		Assert.AreEqual(HotkeyOwner.Nobody, owners.FindOwner(Taken));
+	}
+
+	private static readonly HotKey Back = HotKey.Mouse(MouseButtons.XButton1);
+	private static readonly HotKey CtrlWheelUp = HotKey.Mouse(MouseButtons.WheelUp, ModifierKeys.Control);
+
+	/// <summary>A service whose mouse managers are fakes, kept in <paramref name="created"/></summary>
+	private HotkeyService WithMouse(List<FakeHotkeyManager> created)
+	{
+		var withMouse = new HotkeyService(_ => false, () =>
+		{
+			var mouse = new FakeHotkeyManager();
+			created.Add(mouse);
+			return mouse;
+		});
+		withMouse.SetHotkeyManager(manager.Object);
+		return withMouse;
+	}
+
+	[TestMethod]
+	public void MouseHotkeysGoToTheMouseManagerOnly()
+	{
+		var mice = new List<FakeHotkeyManager>();
+		var withMouse = WithMouse(mice);
+
+		Assert.IsTrue(withMouse.RegisterHotkey(Back));
+		Assert.IsTrue(withMouse.RegisterHotkey(Other));
+
+		var mouse = Assert.ContainsSingle(mice);
+		CollectionAssert.AreEqual(new[] { Back }, mouse.GetRegisteredHotkeys().ToArray());
+		manager.Verify(m => m.RegisterHotkey(Back), Times.Never);
+		manager.Verify(m => m.RegisterHotkey(Other), Times.Once);
+		Assert.AreEqual(HotkeyOwner.Volumey, withMouse.FindOwner(Back));
+		Assert.AreEqual(HotkeyOwner.Nobody, withMouse.FindOwner(CtrlWheelUp), "no other app can hold a mouse hotkey");
+	}
+
+	[TestMethod]
+	public void TheMouseIsOnlyListenedToWhileAMouseHotkeyIsRegistered()
+	{
+		var mice = new List<FakeHotkeyManager>();
+		var withMouse = WithMouse(mice);
+		Assert.IsEmpty(mice, "no mouse hotkey: no mouse manager");
+
+		withMouse.RegisterHotkey(Back);
+		withMouse.RegisterHotkey(Back);
+		withMouse.RegisterHotkey(CtrlWheelUp);
+		withMouse.UnregisterHotkey(Back);
+		withMouse.UnregisterHotkey(CtrlWheelUp);
+		Assert.IsFalse(mice[0].IsDisposed, "Back still has a user");
+
+		withMouse.UnregisterHotkey(Back);
+		Assert.IsTrue(mice[0].IsDisposed);
+
+		withMouse.RegisterHotkey(Back);
+		Assert.HasCount(2, mice, "a new mouse hotkey starts a new one");
+	}
+
+	[TestMethod]
+	public void APressedMouseHotkeyIsRaisedLikeAKey()
+	{
+		var mice = new List<FakeHotkeyManager>();
+		var withMouse = WithMouse(mice);
+		var pressed = new List<HotKey>();
+		withMouse.HotkeyPressed += pressed.Add;
+		withMouse.RegisterHotkey(Back);
+
+		mice[0].Press(Back);
+		withMouse.IsEditingHotkey = true;
+		mice[0].Press(Back);
+
+		CollectionAssert.AreEqual(new[] { Back }, pressed, "not while a hotkey box is being edited");
+	}
+
+	[TestMethod]
+	public void ClicksAndTheWheelNeedAModifierSideButtonsDont()
+	{
+		var mice = new List<FakeHotkeyManager>();
+		var withMouse = WithMouse(mice);
+
+		Assert.IsTrue(withMouse.RegisterHotkey(Back));
+		Assert.IsTrue(withMouse.RegisterHotkey(HotKey.Mouse(MouseButtons.XButton2)));
+		Assert.IsTrue(withMouse.RegisterHotkey(CtrlWheelUp));
+		Assert.IsTrue(withMouse.RegisterHotkey(HotKey.Mouse(MouseButtons.Left, ModifierKeys.Alt)));
+		Assert.IsFalse(withMouse.RegisterHotkey(HotKey.Mouse(MouseButtons.Left)));
+		Assert.IsFalse(withMouse.RegisterHotkey(HotKey.Mouse(MouseButtons.Middle)));
+		Assert.IsFalse(withMouse.RegisterHotkey(HotKey.Mouse(MouseButtons.WheelDown)));
+		Assert.IsFalse(withMouse.RegisterHotkey(HotKey.Mouse("Button9", ModifierKeys.Control)));
+	}
+
+	[TestMethod]
+	public void ChangingTheHotkeyModeLeavesMouseHotkeysAlone()
+	{
+		var mice = new List<FakeHotkeyManager>();
+		var withMouse = WithMouse(mice);
+		withMouse.RegisterHotkey(Back);
+		withMouse.RegisterHotkey(Other);
+		manager.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { Other });
+
+		var shared = new Mock<IHotkeyManager>();
+		withMouse.SetHotkeyManager(shared.Object);
+
+		shared.Verify(m => m.RegisterHotkey(Other), Times.Once);
+		shared.Verify(m => m.RegisterHotkey(Back), Times.Never);
+		Assert.IsFalse(mice[0].IsDisposed);
+		CollectionAssert.AreEqual(new[] { Back }, mice[0].GetRegisteredHotkeys().ToArray());
+	}
+
+	[TestMethod]
+	public void WithoutMouseSupportMouseHotkeysAreRefused()
+	{
+		var keyboardOnly = new HotkeyService(_ => false);
+		keyboardOnly.SetHotkeyManager(manager.Object);
+
+		Assert.IsFalse(keyboardOnly.RegisterHotkey(Back));
+		manager.Verify(m => m.RegisterHotkey(Back), Times.Never);
+	}
+
+	/// <summary>A hotkey manager that keeps its hotkeys and raises presses on request</summary>
+	internal sealed class FakeHotkeyManager : IHotkeyManager
+	{
+		private readonly List<HotKey> registered = new List<HotKey>();
+		public event Action<HotKey> HotkeyPressed;
+		public bool IsDisposed { get; private set; }
+		public int RegisteredHotkeysCount => registered.Count;
+		public IReadOnlyList<HotKey> GetRegisteredHotkeys() => registered.ToArray();
+
+		public void RegisterHotkey(HotKey key)
+		{
+			if(!registered.Contains(key))
+				registered.Add(key);
+		}
+
+		public void UnregisterHotkey(HotKey key) => registered.Remove(key);
+		public void Press(HotKey key) => HotkeyPressed?.Invoke(key);
+		public void Dispose() => IsDisposed = true;
 	}
 
 	[TestMethod]

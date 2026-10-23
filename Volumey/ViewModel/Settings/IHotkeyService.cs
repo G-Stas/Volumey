@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using Volumey.Controls;
 using Volumey.Helper;
 
@@ -50,6 +51,14 @@ public interface IHotkeyService : IDisposable
 
 	void UnregisterHotkeysPair(HotKey? hotkey1, HotKey? hotkey2);
 
+	/// <summary>
+	/// Registers the hotkeys that are set (nulls are skipped), or none (see <see cref="HotkeyService.RegisterHotkeys"/>)
+	/// </summary>
+	/// <param name="failed">The hotkey that couldn't be registered, null on success</param>
+	bool RegisterHotkeys(IReadOnlyList<HotKey?> hotkeys, out HotKey? failed);
+
+	void UnregisterHotkeys(IReadOnlyList<HotKey?> hotkeys);
+
 	bool RegisterHotkey(HotKey? hotkey);
 
 	void UnregisterHotkey(HotKey? hotkey);
@@ -66,4 +75,9 @@ public interface IHotkeyService : IDisposable
 	/// Checks a volume up/down pair hotkey by hotkey (see <see cref="HotkeyService.CheckHotkeysPair"/>)
 	/// </summary>
 	(ErrorMessageType up, ErrorMessageType down) CheckHotkeysPair(HotKey? up, HotKey? down);
+
+	/// <summary>
+	/// Checks an app's or the foreground app's optional hotkeys (see <see cref="HotkeyService.CheckAppHotkeys"/>)
+	/// </summary>
+	(ErrorMessageType up, ErrorMessageType down, ErrorMessageType mute) CheckAppHotkeys(HotKey? up, HotKey? down, HotKey? mute);
 }

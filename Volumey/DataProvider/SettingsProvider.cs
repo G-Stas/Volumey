@@ -81,13 +81,24 @@ public static class SettingsProvider
 			if(firstLaunch)
 				ImportLegacySettings(settingsDir, loaded, getScreens);
 			Migrate(loaded);
-			loaded.SaveNow();
+			try
+			{
+				loaded.SaveNow();
+				SettingsSaveStatus.Report(null);
+			}
+			catch(Exception e)
+			{
+				//the settings were read: they stay in use, and the next change writes them again (e.g. once the disk has room)
+				Logger.Error("Failed to save the settings", e);
+				SettingsSaveStatus.Report(e);
+			}
 			return loaded.EnableAutosave();
 		}
 		catch(Exception e)
 		{
 			//keep the app working with default settings, changes just won't be saved
 			Logger.Error("Failed to load settings", e);
+			SettingsSaveStatus.Report(e);
 			return new VolumeySettings();
 		}
 	}
@@ -148,7 +159,8 @@ public static class SettingsProvider
 			   Matches(hotkeys.DeviceMute) ||
 			   Matches(hotkeys.ForegroundVolumeUp) ||
 			   Matches(hotkeys.ForegroundVolumeDown) ||
-			   hotkeys.Apps.Any(app => Matches(app.VolumeUp) || Matches(app.VolumeDown)) ||
+			   Matches(hotkeys.ForegroundMute) ||
+			   hotkeys.Apps.Any(app => Matches(app.VolumeUp) || Matches(app.VolumeDown) || Matches(app.Mute)) ||
 			   hotkeys.DefaultDevices.Any(device => Matches(device.Hotkey)) ||
 			   hotkeys.System.Any(system => Matches(system.Replacement));
 	}

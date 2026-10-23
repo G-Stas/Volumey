@@ -102,6 +102,20 @@ public class MixerPageTests : UiTest
 
 	[TestMethod]
 	[TestCategory("Audio")]
+	public void TheDevicePickerCanBeHidden()
+	{
+		OpenPage();
+		AutomationElement? Picker() => ShownMixer().FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox).And(cf.ByName("Output device")));
+		Assert.IsNotNull(Picker(), "the mixer has no device picker");
+
+		Settings.SetSwitch("DevicePickerToggle", false);
+		App.WaitForSettings(s => s["Window"]?["ShowDevicePicker"]?.GetValue<bool>() == false, "hidden picker saved");
+		Assert.IsTrue(Eventually(() => Picker() == null), "the device picker is still shown");
+		Assert.IsNotNull(ShownMixer().FindFirstDescendant(cf => cf.ByAutomationId("DeviceVolumeSlider")), "the device's slider is gone");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
 	public void TheVolumeLimitLowersANewApp()
 	{
 		OpenPage();
@@ -171,10 +185,12 @@ public class MixerPageTests : UiTest
 	}
 
 	[TestMethod]
-	public void WindowModesSizeIsRemembered()
+	public void WindowModesWidthIsRememberedAndItsHeightFitsTheApps()
 	{
-		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = false, ["Width"] = 400, ["Height"] = 500 } });
+		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = false, ["Width"] = 400 } });
 		var mixer = ShownMixer();
+		int fitted = (int)mixer.BoundingRectangle.Height;
+		int dragged = fitted + 100;
 		//the window opens by the tray, at the screen's edge: grown there it reaches into the next screen, and on one at another scale
 		//Windows changes its size again
 		using(Screens.PhysicalPixels())
@@ -182,16 +198,23 @@ public class MixerPageTests : UiTest
 			var workArea = Screens.WorkArea(VolumeyApp.Handle(mixer));
 			mixer.Patterns.Transform.Pattern.Move(workArea.X + 100, workArea.Y + 100);
 		}
-		mixer.Patterns.Transform.Pattern.Resize(480, 600);
-		Assert.IsTrue(Eventually(() => (int)App.Mixer.BoundingRectangle.Width == 480), $"the window wasn't resized: {App.Mixer.BoundingRectangle}");
+		mixer.Patterns.Transform.Pattern.Resize(480, dragged);
+		Assert.IsTrue(Eventually(() => (int)App.Mixer.BoundingRectangle.Width == 480 && (int)App.Mixer.BoundingRectangle.Height == dragged),
+			$"the window wasn't resized: {App.Mixer.BoundingRectangle}");
 
-		//the size is saved when the app exits (like the position), so it quits the way a person does
+		//a dragged height lasts until the mixer closes
+		App.HideMixer();
+		var reopened = ShownMixer().BoundingRectangle;
+		Assert.AreEqual(480, (int)reopened.Width, "width after reopening");
+		Assert.AreEqual(fitted, (int)reopened.Height, "height after reopening");
+
+		//the width is saved when the app exits (like the position), so it quits the way a person does
 		App.ExitByTray();
 		App.Restart();
 		var size = ShownMixer().BoundingRectangle;
 
 		Assert.AreEqual(480, (int)size.Width, "width after the restart");
-		Assert.AreEqual(600, (int)size.Height, "height after the restart");
+		Assert.AreEqual(fitted, (int)size.Height, "height after the restart");
 	}
 
 	[TestMethod]

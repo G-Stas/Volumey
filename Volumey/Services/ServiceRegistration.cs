@@ -90,7 +90,9 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new SettingsWindow(sp.Get<INavigationViewPageProvider>()));
 		//the settings window is created when it first opens
 		services.AddSingleton<Func<SettingsWindow>>(sp => () => sp.Get<SettingsWindow>());
-		services.AddSingleton(sp => new MainViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>(), sp.Get<ThemeViewModel>()));
+		services.AddSingleton(sp => new LevelMeters(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>()));
+		services.AddSingleton(sp => new MainViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>(), sp.Get<ThemeViewModel>(),
+			sp.Get<LevelMeters>()));
 		services.AddSingleton(sp => new MainView(sp.Get<MainViewModel>(), sp.Get<HotkeyModeViewModel>(), sp.Get<Func<SettingsWindow>>()));
 		return services;
 	}

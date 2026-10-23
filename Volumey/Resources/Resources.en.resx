@@ -330,6 +330,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Show the device at the bottom</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Show the device picker</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>When off, the mixer shows the default device</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App volumes</value>
   </data>
@@ -381,6 +387,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} volume down</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Mute or unmute</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Mute or unmute {0}</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Remove {0}</value>
   </data>
@@ -389,9 +401,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>App</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Apps playing on the default device</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>No other apps are playing on the default device.</value>
@@ -403,7 +412,7 @@
     <value>Cancel</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Other apps don't get these keys. You can change this in General.</value>
+    <value>Other apps don&apos;t get these keys, but they always get mouse buttons. You can change this in General.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Other apps get these keys too. Hotkeys don't work while an admin app is in focus.</value>
@@ -514,7 +523,37 @@
     <value>Clear the hotkey for {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Press a key combination</value>
+    <value>Press a button on keyboard or mouse</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Left click</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Right click</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Middle click</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Wheel up</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Wheel down</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Wheel left</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Wheel right</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Show volume changes on screen.</value>
@@ -530,6 +569,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Also changes from other apps and Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Default device changes</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Show the new output device when the default one changes</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Position</value>
@@ -635,5 +680,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Used by another app</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Blocked by Windows or security software.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Can't save settings: the disk is full.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Can't save settings: access denied.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Can't save settings: the file is in use.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Can't save settings.</value>
   </data>
 </root>

@@ -75,6 +75,9 @@ public sealed partial class DeviceProviderViewModel : ObservableObject
 		});
 	}
 
+	/// <summary>Shows the default device in the mixer, e.g. when its device picker is hidden</summary>
+	internal void ShowDefaultDevice() => SelectedDevice = DefaultDevice;
+
 	[RelayCommand]
 	private void SetDefaultDevice()
 	{

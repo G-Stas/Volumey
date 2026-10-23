@@ -80,14 +80,22 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 		{
 			for(int i = 0; i < count; i++)
 			{
+				AudioDevice? device = null;
 				try
 				{
-					var device = new AudioDevice(activeDevices[i]);
+					device = new AudioDevice(activeDevices[i]);
 					var deviceModel = AudioModelFactory.CreateOutputDeviceModel(device, dsn, Hotkeys);
 					if(deviceModel != null)
 						devices.Add(deviceModel);
 					else
 						device.Dispose();
+				}
+				catch(DeviceNotReadyException)
+				{
+					string id = device!.GetId();
+					device.Dispose();
+					if(id.Length > 0)
+						dsn.AddWhenReady(id, atStart: true);
 				}
 				catch(Exception e)
 				{
@@ -110,6 +118,18 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 			if(model == null)
 				ReleaseLater(device);
 			return model;
+		}
+		catch(DeviceNotReadyException)
+		{
+			ReleaseLater(device);
+			throw;
+		}
+		catch(Exception e) when(DeviceNotReadyException.IsTransient(e))
+		{
+			//the device was removed between Windows' notification and this read
+			Logger.Debug("The output device is gone", e);
+			ReleaseLater(device);
+			return null;
 		}
 		catch(Exception e)
 		{

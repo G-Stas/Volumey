@@ -37,6 +37,129 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		=> new AppBehaviorViewModel(hotkeys ?? Hotkeys, screens.Object, shell.Object, systemIntegration.Object);
 
 	[TestMethod]
+	[DataRow(true)]
+	[DataRow(false)]
+	public void TheSoundSettingsAreOfferedOnlyWhenWindowsCanOpenThem(bool canOpen)
+	{
+		systemIntegration.Setup(m => m.CanOpenSoundSettingsAsync()).ReturnsAsync(canOpen);
+		var vm = CreateAppBehavior();
+		Assert.AreEqual(canOpen, vm.CanOpenSoundSettings);
+	}
+
+	[TestMethod]
+	public void TheSoundSettingsStayOfferedUntilTheCheckEnds()
+	{
+		var check = new System.Threading.Tasks.TaskCompletionSource<bool>();
+		systemIntegration.Setup(m => m.CanOpenSoundSettingsAsync()).Returns(check.Task);
+		var vm = CreateAppBehavior();
+		Assert.IsTrue(vm.CanOpenSoundSettings);
+		check.SetResult(false);
+		Assert.IsFalse(vm.CanOpenSoundSettings);
+	}
+
+	[TestMethod]
+	public void ASwitchToAnotherDefaultDeviceShowsItInTheOsd()
+	{
+		Settings.Notifications.Enabled = true;
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		CreateNotifications();
+
+		ChangeDefaultDevice(headphones);
+		Notifications.Verify(m => m.ShowDefaultDevice(headphones.Master), Times.Once);
+	}
+
+	[TestMethod]
+	public void SwitchesMadeOutsideVolumeyEveryFewSecondsShowOnlyTheFirst()
+	{
+		Settings.Notifications.Enabled = true;
+		var time = new System.DateTime(2026, 10, 23, 12, 0, 0);
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		new NotificationViewModel(DeviceProvider.Object, Notifications.Object, screens.Object, () => time);
+
+		ChangeDefaultDevice(headphones);
+		time += System.TimeSpan.FromSeconds(2);
+		ChangeDefaultDevice(speakers);
+		time += System.TimeSpan.FromSeconds(2);
+		ChangeDefaultDevice(headphones);
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Once);
+
+		//once it stayed put, the next switch shows again
+		time += NotificationViewModel.RepeatedSwitchWindow;
+		ChangeDefaultDevice(speakers);
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
+	}
+
+	[TestMethod]
+	public void ASwitchMadeInVolumeyAlwaysShows()
+	{
+		Settings.Notifications.Enabled = true;
+		var time = new System.DateTime(2026, 10, 23, 12, 0, 0);
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		new NotificationViewModel(DeviceProvider.Object, Notifications.Object, screens.Object, () => time);
+
+		ChangeDefaultDevice(headphones);
+		time += System.TimeSpan.FromSeconds(1);
+		DeviceProvider.Setup(m => m.RequestedDefaultDeviceId).Returns("speakers");
+		ChangeDefaultDevice(speakers);
+
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
+	}
+
+	[TestMethod]
+	public void TheDevicesReadLateAtStartAndARebuiltDeviceShowNothing()
+	{
+		Settings.Notifications.Enabled = true;
+		CreateNotifications();
+		//Windows audio reached late at start
+		DeviceProvider.Setup(m => m.IsReadingDevices).Returns(true);
+		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		DeviceProvider.Setup(m => m.IsReadingDevices).Returns(false);
+		//the same device's model rebuilt after a format change
+		ChangeDefaultDevice(CreateDevice("speakers", "Speakers"));
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void ADevicePluggedInWhenThereWasNoneShowsItInTheOsd()
+	{
+		Settings.Notifications.Enabled = true;
+		CreateNotifications();
+		var speakers = CreateDevice("speakers", "Speakers");
+		ChangeDefaultDevice(speakers);
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
+	}
+
+	[TestMethod]
+	[DataRow(false, true)]
+	[DataRow(true, false)]
+	public void ADefaultDeviceSwitchShowsNothingWhileTheOsdOrItsSwitchIsOff(bool osd, bool deviceChanges)
+	{
+		Settings.Notifications.Enabled = osd;
+		Settings.Notifications.ShowDefaultDeviceChanges = deviceChanges;
+		SetDefaultDevice(CreateDevice("speakers", "Speakers"));
+		var vm = CreateNotifications();
+		Assert.AreEqual(deviceChanges, vm.ShowDefaultDeviceChanges);
+
+		ChangeDefaultDevice(CreateDevice("headphones", "Headphones"));
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
+	public void TheDefaultDeviceSwitchIsOnByDefaultAndSaved()
+	{
+		Assert.IsTrue(new NotificationSettings().ShowDefaultDeviceChanges);
+		var vm = CreateNotifications();
+		vm.ShowDefaultDeviceChanges = false;
+		Assert.IsFalse(Settings.Notifications.ShowDefaultDeviceChanges);
+	}
+
+	[TestMethod]
 	public void AChangedDistanceShowsTheSampleOsdWhereItLands()
 	{
 		Settings.Notifications.HorizontalIndent = 30;
@@ -255,12 +378,14 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.PopupEnabled = true;
 		vm.AlwaysOnTop = true;
 		vm.DeviceViewAtTheBottom = true;
+		vm.ShowDevicePicker = false;
 		vm.DisplayDeviceIconAtTray = true;
 		vm.SelectedScreen = Second;
 
 		Assert.IsTrue(Settings.Window.PopupMode);
 		Assert.IsTrue(Settings.Window.AlwaysOnTop);
 		Assert.IsTrue(Settings.Window.DeviceViewAtTheBottom);
+		Assert.IsFalse(Settings.Window.ShowDevicePicker);
 		Assert.IsTrue(Settings.Window.DisplayDeviceIconAtTray);
 		Assert.AreEqual(Second.Name, Settings.Window.ScreenName);
 		Assert.IsTrue(vm.DisplayMinimalistic);
@@ -381,7 +506,6 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.WindowLeft = 123;
 		vm.WindowTop = 45;
 		vm.WindowWidth = 520;
-		vm.WindowHeight = 540;
 		vm.PopupLeft = 300;
 		vm.PopupTop = 200;
 
@@ -390,7 +514,6 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.AreEqual(123, Settings.Window.Left);
 		Assert.AreEqual(45, Settings.Window.Top);
 		Assert.AreEqual(520, Settings.Window.Width);
-		Assert.AreEqual(540, Settings.Window.Height);
 		Assert.AreEqual(300, Settings.Window.PopupLeft);
 		Assert.AreEqual(200, Settings.Window.PopupTop);
 		hotkeys.Verify(m => m.Dispose(), Times.Once);

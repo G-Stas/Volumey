@@ -73,6 +73,8 @@ internal sealed class TestAudioApp : IDisposable
 
 	public int? Volume => Audio.SessionVolume(Process.Id);
 
+	public bool? Muted => Audio.SessionMuted(Process.Id);
+
 	/// <summary>
 	/// Puts the app's window (started with <c>window: true</c>) in front, so it's the foreground app for Volumey
 	/// </summary>

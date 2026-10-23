@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using log4net;
 using SharpHook;
 using SharpHook.Data;
 using Volumey.Controls;
@@ -24,28 +22,23 @@ internal sealed class SharpHookHotkeyManager : IHotkeyManager
 
 	private readonly HashSet<HotKey> registeredHotkeys = new HashSet<HotKey>();
 	private readonly Lock sync = new Lock();
-	private readonly IGlobalHook hook;
+	private readonly InputHookHost host;
+	private readonly IDisposable keyboard;
 	private readonly SynchronizationContext? syncContext;
 
-	private static ILog? logger;
-	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(SharpHookHotkeyManager));
-
 	/// <summary>
-	/// Starts a keyboard hook. Create it on the UI thread: hotkeys are raised there.
+	/// Starts watching the keyboard with the app's input hook. Create it on the UI thread: hotkeys are raised there.
 	/// </summary>
-	internal SharpHookHotkeyManager() : this(new EventLoopGlobalHook(useBackgroundThreadForEventLoop: true), start: true) { }
+	internal SharpHookHotkeyManager() : this(InputHookHost.Shared) { }
 
-	internal SharpHookHotkeyManager(IGlobalHook hook, bool start)
+	internal SharpHookHotkeyManager(IGlobalHook hook, bool start) : this(new InputHookHost(() => hook, start)) { }
+
+	internal SharpHookHotkeyManager(InputHookHost host)
 	{
-		this.hook = hook;
+		this.host = host;
 		syncContext = SynchronizationContext.Current;
-		this.hook.KeyPressed += OnKeyPressed;
-		if(start)
-		{
-			//the hook runs until it's disposed; a failure to start only shows up in the task
-			this.hook.RunAsync(GlobalHookType.Keyboard, useBackgroundThread: true)
-				.ContinueWith(t => Logger.Error("The keyboard hook failed", t.Exception?.Flatten()), TaskContinuationOptions.OnlyOnFaulted);
-		}
+		host.KeyPressed += OnKeyPressed;
+		keyboard = host.Use(GlobalHookType.Keyboard);
 	}
 
 	public int RegisteredHotkeysCount
@@ -127,6 +120,12 @@ internal sealed class SharpHookHotkeyManager : IHotkeyManager
 				return null;
 		}
 
+		return new HotKey(key, ToModifiers(mask));
+	}
+
+	/// <summary>The modifier keys held during a hook event</summary>
+	internal static ModifierKeys ToModifiers(EventMask mask)
+	{
 		var modifiers = ModifierKeys.None;
 		if((mask & EventMask.Alt) != 0)
 			modifiers |= ModifierKeys.Alt;
@@ -136,13 +135,13 @@ internal sealed class SharpHookHotkeyManager : IHotkeyManager
 			modifiers |= ModifierKeys.Shift;
 		if((mask & EventMask.Meta) != 0)
 			modifiers |= ModifierKeys.Windows;
-		return new HotKey(key, modifiers);
+		return modifiers;
 	}
 
 	public void Dispose()
 	{
-		hook.KeyPressed -= OnKeyPressed;
-		hook.Dispose();
+		host.KeyPressed -= OnKeyPressed;
+		keyboard.Dispose();
 		HotkeyPressed = null;
 	}
 }

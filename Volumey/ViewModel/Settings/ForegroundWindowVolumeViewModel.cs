@@ -3,6 +3,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
@@ -16,20 +17,28 @@ namespace Volumey.ViewModel.Settings;
 
 public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 {
+	//each hotkey is optional; turning it on needs at least one
 	[ObservableProperty]
-	public partial HotKey VolumeUpHotkey { get; set; }
+	public partial HotKey? VolumeUpHotkey { get; set; }
 
 	[ObservableProperty]
-	public partial HotKey VolumeDownHotkey { get; set; }
+	public partial HotKey? VolumeDownHotkey { get; set; }
+
+	[ObservableProperty]
+	public partial HotKey? MuteHotkey { get; set; }
 
 	/// <summary>
 	/// Why turning it on failed, under the hotkey box that has the problem; a box's error goes away when it changes
 	/// </summary>
 	public HotkeyPairErrors Errors { get; } = new HotkeyPairErrors();
 
-	partial void OnVolumeUpHotkeyChanged(HotKey value) => Errors.ClearUp();
+	partial void OnVolumeUpHotkeyChanged(HotKey? value) => Errors.ClearUp();
 
-	partial void OnVolumeDownHotkeyChanged(HotKey value) => Errors.ClearDown();
+	partial void OnVolumeDownHotkeyChanged(HotKey? value) => Errors.ClearDown();
+
+	partial void OnMuteHotkeyChanged(HotKey? value) => Errors.ClearMute();
+
+	private HotKey?[] AllHotkeys => new[] { VolumeUpHotkey, VolumeDownHotkey, MuteHotkey };
 
 	private bool _hotkeysRegistered;
 	public bool HotkeysRegistered
@@ -68,40 +77,47 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		_defaultDevice = deviceProvider.DefaultDevice;
 		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 
-		if(SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp is HotKey volumeUp && SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown is HotKey volumeDown)
+		var saved = SettingsProvider.Settings.Hotkeys;
+		if(saved.ForegroundVolumeUp != null || saved.ForegroundVolumeDown != null || saved.ForegroundMute != null)
 		{
 			_hotkeysRegistered = true;
-			VolumeUpHotkey = volumeUp;
-			VolumeDownHotkey = volumeDown;
+			VolumeUpHotkey = saved.ForegroundVolumeUp;
+			VolumeDownHotkey = saved.ForegroundVolumeDown;
+			MuteHotkey = saved.ForegroundMute;
 			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 		}
 	}
 
+	/// <summary>The hotkeys registered now, released when it's turned off</summary>
+	private HotKey?[] registered = Array.Empty<HotKey?>();
+
 	private void RegisterLoadedHotkeys()
 	{
-		//a saved pair that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
-		//it stays saved and is tried again on the next start
-		if(hotkeys.RegisterHotkeysPair(VolumeUpHotkey, VolumeDownHotkey, out var failed))
-			hotkeys.HotkeyPressed += OnHotkeyPressed;
-		else
-			Errors.SetFor(failed, VolumeUpHotkey, ErrorMessageType.VolumeReg);
+		//each on its own: a saved hotkey that fails now (e.g. another app took the combination) shows an error under its box
+		//and doesn't keep the others from working; it stays saved and is tried again on the next start
+		var failed = AllHotkeys.Where(hotkey => hotkey != null && !hotkeys.RegisterHotkey(hotkey)).Select(hotkey => hotkey!).ToList();
+		registered = AllHotkeys.Where(hotkey => hotkey != null && !failed.Contains(hotkey)).ToArray();
+		hotkeys.HotkeyPressed += OnHotkeyPressed;
+		Errors.SetFailed(failed, VolumeUpHotkey, VolumeDownHotkey, MuteHotkey, ErrorMessageType.VolumeReg);
 	}
 
 	private bool SaveHotkeys()
 	{
-		Errors.Set(hotkeys.CheckHotkeysPair(VolumeUpHotkey, VolumeDownHotkey));
+		Errors.Set(hotkeys.CheckAppHotkeys(VolumeUpHotkey, VolumeDownHotkey, MuteHotkey));
 		if(Errors.Any)
 			return false;
-		if(hotkeys.RegisterHotkeysPair(VolumeUpHotkey, VolumeDownHotkey, out var failed))
+		if(hotkeys.RegisterHotkeys(AllHotkeys, out var failed))
 		{
+			registered = AllHotkeys;
 			SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = VolumeUpHotkey;
 			SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = VolumeDownHotkey;
+			SettingsProvider.Settings.Hotkeys.ForegroundMute = MuteHotkey;
 			hotkeys.HotkeyPressed += OnHotkeyPressed;
-			Logger.Info($"Registered foreground hotkeys: [{VolumeUpHotkey}] [{VolumeDownHotkey}]");
+			Logger.Info($"Registered foreground hotkeys: [{VolumeUpHotkey}] [{VolumeDownHotkey}] mute: [{MuteHotkey}]");
 			return true;
 		}
 		//the hotkey service logs why
-		Errors.SetFor(failed, VolumeUpHotkey, ErrorMessageType.VolumeReg);
+		Errors.SetFor(failed, VolumeUpHotkey, VolumeDownHotkey, ErrorMessageType.VolumeReg);
 		return false;
 	}
 
@@ -109,12 +125,14 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 	{
 		try
 		{
-			hotkeys.UnregisterHotkeysPair(VolumeUpHotkey, VolumeDownHotkey);
+			hotkeys.UnregisterHotkeys(registered);
 		}
 		catch { }
+		registered = Array.Empty<HotKey?>();
 		Errors.Clear();
 		SettingsProvider.Settings.Hotkeys.ForegroundVolumeUp = null;
 		SettingsProvider.Settings.Hotkeys.ForegroundVolumeDown = null;
+		SettingsProvider.Settings.Hotkeys.ForegroundMute = null;
 		hotkeys.HotkeyPressed -= OnHotkeyPressed;
 	}
 
@@ -216,8 +234,11 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		int direction = hotkey.Equals(VolumeUpHotkey) ? 1 : hotkey.Equals(VolumeDownHotkey) ? -1 : 0;
 		if(direction != 0)
 			ChangeForegroundVolumeAsync(hotkey, direction).Forget(Logger, "Failed to change the volume of the foreground app");
+		else if(hotkey.Equals(MuteHotkey))
+			ChangeForegroundVolumeAsync(hotkey, 0).Forget(Logger, "Failed to mute the foreground app");
 	}
 
+	/// <param name="direction">1 up, -1 down by the volume step; 0 mutes or unmutes the whole app</param>
 	private async Task ChangeForegroundVolumeAsync(HotKey hotkey, int direction)
 	{
 		HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
@@ -226,6 +247,11 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 			//like the app hotkeys: the OSD only while notifications are on
 			if(SettingsProvider.Settings.Notifications.Enabled && foundProcess.StateNotificationMediator == null)
 				foundProcess.SetStateMediator(notifications);
+			if(direction == 0)
+			{
+				foundProcess.SetMute(!foundProcess.IsMuted, notify: true, GuidValue.Internal.Empty);
+				return;
+			}
 			foundProcess.SetVolume(foundProcess.Volume + direction * hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
 			HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
 		}

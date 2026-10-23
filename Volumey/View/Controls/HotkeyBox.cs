@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -95,6 +96,8 @@ public sealed class HotKeyBox : TextBox
 		//the template is applied again on a theme switch: the handlers are removed first so they aren't added twice
 		PreviewKeyDown -= TextBoxOnPreviewKeyDown2;
 		PreviewKeyUp -= OnPreviewKeyUp;
+		PreviewMouseDown -= OnPreviewMouseDown;
+		PreviewMouseWheel -= OnPreviewMouseWheel;
 		GotKeyboardFocus -= TextBoxOnGotFocus;
 		LostKeyboardFocus -= TextBoxOnLostFocus;
 		IsVisibleChanged -= OnIsVisibleChanged;
@@ -105,6 +108,8 @@ public sealed class HotKeyBox : TextBox
 
 		PreviewKeyDown += TextBoxOnPreviewKeyDown2;
 		PreviewKeyUp += OnPreviewKeyUp;
+		PreviewMouseDown += OnPreviewMouseDown;
+		PreviewMouseWheel += OnPreviewMouseWheel;
 		//keyboard focus, not logical focus: logical focus stays on the box when the window is deactivated or hidden,
 		//which would leave every hotkey ignored (and swallowed) until focus moved inside the window again
 		GotKeyboardFocus += TextBoxOnGotFocus;
@@ -171,6 +176,8 @@ public sealed class HotKeyBox : TextBox
 		ComponentDispatcher.ThreadPreprocessMessage -= ComponentDispatcherOnThreadPreprocessMessage;
 	}
 
+	private const int WM_MOUSEHWHEEL = 0x020E;
+
 	private void ComponentDispatcherOnThreadPreprocessMessage(ref MSG msg, ref bool handled)
 	{
 		if(msg.message == WM_Hotkey)
@@ -178,6 +185,61 @@ public sealed class HotKeyBox : TextBox
 			// swallow all hotkeys, so our control can catch the key strokes
 			handled = true;
 		}
+		//WPF has no event for the horizontal wheel; positive is right
+		else if(msg.message == WM_MOUSEHWHEEL && IsMouseOver)
+		{
+			short delta = unchecked((short)((msg.wParam.ToInt64() >> 16) & 0xFFFF));
+			if(delta != 0 && TakeMouseButton(delta > 0 ? MouseButtons.WheelRight : MouseButtons.WheelLeft))
+				handled = true;
+		}
+	}
+
+	/// <summary>
+	/// A mouse button pressed over the box while it's being edited becomes its hotkey: the side buttons alone, the clicks only
+	/// with a modifier key held (a plain click is just a click, e.g. to focus the box)
+	/// </summary>
+	private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+	{
+		if(!IsKeyboardFocused)
+			return;
+		string? button = e.ChangedButton switch
+		{
+			MouseButton.Left => MouseButtons.Left,
+			MouseButton.Right => MouseButtons.Right,
+			MouseButton.Middle => MouseButtons.Middle,
+			MouseButton.XButton1 => MouseButtons.XButton1,
+			MouseButton.XButton2 => MouseButtons.XButton2,
+			_ => null,
+		};
+		//a taken side button would also go back in the settings' navigation
+		if(button != null && TakeMouseButton(button))
+			e.Handled = true;
+	}
+
+	/// <summary>No menu: a text box's Copy/Cut/Paste have nothing to do in a hotkey box (a right click with a modifier is a hotkey)</summary>
+	protected override void OnContextMenuOpening(ContextMenuEventArgs e)
+	{
+		e.Handled = true;
+		base.OnContextMenuOpening(e);
+	}
+
+	/// <summary>The wheel over the box while it's being edited, only with a modifier key held (a plain scroll scrolls the page)</summary>
+	private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+	{
+		if(IsKeyboardFocused && e.Delta != 0 && TakeMouseButton(e.Delta > 0 ? MouseButtons.WheelUp : MouseButtons.WheelDown))
+			e.Handled = true;
+	}
+
+	/// <returns>False for a click or scroll without a modifier key, which isn't a hotkey</returns>
+	private bool TakeMouseButton(string button)
+	{
+		var modifiers = GetCurrentModifierKeys();
+		if(modifiers == ModifierKeys.None && MouseButtons.NeedsModifier(button))
+			return false;
+		SetTaken(null, null);
+		SetCurrentValue(HotKeyProperty, HotKey.Mouse(button, modifiers));
+		UpdateText();
+		return true;
 	}
 
 	private void TextBoxOnLostFocus(object sender, RoutedEventArgs routedEventArgs)
@@ -270,11 +332,12 @@ public sealed class HotKeyBox : TextBox
 							 ? null
 							 : string.Format(TranslationSource.Instance["Error_RejectedHotkey"] ?? "{0}: {1}", takenHotkey, TranslationSource.Instance[takenKey]);
 		SetValue(TakenMessagePropertyKey, message);
-		//a text box doesn't expose its template's text to UI Automation, so screen readers (and the UI tests) get it as the box's help text
-		if(message == null)
-			ClearValue(AutomationProperties.HelpTextProperty);
+		//a text box doesn't expose its template's text to UI Automation, so screen readers (and the UI tests) get it as the box's help text;
+		//without a message that's what the box takes, which the template only shows as icons
+		if((message ?? PlaceholderText) is { } helpText)
+			AutomationProperties.SetHelpText(this, helpText);
 		else
-			AutomationProperties.SetHelpText(this, message);
+			ClearValue(AutomationProperties.HelpTextProperty);
 	}
 
 	//the message follows a language switch, like the rest of the settings; only while loaded, so the app-wide
@@ -325,11 +388,22 @@ public sealed class HotKeyBox : TextBox
 	/// </summary>
 	public IReadOnlyList<string> KeyNames => (IReadOnlyList<string>)GetValue(KeyNamesProperty);
 
+	private static readonly DependencyPropertyKey CapsPropertyKey
+		= DependencyProperty.RegisterReadOnly(nameof(Caps), typeof(IReadOnlyList<KeyCap>), typeof(HotKeyBox),
+											  new PropertyMetadata(Array.Empty<KeyCap>()));
+
+	public static readonly DependencyProperty CapsProperty = CapsPropertyKey.DependencyProperty;
+
+	/// <summary>The caps the template shows: <see cref="KeyNames"/>, and which of them is a mouse button (shown with a mouse icon)</summary>
+	public IReadOnlyList<KeyCap> Caps => (IReadOnlyList<KeyCap>)GetValue(CapsProperty);
+
 	public static readonly DependencyProperty PlaceholderTextProperty
-		= DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(HotKeyBox), new PropertyMetadata(null));
+		= DependencyProperty.Register(nameof(PlaceholderText), typeof(string), typeof(HotKeyBox),
+			new PropertyMetadata(null, (d, _) => ((HotKeyBox)d).UpdateTakenMessage()));
 
 	/// <summary>
-	/// Shown in the empty box (the settings style sets it for every box)
+	/// What the box takes, for screen readers: its help text while no <see cref="TakenMessage"/> is shown
+	/// (the settings style sets it for every box; the empty box shows a keyboard and a mouse icon instead)
 	/// </summary>
 	public string? PlaceholderText
 	{
@@ -339,8 +413,12 @@ public sealed class HotKeyBox : TextBox
 
 	private void UpdateText()
 	{
-		var hotkey = HotKey is { Key: not Key.None } set ? set : null;
+		var hotkey = HotKey is { } set && (set.Source == InputSource.Mouse ? set.Button != null : set.Key != Key.None) ? set : null;
 		Text = hotkey?.ToString() ?? string.Empty;
-		SetValue(KeyNamesPropertyKey, hotkey?.GetKeyNames() ?? Array.Empty<string>());
+		var names = hotkey?.GetKeyNames() ?? Array.Empty<string>();
+		SetValue(KeyNamesPropertyKey, names);
+		//the button is the last name, after the modifier keys
+		bool mouse = hotkey?.Source == InputSource.Mouse;
+		SetValue(CapsPropertyKey, names.Select((name, i) => new KeyCap(name, mouse && i == names.Count - 1)).ToArray());
 	}
 }

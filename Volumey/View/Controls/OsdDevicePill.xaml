@@ -1,0 +1,48 @@
+<UserControl x:Class="Volumey.View.Controls.OsdDevicePill"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:lc="clr-namespace:Volumey.Localization"
+             Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+             AutomationProperties.Name="{Binding Name}"
+             AutomationProperties.ItemStatus="{lc:Localization Devices_DefaultTag}">
+    <!-- the OSD of a new default output device: its icon, its name and a check, in the volume pill's shape (OsdPill),
+         wider for a long name. The shadow is its own element behind the pill, as in OsdPill -->
+    <Grid Margin="12" Height="48" MinWidth="220" MaxWidth="400" UseLayoutRounding="True">
+        <Border CornerRadius="8" Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.3" />
+            </Border.Effect>
+        </Border>
+        <Border Padding="16 0 16 0"
+                CornerRadius="8"
+                Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}"
+                BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image Source="{Binding IconSource}"
+                       Width="20"
+                       Height="20"
+                       VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Grid.Column="1"
+                           Margin="12 0"
+                           VerticalAlignment="Center"
+                           FontSize="14"
+                           Text="{Binding Name}"
+                           TextTrimming="CharacterEllipsis"
+                           TextWrapping="NoWrap" />
+                <ui:SymbolIcon Grid.Column="2"
+                               Symbol="Checkmark24"
+                               FontSize="16"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

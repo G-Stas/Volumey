@@ -10,7 +10,7 @@
                   DefaultButton="Primary"
                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                   controls:HotKeyBox.HotkeyService="{Binding Hotkeys}">
-    <!-- App hotkeys page, "Add app". Add stays disabled until an app and both hotkeys are set
+    <!-- App hotkeys page, "Add app". Add stays disabled until an app and at least one hotkey are set
          (see the code-behind); an error (e.g. a hotkey in use) shows here and the dialog stays open -->
     <ui:ContentDialog.Resources>
         <ResourceDictionary>
@@ -29,12 +29,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel VerticalAlignment="Center" Margin="0 0 16 0">
-            <TextBlock Text="{lc:Localization AppHotkeys_App}" />
-            <TextBlock Text="{lc:Localization AppHotkeys_AppHint}" Style="{StaticResource Caption}" />
-        </StackPanel>
+        <TextBlock Text="{lc:Localization AppHotkeys_App}" VerticalAlignment="Center" Margin="0 0 16 0" />
         <ComboBox Grid.Column="1"
                   ItemsSource="{Binding AddableProcesses}"
                   SelectedItem="{Binding SelectedProcess}"
@@ -85,6 +83,14 @@
                                 AutomationProperties.Name="{lc:Localization AppHotkeys_VolumeDown}"
                                 AutomationProperties.AutomationId="AddAppDownBox" />
             <TextBlock Margin="0 4 0 0" Text="{Binding AddErrors.VolumeDown}" Style="{StaticResource SettingError}" />
+        </StackPanel>
+        <TextBlock Grid.Row="4" Margin="0 14 0 0" Text="{lc:Localization AppHotkeys_Mute}" VerticalAlignment="Top" />
+        <StackPanel Grid.Row="4" Grid.Column="1" Width="220" Margin="0 8 0 0">
+            <controls:HotKeyBox Width="220"
+                                HotKey="{Binding Mute}"
+                                AutomationProperties.Name="{lc:Localization AppHotkeys_Mute}"
+                                AutomationProperties.AutomationId="AddAppMuteBox" />
+            <TextBlock Margin="0 4 0 0" Text="{Binding AddErrors.Mute}" Style="{StaticResource SettingError}" />
         </StackPanel>
     </Grid>
 </ui:ContentDialog>

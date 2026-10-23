@@ -330,6 +330,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value />
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value />
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value />
   </data>
@@ -381,6 +387,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value />
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value />
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value />
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value />
   </data>
@@ -388,9 +400,6 @@
     <value />
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
-    <value />
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
     <value />
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
@@ -516,6 +525,36 @@
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
     <value />
   </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value />
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value />
+  </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value />
   </data>
@@ -529,6 +568,12 @@
     <value />
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
     <value />
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
@@ -634,6 +679,21 @@
     <value />
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value />
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
     <value />
   </data>
 </root>

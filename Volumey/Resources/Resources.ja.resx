@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>デバイスを下部に表示</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>デバイスの選択を表示</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>オフの場合、ミキサーは既定のデバイスを表示します。</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>アプリの音量</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} の音量を下げる</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>ミュートまたはミュート解除</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0} をミュートまたはミュート解除</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>{0} を削除</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>アプリ</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>既定のデバイスで再生中のアプリ</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>既定のデバイスで再生中のアプリは他にありません。</value>
@@ -344,7 +353,7 @@
     <value>キャンセル</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>他のアプリにはこれらのキーが届きません。[全般] で変更できます。</value>
+    <value>他のアプリにはこれらのキーが届きませんが、マウス ボタンは常に届きます。[全般] で変更できます。</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>他のアプリにもこれらのキーが届きます。管理者として実行中のアプリにフォーカスがある間、ホットキーは動作しません。</value>
@@ -455,7 +464,37 @@
     <value>{0} のホットキーをクリア</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>キーの組み合わせを押してください</value>
+    <value>キーボードまたはマウスのボタンを押してください</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>または</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>左クリック</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>右クリック</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>中クリック</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>戻る</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>進む</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>ホイール上</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>ホイール下</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>ホイール左</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>ホイール右</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>音量の変化を画面に表示します。</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>他のアプリや Windows による変更も含みます</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>既定のデバイスの変更</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>既定の出力デバイスが変わったときに新しいデバイスを表示します</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>位置</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>別のアプリで使用されています</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Windows またはセキュリティ ソフトウェアによってブロックされました。</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>設定を保存できません: ディスクがいっぱいです。</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>設定を保存できません: アクセスが拒否されました。</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>設定を保存できません: ファイルが使用中です。</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>設定を保存できません。</value>
   </data>
 </root>

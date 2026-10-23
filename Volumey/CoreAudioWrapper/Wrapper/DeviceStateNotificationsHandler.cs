@@ -1,8 +1,11 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using NAudio.CoreAudioApi;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
@@ -54,48 +57,150 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 	/// Called when a new Endpoint device is added to the system
 	/// </summary>
 	private void OnDeviceAdded(object? sender, DeviceNotificationEventArgs e)
-	{
-		Post(() =>
-		{
-			try
-			{
-				AddIfActiveOutput(e.DeviceId);
-			}
-			catch(Exception ex)
-			{
-				Logger.Error("Failed to check/add new device", ex);
-			}
-		});
-	}
+		=> AddIfActiveOutput(e.DeviceId);
 
 	/// <summary>
 	/// Called when the state of an Endpoint device changes
 	/// </summary>
 	private void OnDeviceStateChanged(object? sender, DeviceStateChangedEventArgs e)
 	{
-		Post(() =>
-		{
-			try
-			{
-				//every output device model ignores other devices' IDs, so input devices need no check
-				//(opening the device for one would release it on the UI thread)
-				if(e.NewState != DeviceState.Active)
-					DeviceDisabled?.Invoke(e.DeviceId);
-				else
-					AddIfActiveOutput(e.DeviceId);
-			}
-			catch(Exception ex)
-			{
-				Logger.Error("Failed to handle a device state change", ex);
-			}
-		});
+		//every output device model ignores other devices' IDs, so input devices need no check
+		if(e.NewState != DeviceState.Active)
+			Post(() => DeviceDisabled?.Invoke(e.DeviceId));
+		else
+			AddIfActiveOutput(e.DeviceId);
 	}
 
-	private void AddIfActiveOutput(string deviceId)
+	//one device read at a time, in the order of Windows' notifications
+	private readonly SemaphoreSlim buildLock = new SemaphoreSlim(1, 1);
+
+	/// <summary>
+	/// Reads the device on the thread pool (a device and its apps take many Windows calls, seconds for a busy Bluetooth device)
+	/// and lists it on the UI thread
+	/// </summary>
+	private void AddIfActiveOutput(string deviceId) => AddIfActiveOutputAsync(deviceId).Forget(Logger, "Failed to check/add new device");
+
+	private async Task AddIfActiveOutputAsync(string deviceId)
 	{
-		//null for input or inactive devices; their objects are released off the UI thread
-		if(enumerator.CreateDeviceModel(deviceId, this) is OutputDeviceModel model)
+		//off the COM thread that brought the notification: it must not wait
+		await Task.Yield();
+		await buildLock.WaitAsync().ConfigureAwait(false);
+		try
+		{
+			if(disposed)
+				return;
+			OutputDeviceModel? model;
+			try
+			{
+				//null for input or inactive devices; their objects are released off the UI thread
+				model = enumerator.CreateDeviceModel(deviceId, this);
+			}
+			catch(DeviceNotReadyException)
+			{
+				Post(() => AddWhenReady(deviceId));
+				return;
+			}
+			if(model != null)
+				Post(() =>
+				{
+					//reconfigured while it was read: read again (nothing is listed if it's gone)
+					if(!List(model))
+						AddWhenReady(deviceId);
+				});
+		}
+		finally
+		{
+			buildLock.Release();
+		}
+	}
+
+	/// <summary>On the UI thread: passes on a model built off it, unless the device went away or changed in the meantime</summary>
+	/// <returns>False if the model was dropped and the device should be read again</returns>
+	private bool List(OutputDeviceModel model, bool atStart = false)
+	{
+		if(disposed || !model.IsUsable())
+		{
+			model.Dispose();
+			return disposed;
+		}
+		IsAddingStartDevice = atStart;
+		try
+		{
 			ActiveDeviceAdded?.Invoke(model);
+		}
+		finally
+		{
+			IsAddingStartDevice = false;
+		}
+		return true;
+	}
+
+	/// <summary>Delays of the attempts to read a device Windows refused, about a minute in all</summary>
+	private static readonly TimeSpan[] NotReadyDelays =
+	{
+		TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4),
+		TimeSpan.FromSeconds(8), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30)
+	};
+
+	//the devices being read again; on the UI thread
+	private readonly HashSet<string> notReadyDevices = new HashSet<string>();
+	private volatile bool disposed;
+
+	/// <summary>On the UI thread</summary>
+	public void AddWhenReady(string deviceId, bool atStart = false)
+	{
+		if(notReadyDevices.Add(deviceId))
+			RetryAddAsync(deviceId, atStart).Forget(Logger, "Failed to read a device again");
+	}
+
+	public bool IsAddingStartDevice { get; private set; }
+
+	private async Task RetryAddAsync(string deviceId, bool atStart)
+	{
+		Exception? lastError = null;
+		try
+		{
+			foreach(var delay in NotReadyDelays)
+			{
+				await Task.Delay(delay).ConfigureAwait(false);
+				if(disposed || App.Current?.Dispatcher is not { } dispatcher)
+					return;
+				OutputDeviceModel? model;
+				await buildLock.WaitAsync().ConfigureAwait(false);
+				try
+				{
+					//null once the device is gone or no longer active
+					model = enumerator.CreateDeviceModel(deviceId, this);
+				}
+				catch(DeviceNotReadyException e)
+				{
+					lastError = e.InnerException;
+					continue;
+				}
+				finally
+				{
+					buildLock.Release();
+				}
+				if(model == null)
+					return;
+				bool listed = await dispatcher.InvokeAsync(() =>
+				{
+					if(!List(model, atStart))
+						return false;
+					if(!disposed)
+						Logger.Info("Read the output device that Windows refused before");
+					return true;
+				});
+				if(listed)
+					return;
+			}
+			Logger.Error($"Windows refused the output device {NotReadyDelays.Length + 1} times", lastError);
+		}
+		finally
+		{
+			if(App.Current?.Dispatcher is { } dispatcher)
+				_ = dispatcher.InvokeAsync(() => notReadyDevices.Remove(deviceId));
+		}
 	}
 
 	private void OnPropertyValueChanged(object? sender, DevicePropertyChangedEventArgs e)
@@ -133,6 +238,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 
 	public void Dispose()
 	{
+		disposed = true;
 		notificationClient.DefaultDeviceChanged -= OnDefaultDeviceChanged;
 		notificationClient.DeviceAdded -= OnDeviceAdded;
 		notificationClient.DeviceStateChanged -= OnDeviceStateChanged;

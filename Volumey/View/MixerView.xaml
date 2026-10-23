@@ -7,7 +7,9 @@
              xmlns:view="clr-namespace:Volumey.View"
              xmlns:converters="clr-namespace:Volumey.View.Converters"
              xmlns:lc="clr-namespace:Volumey.Localization"
-             mc:Ignorable="d">
+             xmlns:controls="clr-namespace:Volumey.Controls"
+             mc:Ignorable="d"
+             controls:VolumeSlider.ShowsLevel="{Binding Meters.ShowLevels}">
     <UserControl.Resources>
         <converters:DeviceViewPositionToDockConverter x:Key="DeviceViewPositionConverter"/>
     </UserControl.Resources>
@@ -27,7 +29,7 @@
                            Padding="10 6"
                            Icon="{ui:SymbolIcon Open24}"
                            Content="{lc:Localization TrayMenu_SoundSettings}"
-                           Command="{Binding Window.SoundSettingsCommand}" />
+                           Command="{Binding Window.MixerSoundSettingsCommand}" />
                 <ui:Button DockPanel.Dock="Right"
                            Style="{StaticResource IconButton}"
                            ToolTip="{lc:Localization Mixer_OpenSettings}"

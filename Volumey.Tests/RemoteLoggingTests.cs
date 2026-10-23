@@ -32,7 +32,7 @@ public class RemoteLoggingTests
 
 			var appender = RemoteLogging.CreateAppender(TestKey, $"http://127.0.0.1:{port}/");
 			var repository = LogManager.CreateRepository("remote-logging-test-" + Guid.NewGuid().ToString("N"));
-			BasicConfigurator.Configure(repository, appender);
+			BasicConfigurator.Configure(repository, RemoteLogging.CreatePipeline(appender));
 			LogManager.GetLogger(repository.Name, "test").Error("remote logging test message");
 			appender.Flush(5000);
 
@@ -58,6 +58,98 @@ public class RemoteLoggingTests
 
 		Assert.AreEqual(log4net.Filter.FilterDecision.Accept, filter.Decide(first));
 		Assert.AreEqual(log4net.Filter.FilterDecision.Deny, filter.Decide(second));
+	}
+
+	private static (log4net.Repository.ILoggerRepository Repository, log4net.Appender.MemoryAppender Sent) CreatePipeline()
+	{
+		var sent = new log4net.Appender.MemoryAppender();
+		var repository = LogManager.CreateRepository("remote-pipeline-test-" + Guid.NewGuid().ToString("N"));
+		BasicConfigurator.Configure(repository, RemoteLogging.CreatePipeline(sent));
+		((log4net.Repository.Hierarchy.Hierarchy)repository).Root.Level = log4net.Core.Level.Info;
+		return (repository, sent);
+	}
+
+	[TestMethod]
+	public void WarningsAndErrorsAreSentInfoIsNot()
+	{
+		var (repository, sent) = CreatePipeline();
+		var log = LogManager.GetLogger(repository.Name, "test");
+
+		log.Info("device changed");
+		log.Warn("a warning");
+		log.Error("an error");
+
+		CollectionAssert.AreEqual(new[] { "a warning", "an error" }, Array.ConvertAll(sent.GetEvents(), e => e.RenderedMessage));
+		repository.Shutdown();
+	}
+
+	[TestMethod]
+	public void ACrashSendsTheLastInfoMessagesOnce()
+	{
+		var (repository, sent) = CreatePipeline();
+		var log = LogManager.GetLogger(repository.Name, "test");
+
+		for(int i = 0; i < RemoteLogging.CrashContextSize + 10; i++)
+			log.Info($"step {i} of the device");
+		log.Fatal("crash");
+
+		var events = sent.GetEvents();
+		Assert.AreEqual(1, Array.FindAll(events, e => e.Level == log4net.Core.Level.Fatal).Length, "the crash is sent once");
+		var info = Array.FindAll(events, e => e.Level == log4net.Core.Level.Info);
+		//the rate limit lets the same message (numbers aside) through a few times
+		Assert.AreEqual(MessageRateFilter.MaxPerWindow, info.Length);
+		Assert.AreEqual("step 10 of the device", info[0].RenderedMessage, "the oldest of the last messages comes first");
+		repository.Shutdown();
+	}
+
+	[TestMethod]
+	public void ACrashSendsDifferentInfoMessagesUpToTheContextSize()
+	{
+		var (repository, sent) = CreatePipeline();
+		var log = LogManager.GetLogger(repository.Name, "test");
+		string[] words = ["sleep", "wake", "plug", "unplug", "switch", "format", "start", "exit"];
+
+		for(int i = 0; i < RemoteLogging.CrashContextSize + 5; i++)
+			log.Info($"{words[i % words.Length]} {new string('x', i)}");
+		log.Fatal("crash");
+
+		Assert.AreEqual(RemoteLogging.CrashContextSize, Array.FindAll(sent.GetEvents(), e => e.Level == log4net.Core.Level.Info).Length);
+		repository.Shutdown();
+	}
+
+	[TestMethod]
+	public void InfoMessagesArentSentAtExit()
+	{
+		var (repository, sent) = CreatePipeline();
+		LogManager.GetLogger(repository.Name, "test").Info("device changed");
+
+		repository.Shutdown();
+
+		Assert.AreEqual(0, sent.GetEvents().Length);
+	}
+
+	[TestMethod]
+	public void AMessageIsSentAFewTimesAnHourThenItsDropsAreCounted()
+	{
+		var time = new DateTime(2026, 10, 23, 12, 0, 0);
+		var filter = new MessageRateFilter(() => time);
+		log4net.Core.LoggingEvent Event(string message)
+			=> new(typeof(RemoteLoggingTests), null, "test", log4net.Core.Level.Error, message, null);
+
+		for(int i = 0; i < MessageRateFilter.MaxPerWindow; i++)
+			Assert.AreEqual(log4net.Filter.FilterDecision.Neutral, filter.Decide(Event($"retry {i}")));
+		Assert.AreEqual(log4net.Filter.FilterDecision.Deny, filter.Decide(Event("retry 99")), "numbers don't make a message new");
+		Assert.AreEqual(log4net.Filter.FilterDecision.Deny, filter.Decide(Event("retry 100")));
+		Assert.AreEqual(log4net.Filter.FilterDecision.Neutral, filter.Decide(Event("another message")));
+
+		time += MessageRateFilter.Window;
+		var next = Event("retry 101");
+		Assert.AreEqual(log4net.Filter.FilterDecision.Neutral, filter.Decide(next));
+		Assert.AreEqual(2, next.LookupProperty(MessageRateFilter.DroppedProperty));
+
+		var writer = new StringWriter();
+		new RemoteLogging.LogglyLayout().Format(writer, next);
+		StringAssert.EndsWith(writer.ToString(), "[2 more like it dropped]");
 	}
 
 	/// <summary>

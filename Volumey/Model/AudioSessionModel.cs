@@ -72,6 +72,26 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	public ImageSource? IconSource { get; set; }
 
+	private double _level;
+	/// <summary>
+	/// How loud the session plays (0..1, before its volume), held for a moment after a peak; set by the mixer's level meters
+	/// </summary>
+	public double Level
+	{
+		get => _level;
+		set
+		{
+			if(_level != value)
+			{
+				_level = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	/// <summary>The session's current peak (0..1, before its volume); 0 if it can't be read</summary>
+	internal float ReadPeak() => sessionVolume.GetPeak();
+
 	public ICommand MuteCommand { get; set; }
 
 	private readonly IAudioSessionStateNotifications sessionStateNotifications;

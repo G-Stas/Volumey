@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -81,6 +82,48 @@ public class ControlsTests
 	}
 
 	[TestMethod]
+	public void MouseHotkeysAreEqualBySourceButtonAndModifiers()
+	{
+		var hotkey = HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control);
+
+		Assert.AreEqual(HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control), hotkey);
+		Assert.AreEqual(HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control).GetHashCode(), hotkey.GetHashCode());
+		Assert.AreNotEqual(HotKey.Mouse(MouseButtons.XButton2, ModifierKeys.Control), hotkey);
+		Assert.AreNotEqual(HotKey.Mouse(MouseButtons.XButton1), hotkey);
+		//a keyboard hotkey with no key and the same modifiers is another hotkey
+		Assert.AreNotEqual(new HotKey(Key.None, ModifierKeys.Control), hotkey);
+		Assert.AreEqual(InputSource.Mouse, hotkey.Source);
+		Assert.AreEqual(Key.None, hotkey.Key);
+		Assert.AreEqual(InputSource.Keyboard, new HotKey(Key.F5).Source);
+		Assert.IsNull(new HotKey(Key.F5).Button);
+	}
+
+	[TestMethod]
+	public void OnlyTheSideButtonsWorkWithoutAModifier()
+	{
+		Assert.IsFalse(MouseButtons.NeedsModifier(MouseButtons.XButton1));
+		Assert.IsFalse(MouseButtons.NeedsModifier(MouseButtons.XButton2));
+		foreach(var button in new[] { MouseButtons.Left, MouseButtons.Right, MouseButtons.Middle, MouseButtons.WheelUp, MouseButtons.WheelDown,
+			         MouseButtons.WheelLeft, MouseButtons.WheelRight })
+			Assert.IsTrue(MouseButtons.NeedsModifier(button), button);
+		Assert.IsTrue(MouseButtons.IsWheel(MouseButtons.WheelLeft));
+		Assert.IsFalse(MouseButtons.IsWheel(MouseButtons.Middle));
+		Assert.IsTrue(MouseButtons.IsKnown(MouseButtons.WheelRight));
+		Assert.IsFalse(MouseButtons.IsKnown("Button6"));
+		Assert.IsFalse(MouseButtons.IsKnown(null));
+	}
+
+	[TestMethod]
+	public void MouseHotkeyTextListsModifiersBeforeTheButton()
+	{
+		var parts = HotKey.Mouse(MouseButtons.WheelUp, ModifierKeys.Control | ModifierKeys.Windows).ToString().Split('+');
+
+		Assert.HasCount(3, parts);
+		Assert.AreEqual("Windows", parts[1]);
+		Assert.AreEqual(MouseButtons.DisplayName(MouseButtons.WheelUp), parts[2]);
+	}
+
+	[TestMethod]
 	public void HotkeyTextListsModifiersBeforeTheKey()
 	{
 		//modifier names come from the keyboard layout, so only the structure is checked
@@ -106,6 +149,41 @@ public class ControlsTests
 
 		box.HotKey = null;
 		Assert.AreEqual(string.Empty, box.Text);
+	}
+
+	[STATestMethod]
+	public void AHotkeyBoxOpensNoMenu()
+	{
+		var box = new HotKeyBox();
+		var args = (ContextMenuEventArgs)System.Activator.CreateInstance(typeof(ContextMenuEventArgs),
+			System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new object[] { box, true }, null)!;
+		args.RoutedEvent = FrameworkElement.ContextMenuOpeningEvent;
+
+		box.RaiseEvent(args);
+
+		Assert.IsTrue(args.Handled, "the box let its Copy/Cut/Paste menu open");
+	}
+
+	[STATestMethod]
+	public void AScreenReaderHearsWhatAnEmptyHotkeyBoxTakes()
+	{
+		//the empty box only shows a keyboard and a mouse icon
+		var box = new HotKeyBox { PlaceholderText = "Press a button on keyboard or mouse" };
+
+		Assert.AreEqual("Press a button on keyboard or mouse", System.Windows.Automation.AutomationProperties.GetHelpText(box));
+	}
+
+	[STATestMethod]
+	public void HotkeyBoxShowsAMouseHotkeyWithTheButtonsName()
+	{
+		var box = new HotKeyBox();
+
+		box.HotKey = HotKey.Mouse(MouseButtons.XButton1, ModifierKeys.Control);
+
+		Assert.AreEqual(2, box.KeyNames.Count);
+		Assert.AreEqual(MouseButtons.DisplayName(MouseButtons.XButton1), box.KeyNames[1]);
+		Assert.AreNotEqual(MouseButtons.XButton1, box.KeyNames[1], "the name comes from the translations, not the saved name");
+		StringAssert.EndsWith(box.Text, MouseButtons.DisplayName(MouseButtons.XButton1));
 	}
 
 	[STATestMethod]

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Mostrar el dispositivo en la parte inferior</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Mostrar el selector de dispositivo</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Desactivado: el mezclador muestra el dispositivo predeterminado.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Volumen de las aplicaciones</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>Bajar volumen de {0}</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Silenciar o activar sonido</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Silenciar o activar sonido de {0}</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Quitar {0}</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Aplicación</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Aplicaciones que suenan en el dispositivo predeterminado</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>No hay otras aplicaciones sonando en el dispositivo predeterminado.</value>
@@ -344,7 +353,7 @@
     <value>Cancelar</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Las demás aplicaciones no reciben estas teclas. Puedes cambiarlo en General.</value>
+    <value>Las demás aplicaciones no reciben estas teclas, pero siempre reciben los botones del mouse. Puedes cambiarlo en General.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Las demás aplicaciones también reciben estas teclas. Los atajos no funcionan mientras una aplicación de administrador tiene el foco.</value>
@@ -455,7 +464,37 @@
     <value>Borrar el atajo de {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Presiona una combinación de teclas</value>
+    <value>Presiona un botón del teclado o del mouse</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>o</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Clic izquierdo</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Clic derecho</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Clic central</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Adelante</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Rueda arriba</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Rueda abajo</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Rueda a la izquierda</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Rueda a la derecha</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Muestra los cambios de volumen en pantalla.</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>También a cambios de otras aplicaciones y de Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Cambios del dispositivo predeterminado</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Mostrar el nuevo dispositivo de salida cuando cambie el predeterminado</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Posición</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>En uso por otra aplicación</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Bloqueado por Windows o por software de seguridad.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>No se puede guardar la configuración: el disco está lleno.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>No se puede guardar la configuración: acceso denegado.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>No se puede guardar la configuración: el archivo está en uso.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>No se puede guardar la configuración.</value>
   </data>
 </root>

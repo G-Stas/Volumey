@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Показывать устройство внизу</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Показывать выбор устройства</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Если выключено - микшер показывает устройство по умолчанию.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Громкость приложений</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0}: уменьшить громкость</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Выключить или включить звук</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0}: выключить или включить звук</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Удалить {0}</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Приложение</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Приложения, воспроизводящие звук на устройстве по умолчанию</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Другие приложения не воспроизводят звук на устройстве по умолчанию.</value>
@@ -344,7 +353,7 @@
     <value>Отмена</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Другие приложения не получают эти клавиши. Это можно изменить в разделе «Общие».</value>
+    <value>Другие приложения не получают эти клавиши, но кнопки мыши получают всегда. Это можно изменить в разделе «Общие».</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Другие приложения тоже получают эти клавиши. Сочетания не работают, когда в фокусе приложение администратора.</value>
@@ -455,7 +464,37 @@
     <value>Очистить сочетание клавиш: {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Нажмите сочетание клавиш</value>
+    <value>Нажмите кнопку на клавиатуре или мыши</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>или</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>ЛКМ</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>ПКМ</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>СКМ</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Вперёд</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Колесо вверх</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Колесо вниз</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Колесо влево</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Колесо вправо</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Показ изменений громкости на экране.</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>В том числе на изменения из других приложений и Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Смена устройства по умолчанию</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Показывать новое устройство вывода, когда меняется устройство по умолчанию</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Расположение</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Используется другим приложением</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Заблокировано Windows или защитной программой.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Не удаётся сохранить параметры: диск заполнен.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Не удаётся сохранить параметры: доступ запрещён.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Не удаётся сохранить параметры: файл занят.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Не удаётся сохранить параметры.</value>
   </data>
 </root>

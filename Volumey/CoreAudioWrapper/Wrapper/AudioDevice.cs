@@ -63,6 +63,12 @@ public sealed class AudioDevice : IDevice
 
 	public DeviceState GetState() => Device.State;
 
+	public bool IsGone()
+	{
+		try { return Device.State != DeviceState.Active; }
+		catch { return true; }
+	}
+
 	public DeviceFormat? GetDeviceFormat()
 	{
 		try
@@ -123,6 +129,11 @@ public sealed class AudioDevice : IDevice
 			Logger.Info("The formats can't be checked while exclusive mode isn't allowed");
 			supported.Clear();
 		}
+		catch(Exception e) when(DeviceNotReadyException.IsTransient(e))
+		{
+			//the device was removed or reconfigured while the settings page read it
+			Logger.Warn("Couldn't read the device's supported formats for now", e);
+		}
 		catch(Exception e)
 		{
 			Logger.Error("Couldn't read the device's supported formats", e);
@@ -139,6 +150,12 @@ public sealed class AudioDevice : IDevice
 			for(int i = 0; i < levels.Length; i++)
 				levels[i] = channels[i].VolumeLevelScalar;
 			return levels;
+		}
+		catch(Exception e) when(DeviceNotReadyException.IsTransient(e))
+		{
+			//the device was removed or the audio service is restarting
+			Logger.Warn("Couldn't read the device's channel volumes for now", e);
+			return Array.Empty<float>();
 		}
 		catch(Exception e)
 		{

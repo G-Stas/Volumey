@@ -30,6 +30,31 @@
                            IsPaneToggleVisible="False"
                            IsFooterSeparatorVisible="False"
                            OpenPaneLength="280">
+            <!-- above every page; collapsed while closed. The side margins are the pages' own -->
+            <ui:NavigationView.Header>
+                <ui:InfoBar x:Name="SaveErrorBar"
+                            Severity="Error"
+                            IsOpen="{Binding IsOpen, Mode=TwoWay}"
+                            Margin="16 4 40 8"
+                            AutomationProperties.AutomationId="SaveErrorBar">
+                    <ui:InfoBar.Style>
+                        <Style TargetType="ui:InfoBar" BasedOn="{StaticResource {x:Type ui:InfoBar}}">
+                            <Setter Property="Message" Value="{lc:Localization Settings_SaveFailed}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Failure}" Value="DiskFull">
+                                    <Setter Property="Message" Value="{lc:Localization Settings_SaveFailedDiskFull}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Failure}" Value="AccessDenied">
+                                    <Setter Property="Message" Value="{lc:Localization Settings_SaveFailedAccessDenied}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Failure}" Value="InUse">
+                                    <Setter Property="Message" Value="{lc:Localization Settings_SaveFailedInUse}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:InfoBar.Style>
+                </ui:InfoBar>
+            </ui:NavigationView.Header>
             <ui:NavigationView.MenuItems>
                 <ui:NavigationViewItem AutomationProperties.AutomationId="NavGeneral" Content="{lc:Localization Nav_General}" Icon="{ui:SymbolIcon Home24}"
                                        TargetPageType="{x:Type pages:GeneralPage}" />

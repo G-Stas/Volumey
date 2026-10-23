@@ -93,6 +93,12 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnDeviceViewAtTheBottomChanged(bool value) => SettingsProvider.Settings.Window.DeviceViewAtTheBottom = value;
 
+	/// <summary>The mixer's output device picker; without it the mixer shows the default device</summary>
+	[ObservableProperty]
+	public partial bool ShowDevicePicker { get; set; }
+
+	partial void OnShowDevicePickerChanged(bool value) => SettingsProvider.Settings.Window.ShowDevicePicker = value;
+
 	[ObservableProperty]
 	public partial bool DisplayDeviceIconAtTray { get; set; }
 
@@ -115,10 +121,15 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 				launchAtStartup = false;
 				systemIntegration.DisableLaunchAtStartup();
 			}
+			StartupBlocked = value && !launchAtStartup;
 			OnPropertyChanged();
 #endif
 		}
 	}
+
+	/// <summary>Windows refused the autostart entry (security software or a policy); the Startup section says so until it's closed</summary>
+	[ObservableProperty]
+	public partial bool StartupBlocked { get; set; }
 
 	//reading the shortcut is a call into the shell (about 20 ms): it's made on the thread pool, so the first window doesn't wait for it.
 	//Created on the UI thread, the view model gets the result there
@@ -157,12 +168,9 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[ObservableProperty]
 	public partial double WindowTop { get; set; }
 
-	//the size of the window mode (the popup's size is computed when it opens); 0 = not saved yet
+	//the width of the window mode (the popup's width is fixed, the height of both is computed when they open); 0 = not saved yet
 	[ObservableProperty]
 	public partial double WindowWidth { get; set; }
-
-	[ObservableProperty]
-	public partial double WindowHeight { get; set; }
 
 	//where the popup was last dragged to, in physical pixels (null: never); saved on exit only, like the window mode's position
 	public double? PopupLeft { get; set; }
@@ -232,18 +240,19 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		AlwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
 		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
+		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
 		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;
 		WindowWidth = SettingsProvider.Settings.Window.Width;
-		WindowHeight = SettingsProvider.Settings.Window.Height;
 		PopupLeft = SettingsProvider.Settings.Window.PopupLeft;
 		PopupTop = SettingsProvider.Settings.Window.PopupTop;
 
 		//always false in the Store build, whose autostart is the manifest's startup task
 		launchAtStartup = systemIntegration.LaunchesAtStartup();
 		ReadStartMenuStateAsync().Forget(Logger, "Failed to read the Start menu shortcut");
+		ReadSoundSettingsSupportAsync().Forget(Logger, "Failed to check the sound settings");
 
 		SystemEvents.DisplaySettingsChanged += OnSystemDisplaySettingsChanged;
 
@@ -270,7 +279,6 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		SettingsProvider.Settings.Window.Left = WindowLeft;
 		SettingsProvider.Settings.Window.Top = WindowTop;
 		SettingsProvider.Settings.Window.Width = WindowWidth;
-		SettingsProvider.Settings.Window.Height = WindowHeight;
 		SettingsProvider.Settings.Window.PopupLeft = PopupLeft;
 		SettingsProvider.Settings.Window.PopupTop = PopupTop;
 		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
@@ -392,8 +400,20 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[RelayCommand]
 	private static void SoundControlPanel() => SystemSoundUtilities.StartSoundControlPanel();
 
+	/// <summary>The tray menu's item, shown only while <see cref="CanOpenSoundSettings"/></summary>
 	[RelayCommand]
-	private static void SoundSettings() => SystemSoundUtilities.StartSoundSettings();
+	private static void SoundSettings() => SystemSoundUtilities.StartSoundSettings(fallBackToControlPanel: false);
+
+	/// <summary>The mixer's button, which is always there: the Sound control panel opens when Windows doesn't open the settings</summary>
+	[RelayCommand]
+	private static void MixerSoundSettings() => SystemSoundUtilities.StartSoundSettings(fallBackToControlPanel: true);
+
+	/// <summary>Whether Windows can open the sound settings (the Settings app may be removed)</summary>
+	[ObservableProperty]
+	public partial bool CanOpenSoundSettings { get; private set; } = true;
+
+	private async System.Threading.Tasks.Task ReadSoundSettingsSupportAsync()
+		=> CanOpenSoundSettings = await systemIntegration.CanOpenSoundSettingsAsync();
 
 	[RelayCommand]
 	private void Loaded() => screens.Refresh();

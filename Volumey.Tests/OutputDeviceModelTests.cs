@@ -63,6 +63,51 @@ public class OutputDeviceModelTests
 	}
 
 	[TestMethod]
+	public void AModelIsUsableUntilWindowsDisablesItsDevice()
+	{
+		Assert.IsTrue(model.IsUsable());
+		deviceStateMock.Raise(m => m.DeviceDisabled += null, "another device");
+		Assert.IsTrue(model.IsUsable());
+
+		//nobody listens to the model yet: it remembers the notification
+		deviceStateMock.Raise(m => m.DeviceDisabled += null, deviceId);
+		Assert.IsFalse(model.IsUsable());
+	}
+
+	[TestMethod]
+	public void AModelOfADeviceThatIsNoLongerActiveIsNotUsable()
+	{
+		//disabled before the model listened
+		deviceMock.Setup(m => m.IsGone()).Returns(true);
+		Assert.IsFalse(model.IsUsable());
+	}
+
+	[TestMethod]
+	public void AModelOfADeviceWhoseFormatChangedSinceItWasBuiltIsNotUsable()
+	{
+		var stereo48 = new DeviceFormat(2, 48000, 288000, 6, 24);
+		var stereo96 = new DeviceFormat(2, 96000, 576000, 6, 24);
+		var device = new Mock<IDevice>();
+		device.Setup(m => m.GetId()).Returns(deviceId);
+		device.Setup(m => m.GetDeviceFormat()).Returns(stereo48);
+		var built = new OutputDeviceModel(device.Object, deviceStateMock.Object, sProviderMock.Object,
+			MasterSessionModelTests.GetMasterMock(deviceName, 70, false, deviceId, null), new List<AudioProcessModel>());
+		Assert.IsTrue(built.IsUsable());
+
+		//changed before the model listened: no notification reached it
+		device.Setup(m => m.GetDeviceFormat()).Returns(stereo96);
+		Assert.IsFalse(built.IsUsable());
+	}
+
+	[TestMethod]
+	public void AReconfiguredModelIsNotUsable()
+	{
+		sProviderMock.Raise(m => m.DeviceInvalidated += null);
+		Assert.IsTrue(model.WasInvalidated);
+		Assert.IsFalse(model.IsUsable());
+	}
+
+	[TestMethod]
 	public void ProcessExitedEvent_ProcessShouldBeRemoved()
 	{
 		var process = model.Processes[0];

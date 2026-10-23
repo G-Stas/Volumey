@@ -111,6 +111,7 @@
                             <controls:VolumeSlider Margin="0 0 8 0"
                                                    Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
                                                    IsMuted="{Binding IsMuted}"
+                                                   Level="{Binding Level}"
                                                    AutomationProperties.Name="{Binding Name}" />
                             <TextBlock Grid.Column="1"
                                        Style="{StaticResource VolumeValue}"
@@ -172,6 +173,7 @@
                                                            Margin="10 0 8 0"
                                                            Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
                                                            IsMuted="{Binding IsMuted}"
+                                                           Level="{Binding Level}"
                                                            AutomationProperties.Name="{Binding Name}" />
                                     <TextBlock Grid.Column="2"
                                                Style="{StaticResource VolumeValue}"

@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Показувати пристрій унизу</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Показувати вибір пристрою</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Вимк.: мікшер показує пристрій за замовчуванням.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Гучність програм</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0}: зменшити гучність</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Вимкнути або ввімкнути звук</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0}: вимкнути або ввімкнути звук</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Видалити: {0}</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Програма</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Програми, що відтворюють звук на пристрої за замовчуванням</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Інші програми не відтворюють звук на пристрої за замовчуванням.</value>
@@ -344,7 +353,7 @@
     <value>Скасувати</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Інші програми не отримують ці клавіші. Це можна змінити в розділі "Загальні".</value>
+    <value>Інші програми не отримують ці клавіші, але кнопки миші отримують завжди. Це можна змінити в розділі &quot;Загальні&quot;.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Інші програми теж отримують ці клавіші. Сполучення клавіш не працюють, коли у фокусі програма адміністратора.</value>
@@ -455,7 +464,37 @@
     <value>Очистити сполучення клавіш: {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Натисніть сполучення клавіш</value>
+    <value>Натисніть кнопку на клавіатурі або миші</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>або</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>ЛКМ</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>ПКМ</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>СКМ</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Вперед</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Коліщатко вгору</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Коліщатко вниз</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Коліщатко вліво</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Коліщатко вправо</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Показувати зміни гучності на екрані.</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Також на зміни з інших програм і Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Зміна пристрою за замовчуванням</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Показувати новий пристрій виведення, коли змінюється пристрій за замовчуванням</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Розташування</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Використовується іншою програмою</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Заблоковано Windows або захисною програмою.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Не вдається зберегти параметри: диск заповнено.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Не вдається зберегти параметри: доступ заборонено.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Не вдається зберегти параметри: файл зайнятий.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Не вдається зберегти параметри.</value>
   </data>
 </root>

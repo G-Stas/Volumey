@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Gerät unten anzeigen</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Geräteauswahl anzeigen</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Aus: Der Mixer zeigt das Standardgerät.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>App-Lautstärken</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0} leiser</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Stummschalten oder Stummschaltung aufheben</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0} stummschalten oder Stummschaltung aufheben</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>{0} entfernen</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>App</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Apps, die auf dem Standardgerät wiedergeben</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Keine anderen Apps geben auf dem Standardgerät wieder.</value>
@@ -344,7 +353,7 @@
     <value>Abbrechen</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Andere Apps erhalten diese Tasten nicht. Sie können dies unter „Allgemein“ ändern.</value>
+    <value>Andere Apps erhalten diese Tasten nicht, Maustasten aber immer. Sie können dies unter „Allgemein“ ändern.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Andere Apps erhalten diese Tasten ebenfalls. Tastenkombinationen funktionieren nicht, solange eine Administrator-App im Fokus ist.</value>
@@ -455,7 +464,37 @@
     <value>Tastenkombination für „{0}“ löschen</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Tastenkombination drücken</value>
+    <value>Taste auf Tastatur oder Maus drücken</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>oder</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Linksklick</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Rechtsklick</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Mittelklick</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Vorwärts</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Rad nach oben</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Rad nach unten</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Rad nach links</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Rad nach rechts</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Lautstärkeänderungen auf dem Bildschirm anzeigen.</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Auch Änderungen durch andere Apps und Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Wechsel des Standardgeräts</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Das neue Ausgabegerät anzeigen, wenn sich das Standardgerät ändert</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Position</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Wird von einer anderen App verwendet</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Von Windows oder einer Sicherheitssoftware blockiert.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Einstellungen können nicht gespeichert werden: Der Datenträger ist voll.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Einstellungen können nicht gespeichert werden: Zugriff verweigert.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Einstellungen können nicht gespeichert werden: Die Datei wird verwendet.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Einstellungen können nicht gespeichert werden.</value>
   </data>
 </root>

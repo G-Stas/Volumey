@@ -291,8 +291,27 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 
 	private void OnDeviceDisabled(string deviceId)
 	{
-		if(CompareId(deviceId))
-			_disabled?.Invoke(this);
+		if(!CompareId(deviceId))
+			return;
+		disabledByWindows = true;
+		_disabled?.Invoke(this);
+	}
+
+	private volatile bool disabledByWindows;
+
+	/// <summary><see cref="Invalidated"/> was raised (to whoever listened then)</summary>
+	internal bool WasInvalidated => Volatile.Read(ref invalidated) == 1;
+
+	/// <summary>
+	/// False once Windows disabled or reconfigured the device, or no longer has it active. A model built off the UI thread
+	/// listens to its device from its constructor on, but nobody listens to the model until it's listed: this tells whether
+	/// it missed a notification in between, also one that came before its constructor (from Windows' device state and format).
+	/// </summary>
+	internal bool IsUsable()
+	{
+		if(disposed || disabledByWindows || WasInvalidated || device.IsGone())
+			return false;
+		return device.GetDeviceFormat() is not { } format || currentStreamFormat is not { } built || format == built;
 	}
 
 	private void OnProcessExited(AudioProcessModel exitedProcess)

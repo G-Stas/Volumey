@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Afficher le périphérique en bas</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Afficher le sélecteur de périphérique</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Désactivé : le mélangeur affiche le périphérique par défaut.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Volume des applications</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>Baisser le volume de {0}</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Désactiver ou activer le son</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Désactiver ou activer le son de {0}</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Supprimer {0}</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Application</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Applications en cours de lecture sur le périphérique par défaut</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Aucune autre application n'est en cours de lecture sur le périphérique par défaut.</value>
@@ -344,7 +353,7 @@
     <value>Annuler</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Les autres applications ne reçoivent pas ces touches. Vous pouvez modifier ce comportement dans Général.</value>
+    <value>Les autres applications ne reçoivent pas ces touches, mais elles reçoivent toujours les boutons de la souris. Vous pouvez modifier ce comportement dans Général.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Les autres applications reçoivent aussi ces touches. Les raccourcis clavier ne fonctionnent pas lorsqu'une application administrateur est au premier plan.</value>
@@ -455,7 +464,37 @@
     <value>Effacer le raccourci clavier de {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Appuyez sur une combinaison de touches</value>
+    <value>Appuyez sur une touche du clavier ou un bouton de la souris</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>ou</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Clic gauche</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Clic droit</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Clic central</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Précédent</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Suivant</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Molette vers le haut</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Molette vers le bas</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Molette vers la gauche</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Molette vers la droite</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Afficher les changements de volume à l'écran.</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Y compris ceux des autres applications et de Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Changement du périphérique par défaut</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Afficher le nouveau périphérique de sortie quand celui par défaut change</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Position</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Utilisé par une autre application</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Bloqué par Windows ou un logiciel de sécurité.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres : le disque est plein.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres : accès refusé.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres : le fichier est utilisé.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Impossible d'enregistrer les paramètres.</value>
   </data>
 </root>

@@ -9,6 +9,8 @@ namespace Volumey.Services;
 /// </summary>
 internal sealed class SystemIntegration : ISystemIntegration
 {
+	public System.Threading.Tasks.Task<bool> CanOpenSoundSettingsAsync() => SystemSoundUtilities.CanOpenSoundSettingsAsync();
+
 #if(STORE)
 	public bool LaunchesAtStartup() => false;
 

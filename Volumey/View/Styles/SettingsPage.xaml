@@ -69,19 +69,30 @@
                                     CornerRadius="{TemplateBinding Border.CornerRadius}">
                                 <Grid Margin="6 0">
                                     <ScrollViewer x:Name="PART_ContentHost" Opacity="0" IsHitTestVisible="False" Focusable="False" />
-                                    <!-- a placeholder longer than the box (some translations) gets smaller instead of cut off -->
-                                    <Viewbox x:Name="Placeholder"
-                                             Margin="4 0 0 0"
-                                             HorizontalAlignment="Left"
-                                             VerticalAlignment="Center"
-                                             Stretch="Uniform"
-                                             StretchDirection="DownOnly"
-                                             Visibility="Collapsed">
-                                        <TextBlock Text="{TemplateBinding PlaceholderText}"
+                                    <!-- the empty box shows what it takes: a keyboard and a mouse (Windows' glyphs) -->
+                                    <StackPanel x:Name="Placeholder"
+                                                Orientation="Horizontal"
+                                                Margin="4 0 0 0"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Visibility="Collapsed">
+                                        <TextBlock Text="&#xE765;"
+                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextControlPlaceholderForeground}" />
+                                        <TextBlock Text="{lc:Localization HotkeyBox_Or}"
+                                                   Margin="6 0"
+                                                   VerticalAlignment="Center"
                                                    TextWrapping="NoWrap"
                                                    Foreground="{DynamicResource TextControlPlaceholderForeground}" />
-                                    </Viewbox>
-                                    <ItemsControl ItemsSource="{TemplateBinding KeyNames}" VerticalAlignment="Center" Focusable="False">
+                                        <TextBlock Text="&#xE962;"
+                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                   FontSize="16"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextControlPlaceholderForeground}" />
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{TemplateBinding Caps}" VerticalAlignment="Center" Focusable="False">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <StackPanel Orientation="Horizontal" />
@@ -90,11 +101,27 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Style="{StaticResource KeyCap}">
-                                                    <!-- the box's Foreground set locally: WPF-UI's TextBlock style switches a disabled
-                                                         TextBlock to its disabled color itself, which ignores the box's -->
-                                                    <TextBlock Text="{Binding}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap"
-                                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=controls:HotKeyBox}}" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <!-- a mouse button's cap starts with Windows' mouse glyph -->
+                                                        <TextBlock x:Name="MouseIcon"
+                                                                   Text="&#xE962;"
+                                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                                   FontSize="12"
+                                                                   Margin="0 0 4 0"
+                                                                   VerticalAlignment="Center"
+                                                                   Visibility="Collapsed"
+                                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=controls:HotKeyBox}}" />
+                                                        <!-- the box's Foreground set locally: WPF-UI's TextBlock style switches a disabled
+                                                             TextBlock to its disabled color itself, which ignores the box's -->
+                                                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" TextWrapping="NoWrap"
+                                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=controls:HotKeyBox}}" />
+                                                    </StackPanel>
                                                 </Border>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsMouse}" Value="True">
+                                                        <Setter TargetName="MouseIcon" Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>

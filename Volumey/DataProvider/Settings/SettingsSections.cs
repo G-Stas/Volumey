@@ -27,6 +27,8 @@ public sealed class WindowSettings : SettingsSection
 	public bool PopupMode { get; set; }
 	public bool AlwaysOnTop { get; set; }
 	public bool DeviceViewAtTheBottom { get; set; }
+	/// <summary>The mixer's output device picker; without it the mixer shows the default device</summary>
+	public bool ShowDevicePicker { get; set; } = true;
 	public bool DisplayDeviceIconAtTray { get; set; }
 	/// <summary>The mixer opens where it was last (window mode: <see cref="Left"/>/<see cref="Top"/>, popup: <see cref="PopupLeft"/>/<see cref="PopupTop"/>), not next to the tray</summary>
 	public bool RememberPosition { get; set; }
@@ -36,9 +38,8 @@ public sealed class WindowSettings : SettingsSection
 	/// <summary>Window mode's position, in physical pixels (see <see cref="PopupLeft"/>)</summary>
 	public double Left { get; set; }
 	public double Top { get; set; }
-	/// <summary>Size of the mixer in window mode (not in popup mode); 0 = not saved yet</summary>
+	/// <summary>Width of the mixer in window mode (not in popup mode); 0 = not saved yet. The height fits the apps each time it opens</summary>
 	public double Width { get; set; }
-	public double Height { get; set; }
 	/// <summary>Device name of the screen the window opens on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
 	public string? ScreenName { get; set; }
 }
@@ -55,6 +56,7 @@ public sealed class HotkeySettings : SettingsSection
 	public HotKey? DeviceMute { get; set; }
 	public HotKey? ForegroundVolumeUp { get; set; }
 	public HotKey? ForegroundVolumeDown { get; set; }
+	public HotKey? ForegroundMute { get; set; }
 	public bool PreventResettingVolumeBalance { get; set; }
 	/// <summary>
 	/// True: hotkeys are registered with Windows and other apps don't get the keys (RegisterHotKey).
@@ -79,6 +81,8 @@ public sealed class NotificationSettings : SettingsSection
 	public NotificationPosition Position { get; set; } = NotificationPosition.TopLeft;
 	public int DisplayTimeSeconds { get; set; } = 3;
 	public bool ReactToAllVolumeChanges { get; set; }
+	/// <summary>The OSD shows the new default output device when it changes</summary>
+	public bool ShowDefaultDeviceChanges { get; set; } = true;
 	/// <summary>Device name of the screen the notifications show on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
 	public string? ScreenName { get; set; }
 }

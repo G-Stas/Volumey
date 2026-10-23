@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>Aygıtı altta göster</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Aygıt seçiciyi göster</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Kapalı: karıştırıcı varsayılan aygıtı gösterir.</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>Uygulama ses düzeyleri</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>{0}: sesi azalt</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Sesi kapat veya aç</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>{0}: sesi kapat veya aç</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>Kaldır: {0}</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>Uygulama</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>Varsayılan aygıtta ses çalan uygulamalar</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>Varsayılan aygıtta ses çalan başka uygulama yok.</value>
@@ -344,7 +353,7 @@
     <value>İptal</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>Diğer uygulamalar bu tuşları almaz. Bunu Genel bölümünden değiştirebilirsiniz.</value>
+    <value>Diğer uygulamalar bu tuşları almaz, ancak fare düğmelerini her zaman alır. Bunu Genel bölümünden değiştirebilirsiniz.</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>Diğer uygulamalar da bu tuşları alır. Yönetici olarak çalışan bir uygulama odaktayken kısayol tuşları çalışmaz.</value>
@@ -455,7 +464,37 @@
     <value>Kısayol tuşunu temizle: {0}</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>Bir tuş bileşimine basın</value>
+    <value>Klavyede veya farede bir düğmeye basın</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>veya</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Sol tık</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Sağ tık</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Orta tık</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Geri</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>İleri</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Tekerlek yukarı</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Tekerlek aşağı</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Tekerlek sola</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Tekerlek sağa</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>Ses düzeyi değişikliklerini ekranda gösterin.</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>Diğer uygulamalardan ve Windows'tan gelen değişiklikler de</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Varsayılan aygıt değişiklikleri</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Varsayılan aygıt değiştiğinde yeni çıkış aygıtını göster</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>Konum</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>Başka bir uygulama tarafından kullanılıyor</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Windows veya güvenlik yazılımı tarafından engellendi.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor: disk dolu.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor: erişim reddedildi.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor: dosya kullanımda.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Ayarlar kaydedilemiyor.</value>
   </data>
 </root>

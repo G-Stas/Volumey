@@ -271,6 +271,12 @@
   <data name="MixerPage_DeviceBottom" xml:space="preserve">
     <value>在底部显示设备</value>
   </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>显示设备选择器</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>关闭时，合成器显示默认设备。</value>
+  </data>
   <data name="MixerPage_AppVolumes" xml:space="preserve">
     <value>应用音量</value>
   </data>
@@ -322,6 +328,12 @@
   <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
     <value>减小 {0} 音量</value>
   </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>静音或取消静音</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>将 {0} 静音或取消静音</value>
+  </data>
   <data name="AppHotkeys_RemoveApp" xml:space="preserve">
     <value>删除 {0}</value>
   </data>
@@ -330,9 +342,6 @@
   </data>
   <data name="AppHotkeys_App" xml:space="preserve">
     <value>应用</value>
-  </data>
-  <data name="AppHotkeys_AppHint" xml:space="preserve">
-    <value>正在默认设备上播放的应用</value>
   </data>
   <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
     <value>没有其他应用正在默认设备上播放。</value>
@@ -344,7 +353,7 @@
     <value>取消</value>
   </data>
   <data name="Hotkeys_BlockedInfo" xml:space="preserve">
-    <value>其他应用不会收到这些按键。可以在“常规”中更改。</value>
+    <value>其他应用不会收到这些按键，但始终会收到鼠标按钮。可以在“常规”中更改。</value>
   </data>
   <data name="Hotkeys_SharedInfo" xml:space="preserve">
     <value>其他应用也会收到这些按键。管理员应用处于焦点时，快捷键无效。</value>
@@ -455,7 +464,37 @@
     <value>清除 {0} 的快捷键</value>
   </data>
   <data name="HotkeyBox_Placeholder" xml:space="preserve">
-    <value>按下组合键</value>
+    <value>按下键盘或鼠标上的按钮</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>或</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>左键单击</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>右键单击</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>中键单击</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>后退</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>前进</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>滚轮向上</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>滚轮向下</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>滚轮向左</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>滚轮向右</value>
   </data>
   <data name="Notifications_Description" xml:space="preserve">
     <value>在屏幕上显示音量变化。</value>
@@ -471,6 +510,12 @@
   </data>
   <data name="Notifications_ReactAllHint" xml:space="preserve">
     <value>包括其他应用和 Windows 进行的更改</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>默认设备更改</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>默认设备更改时显示新的输出设备</value>
   </data>
   <data name="Notifications_PositionHeader" xml:space="preserve">
     <value>位置</value>
@@ -576,5 +621,20 @@
   </data>
   <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
     <value>已被其他应用使用</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>已被 Windows 或安全软件阻止。</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>无法保存设置：磁盘已满。</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>无法保存设置：访问被拒绝。</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>无法保存设置：文件正在使用中。</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>无法保存设置。</value>
   </data>
 </root>
