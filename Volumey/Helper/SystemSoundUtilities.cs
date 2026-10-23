@@ -18,7 +18,9 @@ internal static class SystemSoundUtilities
 			var psi = new ProcessStartInfo
 			{
 				FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "rundll32.exe"),
-				Arguments = "shell32.dll,Control_RunDLL mmsys.cpl,,0"
+				Arguments = "shell32.dll,Control_RunDLL mmsys.cpl,,0",
+				//through the shell, so the panel doesn't inherit Volumey's handles (e.g. a redirected output that would stay open while it runs)
+				UseShellExecute = true
 			};
 			Process.Start(psi)?.Dispose();
 		}
