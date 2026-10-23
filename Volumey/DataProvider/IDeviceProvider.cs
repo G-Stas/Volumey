@@ -32,6 +32,12 @@ public interface IDeviceProvider : IDisposable
 	public void SetDefaultDevice(string? deviceId);
 
 	/// <summary>
+	/// The device Volumey itself asked Windows to make the default (<see cref="SetDefaultDevice"/>, a few seconds at most), until the
+	/// switch to it is reported; null otherwise. Tells a switch the user made in Volumey from one made outside it.
+	/// </summary>
+	public string? RequestedDefaultDeviceId { get; }
+
+	/// <summary>
 	/// Sets the format the device runs at (on the thread pool: Windows reconfigures the device during the call). False if the change failed;
 	/// the failure is logged. On success the device's model is rebuilt, see <see cref="DeviceReplaced"/>.
 	/// </summary>
