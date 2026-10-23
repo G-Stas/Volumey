@@ -203,6 +203,14 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	/// <summary>The Windows Audio service isn't installed (Windows editions or builds without it)</summary>
 	internal static bool IsAudioServiceMissing(Exception? e) => e?.HResult == ErrorServiceDoesNotExist;
 
+	//Windows reports a switch it makes within a moment; a request it refused or never reported stops counting after this
+	private static readonly TimeSpan RequestValidity = TimeSpan.FromSeconds(5);
+
+	private (string Id, DateTime At)? requestedDefault;
+
+	public string? RequestedDefaultDeviceId
+		=> requestedDefault is { } r && DateTime.UtcNow - r.At < RequestValidity ? r.Id : null;
+
 	public void SetDefaultDevice(string? id)
 	{
 		try
@@ -215,6 +223,7 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 				//Prevent if it's already the default device
 				if(DefaultDevice != null && !DefaultDevice.CompareId(id))
 				{
+					requestedDefault = (id, DateTime.UtcNow);
 					PolicyClient.SetDefaultEndpointDevice(id);
 				}
 			}
@@ -356,6 +365,8 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 				DefaultDevice = newDefaultDevice;
 				DefaultDeviceChanged?.Invoke(DefaultDevice);
 			}
+			if(requestedDefault is { } r && newDefaultDevice != null && newDefaultDevice.CompareId(r.Id))
+				requestedDefault = null;
 		});
 	}
 

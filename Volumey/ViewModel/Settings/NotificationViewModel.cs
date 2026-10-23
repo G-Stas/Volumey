@@ -69,12 +69,26 @@ public sealed partial class NotificationViewModel : ObservableObject
 	/// <summary>The default device the OSD last knew of, to tell a switch from the same device's model rebuilt after a format change</summary>
 	private string? _defaultDeviceId;
 
+	/// <summary>
+	/// A switch made outside Volumey this soon after the last one shows nothing: on some PCs another program or a driver switches the
+	/// default device every few seconds
+	/// </summary>
+	internal static readonly TimeSpan RepeatedSwitchWindow = TimeSpan.FromSeconds(5);
+
+	private readonly Func<DateTime> _now;
+	private DateTime _lastSwitch = DateTime.MinValue;
+
 	private void OnDefaultDeviceSwitched(OutputDeviceModel? device)
 	{
 		var previous = _defaultDeviceId;
 		_defaultDeviceId = device?.Id;
 		//the same device's model rebuilt, and the devices read at start (also late), show nothing; a device plugged in when there was none does
 		if(device == null || previous == device.Id || _deviceProvider.IsReadingDevices)
+			return;
+		var now = _now();
+		bool repeated = now - _lastSwitch < RepeatedSwitchWindow;
+		_lastSwitch = now;
+		if(repeated && device.Id != _deviceProvider.RequestedDefaultDeviceId)
 			return;
 		if(NotificationsEnabled && ShowDefaultDeviceChanges)
 			_notifications.ShowDefaultDevice(device.Master);
@@ -217,8 +231,10 @@ public sealed partial class NotificationViewModel : ObservableObject
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(NotificationViewModel));
 
-	internal NotificationViewModel(IDeviceProvider deviceProvider, INotificationService notifications, IScreenInfoProvider screenInfoProvider)
+	internal NotificationViewModel(IDeviceProvider deviceProvider, INotificationService notifications, IScreenInfoProvider screenInfoProvider,
+		Func<DateTime>? now = null)
 	{
+		_now = now ?? (() => DateTime.UtcNow);
 		_deviceProvider = deviceProvider;
 		_notifications = notifications;
 		screens = new ScreenSelection(screenInfoProvider, () => SettingsProvider.Settings.Notifications.ScreenName,

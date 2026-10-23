@@ -71,6 +71,47 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void SwitchesMadeOutsideVolumeyEveryFewSecondsShowOnlyTheFirst()
+	{
+		Settings.Notifications.Enabled = true;
+		var time = new System.DateTime(2026, 10, 23, 12, 0, 0);
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		new NotificationViewModel(DeviceProvider.Object, Notifications.Object, screens.Object, () => time);
+
+		ChangeDefaultDevice(headphones);
+		time += System.TimeSpan.FromSeconds(2);
+		ChangeDefaultDevice(speakers);
+		time += System.TimeSpan.FromSeconds(2);
+		ChangeDefaultDevice(headphones);
+		Notifications.Verify(m => m.ShowDefaultDevice(It.IsAny<IManagedMasterAudioSession>()), Times.Once);
+
+		//once it stayed put, the next switch shows again
+		time += NotificationViewModel.RepeatedSwitchWindow;
+		ChangeDefaultDevice(speakers);
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
+	}
+
+	[TestMethod]
+	public void ASwitchMadeInVolumeyAlwaysShows()
+	{
+		Settings.Notifications.Enabled = true;
+		var time = new System.DateTime(2026, 10, 23, 12, 0, 0);
+		var speakers = CreateDevice("speakers", "Speakers");
+		var headphones = CreateDevice("headphones", "Headphones");
+		SetDefaultDevice(speakers);
+		new NotificationViewModel(DeviceProvider.Object, Notifications.Object, screens.Object, () => time);
+
+		ChangeDefaultDevice(headphones);
+		time += System.TimeSpan.FromSeconds(1);
+		DeviceProvider.Setup(m => m.RequestedDefaultDeviceId).Returns("speakers");
+		ChangeDefaultDevice(speakers);
+
+		Notifications.Verify(m => m.ShowDefaultDevice(speakers.Master), Times.Once);
+	}
+
+	[TestMethod]
 	public void TheDevicesReadLateAtStartAndARebuiltDeviceShowNothing()
 	{
 		Settings.Notifications.Enabled = true;
