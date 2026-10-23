@@ -85,9 +85,14 @@ public class TrayTests : UiTest
 
 		AutomationElement? opened = null;
 		Assert.IsTrue(Eventually(() => OpenDialog(out opened), 10000), "the Sound control panel didn't open");
-		//only closed when the test opened it
+		//only closed when the test opened it; a panel that stays would keep running after the tests
 		if(!wasOpen)
-			opened!.AsWindow().Close();
+		{
+			using var panel = Process.GetProcessById(opened!.Properties.ProcessId.Value);
+			opened.AsWindow().Close();
+			if(!panel.WaitForExit(5000))
+				panel.Kill();
+		}
 	}
 
 	[TestMethod]
