@@ -163,8 +163,8 @@ static class Startup
 				return;
 			var assembly = Assembly.GetExecutingAssembly();
 			var repo = LogManager.GetRepository(assembly);
-			BasicConfigurator.Configure(repo, RemoteLogging.CreateAppender(inputKey));
-			//info and above: info gives the context of a crash (devices, sleep and wake); debug stays local
+			BasicConfigurator.Configure(repo, RemoteLogging.CreatePipeline(RemoteLogging.CreateAppender(inputKey)));
+			//info and above: warnings go out, info only as the context of a crash (devices, sleep and wake); debug stays local
 			((Hierarchy)repo).Root.Level = Level.Info;
 			try
 			{
