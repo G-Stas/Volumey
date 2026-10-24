@@ -129,13 +129,6 @@
             <behaviors:ControlStoryboardAction Storyboard="{StaticResource HideFadeOut}"/>
         </behaviors:DataTrigger>
 
-        <behaviors:DataTrigger
-            Binding="{Binding ElementName=Window, Path=IsVisible}"
-            Value="True"
-            Comparison="Equal">
-            <behaviors:ControlStoryboardAction Storyboard="{StaticResource DisplayFadeIn}"/>
-        </behaviors:DataTrigger>
-
         <behaviors:EventTrigger
             EventName="Deactivated"
             SourceObject="{Binding ElementName=Window}">

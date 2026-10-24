@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 using H.NotifyIcon;
 using log4net;
 using Volumey.Helper;
@@ -19,6 +20,7 @@ using Volumey.Model;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 using ContentDialog = Wpf.Ui.Controls.ContentDialog;
@@ -38,6 +40,7 @@ public sealed partial class MainView
 
 	private const int ScrollStep = 30;
 	private const int BorderIndent = 11;
+	private const int WmShowWindow = 0x0018;
 
 	//sizing in both modes: the height is computed each time the mixer opens and doesn't change while it's
 	//visible; new apps go to the end of the scrolling list
@@ -89,6 +92,8 @@ public sealed partial class MainView
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
 
+		UpdateFallbackCompositionBackground();
+
 		//the hidden window goes to its remembered place, so a window shown at startup appears there right away (placed again when it shows)
 		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
 			MoveTo(position.X, position.Y, show: false);
@@ -102,6 +107,8 @@ public sealed partial class MainView
 
 		ContentRendered += (s, a) => ActivateIfLoaded(windowIsVisible: false, isPopupMode: vm.DisplayMinimalistic);
 		vm.DisplayAppRequested += ActivateIfLoaded;
+		//raised before the window becomes visible (the view model sets WindowIsVisible right after it)
+		vm.DisplayAppRequested += CloakIfAboutToShow;
 		vm.SettingsRequested += ShowSettings;
 		vm.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -144,7 +151,7 @@ public sealed partial class MainView
 
 	/// <summary>Delays of the attempts to create the tray icon again after Explorer refused it, then every minute</summary>
 	private static readonly TimeSpan[] TrayRetryDelays =
-		{ TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1) };
+		[TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1)];
 
 	private DispatcherTimer? trayRetryTimer;
 	private int trayRetry;
@@ -276,6 +283,106 @@ public sealed partial class MainView
 	}
 
 	private IntPtr ForceCreateHwnd() => Hwnd = new WindowInteropHelper(this).EnsureHandle();
+
+	/// <summary>Frames WPF must have rendered after the window was shown before the window is uncloaked</summary>
+	private const int CloakFrames = 3;
+
+	private static readonly Duration FadeInDuration = new(TimeSpan.FromMilliseconds(120));
+
+	/// <summary>The cloak never lasts longer than this, in case no frames are rendered (e.g. the window ended up hidden)</summary>
+	private static readonly TimeSpan MaxCloakDuration = TimeSpan.FromMilliseconds(400);
+
+	private DispatcherTimer? uncloakTimer;
+	private bool cloakFramesHooked;
+	private int cloakedFrames;
+	private TimeSpan lastCloakFrameTime;
+
+	private void CloakIfAboutToShow(bool windowIsVisible, bool isPopupMode)
+	{
+		if(!windowIsVisible)
+			BeginCloak();
+	}
+
+	/// <summary>
+	/// Cloaks the window until WPF has rendered a few frames after the show: the DWM presents the window's unpainted surface (white)
+	/// otherwise. Counting frames instead of waiting a fixed time keeps it right when the UI thread is busy with the show (layout, placement).
+	/// Calling it again restarts the count
+	/// </summary>
+	private void BeginCloak()
+	{
+		if(Hwnd == IntPtr.Zero)
+			return;
+		SetCloaked(true);
+
+		//the content stays transparent while cloaked (this replaces the animation that HideFadeOut leaves holding 0);
+		//the tiny change only keeps WPF producing frames, which are counted to know when the window can be shown
+		BeginAnimation(OpacityProperty, new DoubleAnimation(0, 0.001, MaxCloakDuration));
+
+		cloakedFrames = 0;
+		lastCloakFrameTime = TimeSpan.MinValue;
+		if(!cloakFramesHooked)
+		{
+			CompositionTarget.Rendering += OnCloakedFrameRendering;
+			cloakFramesHooked = true;
+		}
+		if(uncloakTimer == null)
+		{
+			var timer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher) { Interval = MaxCloakDuration };
+			timer.Tick += (s, a) => EndCloak();
+			uncloakTimer = timer;
+		}
+		uncloakTimer.Stop();
+		uncloakTimer.Start();
+	}
+
+	private void OnCloakedFrameRendering(object? sender, EventArgs e)
+	{
+		//Rendering can be raised more than once for the same frame
+		if(e is not RenderingEventArgs args || args.RenderingTime == lastCloakFrameTime)
+			return;
+		lastCloakFrameTime = args.RenderingTime;
+		if(++cloakedFrames >= CloakFrames)
+			EndCloak();
+	}
+
+	private void EndCloak()
+	{
+		uncloakTimer?.Stop();
+		if(cloakFramesHooked)
+		{
+			CompositionTarget.Rendering -= OnCloakedFrameRendering;
+			cloakFramesHooked = false;
+		}
+		//waits for the DWM's next composition, so the frames WPF rendered have been presented
+		_ = PInvoke.DwmFlush();
+		SetCloaked(false);
+
+		//the fade-in starts when the window becomes visible, so all of it is seen
+		BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, FadeInDuration));
+	}
+
+	private unsafe void SetCloaked(bool cloaked)
+	{
+		int value = cloaked ? 1 : 0;
+		_ = PInvoke.DwmSetWindowAttribute((HWND)Hwnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &value, sizeof(int));
+	}
+
+	/// <summary>
+	/// Sets the composition target's background to the window's current background
+	/// when the configured backdrop is not supported by the operating system.
+	/// This prevents the unpainted client area from flashing white before WPF renders.
+	/// </summary>
+	private void UpdateFallbackCompositionBackground()
+	{
+		if(Wpf.Ui.Controls.WindowBackdrop.IsSupported(ThemeViewModel.Backdrop))
+			return;
+
+		if(HwndSource.FromHwnd(Hwnd)?.CompositionTarget is not { } compositionTarget
+		   || Background is not SolidColorBrush backgroundBrush)
+			return;
+
+		compositionTarget.BackgroundColor = backgroundBrush.Color;
+	}
 
 	private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
@@ -449,7 +556,7 @@ public sealed partial class MainView
 	private static bool IsInControl(DependencyObject? source)
 	{
 		for(var element = source; element != null;
-		    element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
+			element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
 		{
 			if(element is ButtonBase or RangeBase or Thumb or Selector or TextBoxBase)
 				return true;
@@ -517,7 +624,7 @@ public sealed partial class MainView
 	}
 
 	private enum TaskBarLocation { TOP, BOTTOM, LEFT, RIGHT }
-	private TaskBarLocation GetTaskBarLocation()
+	private static TaskBarLocation GetTaskBarLocation()
 	{
 		if(SystemParameters.WorkArea.Left > 0)
 			return TaskBarLocation.LEFT;
@@ -629,6 +736,12 @@ public sealed partial class MainView
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
+		if(msg == WmShowWindow && wParam != IntPtr.Zero)
+		{
+			BeginCloak();
+			UpdateFallbackCompositionBackground();
+		}
+
 		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}
