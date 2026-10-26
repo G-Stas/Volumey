@@ -26,6 +26,12 @@ public interface IDevice : IDisposable
 	bool IsGone();
 
 	/// <summary>
+	/// The highest sample level (0..1) of the last device period: what all apps play together, after their own volumes
+	/// and before the device volume; 0 if it can't be read
+	/// </summary>
+	float GetPeak();
+
+	/// <summary>
 	/// The formats the device can run at (Windows' list: what it takes in exclusive mode), by bits and rate; empty if they can't be read
 	/// </summary>
 	IReadOnlyList<DeviceFormatOption> GetSupportedFormats();
