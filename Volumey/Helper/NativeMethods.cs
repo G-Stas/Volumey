@@ -7,6 +7,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.LibraryLoader;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
+using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Volumey.Helper;
@@ -239,5 +240,51 @@ static class NativeMethods
 		var names = target[..(int)length];
 		int end = names.IndexOf('\0');
 		return (end < 0 ? names : names[..end]).ToString();
+	}
+
+	[StructLayout(LayoutKind.Sequential)]
+	private struct NotifyIconIdentifier
+	{
+		public uint cbSize;
+		public IntPtr hWnd;
+		public uint uID;
+		public Guid guidItem;
+	}
+
+	/// <summary>
+	/// Checks whether a screen coordinate is inside the Volumey tray icon.
+	/// </summary>
+	/// <param name="trayIconId">The registered notification icon GUID.</param>
+	/// <param name="x">The mouse X-coordinate in screen pixels.</param>
+	/// <param name="y">The mouse Y-coordinate in screen pixels.</param>
+	/// <returns>True if the point is inside the icon; otherwise, false.</returns>
+	/// <exception cref="ArgumentException">Thrown when the tray icon identifier is empty.</exception>
+	internal static bool IsPointOverTrayIcon(Guid trayIconId, int x, int y)
+	{
+		if(trayIconId == Guid.Empty)
+		{
+			throw new ArgumentException("The tray icon identifier must not be empty.", nameof(trayIconId));
+		}
+
+		var identifier = new NOTIFYICONIDENTIFIER
+		{
+			cbSize = (uint)Marshal.SizeOf<NOTIFYICONIDENTIFIER>(),
+			guidItem = trayIconId
+		};
+
+		// CsWin32 automatically generates the exact PInvoke signature and HRESULT wrapper.
+		// Note: CsWin32 typically uses 'in' for structs passed by reference without modification.
+		HRESULT result = PInvoke.Shell_NotifyIconGetRect(in identifier, out RECT iconLocation);
+
+		// The icon may temporarily be unavailable while the shell restarts.
+		if(result.Value < 0)
+		{
+			return false;
+		}
+
+		return x >= iconLocation.left
+			&& x < iconLocation.right
+			&& y >= iconLocation.top
+			&& y < iconLocation.bottom;
 	}
 }

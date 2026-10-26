@@ -48,3 +48,4 @@ GetClassLongPtr
 WM_GETICON
 ICON_BIG
 ICON_SMALL2
+Shell_NotifyIconGetRect
