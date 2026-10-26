@@ -139,7 +139,25 @@ public sealed partial class MainView
 		BindingOperations.SetBinding(this, TrayIconImageProperty, (MultiBinding)TryFindResource("TrayIconBinding"));
 		BindingOperations.SetBinding(this, TrayToolTipTextProperty, (MultiBinding)TryFindResource("TrayTextTooltip"));
 
+		Tray.PreviewTrayContextMenuOpen += OnTrayMenuOpening;
 		CreateTrayIcon();
+	}
+
+	/// <summary>
+	/// Opens the tray menu at the cursor. TaskbarIcon would convert the cursor's pixels with one DPI for all monitors,
+	/// which puts the menu on another monitor and at the wrong scale when the monitors' scales differ;
+	/// WPF's mouse placement takes the cursor's pixels as they are
+	/// </summary>
+	private void OnTrayMenuOpening(object sender, RoutedEventArgs e)
+	{
+		e.Handled = true;
+		if(Tray.ContextMenu is not { } menu)
+			return;
+		menu.Placement = PlacementMode.Mouse;
+		menu.IsOpen = true;
+		//the menu has to be the foreground window, or a click elsewhere doesn't close it
+		if(PresentationSource.FromVisual(menu) is HwndSource source)
+			PInvoke.SetForegroundWindow((HWND)source.Handle);
 	}
 
 	/// <summary>Delays of the attempts to create the tray icon again after Explorer refused it, then every minute</summary>

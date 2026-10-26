@@ -9,7 +9,7 @@ namespace Volumey.UITests;
 
 /// <summary>
 /// "Remember the mixer's position" (Volume mixer page): window mode and the dragged popup open where they were left only while it's on.
-/// Positions are compared on the primary screen, which these tests assume to be at 100%.
+/// The saved position is in physical pixels; drags are compared in this process's own coordinates.
 /// </summary>
 [TestClass]
 public class MixerPositionTests : UiTest
@@ -41,7 +41,9 @@ public class MixerPositionTests : UiTest
 	public void WindowModeOpensWhereItWasLeftWhileRemembered()
 	{
 		StartMixer(WindowMode(remember: true));
-		Assert.AreEqual(new Point(Left, Top), MixerPosition());
+		Thread.Sleep(500); //it's moved after it shows
+		//the saved position is in physical pixels, which UI Automation scales for this process when the primary screen isn't at 100%
+		Assert.AreEqual(new Point(Left, Top), Screens.WindowRect(VolumeyApp.Handle(App.Mixer)).Location);
 	}
 
 	[TestMethod]

@@ -23,56 +23,9 @@
 
     <Window.Resources>
         <ResourceDictionary>
-            <converters:DeviceIsDefaultToIconConverter x:Key="DeviceIsDefaultToIconConverter"/>
-
-            <!-- 248 wide, the default item in bold, with the two Windows sound items -->
-            <ContextMenu x:Key="TrayMenu" MinWidth="248">
-                <MenuItem
-                    Header="{lc:Localization Tray_OpenMixer}"
-                    FontWeight="SemiBold"
-                    Command="{Binding Window.TrayMixerCommand}"
-                    Icon="{ui:SymbolIcon Options24}" />
-                <MenuItem
-                    Header="{lc:Localization TabHeader_Settings}"
-                    Command="{Binding Window.TraySettingsCommand}"
-                    Icon="{ui:SymbolIcon Settings24}" />
-                <MenuItem
-                    Header="{lc:Localization Mixer_OutputDevice}"
-                    ItemsSource="{Binding Devices.DeviceProvider.ActiveDevices}"
-                    Icon="{ui:SymbolIcon Headphones24}">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
-                            <Setter Property="FontWeight" Value="Normal"/>
-                            <Setter Property="Icon">
-                                <Setter.Value>
-                                    <MultiBinding Converter="{StaticResource DeviceIsDefaultToIconConverter}">
-                                        <Binding/>
-                                        <Binding Path="DataContext.Devices.DefaultDevice" RelativeSource="{RelativeSource AncestorType=ContextMenu}"/>
-                                    </MultiBinding>
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="Header" Value="{Binding Master.DeviceFriendlyName}"/>
-                            <Setter Property="Command" Value="{Binding DataContext.Devices.SetDefaultDeviceTrayCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-                            <Setter Property="CommandParameter" Value="{Binding}"/>
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
-                <Separator />
-                <MenuItem
-                    Header="{lc:Localization TrayMenu_SoundPanel}"
-                    Command="{Binding Window.SoundControlPanelCommand}"
-                    Icon="{ui:SymbolIcon Speaker224}" />
-                <MenuItem
-                    Header="{lc:Localization TrayMenu_SoundSettings}"
-                    Command="{Binding Window.SoundSettingsCommand}"
-                    Visibility="{Binding Window.CanOpenSoundSettings, Converter={StaticResource BoolToVisibility}}"
-                    Icon="{ui:SymbolIcon Open24}" />
-                <Separator />
-                <MenuItem
-                    Header="{lc:Localization TrayMenu_Exit}"
-                    Command="{Binding Window.TrayExitCommand}"
-                    Icon="{ui:SymbolIcon Power24}" />
-            </ContextMenu>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Volumey;component/View/TrayMenu.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
             <Storyboard x:Key="DisplayFadeIn">
                 <DoubleAnimation Storyboard.TargetProperty="Opacity"
