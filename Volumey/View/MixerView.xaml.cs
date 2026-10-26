@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Windows;
 
 namespace Volumey.View;
@@ -19,8 +20,20 @@ public sealed partial class MixerView
 		var unbounded = new Size(width, double.PositiveInfinity);
 		SessionsList.Measure(unbounded);
 		Measure(unbounded);
-		//the scroll viewer takes the list's height when unbounded, so the rest is the fixed part
-		double apps = SessionsList.DesiredSize.Height + ScrollViewer.Padding.Top + ScrollViewer.Padding.Bottom;
-		return (DesiredSize.Height - apps, apps);
+
+		double baseApps = SessionsList.DesiredSize.Height + ScrollViewer.Padding.Top + ScrollViewer.Padding.Bottom;
+		double chrome = DesiredSize.Height - baseApps;
+
+		// Workaround for potential client area calculation discrepancies on Windows 10.
+		// It appears that borderless WindowChrome might slightly truncate the available space,
+		// possibly due to invisible resizing borders not being fully accounted for.
+		//
+		// See related WPF behavior for Windows 10: https://github.com/dotnet/wpf/issues/3887
+		// Quote: "First, the sizes for the window frame are not correct... the transparent side non-client frames are not being taken into account".
+		int win10ChromeCompensation = 2;
+
+		double finalApps = Environment.OSVersion.Version.Build < 22000 ? baseApps + win10ChromeCompensation : baseApps;
+
+		return (chrome, finalApps);
 	}
 }
