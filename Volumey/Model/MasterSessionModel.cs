@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows.Input;
 using System.Windows.Media;
 using log4net;
@@ -155,6 +156,18 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
+	// Latest requested volume waiting to be processed (-1 if none)
+	private int _pendingHardwareVolume = -1;
+
+	// The event context associated with the pending volume update
+	private Guid _pendingHardwareContext;
+
+	// Tracks if the background worker is currently executing COM calls
+	private bool _isHardwareUpdateActive = false;
+
+	// Synchronizes thread access to the pending hardware update variables
+	private readonly Lock _hardwareUpdateLock = new();
+
 	public MasterSessionModel(string friendlyName, string desc,
 		int volume, bool muteState, string id, Icon? icon,
 		IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler, IHotkeyService hotkeys)
@@ -303,22 +316,63 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 			StateNotificationMediator?.NotifyAudioStateChange(this);
 	}
 
-
 	//only write (true if they did); the public overloads notify (when asked to). Notifying here as well would show the OSD twice for every hotkey press
 	private bool SetVolume(int newVol, Guid context)
 	{
 		if(masterVolume == null)
 			return false;
-		try
+
+		lock(_hardwareUpdateLock)
 		{
-			masterVolume.SetVolume(newVol, context);
-			return true;
+			_pendingHardwareVolume = newVol;
+			_pendingHardwareContext = context;
+
+			// If the background worker isn't running, wake it up.
+			if(!_isHardwareUpdateActive)
+			{
+				_isHardwareUpdateActive = true;
+
+				_ = System.Threading.Tasks.Task.Run(() =>
+				{
+					while(true)
+					{
+						int targetVolume;
+						Guid targetContext;
+
+						lock(_hardwareUpdateLock)
+						{
+							// If no new volume commands were queued while we were busy, sleep the worker.
+							if(_pendingHardwareVolume == -1)
+							{
+								_isHardwareUpdateActive = false;
+								break;
+							}
+
+							// Grab the absolute latest volume.
+							targetVolume = _pendingHardwareVolume;
+							targetContext = _pendingHardwareContext;
+
+							// Reset the queue so we know if a new request comes in during the COM call.
+							_pendingHardwareVolume = -1;
+						}
+
+						// Execute the potentially blocking COM call on the background thread.
+						// The UI thread remains entirely responsive regardless of the audio driver's latency.
+						try
+						{
+							masterVolume.SetVolume(targetVolume, targetContext);
+						}
+						catch(Exception e)
+						{
+							LogStateException(e);
+						}
+					}
+				});
+			}
 		}
-		catch(Exception e)
-		{
-			LogStateException(e);
-			return false;
-		}
+
+		// Always return true immediately so the public SetVolume method updates the UI property instantly.
+		return true;
 	}
 
 	private bool SetMute(bool muteState, Guid context)
