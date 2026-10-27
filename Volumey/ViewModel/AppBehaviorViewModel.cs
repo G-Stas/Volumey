@@ -172,6 +172,9 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	[ObservableProperty]
 	public partial double WindowWidth { get; set; }
 
+	[ObservableProperty]
+	public partial double WindowHeight { get; set; }
+
 	//where the popup was last dragged to, in physical pixels (null: never); saved on exit only, like the window mode's position
 	public double? PopupLeft { get; set; }
 
@@ -246,6 +249,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;
 		WindowWidth = SettingsProvider.Settings.Window.Width;
+		WindowHeight = SettingsProvider.Settings.Window.Height;
 		PopupLeft = SettingsProvider.Settings.Window.PopupLeft;
 		PopupTop = SettingsProvider.Settings.Window.PopupTop;
 
@@ -279,6 +283,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		SettingsProvider.Settings.Window.Left = WindowLeft;
 		SettingsProvider.Settings.Window.Top = WindowTop;
 		SettingsProvider.Settings.Window.Width = WindowWidth;
+		SettingsProvider.Settings.Window.Height = WindowHeight;
 		SettingsProvider.Settings.Window.PopupLeft = PopupLeft;
 		SettingsProvider.Settings.Window.PopupTop = PopupTop;
 		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged

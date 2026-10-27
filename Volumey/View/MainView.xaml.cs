@@ -307,8 +307,7 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// The popup has a fixed width and can't be resized; the window mode is resizable and gets its saved width
-	/// (the height fits the apps when it opens, see <see cref="FitHeight(double)"/>)
+	/// The popup has a fixed width and can't be resized; the window mode is resizable and restores its saved size
 	/// </summary>
 	private void ApplyMode()
 	{
@@ -476,9 +475,8 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// The mixer's height in both modes: its fixed parts (and the window mode's title bar) plus the apps list (at least <see cref="MinRows"/> rows),
-	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. Computed when it opens only;
-	/// a height the user drags the window to lasts until it closes
+	/// The mixer's initial height in both modes: its fixed parts (and the window mode's title bar) plus the apps list (at least <see cref="MinRows"/> rows),
+	/// at most <see cref="MaxShareOfWorkArea"/> of the screen's work area. In window mode, the saved height replaces this initial height.
 	/// </summary>
 	private void FitHeight() => FitHeight((SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor);
 
@@ -498,28 +496,41 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// Window mode: its saved width and a height that fits the apps; the saved position while it's remembered and still on a screen,
+	/// Window mode: its saved size and the saved position while it's remembered and still on a screen,
 	/// otherwise next to the tray like the popup
 	/// </summary>
 	private void RestoreWindowPlacement()
 	{
 		ApplyMode();
-		if(vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out double workAreaHeight))
+		double workAreaHeight = 0;
+		System.Drawing.Point position = default;
+		bool hasRememberedPosition = TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out position, out workAreaHeight);
+		if(!hasRememberedPosition)
+			workAreaHeight = (SelectedScreen.WorkingAreaBottom - SelectedScreen.WorkingAreaTop) / SelectedScreen.ScaleFactor;
+		FitHeight(workAreaHeight);
+		if(vm.WindowHeight > 0)
+			SetWindowHeight(vm.WindowHeight, workAreaHeight);
+		if(hasRememberedPosition)
 		{
-			FitHeight(workAreaHeight);
 			UpdateLayout();
 			MoveToRemembered(position);
 		}
 		else
 		{
-			FitHeight();
 			UpdateLayout();
 			SetWindowPosition();
 		}
 	}
 
+	private void SetWindowHeight(double height, double workAreaHeight)
+	{
+		applyingPlacement = true;
+		Height = Math.Clamp(height, MinHeight, Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea));
+		applyingPlacement = false;
+	}
+
 	/// <summary>
-	/// Remembers the window mode's width (DIPs, so it scales with the screen) and position (physical pixels, see <see cref="TryGetRememberedPosition"/>),
+	/// Remembers the window mode's size (DIPs, so it scales with the screen) and position (physical pixels, see <see cref="TryGetRememberedPosition"/>),
 	/// saved to the settings on exit
 	/// </summary>
 	private void SaveWindowPlacement()
@@ -532,6 +543,7 @@ public sealed partial class MainView
 			vm.WindowTop = rect.top;
 		}
 		vm.WindowWidth = ActualWidth;
+		vm.WindowHeight = ActualHeight;
 	}
 
 	private enum TaskBarLocation { TOP, BOTTOM, LEFT, RIGHT }

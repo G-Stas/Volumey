@@ -185,7 +185,7 @@ public class MixerPageTests : UiTest
 	}
 
 	[TestMethod]
-	public void WindowModesWidthIsRememberedAndItsHeightFitsTheApps()
+	public void WindowModesWidthAndHeightAreRememberedAcrossCloseAndRestart()
 	{
 		StartMixer(new JsonObject { ["Window"] = new JsonObject { ["PopupMode"] = false, ["Width"] = 400 } });
 		var mixer = ShownMixer();
@@ -206,7 +206,7 @@ public class MixerPageTests : UiTest
 		App.HideMixer();
 		var reopened = ShownMixer().BoundingRectangle;
 		Assert.AreEqual(480, (int)reopened.Width, "width after reopening");
-		Assert.AreEqual(fitted, (int)reopened.Height, "height after reopening");
+		Assert.AreEqual(dragged, (int)reopened.Height, "height after reopening");
 
 		//the width is saved when the app exits (like the position), so it quits the way a person does
 		App.ExitByTray();
@@ -214,7 +214,7 @@ public class MixerPageTests : UiTest
 		var size = ShownMixer().BoundingRectangle;
 
 		Assert.AreEqual(480, (int)size.Width, "width after the restart");
-		Assert.AreEqual(fitted, (int)size.Height, "height after the restart");
+		Assert.AreEqual(dragged, (int)size.Height, "height after the restart");
 	}
 
 	[TestMethod]
