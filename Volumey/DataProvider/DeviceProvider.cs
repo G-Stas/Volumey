@@ -293,6 +293,18 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		Logger.Info($"Output device disabled: [{device.Master.DeviceFriendlyName}]");
 		dispatcher.Invoke(() =>
 		{
+			bool wasDefault = DefaultDevice == device;
+			OutputDeviceModel? replacement = null;
+			if(wasDefault)
+			{
+				//Windows can disable a Bluetooth/TV endpoint before notifying us which endpoint became default.
+				//Don't leave consumers attached to the model that is about to be disposed.
+				string? defaultId = deviceEnumerator?.GetDefaultDeviceId();
+				replacement = ActiveDevices.FirstOrDefault(candidate => candidate != device && candidate.CompareId(defaultId))
+					?? ActiveDevices.FirstOrDefault(candidate => candidate != device);
+				DefaultDevice = replacement;
+			}
+
 			//display NoOutputDevice placeholder in mixer view before deleting the last element
 			if(ActiveDevices.Count == 1)
 				NoOutputDevices = true;
@@ -301,6 +313,10 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			device.Disabled -= OnDeviceDisabled;
 			device.Invalidated -= OnDeviceInvalidated;
 			ActiveDevices.Remove(device);
+			if(wasDefault && replacement == null)
+				NoOutputDevices = true;
+			if(wasDefault)
+				DefaultDeviceChanged?.Invoke(replacement);
 
 			device.Dispose();
 		});

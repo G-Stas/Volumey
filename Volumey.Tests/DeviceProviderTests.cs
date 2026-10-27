@@ -94,6 +94,54 @@ public class DeviceProviderTests
 	}
 
 	[TestMethod]
+	public void DisablingDefaultDeviceImmediatelySelectsCurrentDefault()
+	{
+		var currentDefault = model.ActiveDevices[1];
+		OutputDeviceModel announced = null;
+		model.DefaultDeviceChanged += device => announced = device;
+
+		deviceStateNotifMock.Raise(m => m.DeviceDisabled += null, defaultDevice.Id);
+
+		Assert.AreSame(currentDefault, model.DefaultDevice);
+		Assert.AreSame(currentDefault, announced);
+		Assert.DoesNotContain(defaultDevice, model.ActiveDevices);
+	}
+
+	[TestMethod]
+	public void DisablingDefaultDeviceWithoutKnownSystemDefaultSelectsRemainingDevice()
+	{
+		var enumerator = new Mock<IDeviceEnumerator>();
+		var state = new Mock<IDeviceStateNotificationHandler>();
+		var first = OutputDeviceModelTests.GetDeviceMock("111", "first", state.Object);
+		var remaining = OutputDeviceModelTests.GetDeviceMock("123", "remaining", state.Object);
+		enumerator.Setup(m => m.GetCurrentActiveDevices(state.Object)).Returns(new List<OutputDeviceModel> { first, remaining });
+		enumerator.Setup(m => m.GetDefaultDeviceId()).Returns(string.Empty);
+		var provider = new DeviceProvider(enumerator.Object, state.Object);
+
+		state.Raise(m => m.DeviceDisabled += null, first.Id);
+
+		Assert.AreSame(remaining, provider.DefaultDevice);
+		Assert.IsFalse(provider.NoOutputDevices);
+	}
+
+	[TestMethod]
+	public void DisablingLastDefaultDeviceClearsDefaultAndShowsNoDevices()
+	{
+		var enumerator = new Mock<IDeviceEnumerator>();
+		var state = new Mock<IDeviceStateNotificationHandler>();
+		var only = OutputDeviceModelTests.GetDeviceMock("111", "only", state.Object);
+		enumerator.Setup(m => m.GetCurrentActiveDevices(state.Object)).Returns(new List<OutputDeviceModel> { only });
+		enumerator.Setup(m => m.GetDefaultDeviceId()).Returns(only.Id);
+		var provider = new DeviceProvider(enumerator.Object, state.Object);
+
+		state.Raise(m => m.DeviceDisabled += null, only.Id);
+
+		Assert.IsNull(provider.DefaultDevice);
+		Assert.IsTrue(provider.NoOutputDevices);
+		Assert.IsEmpty(provider.ActiveDevices);
+	}
+
+	[TestMethod]
 	public void FirstDeviceAdded_NoOutputDeviceShouldBeFalse()
 	{
 		//remove all active devices
