@@ -56,7 +56,7 @@
     <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
     <!-- Desktop assemblies the app only uses in part: trimmed too. WinForms itself stays whole (AutoUpdater.NET's forms name
          its types in resources), so do Ribbon and WindowsFormsIntegration (the XAML loader loads every assembly of the WPF
-         namespace) and the themes (WPF loads them by name). -->
+         namespace) and the themes that ship (WPF loads them by name). -->
     <TrimmableAssembly Include="System.Windows.Forms.Design" />
     <TrimmableAssembly Include="System.Windows.Forms.Design.Editors" />
     <TrimmableAssembly Include="System.Design" />
@@ -134,6 +134,14 @@
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
     <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
   </PropertyGroup>
+  <!-- WPF themes of older Windows and the opt-in Fluent theme: on Windows 10 and 11 WPF loads Aero2, AeroLite with high contrast
+       and Classic without visual styles -->
+  <Target Name="RemoveUnusedThemesFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+        Condition="'%(Filename)' == 'PresentationFramework.Aero' Or '%(Filename)' == 'PresentationFramework.Luna' Or '%(Filename)' == 'PresentationFramework.Royale' Or '%(Filename)' == 'PresentationFramework.Fluent'" />
+    </ItemGroup>
+  </Target>
   <!-- Self-contained builds ship without the runtime's debugger files (attaching a debugger, reading dumps) -->
   <Target Name="RemoveDebuggerFilesFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(SelfContained)' == 'true'">
     <ItemGroup>
