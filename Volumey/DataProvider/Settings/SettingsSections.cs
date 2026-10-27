@@ -86,3 +86,10 @@ public sealed class NotificationSettings : SettingsSection
 	/// <summary>Device name of the screen the notifications show on (e.g. \\.\DISPLAY2). Null means the primary screen.</summary>
 	public string? ScreenName { get; set; }
 }
+
+[NotifyChanges]
+public sealed class MixerSettings : SettingsSection
+{
+	/// <summary>Stable source keys in the user's preferred order. Replace the list to save changes.</summary>
+	public IReadOnlyList<string> ProcessOrder { get; set; } = Array.Empty<string>();
+}

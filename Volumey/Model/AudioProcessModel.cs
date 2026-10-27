@@ -56,6 +56,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public string FilePath { get; }
 
+	/// <summary>A stable key for the mixer row across process restarts.</summary>
+	public string OrderKey => _processId == 0 ? "system-sounds" : FilePath;
+
 	public Guid GroupingParam { get; private set; } = Guid.Empty;
 
 	private bool _isMuted;

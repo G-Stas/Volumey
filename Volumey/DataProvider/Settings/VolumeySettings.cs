@@ -32,6 +32,7 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 	public WindowSettings Window { get; set; } = new WindowSettings();
 	public HotkeySettings Hotkeys { get; set; } = new HotkeySettings();
 	public NotificationSettings Notifications { get; set; } = new NotificationSettings();
+	public MixerSettings Mixer { get; set; } = new MixerSettings();
 
 	protected override JsonSerializerSettings? OverrideSerializerSettings { get; set; } = CreateSerializerSettings();
 
