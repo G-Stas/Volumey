@@ -226,7 +226,11 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 			_ => OnPropertyChanged(nameof(SelectedScreen)), Logger);
 		this.shell = shell;
 		this.systemIntegration = systemIntegration;
+		popupEnabled = SettingsProvider.Settings.Window.PopupMode;
 		WindowIsVisible = !shell.StartMinimized;
+		//A normal launch shows the saved mode; minimized starts still open in that mode when the tray is clicked.
+		displayedMinimalistic = popupEnabled;
+		displayedAsPopup = popupEnabled && WindowIsVisible;
 		shell.SessionEnding += OnExit;
 
 		hotkeys.OpenHotkeyPressed += OnOpenHotkeyPressed;
@@ -236,7 +240,6 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		trayBlockTimer.AutoReset = false;
 		trayBlockTimer.Elapsed += OnBlockTrayTimerElapsed;
 
-		popupEnabled = SettingsProvider.Settings.Window.PopupMode;
 		AlwaysOnTop = SettingsProvider.Settings.Window.AlwaysOnTop;
 		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;

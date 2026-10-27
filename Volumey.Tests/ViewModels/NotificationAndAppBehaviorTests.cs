@@ -371,6 +371,29 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void ColdLaunchUsesTheSavedPopupMode()
+	{
+		Settings.Window.PopupMode = true;
+		shell.Setup(m => m.StartMinimized).Returns(false);
+
+		var vm = CreateAppBehavior();
+
+		Assert.IsTrue(vm.WindowIsVisible);
+		Assert.IsTrue(vm.DisplayMinimalistic);
+	}
+
+	[TestMethod]
+	public void ColdLaunchWithoutPopupModeKeepsTheRegularMixer()
+	{
+		shell.Setup(m => m.StartMinimized).Returns(false);
+
+		var vm = CreateAppBehavior();
+
+		Assert.IsTrue(vm.WindowIsVisible);
+		Assert.IsFalse(vm.DisplayMinimalistic);
+	}
+
+	[TestMethod]
 	public void WindowOptionsAreSaved()
 	{
 		var vm = CreateAppBehavior();
@@ -441,8 +464,8 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	public void StartingTheAppAgainOpensThePopupInPopupMode()
 	{
 		shell.Setup(m => m.StartMinimized).Returns(true);
+		Settings.Window.PopupMode = true;
 		var vm = CreateAppBehavior();
-		vm.PopupEnabled = true;
 		bool? openedAsPopup = null;
 		vm.DisplayAppRequested += (visible, popup) => openedAsPopup = popup;
 
