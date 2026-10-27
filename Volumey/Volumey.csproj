@@ -67,6 +67,21 @@
     <TrimmableAssembly Include="System.Printing" />
     <TrimmableAssembly Include="PresentationUI" />
   </ItemGroup>
+  <!-- The Store build updates through the Store: AutoUpdater.NET and its WebView2 aren't used there, and the trimmer drops them.
+       Without AutoUpdater.NET's forms nothing uses WinForms, so it's trimmed there too. -->
+  <ItemGroup Condition="'$(Configuration)' == 'Store'">
+    <TrimmableAssembly Include="System.Windows.Forms" />
+    <TrimmableAssembly Include="System.Windows.Forms.Primitives" />
+    <TrimmableAssembly Include="AutoUpdater.NET" />
+    <TrimmableAssembly Include="Microsoft.Web.WebView2.Core" />
+    <TrimmableAssembly Include="Microsoft.Web.WebView2.WinForms" />
+    <TrimmableAssembly Include="Microsoft.Web.WebView2.Wpf" />
+  </ItemGroup>
+  <Target Name="RemoveWebView2LoaderFromStorePublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(Configuration)' == 'Store'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Filename)' == 'WebView2Loader'" />
+    </ItemGroup>
+  </Target>
 
   <!-- Release builds ship without the app's symbols and the libraries' XML docs -->
   <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
