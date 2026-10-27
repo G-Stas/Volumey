@@ -64,7 +64,6 @@
     <TrimmableAssembly Include="Microsoft.VisualBasic.Forms" />
     <TrimmableAssembly Include="UIAutomationClientSideProviders" />
     <TrimmableAssembly Include="ReachFramework" />
-    <TrimmableAssembly Include="System.Printing" />
     <TrimmableAssembly Include="PresentationUI" />
   </ItemGroup>
   <!-- The Store build updates through the Store: AutoUpdater.NET and its WebView2 aren't used there, and the trimmer drops them.
