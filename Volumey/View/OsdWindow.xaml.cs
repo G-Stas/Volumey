@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Volumey.DataProvider.Settings;
@@ -41,7 +42,11 @@ public sealed partial class OsdWindow
 		InitializeComponent();
 		SourceInitialized += OnSourceInitialized;
 		//WPF resizes the window to the suggested rectangle when it lands on a screen with another scale; put it back over the work area
-		DpiChanged += (_, _) => Dispatcher.InvokeAsync(ApplyWorkArea);
+		DpiChanged += (_, _) => Dispatcher.InvokeAsync(() =>
+		{
+			ApplyWorkArea();
+			UpdatePlacement();
+		});
 		SizeChanged += (_, _) => UpdatePlacement();
 	}
 
@@ -99,16 +104,13 @@ public sealed partial class OsdWindow
 			NotificationPosition.TopRight or NotificationPosition.BottomRight => HorizontalAlignment.Right,
 			_ => HorizontalAlignment.Center
 		};
-		bool center = Pills.HorizontalAlignment == HorizontalAlignment.Center;
-		//the distances are to the pill itself: its margin (room for the shadow) is part of them.
-		//The distance from the side doesn't apply to a centered OSD
-		//On a small screen the distances shrink so the pills stay on it
-		double h = center ? 0 : Clamp(horizontalIndent - OsdPill.ShadowMargin, ActualWidth - OsdPill.OuterWidth);
-		double v = Clamp(verticalIndent - OsdPill.ShadowMargin, ActualHeight - Pills.Children.Count * OsdPill.OuterHeight);
-		bool left = Pills.HorizontalAlignment == HorizontalAlignment.Left;
-		Pills.Margin = new Thickness(left ? h : 0, top ? v : 0, left ? 0 : h, top ? 0 : v);
-
-		static double Clamp(double value, double room) => Math.Max(0, Math.Min(value, room));
+		var dpi = VisualTreeHelper.GetDpi(this);
+		//Use the selected monitor's physical work area as the source of available layout space. ActualWidth/Height
+		//can still describe WPF's suggested rectangle during a cross-monitor DPI change.
+		Pills.Margin = workArea is { } area
+			? OsdPlacement.CalculateMargin(position, horizontalIndent, verticalIndent, area.width, area.height,
+				dpi.DpiScaleX, dpi.DpiScaleY, Pills.Children.Count)
+			: OsdPlacement.CalculateMargin(position, horizontalIndent, verticalIndent, ActualWidth, ActualHeight, 1, 1, Pills.Children.Count);
 	}
 
 	/// <summary>
