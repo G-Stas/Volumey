@@ -25,6 +25,37 @@
     <Version>2.1.0.0</Version>
   </PropertyGroup>
 
+  <!-- Self-contained builds (the Store MSIX, the GitHub zip) are trimmed. WPF doesn't support trimming, so only assemblies marked
+       trimmable are trimmed (partial): the runtime libraries, the Windows SDK projection, NAudio, SharpHook and a few others;
+       WPF, WinForms, WPF-UI and the app stay whole. ReadyToRun compiles the trimmed assemblies again: trimming drops the runtime's
+       precompiled code, which made the start about 3 times slower. -->
+  <PropertyGroup Condition="'$(SelfContained)' == 'true'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <_SuppressWpfTrimError>true</_SuppressWpfTrimError>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- NAudio and the shortcut code use classic COM interop -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <!-- AutoUpdater.NET's resources hold images (resource types other than strings) -->
+    <CustomResourceTypesSupport>true</CustomResourceTypesSupport>
+    <!-- WPF, its XAML and most libraries aren't annotated for trimming: thousands of warnings, mostly about code that partial mode
+         keeps whole -->
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SelfContained)' == 'true'">
+    <!-- XAML creates TaskbarIcon and its parts through reflection -->
+    <TrimmerRootAssembly Include="H.NotifyIcon" />
+    <TrimmerRootAssembly Include="H.NotifyIcon.Wpf" />
+    <!-- named only inside AutoUpdater.NET's resources, as their reader -->
+    <TrimmerRootAssembly Include="System.Resources.Extensions" />
+    <!-- whole for their COM interfaces: a COM interface without its unused methods calls the wrong vtable slots -->
+    <TrimmerRootAssembly Include="Microsoft.CSharp" />
+    <TrimmerRootAssembly Include="Microsoft.VisualBasic.Core" />
+    <TrimmerRootAssembly Include="System.DirectoryServices" />
+    <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+  </ItemGroup>
+
   <!-- portable PDBs: with Windows PDBs (pdbonly/full) the settings weaver rewrites the symbols through the native symbol writer,
        which sometimes crashes the build -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

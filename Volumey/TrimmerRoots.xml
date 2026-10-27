@@ -1,0 +1,7 @@
+<linker>
+  <!-- COM interfaces keep every method: without its unused methods a COM interface calls the wrong vtable slots
+       (IPersistFile in SystemIntegrationHelper's shortcuts) -->
+  <assembly fullname="System.Private.CoreLib">
+    <namespace fullname="System.Runtime.InteropServices.ComTypes" preserve="all" />
+  </assembly>
+</linker>
