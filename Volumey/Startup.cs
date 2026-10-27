@@ -29,7 +29,7 @@ static class Startup
 #endif
 
 	//not owned on creation: Main takes it with WaitOne, once (owning it here as well would take it twice, so it would be abandoned on every exit)
-	private static readonly Mutex mutex = new(false, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
+	private static readonly Mutex mutex = new Mutex(false, "2A777FD7-2EB6-4D0B-8523-87F23462918B" + InstanceSuffix);
 
 	public static readonly int WM_SHOWME = (int)PInvoke.RegisterWindowMessage("WM_SHOWME" + InstanceSuffix);
 
