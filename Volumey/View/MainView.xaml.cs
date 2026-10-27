@@ -306,10 +306,16 @@ public sealed partial class MainView
 	private int cloakedFrames;
 	private TimeSpan lastCloakFrameTime;
 
+	private DispatcherTimer? cloakOnHideTimer;
+
 	private void StartUncloakSequence()
 	{
 		if(Hwnd == IntPtr.Zero)
 			return;
+
+		// Ensure the window is cloaked immediately if reopened while the fade-out timer is still running
+		cloakOnHideTimer?.Stop();
+		SetCloaked(true);
 
 		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
 		{
@@ -353,7 +359,6 @@ public sealed partial class MainView
 	private void EndCloak()
 	{
 		StopUncloakSequence();
-
 		SetCloaked(false);
 
 		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
@@ -444,7 +449,33 @@ public sealed partial class MainView
 			if(requiresCloak)
 			{
 				StopUncloakSequence();
-				SetCloaked(true);
+
+				if(cloakOnHideTimer == null)
+				{
+					TimeSpan fadeOutDuration;
+					if(FindResource("HideFadeOut") is Storyboard hideStoryboard
+						&& hideStoryboard.Children.Count > 0
+						&& hideStoryboard.Children[0].Duration.HasTimeSpan)
+					{
+						fadeOutDuration = hideStoryboard.Children[0].Duration.TimeSpan;
+					}
+					else
+					{
+						fadeOutDuration = TimeSpan.FromMilliseconds(120);
+					}
+
+					var timer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher) { Interval = fadeOutDuration };
+					timer.Tick += (s, a) =>
+					{
+						cloakOnHideTimer?.Stop();
+						if(!IsVisible)
+							SetCloaked(true);
+					};
+					cloakOnHideTimer = timer;
+				}
+
+				cloakOnHideTimer.Stop();
+				cloakOnHideTimer.Start();
 			}
 		}
 		else
