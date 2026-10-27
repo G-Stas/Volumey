@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>設定を保存できません。</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>このアプリのすべてのセッションの音量を設定</value>
+  </data>
 </root>

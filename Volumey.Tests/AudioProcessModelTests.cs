@@ -64,14 +64,15 @@ public class AudioProcessModelTests
 	}
 
 	[TestMethod]
-	public void VolumeMustChangeToCorrectValue()
+	public void IndividualSessionVolumeMustNotChangeAppVolume()
 	{
 		var newVolume = proc.Volume + 1;
 
 		trackedSessionStateNotif.Raise(m => m.VolumeChanged += null,
 			new object[] { new VolumeChangedEventArgs(newVolume, proc.IsMuted) });
 
-		Assert.AreEqual(newVolume, proc.Volume);
+		Assert.AreEqual(newVolume, proc.Sessions[0].Volume);
+		Assert.AreEqual(50, proc.Volume);
 	}
 
 	[TestMethod]
@@ -144,7 +145,7 @@ public class AudioProcessModelTests
 	}
 
 	[TestMethod]
-	public void TrackedSessionStateChangesMustReflectOnProcess()
+	public void TrackedSessionVolumeMustStayIndependentFromAppVolume()
 	{
 		//arrange
 		var tracked = new AudioSessionModel(false, 50, "0", proc.ProcessId, default, default, Guid.Empty, sessionVolumeMock.Object,
@@ -159,7 +160,8 @@ public class AudioProcessModelTests
 		tracked.IsMuted = true;
 
 		//assert
-		Assert.AreEqual(proc.Volume, tracked.Volume);
+		Assert.AreEqual(75, tracked.Volume);
+		Assert.AreEqual(50, proc.Volume);
 		Assert.AreEqual(proc.IsMuted, tracked.IsMuted);
 	}
 
@@ -364,22 +366,28 @@ public class AudioProcessModelTests
 	}
 
 	[TestMethod]
-	public void EachVolumeOrMuteChangeIsReportedOnce()
+	public void AppVolumeIsIndependentFromIndividualSessionVolume()
 	{
 		var model = GetProcessMock("app", 50, false, hotkeys);
 		var tracked = GetSessionMock(50, false, "1");
+		var another = GetSessionMock(40, false, "2");
 		model.AddSession(tracked);
-		model.AddSession(GetSessionMock(50, false, "2"));
+		model.AddSession(another);
 		var changes = new System.Collections.Generic.List<string>();
 		model.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
 
 		model.Volume = 60;
 		model.IsMuted = true;
-		//a change of one session's own slider reaches the app's row too
+		Assert.AreEqual(60, tracked.Volume);
+		Assert.AreEqual(60, another.Volume);
+
+		// A child slider changes only that session; the app slider remains the group control value.
 		tracked.Volume = 70;
 
-		CollectionAssert.AreEqual(new[] { nameof(AudioProcessModel.Volume), nameof(AudioProcessModel.IsMuted), nameof(AudioProcessModel.Volume) }, changes);
-		Assert.AreEqual(70, model.Volume);
+		CollectionAssert.AreEqual(new[] { nameof(AudioProcessModel.Volume), nameof(AudioProcessModel.IsMuted) }, changes);
+		Assert.AreEqual(60, model.Volume);
+		Assert.AreEqual(70, tracked.Volume);
+		Assert.AreEqual(60, another.Volume);
 	}
 
 	//process IDs are multiples of 4, so this one never runs: an app that has exited

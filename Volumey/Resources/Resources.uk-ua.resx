@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Не вдається зберегти параметри.</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>Змінити гучність усіх сеансів цього застосунку</value>
+  </data>
 </root>

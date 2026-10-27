@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>No se puede guardar la configuración.</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>Ajustar el volumen de todas las sesiones de esta aplicación</value>
+  </data>
 </root>

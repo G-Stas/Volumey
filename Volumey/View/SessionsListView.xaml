@@ -112,6 +112,7 @@
                                                    Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
                                                    IsMuted="{Binding IsMuted}"
                                                    Level="{Binding Level}"
+                                                   ToolTip="{lc:Localization Mixer_AppGroupVolumeHint}"
                                                    AutomationProperties.Name="{Binding Name}" />
                             <TextBlock Grid.Column="1"
                                        Style="{StaticResource VolumeValue}"

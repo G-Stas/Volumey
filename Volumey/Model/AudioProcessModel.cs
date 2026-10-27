@@ -241,14 +241,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	private void OnTrackedSessionVolumeChanged(int volume, Guid context)
+	private void OnTrackedSessionVolumeChanged(int _, Guid context)
 	{
-		if(_volume != volume)
-		{
-			_volume = volume;
-			OnPropertyChanged(nameof(Volume));
-		}
-
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 		{
 			if(!context.Equals(GuidValue.Internal.VolumeGUID))

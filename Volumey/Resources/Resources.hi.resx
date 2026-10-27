@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>सेटिंग्स सहेजी नहीं जा सकतीं।</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>इस ऐप के सभी सत्रों का वॉल्यूम सेट करें</value>
+  </data>
 </root>

@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Ayarlar kaydedilemiyor.</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>Bu uygulamanın tüm oturumlarının ses düzeyini ayarla</value>
+  </data>
 </root>

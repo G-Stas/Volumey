@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Einstellungen können nicht gespeichert werden.</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>Lautstärke für alle Sitzungen dieser App einstellen</value>
+  </data>
 </root>

@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Impossibile salvare le impostazioni.</value>
   </data>
+  <data name="Mixer_AppGroupVolumeHint" xml:space="preserve">
+    <value>Imposta il volume per tutte le sessioni di questa app</value>
+  </data>
 </root>
