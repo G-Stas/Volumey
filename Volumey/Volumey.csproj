@@ -54,6 +54,18 @@
     <TrimmerRootAssembly Include="Microsoft.VisualBasic.Core" />
     <TrimmerRootAssembly Include="System.DirectoryServices" />
     <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+    <!-- Desktop assemblies the app only uses in part: trimmed too. WinForms itself stays whole (AutoUpdater.NET's forms name
+         its types in resources), so do Ribbon and WindowsFormsIntegration (the XAML loader loads every assembly of the WPF
+         namespace) and the themes (WPF loads them by name). -->
+    <TrimmableAssembly Include="System.Windows.Forms.Design" />
+    <TrimmableAssembly Include="System.Windows.Forms.Design.Editors" />
+    <TrimmableAssembly Include="System.Design" />
+    <TrimmableAssembly Include="System.Drawing.Design" />
+    <TrimmableAssembly Include="Microsoft.VisualBasic.Forms" />
+    <TrimmableAssembly Include="UIAutomationClientSideProviders" />
+    <TrimmableAssembly Include="ReachFramework" />
+    <TrimmableAssembly Include="System.Printing" />
+    <TrimmableAssembly Include="PresentationUI" />
   </ItemGroup>
 
   <!-- Release builds ship without the app's symbols and the libraries' XML docs -->

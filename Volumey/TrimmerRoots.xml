@@ -4,4 +4,7 @@
   <assembly fullname="System.Private.CoreLib">
     <namespace fullname="System.Runtime.InteropServices.ComTypes" preserve="all" />
   </assembly>
+  <assembly fullname="ReachFramework">
+    <namespace fullname="System.Windows.Xps.Serialization.RCW" preserve="all" />
+  </assembly>
 </linker>
