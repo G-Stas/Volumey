@@ -40,6 +40,12 @@ static class Startup
 	[STAThread]
 	private static void Main()
 	{
+		if(Environment.GetCommandLineArgs() is string[] args && Array.IndexOf(args, "--local-diagnostics") >= 0)
+		{
+			LocalDiagnostics.Start(args);
+			return;
+		}
+
 		EnvironmentArgs.Apply(Environment.GetCommandLineArgs());
 		bool isRestarting = false;
 		bool mutexAcquired = false;
