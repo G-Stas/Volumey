@@ -83,6 +83,53 @@
     </ItemGroup>
   </Target>
 
+  <!-- ReadyToRun only for what runs: assemblies the app doesn't load in normal use (start, mixer, settings, OSD, update check),
+       and three big ones it loads at start but barely uses (about 12 ms more at start), are compiled on first use instead -->
+  <ItemGroup Condition="'$(PublishReadyToRun)' == 'true'">
+    <PublishReadyToRunExclude Include="System.Private.Xml.dll" />
+    <PublishReadyToRunExclude Include="System.Linq.Expressions.dll" />
+    <PublishReadyToRunExclude Include="System.Data.Common.dll" />
+    <PublishReadyToRunExclude Include="H.GeneratedIcons.System.Drawing.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.CSharp.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.VisualBasic.Core.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.VisualBasic.Forms.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.Web.WebView2.Core.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.Web.WebView2.WinForms.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.Web.WebView2.Wpf.dll" />
+    <PublishReadyToRunExclude Include="PresentationUI.dll" />
+    <PublishReadyToRunExclude Include="ReachFramework.dll" />
+    <PublishReadyToRunExclude Include="System.ComponentModel.Annotations.dll" />
+    <PublishReadyToRunExclude Include="System.Console.dll" />
+    <PublishReadyToRunExclude Include="System.Diagnostics.EventLog.dll" />
+    <PublishReadyToRunExclude Include="System.Diagnostics.StackTrace.dll" />
+    <PublishReadyToRunExclude Include="System.Diagnostics.TextWriterTraceListener.dll" />
+    <PublishReadyToRunExclude Include="System.DirectoryServices.dll" />
+    <PublishReadyToRunExclude Include="System.Formats.Asn1.dll" />
+    <PublishReadyToRunExclude Include="System.Formats.Nrbf.dll" />
+    <PublishReadyToRunExclude Include="System.IO.Compression.Brotli.dll" />
+    <PublishReadyToRunExclude Include="System.IO.Compression.dll" />
+    <PublishReadyToRunExclude Include="System.IO.FileSystem.AccessControl.dll" />
+    <PublishReadyToRunExclude Include="System.IO.FileSystem.DriveInfo.dll" />
+    <PublishReadyToRunExclude Include="System.IO.FileSystem.Watcher.dll" />
+    <PublishReadyToRunExclude Include="System.IO.IsolatedStorage.dll" />
+    <PublishReadyToRunExclude Include="System.IO.MemoryMappedFiles.dll" />
+    <PublishReadyToRunExclude Include="System.IO.Pipelines.dll" />
+    <PublishReadyToRunExclude Include="System.Net.Mail.dll" />
+    <PublishReadyToRunExclude Include="System.Net.NetworkInformation.dll" />
+    <PublishReadyToRunExclude Include="System.Private.DataContractSerialization.dll" />
+    <PublishReadyToRunExclude Include="System.Private.Xml.Linq.dll" />
+    <PublishReadyToRunExclude Include="System.Resources.Writer.dll" />
+    <PublishReadyToRunExclude Include="System.Security.AccessControl.dll" />
+    <PublishReadyToRunExclude Include="System.Security.Cryptography.Pkcs.dll" />
+    <PublishReadyToRunExclude Include="System.Security.Cryptography.ProtectedData.dll" />
+    <PublishReadyToRunExclude Include="System.Security.Cryptography.Xml.dll" />
+    <PublishReadyToRunExclude Include="System.Text.Encoding.CodePages.dll" />
+    <PublishReadyToRunExclude Include="System.Text.Encodings.Web.dll" />
+    <PublishReadyToRunExclude Include="System.Text.Json.dll" />
+    <PublishReadyToRunExclude Include="System.Threading.AccessControl.dll" />
+    <PublishReadyToRunExclude Include="System.Threading.Channels.dll" />
+    <PublishReadyToRunExclude Include="System.Windows.Forms.Design.dll" />
+  </ItemGroup>
   <!-- Release builds ship without the app's symbols and the libraries' XML docs -->
   <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
