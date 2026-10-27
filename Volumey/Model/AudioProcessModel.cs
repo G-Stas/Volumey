@@ -56,8 +56,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public string FilePath { get; }
 
-	/// <summary>A stable key for the mixer row across process restarts.</summary>
-	public string OrderKey => _processId == 0 ? "system-sounds" : FilePath;
+	/// <summary>A stable key for the mixer row across process restarts, using the process name when Windows hides its path.</summary>
+	public string OrderKey => _processId == 0 ? "system-sounds" :
+		System.IO.Path.IsPathFullyQualified(FilePath) ? FilePath : $"process:{(RawProcessName.Length > 0 ? RawProcessName : Name)}";
 
 	public Guid GroupingParam { get; private set; } = Guid.Empty;
 
