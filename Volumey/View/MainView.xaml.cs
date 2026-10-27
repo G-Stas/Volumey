@@ -340,7 +340,7 @@ public sealed partial class MainView
 		uncloakTimer.Start();
 	}
 
-	private void EndCloak()
+	private void StopUncloakSequence()
 	{
 		uncloakTimer?.Stop();
 		if(cloakFramesHooked)
@@ -348,9 +348,12 @@ public sealed partial class MainView
 			CompositionTarget.Rendering -= OnCloakedFrameRendering;
 			cloakFramesHooked = false;
 		}
+	}
 
-		// Wait for DWM to compose the transparent pre-rendered frame
-		_ = PInvoke.DwmFlush();
+	private void EndCloak()
+	{
+		StopUncloakSequence();
+
 		SetCloaked(false);
 
 		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
@@ -372,7 +375,7 @@ public sealed partial class MainView
 
 	private unsafe void SetCloaked(bool cloaked)
 	{
-		if (Hwnd == IntPtr.Zero) return;
+		if(Hwnd == IntPtr.Zero) return;
 
 		int value = cloaked ? 1 : 0;
 		_ = PInvoke.DwmSetWindowAttribute((HWND)Hwnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &value, sizeof(int));
@@ -432,7 +435,7 @@ public sealed partial class MainView
 		}
 	}
 
-	private async void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+	private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
 	{
 		bool isVisible = (bool)e.NewValue;
 		if(!isVisible)
@@ -440,27 +443,8 @@ public sealed partial class MainView
 			placed = false;
 			if(requiresCloak)
 			{
-				int fadeOutDelay;
-
-				if(FindResource("HideFadeOut") is Storyboard hideStoryboard
-					&& hideStoryboard.Children.Count > 0
-					&& hideStoryboard.Children[0].Duration.HasTimeSpan)
-				{
-					fadeOutDelay = (int)hideStoryboard.Children[0].Duration.TimeSpan.TotalMilliseconds;
-				}
-				else
-				{
-					fadeOutDelay = 120;  // hardcoded fallback delay
-				}
-
-				// Allow the XAML storyboard to complete before applying the native cloak
-				await Task.Delay(fadeOutDelay);
-
-				// Ensure the window hasn't been requested to show again during the delay
-				if(!IsVisible)
-				{
-					SetCloaked(true);
-				}
+				StopUncloakSequence();
+				SetCloaked(true);
 			}
 		}
 		else
