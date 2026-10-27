@@ -78,6 +78,8 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 
 		foreach(AudioProcessModel process in processes)
 		{
+			foreach(AudioSessionModel session in process.Sessions)
+				session.SetVisibilityDevice(Id);
 			process.Exited += OnProcessExited;
 			process.DeviceReconfigured += OnProcessDeviceReconfigured;
 		}
@@ -351,6 +353,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 
 			if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
 			{
+				session.SetVisibilityDevice(Id);
 				await dispatcher.InvokeAsync(() =>
 				{
 					session.Name = process.Name;
@@ -360,6 +363,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 			}
 			else if(e.CreateProcessModel() is AudioProcessModel newProcess)
 			{
+				session.SetVisibilityDevice(Id);
 				newProcess.AddSession(session);
 				newProcess.Exited += OnProcessExited;
 				newProcess.DeviceReconfigured += OnProcessDeviceReconfigured;

@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Não é possível salvar as configurações.</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>Fontes de som ocultas</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>Ocultar fonte</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>Restaurar fonte</value></data>
 </root>

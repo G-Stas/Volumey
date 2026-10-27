@@ -55,6 +55,26 @@ public class VolumeySettingsTests
 	}
 
 	[TestMethod]
+	public void HiddenSourcesPersistByDeviceAndSessionAndCanBeRestored()
+	{
+		var settings = Load().EnableAutosave();
+		string source = HiddenSourceVisibility.CreateId("device-a", "session-1");
+		string otherDevice = HiddenSourceVisibility.CreateId("device-b", "session-1");
+
+		HiddenSourceVisibility.SetHidden(settings.General, source, true);
+		settings.Flush();
+		var reloaded = Load().EnableAutosave();
+
+		Assert.IsTrue(HiddenSourceVisibility.IsHidden(reloaded.General, source));
+		Assert.IsFalse(HiddenSourceVisibility.IsHidden(reloaded.General, otherDevice));
+		HiddenSourceVisibility.SetHidden(reloaded.General, source, false);
+		reloaded.Flush();
+		var restored = Load();
+		Assert.IsFalse(HiddenSourceVisibility.IsHidden(restored.General, source));
+		Assert.AreEqual(0, restored.General.HiddenSourceIds.Count);
+	}
+
+	[TestMethod]
 	public void FileShouldStoreEnumsAndHotkeysByName()
 	{
 		var settings = Load().EnableAutosave();

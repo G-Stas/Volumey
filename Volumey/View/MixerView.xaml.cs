@@ -20,7 +20,7 @@ public sealed partial class MixerView
 		SessionsList.Measure(unbounded);
 		Measure(unbounded);
 		//the scroll viewer takes the list's height when unbounded, so the rest is the fixed part
-		double apps = SessionsList.DesiredSize.Height + ScrollViewer.Padding.Top + ScrollViewer.Padding.Bottom;
+		double apps = SessionsList.DesiredSize.Height + ScrollViewer.Padding.Top + ScrollViewer.Padding.Bottom + 36;
 		return (DesiredSize.Height - apps, apps);
 	}
 }

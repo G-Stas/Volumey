@@ -46,6 +46,10 @@ public sealed partial class App
 		services.GetRequiredService<AppBehaviorViewModel>();
 		//creating it enumerates the audio devices
 		services.GetRequiredService<DeviceProviderViewModel>();
+#if DEBUG
+		if(string.Equals(Environment.GetEnvironmentVariable("VOLUMEY_MOCK_MIXER_SESSIONS"), "1", StringComparison.Ordinal))
+			DebugMixerMockSessions.Inject(services.GetRequiredService<DeviceProviderViewModel>(), services.GetRequiredService<Volumey.ViewModel.Settings.IHotkeyService>());
+#endif
 		services.GetRequiredService<HotkeyModeViewModel>();
 		foreach(var feature in ServiceRegistration.Features)
 			services.GetRequiredService(feature);

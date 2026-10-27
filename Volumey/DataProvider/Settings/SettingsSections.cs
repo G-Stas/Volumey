@@ -19,6 +19,8 @@ public sealed class GeneralSettings : SettingsSection
 	/// <summary>Localized name of the system sounds session and the system language it was resolved for.</summary>
 	public string? SystemSoundsName { get; set; }
 	public string? SystemSoundsLanguage { get; set; }
+	/// <summary>Stable output-device/session identifiers hidden from the mixer apps tab.</summary>
+	public IReadOnlyList<string> HiddenSourceIds { get; set; } = Array.Empty<string>();
 }
 
 [NotifyChanges]

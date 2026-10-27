@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Impossibile salvare le impostazioni.</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>Sorgenti audio nascoste</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>Nascondi sorgente</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>Ripristina sorgente</value></data>
 </root>

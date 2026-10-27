@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>設定を保存できません。</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>非表示の音声ソース</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>ソースを非表示</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>ソースを復元</value></data>
 </root>

@@ -696,4 +696,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value />
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value /></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value /></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value /></data>
 </root>

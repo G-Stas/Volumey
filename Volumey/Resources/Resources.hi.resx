@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>सेटिंग्स सहेजी नहीं जा सकतीं।</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>छिपे हुए ध्वनि स्रोत</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>स्रोत छिपाएँ</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>स्रोत पुनर्स्थापित करें</value></data>
 </root>

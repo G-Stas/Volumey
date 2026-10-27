@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Ayarlar kaydedilemiyor.</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>Gizli ses kaynakları</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>Kaynağı gizle</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>Kaynağı geri yükle</value></data>
 </root>

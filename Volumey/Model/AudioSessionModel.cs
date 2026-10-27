@@ -8,6 +8,8 @@ using System.Windows.Threading;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 
 namespace Volumey.Model;
 
@@ -29,6 +31,23 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	private readonly string _id;
 	public string Id => _id;
+	private string? visibilityId;
+	public bool IsHidden { get; private set; }
+	public ICommand HideCommand { get; }
+	public ICommand RestoreCommand { get; }
+	internal void SetVisibilityDevice(string deviceId)
+	{
+		visibilityId = HiddenSourceVisibility.CreateId(deviceId, Id);
+		IsHidden = HiddenSourceVisibility.IsHidden(SettingsProvider.Settings.General, visibilityId);
+	}
+	internal void SetHidden(bool hidden)
+	{
+		if(visibilityId == null || IsHidden == hidden)
+			return;
+		HiddenSourceVisibility.SetHidden(SettingsProvider.Settings.General, visibilityId, hidden);
+		IsHidden = hidden;
+		OnPropertyChanged(nameof(IsHidden));
+	}
 
 	public Guid GroupingParam { get; }
 
@@ -126,6 +145,8 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		sessionStateNotifications.Disconnected += OnDisconnected;
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
+		HideCommand = new ActionCommand(() => SetHidden(true));
+		RestoreCommand = new ActionCommand(() => SetHidden(false));
 	}
 
 	private void OnDeactivated()

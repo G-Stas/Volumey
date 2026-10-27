@@ -50,15 +50,17 @@
                 Margin="16 0"
                 Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
 
-        <TextBlock DockPanel.Dock="Top"
-                   Text="{lc:Localization Mixer_Apps}"
-                   FontWeight="SemiBold"
-                   Margin="16 12 16 4" />
-
-        <ScrollViewer x:Name="ScrollViewer"
-                      VerticalScrollBarVisibility="Auto"
-                      Padding="0 0 0 4">
-            <view:SessionsListView x:Name="SessionsList" />
-        </ScrollViewer>
+        <TabControl DockPanel.Dock="Top" Margin="8 4 8 0">
+            <TabItem Header="{lc:Localization Mixer_Apps}">
+                <ScrollViewer x:Name="ScrollViewer" VerticalScrollBarVisibility="Auto" Padding="0 0 0 4">
+                    <view:SessionsListView x:Name="SessionsList" />
+                </ScrollViewer>
+            </TabItem>
+            <TabItem Header="{lc:Localization Mixer_HiddenSources}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0 0 0 4">
+                    <view:SessionsListView ShowHiddenSources="True" />
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </UserControl>

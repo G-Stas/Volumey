@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Impossible d'enregistrer les paramètres.</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>Sources audio masquées</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>Masquer la source</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>Restaurer la source</value></data>
 </root>

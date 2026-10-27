@@ -637,4 +637,7 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Не вдається зберегти параметри.</value>
   </data>
+  <data name="Mixer_HiddenSources" xml:space="preserve"><value>Приховані звукові джерела</value></data>
+  <data name="Mixer_HideSource" xml:space="preserve"><value>Приховати джерело</value></data>
+  <data name="Mixer_RestoreSource" xml:space="preserve"><value>Відновити джерело</value></data>
 </root>

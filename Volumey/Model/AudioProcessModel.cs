@@ -32,6 +32,10 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	internal event Action<AudioProcessModel>? DeviceReconfigured;
 
 	public ObservableCollection<AudioSessionModel> Sessions { get; }
+	public bool HasVisibleSessions => Sessions.Any(session => !session.IsHidden);
+	public bool HasHiddenSessions => Sessions.Any(session => session.IsHidden);
+	public ICommand HideCommand { get; }
+	public ICommand RestoreCommand { get; }
 
 	public readonly string RawProcessName = string.Empty;
 	private string name = string.Empty;
@@ -194,6 +198,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		Sessions = new ObservableCollection<AudioSessionModel>();
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
+		HideCommand = new ActionCommand(() => SetSessionsHidden(true));
+		RestoreCommand = new ActionCommand(() => SetSessionsHidden(false));
 		StateNotificationMediator = stateNotificationMediator;
 	}
 
@@ -205,7 +211,10 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			{
 				newSession.SessionEnded += OnSessionEnded;
 				newSession.Deactivated += OnSessionDeactivated;
+				newSession.PropertyChanged += OnSessionPropertyChanged;
 				Sessions.Add(newSession);
+				OnPropertyChanged(nameof(HasVisibleSessions));
+				OnPropertyChanged(nameof(HasHiddenSessions));
 				newSession.IconSource = IconSource;
 				if(Sessions.Count == 1)
 				{
@@ -222,6 +231,21 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 					newSession.IsMuted = IsMuted;
 				}
 			}
+		}
+	}
+
+	private void SetSessionsHidden(bool hidden)
+	{
+		foreach(AudioSessionModel session in SessionsSnapshot())
+			session.SetHidden(hidden);
+	}
+
+	private void OnSessionPropertyChanged(object? sender, PropertyChangedEventArgs e)
+	{
+		if(e.PropertyName == nameof(AudioSessionModel.IsHidden))
+		{
+			OnPropertyChanged(nameof(HasVisibleSessions));
+			OnPropertyChanged(nameof(HasHiddenSessions));
 		}
 	}
 
