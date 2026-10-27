@@ -68,6 +68,14 @@
     </Window.Resources>
 
     <behaviors:Interaction.Triggers>
+
+        <behaviors:DataTrigger
+            Binding="{Binding ElementName=Window, Path=IsVisible}"
+            Value="True"
+            Comparison="Equal">
+            <behaviors:ControlStoryboardAction Storyboard="{StaticResource DisplayFadeIn}"/>
+        </behaviors:DataTrigger>
+        
         <behaviors:EventTrigger
             EventName="Closing"
             SourceObject="{Binding ElementName=Window}">
@@ -80,13 +88,6 @@
             Value="False"
             Comparison="Equal">
             <behaviors:ControlStoryboardAction Storyboard="{StaticResource HideFadeOut}"/>
-        </behaviors:DataTrigger>
-
-        <behaviors:DataTrigger
-            Binding="{Binding ElementName=Window, Path=IsVisible}"
-            Value="True"
-            Comparison="Equal">
-            <behaviors:ControlStoryboardAction Storyboard="{StaticResource DisplayFadeIn}"/>
         </behaviors:DataTrigger>
 
         <behaviors:EventTrigger

@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 using H.NotifyIcon;
 using log4net;
 using Volumey.Helper;
@@ -19,6 +20,7 @@ using Volumey.Model;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 using ContentDialog = Wpf.Ui.Controls.ContentDialog;
@@ -73,6 +75,13 @@ public sealed partial class MainView
 	/// </summary>
 	private bool placed;
 
+	/// <summary>
+	/// Indicates whether the current operating system requires the native window cloaking workaround to prevent white flashes during display.
+	/// This evaluates to <see langword="true"/> on systems where the configured window backdrop is not supported (such as Windows 10), 
+	/// and <see langword="false"/> on systems that handle it natively without visual glitches (such as Windows 11).
+	/// </summary>
+	private readonly bool requiresCloak;
+
 	internal MainView(MainViewModel main, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow)
 	{
 		vm = main.Window;
@@ -80,6 +89,7 @@ public sealed partial class MainView
 		this.getSettingsWindow = getSettingsWindow;
 		InitializeComponent();
 		WindowBackdropType = ThemeViewModel.Backdrop;
+		requiresCloak = !Wpf.Ui.Controls.WindowBackdrop.IsSupported(ThemeViewModel.Backdrop);
 
 		//size before the HWND exists
 		ApplyMode();
@@ -88,6 +98,14 @@ public sealed partial class MainView
 		//since the window is hidden at the startup
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
+
+		if(requiresCloak)
+			SetCloaked(true);
+
+		Wpf.Ui.Appearance.ApplicationThemeManager.Changed += (_, _) =>
+		    Dispatcher.BeginInvoke(new Action(UpdateFallbackCompositionBackground));
+
+		UpdateFallbackCompositionBackground();
 
 		//the hidden window goes to its remembered place, so a window shown at startup appears there right away (placed again when it shows)
 		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
@@ -295,6 +313,114 @@ public sealed partial class MainView
 
 	private IntPtr ForceCreateHwnd() => Hwnd = new WindowInteropHelper(this).EnsureHandle();
 
+	/// <summary>Frames WPF must have rendered after the window was shown before the window is uncloaked</summary>
+	private const int CloakFrames = 3;
+
+	/// <summary>The cloak never lasts longer than this, in case no frames are rendered (e.g. the window ended up hidden)</summary>
+	private static readonly TimeSpan MaxCloakDuration = TimeSpan.FromMilliseconds(400);
+
+	private DispatcherTimer? uncloakTimer;
+	private bool cloakFramesHooked;
+	private int cloakedFrames;
+	private TimeSpan lastCloakFrameTime;
+
+	private DispatcherTimer? cloakOnHideTimer;
+
+	private void StartUncloakSequence()
+	{
+		if(Hwnd == IntPtr.Zero)
+			return;
+
+		// Ensure the window is cloaked immediately if reopened while the fade-out timer is still running
+		cloakOnHideTimer?.Stop();
+		SetCloaked(true);
+
+		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
+		{
+			// Take control of the storyboard to override the XAML trigger during the cloak.
+			// The 'true' parameter makes it controllable (pause/resume).
+			fadeIn.Begin(this, true);
+
+			// Advance slightly to bypass visual tree culling (preventing the solid frame glitch)
+			// and pause it so it doesn't animate while the window is still native-cloaked.
+			fadeIn.Seek(this, TimeSpan.FromMilliseconds(1), TimeSeekOrigin.BeginTime);
+			fadeIn.Pause(this);
+		}
+
+		cloakedFrames = 0;
+		lastCloakFrameTime = TimeSpan.MinValue;
+		if(!cloakFramesHooked)
+		{
+			CompositionTarget.Rendering += OnCloakedFrameRendering;
+			cloakFramesHooked = true;
+		}
+		if(uncloakTimer == null)
+		{
+			var timer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher) { Interval = MaxCloakDuration };
+			timer.Tick += (s, a) => EndCloak();
+			uncloakTimer = timer;
+		}
+		uncloakTimer.Stop();
+		uncloakTimer.Start();
+	}
+
+	private void StopUncloakSequence()
+	{
+		uncloakTimer?.Stop();
+		if(cloakFramesHooked)
+		{
+			CompositionTarget.Rendering -= OnCloakedFrameRendering;
+			cloakFramesHooked = false;
+		}
+	}
+
+	private void EndCloak()
+	{
+		StopUncloakSequence();
+		SetCloaked(false);
+
+		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
+		{
+			// Resume the smooth fade-in now that the native cloak is dropped
+			fadeIn.Resume(this);
+		}
+	}
+
+	private void OnCloakedFrameRendering(object? sender, EventArgs e)
+	{
+		//Rendering can be raised more than once for the same frame
+		if(e is not RenderingEventArgs args || args.RenderingTime == lastCloakFrameTime)
+			return;
+		lastCloakFrameTime = args.RenderingTime;
+		if(++cloakedFrames >= CloakFrames)
+			EndCloak();
+	}
+
+	private unsafe void SetCloaked(bool cloaked)
+	{
+		if(Hwnd == IntPtr.Zero) return;
+
+		int value = cloaked ? 1 : 0;
+		_ = PInvoke.DwmSetWindowAttribute((HWND)Hwnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &value, sizeof(int));
+	}
+
+	/// <summary>
+	/// Sets the composition target's background to the window's current background
+	/// when the configured backdrop is not supported by the operating system.
+	/// This prevents the unpainted client area from flashing white before WPF renders.
+	/// </summary>
+	private void UpdateFallbackCompositionBackground()
+	{
+		if(Wpf.Ui.Controls.WindowBackdrop.IsSupported(ThemeViewModel.Backdrop))
+			return;
+
+		if(HwndSource.FromHwnd(Hwnd)?.CompositionTarget is { } compositionTarget
+		   && Application.Current.TryFindResource("ApplicationBackgroundColor") is Color backgroundColor)
+		{
+			compositionTarget.BackgroundColor = backgroundColor;
+		}
+	}
+
 	private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		if(e.PropertyName == nameof(AppBehaviorViewModel.DisplayMinimalistic))
@@ -336,12 +462,55 @@ public sealed partial class MainView
 	{
 		bool isVisible = (bool)e.NewValue;
 		if(!isVisible)
-			placed = false;
-		else if(IsLoaded)
 		{
-			PlaceWindow();
-			Activate();
-			Focus();
+			placed = false;
+			if(requiresCloak)
+			{
+				StopUncloakSequence();
+
+				if(cloakOnHideTimer == null)
+				{
+					TimeSpan fadeOutDuration;
+					if(FindResource("HideFadeOut") is Storyboard hideStoryboard
+						&& hideStoryboard.Children.Count > 0
+						&& hideStoryboard.Children[0].Duration.HasTimeSpan)
+					{
+						fadeOutDuration = hideStoryboard.Children[0].Duration.TimeSpan;
+					}
+					else
+					{
+						fadeOutDuration = TimeSpan.FromMilliseconds(120);
+					}
+
+					var timer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher) { Interval = fadeOutDuration };
+					timer.Tick += (s, a) =>
+					{
+						cloakOnHideTimer?.Stop();
+						if(!IsVisible)
+							SetCloaked(true);
+					};
+					cloakOnHideTimer = timer;
+				}
+
+				cloakOnHideTimer.Stop();
+				cloakOnHideTimer.Start();
+			}
+		}
+		else
+		{
+			if(requiresCloak)
+			{
+				// Windows 10: Manually handle the uncloak and storyboard pause/resume
+				StartUncloakSequence();
+			}
+
+			// Windows 11 (!requiresCloak) relies entirely on the XAML DataTrigger. No code needed here.
+			if(IsLoaded)
+			{
+				PlaceWindow();
+				Activate();
+				Focus();
+			}
 		}
 	}
 
@@ -467,7 +636,7 @@ public sealed partial class MainView
 	private static bool IsInControl(DependencyObject? source)
 	{
 		for(var element = source; element != null;
-		    element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
+			element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
 		{
 			if(element is ButtonBase or RangeBase or Thumb or Selector or TextBoxBase)
 				return true;
