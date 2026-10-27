@@ -65,6 +65,8 @@
     <TrimmableAssembly Include="UIAutomationClientSideProviders" />
     <TrimmableAssembly Include="ReachFramework" />
     <TrimmableAssembly Include="PresentationUI" />
+    <!-- The settings and the support links only read and write plain JSON: the converters they use are named in code -->
+    <TrimmableAssembly Include="Newtonsoft.Json" />
   </ItemGroup>
   <!-- The Store build updates through the Store: AutoUpdater.NET and its WebView2 aren't used there, and the trimmer drops them.
        Without AutoUpdater.NET's forms nothing uses WinForms, so it's trimmed there too. -->
