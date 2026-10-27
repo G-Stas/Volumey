@@ -56,6 +56,19 @@
     <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
   </ItemGroup>
 
+  <!-- Release builds ship without the app's symbols and the libraries' XML docs -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+  </PropertyGroup>
+  <!-- Self-contained builds ship without the runtime's debugger files (attaching a debugger, reading dumps) -->
+  <Target Name="RemoveDebuggerFilesFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+        Condition="'%(Filename)' == 'mscordbi' Or '%(Filename)' == 'Microsoft.DiaSymReader.Native.amd64' Or $([System.String]::Copy('%(Filename)').StartsWith('mscordaccore'))" />
+    </ItemGroup>
+  </Target>
+
   <!-- portable PDBs: with Windows PDBs (pdbonly/full) the settings weaver rewrites the symbols through the native symbol writer,
        which sometimes crashes the build -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
