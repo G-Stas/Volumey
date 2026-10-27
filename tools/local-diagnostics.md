@@ -16,4 +16,6 @@ From the repository root:
 
 The screenshot is written to the current session's private profile as `diagnostic.png`. Requests use one JSON object per pipe connection. Supported operations are `status`, `state`, `set-volume`, `set-mute`, `screenshot`, and `stop`. The mock begins at 58%, unmuted. Only the diagnostic window's in-memory model changes.
 
+Verified visual evidence from the 42%, muted mock scenario: [mock-endpoint-42-muted.png](diagnostics-evidence/mock-endpoint-42-muted.png).
+
 The isolated host currently demonstrates a semantic volume slider and mute state, rather than the production device/session mixer and real audio backend. Screenshot capture uses WPF visual rendering; it does not prove native or GPU-hosted surface capture. The production startup path remains the default unless `--local-diagnostics` is explicitly supplied.
