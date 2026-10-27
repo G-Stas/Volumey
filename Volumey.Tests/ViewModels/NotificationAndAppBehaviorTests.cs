@@ -380,6 +380,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.DeviceViewAtTheBottom = true;
 		vm.ShowDevicePicker = false;
 		vm.DisplayDeviceIconAtTray = true;
+		vm.UseVolumeyIconAtTray = true;
 		vm.SelectedScreen = Second;
 
 		Assert.IsTrue(Settings.Window.PopupMode);
@@ -387,6 +388,8 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.IsTrue(Settings.Window.DeviceViewAtTheBottom);
 		Assert.IsFalse(Settings.Window.ShowDevicePicker);
 		Assert.IsTrue(Settings.Window.DisplayDeviceIconAtTray);
+		Assert.IsTrue(Settings.Window.UseVolumeyIconAtTray);
+		Assert.IsTrue(CreateAppBehavior().UseVolumeyIconAtTray);
 		Assert.AreEqual(Second.Name, Settings.Window.ScreenName);
 		Assert.IsTrue(vm.DisplayMinimalistic);
 	}

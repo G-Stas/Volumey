@@ -62,6 +62,11 @@
                                  AutomationProperties.Name="{lc:Localization General_TrayIcon}"
                                  AutomationProperties.AutomationId="TrayIconToggle" />
             </ui:CardControl>
+            <ui:CardControl Icon="{ui:SymbolIcon Volume24}" Header="{lc:Localization General_UseVolumeyIcon}">
+                <ui:ToggleSwitch IsChecked="{Binding Window.UseVolumeyIconAtTray}"
+                                 AutomationProperties.Name="{lc:Localization General_UseVolumeyIcon}"
+                                 AutomationProperties.AutomationId="UseVolumeyIconToggle" />
+            </ui:CardControl>
 
             <!-- the Store build starts through the package's startup task and is always in the Start menu -->
             <StackPanel x:Name="NonStoreSection" DataContext="{Binding Window}">

@@ -246,6 +246,9 @@
   <data name="General_TrayIconHint" xml:space="preserve">
     <value>Instead of the Volumey icon</value>
   </data>
+  <data name="General_UseVolumeyIcon" xml:space="preserve">
+    <value>Use the Volumey icon in the tray</value>
+  </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Startup</value>
   </data>

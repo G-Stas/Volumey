@@ -52,6 +52,7 @@
                 <Binding Path="Theme.WindowsTheme" />
                 <Binding Path="Window.DisplayDeviceIconAtTray"/>
                 <Binding Path="Devices.DefaultDevice.Master.Icon" />
+                <Binding Path="Window.UseVolumeyIconAtTray" />
             </MultiBinding>
 
             <MultiBinding x:Key="TrayTextTooltip"

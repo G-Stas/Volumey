@@ -49,6 +49,33 @@ public class GeneralPageTests : UiTest
 		Assert.IsFalse(Settings.ShowsText(russianTitle, 500), "a Russian text stayed");
 	}
 
+	[TestMethod]
+	public void TheTrayIconOptionsSaveTheirSelection()
+	{
+		OpenPage();
+		Assert.IsFalse(Settings.IsOn("UseVolumeyIconToggle"));
+
+		Settings.SetSwitch("UseVolumeyIconToggle", true);
+		App.WaitForSettings(s => s["Window"]?["UseVolumeyIconAtTray"]?.GetValue<bool>() == true, "Volumey tray icon selected");
+
+		Settings.SetSwitch("TrayIconToggle", true);
+		App.WaitForSettings(s => s["Window"]?["DisplayDeviceIconAtTray"]?.GetValue<bool>() == true, "device tray icon selected");
+		Assert.IsTrue(Settings.IsOn("UseVolumeyIconToggle"), "the Volumey tray icon option was cleared");
+
+		var screenshots = Path.Combine(FindRepoRoot(), "work", "issue-109");
+		Directory.CreateDirectory(screenshots);
+		using var image = Settings.Window.Capture();
+		image.Save(Path.Combine(screenshots, "general-settings.png"), System.Drawing.Imaging.ImageFormat.Png);
+	}
+
+	private static string FindRepoRoot()
+	{
+		for(DirectoryInfo? directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+			if(File.Exists(Path.Combine(directory.FullName, "Volumey.sln")))
+				return directory.FullName;
+		throw new DirectoryNotFoundException("Couldn't find Volumey.sln");
+	}
+
 	/// <summary>The settings window's average brightness, 0–255</summary>
 	private int Brightness()
 	{

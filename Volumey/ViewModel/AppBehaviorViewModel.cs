@@ -104,6 +104,11 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnDisplayDeviceIconAtTrayChanged(bool value) => SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
 
+	[ObservableProperty]
+	public partial bool UseVolumeyIconAtTray { get; set; }
+
+	partial void OnUseVolumeyIconAtTrayChanged(bool value) => SettingsProvider.Settings.Window.UseVolumeyIconAtTray = value;
+
 	private bool launchAtStartup;
 	public bool LaunchAtStartup
 	{
@@ -242,6 +247,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
 		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
 		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
+		UseVolumeyIconAtTray = SettingsProvider.Settings.Window.UseVolumeyIconAtTray;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;

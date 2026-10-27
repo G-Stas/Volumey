@@ -17,18 +17,29 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 		Mute,
 		NoDevice,
 		DeviceIcon,
+		VolumeyIcon,
 		None
 	}
 
 	private IconType currentIconType = IconType.None;
 	private TrayIconProvider? currentIconProvider;
 	private Icon? curDeviceIcon;
+	private Icon? volumeyIcon;
+	private bool triedGettingVolumeyIcon;
 	//one provider per theme: a provider caches its icons, a new one on every theme switch would leak them
 	private LightIconProvider? lightIconProvider;
 	private DarkIconProvider? darkIconProvider;
 
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
+		if(values[6] is true && GetVolumeyIcon() is Icon appIcon)
+		{
+			if(currentIconType == IconType.VolumeyIcon)
+				return Binding.DoNothing;
+			currentIconType = IconType.VolumeyIcon;
+			return appIcon;
+		}
+
 		if(values[4] is bool displayDeviceIconAtTray && displayDeviceIconAtTray && values[5] is Icon defaultDeviceIcon)
 		{
 			if(currentIconType == IconType.DeviceIcon && curDeviceIcon == defaultDeviceIcon)
@@ -60,6 +71,16 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 			return GetIcon(values, currentIconProvider, newIconProvider);
 		}
 		return Binding.DoNothing;
+	}
+
+	private Icon? GetVolumeyIcon()
+	{
+		if(!triedGettingVolumeyIcon)
+		{
+			triedGettingVolumeyIcon = true;
+			volumeyIcon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+		}
+		return volumeyIcon;
 	}
 
 	/// <summary></summary>
