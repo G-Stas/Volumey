@@ -14,7 +14,7 @@
                  Closing="OnClosing">
     <!-- a title bar and the pages on the left (no footer items). MinWidth: narrower than 800 the cards break
          (titles wrap letter by letter, e.g. "Distance from the edges"); WPF-UI's default minimum is 460. Height: fits common laptop
-         screens (1920×1080 at 150% leaves about 688); a smaller screen shrinks the window when it opens (MainView.CenterOnMixerScreen) -->
+         screens (1920×1080 at 150% leaves about 688); a smaller screen shrinks the window when it opens (MainView.CenterOnMonitor) -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

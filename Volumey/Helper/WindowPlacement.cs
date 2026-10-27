@@ -8,6 +8,9 @@ namespace Volumey.Helper;
 /// </summary>
 internal static class WindowPlacement
 {
+	/// <summary>Settings opened from the tray follow the tray monitor; other entry points use the mixer's monitor.</summary>
+	public static T SelectTrayMonitor<T>(T? trayMonitor, T mixerMonitor) where T : struct => trayMonitor ?? mixerMonitor;
+
 	/// <summary>
 	/// Where a window has to move to lie inside the work area: shifted back in by the part that sticks out
 	/// (e.g. remembered near an edge, then opened bigger because the screen's scale went up). A window bigger than the work area

@@ -32,6 +32,7 @@ GetClassName
 GetWindowRect
 MonitorFromWindow
 MonitorFromPoint
+GetCursorPos
 GetDpiForMonitor
 GetMonitorInfo
 GetMessageTime

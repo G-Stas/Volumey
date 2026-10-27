@@ -11,6 +11,17 @@ public class WindowPlacementTests
 	private static readonly Rectangle WorkArea = Rectangle.FromLTRB(2560, 0, 4480, 1032);
 
 	[TestMethod]
+	public void SettingsFollowTheTrayMonitorInsteadOfTheMixersMonitor()
+	{
+		//Simulated three-monitor layout: primary=1, tray click=2, remembered mixer=3.
+		Assert.AreEqual(2, WindowPlacement.SelectTrayMonitor<int>(2, 3));
+	}
+
+	[TestMethod]
+	public void SettingsFromTheMixerFallBackToTheMixersMonitor()
+		=> Assert.AreEqual(3, WindowPlacement.SelectTrayMonitor<int>(null, 3));
+
+	[TestMethod]
 	public void AWindowInsideStaysWhereItIs()
 		=> Assert.AreEqual(new Point(3000, 300), WindowPlacement.KeepInside(new Rectangle(3000, 300, 460, 469), WorkArea));
 

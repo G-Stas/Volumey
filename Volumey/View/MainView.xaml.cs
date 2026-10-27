@@ -153,12 +153,23 @@ public sealed partial class MainView
 		e.Handled = true;
 		if(Tray.ContextMenu is not { } menu)
 			return;
+		//Remember the tray's monitor before the pointer moves into the context menu. The mixer can be
+		//hidden or remembered on another display, and settings opened from the tray belong to the tray.
+		traySettingsMonitor = PInvoke.GetCursorPos(out var cursorPosition)
+			? PInvoke.MonitorFromPoint(cursorPosition, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST)
+			: default;
+		menu.Closed -= OnTrayMenuClosed;
+		menu.Closed += OnTrayMenuClosed;
 		menu.Placement = PlacementMode.Mouse;
 		menu.IsOpen = true;
 		//the menu has to be the foreground window, or a click elsewhere doesn't close it
 		if(PresentationSource.FromVisual(menu) is HwndSource source)
 			PInvoke.SetForegroundWindow((HWND)source.Handle);
 	}
+
+	private HMONITOR traySettingsMonitor;
+
+	private void OnTrayMenuClosed(object? sender, RoutedEventArgs e) => traySettingsMonitor = default;
 
 	/// <summary>Delays of the attempts to create the tray icon again after Explorer refused it, then every minute</summary>
 	private static readonly TimeSpan[] TrayRetryDelays =
@@ -608,7 +619,13 @@ public sealed partial class MainView
 	{
 		settingsWindow ??= getSettingsWindow();
 		if(!settingsWindow.IsVisible)
-			CenterOnMixerScreen(settingsWindow);
+		{
+			var mixerMonitor = PInvoke.MonitorFromWindow((HWND)Hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+			HMONITOR? trayMonitor = traySettingsMonitor.IsNull ? null : traySettingsMonitor;
+			var monitor = WindowPlacement.SelectTrayMonitor(trayMonitor, mixerMonitor);
+			traySettingsMonitor = default;
+			CenterOnMonitor(settingsWindow, monitor);
+		}
 		settingsWindow.Show();
 		if(settingsWindow.WindowState == WindowState.Minimized)
 			settingsWindow.WindowState = WindowState.Normal;
@@ -616,21 +633,21 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// The settings open centered on the screen the mixer is on, also when the mixer is hidden:
+	/// Centers settings on the tray monitor when invoked from its menu, or on the mixer monitor from the mixer's button.
+	/// This works when the mixer is hidden too:
 	/// its window keeps its last position. A window larger than that screen's work area is shrunk to it (the pages scroll).
 	/// If the screen can't be read, the window's own startup location is used
 	/// </summary>
-	private void CenterOnMixerScreen(Window window)
+	private void CenterOnMonitor(Window window, HMONITOR targetMonitor)
 	{
 		var monitor = new MONITORINFO { cbSize = (uint)Marshal.SizeOf<MONITORINFO>() };
-		if(!PInvoke.GetMonitorInfo(PInvoke.MonitorFromWindow((HWND)Hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST), ref monitor))
+		if(targetMonitor.IsNull || !PInvoke.GetMonitorInfo(targetMonitor, ref monitor))
 			return;
 		var work = monitor.rcWork;
 		//the target screen's scale gives the window's size there; the window's current DPI converts physical pixels to its Left/Top
 		double targetScale = 1;
-		foreach(var screen in vm.AllScreens)
-			if((int)screen.WorkingAreaLeft == work.left && (int)screen.WorkingAreaTop == work.top)
-				targetScale = screen.ScaleFactor;
+		if(!PInvoke.GetDpiForMonitor(targetMonitor, Windows.Win32.UI.HiDpi.MONITOR_DPI_TYPE.MDT_EFFECTIVE_DPI, out uint dpi, out _).Failed)
+			targetScale = dpi / 96.0;
 		double workWidth = (work.right - work.left) / targetScale;
 		double workHeight = (work.bottom - work.top) / targetScale;
 		if(window.MinWidth > workWidth)
