@@ -3,9 +3,9 @@
   Builds the two GitHub release zips of the version in Volumey.csproj, with their SHA-256 checksums.
 
 .DESCRIPTION
-  - Volumey_<version>_x64.zip: self-contained (carries the .NET 10 runtime, about 80 MB). LatestUpdateInfo.xml points the in-app
+  - Volumey_<version>_x64.zip: self-contained (carries the .NET 10 runtime). LatestUpdateInfo.xml points the in-app
     updater to this one, so an update works on any PC, also for 1.x users who only have an older .NET.
-  - Volumey_<version>_x64_framework-dependent.zip: small (about 12 MB), needs the .NET 10 Desktop Runtime. Only offered on the
+  - Volumey_<version>_x64_framework-dependent.zip: needs the .NET 10 Desktop Runtime. Only offered on the
     release page, for people who have it.
   Both are Release builds, so they send logs to Loggly only when the build found the input key (loggly.key or
   VOLUMEY_LOGGLY_INPUT_KEY); the script stops without one unless -NoLoggly is given.

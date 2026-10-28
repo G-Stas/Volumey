@@ -25,6 +25,133 @@
     <Version>2.1.0.0</Version>
   </PropertyGroup>
 
+  <!-- Self-contained builds (the Store MSIX, the GitHub zip) are trimmed. WPF doesn't support trimming, so only assemblies marked
+       trimmable are trimmed (partial): the runtime libraries, the Windows SDK projection, NAudio, SharpHook and a few others;
+       WPF, WinForms, WPF-UI and the app stay whole. ReadyToRun compiles the trimmed assemblies again: trimming drops the runtime's
+       precompiled code, which made the start about 3 times slower. -->
+  <PropertyGroup Condition="'$(SelfContained)' == 'true'">
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <_SuppressWpfTrimError>true</_SuppressWpfTrimError>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- NAudio and the shortcut code use classic COM interop -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <!-- AutoUpdater.NET's resources hold images (resource types other than strings) -->
+    <CustomResourceTypesSupport>true</CustomResourceTypesSupport>
+    <!-- WPF, its XAML and most libraries aren't annotated for trimming: thousands of warnings, mostly about code that partial mode
+         keeps whole -->
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(SelfContained)' == 'true'">
+    <!-- XAML creates TaskbarIcon and its parts through reflection -->
+    <TrimmerRootAssembly Include="H.NotifyIcon" />
+    <TrimmerRootAssembly Include="H.NotifyIcon.Wpf" />
+    <!-- named only inside AutoUpdater.NET's resources, as their reader -->
+    <TrimmerRootAssembly Include="System.Resources.Extensions" />
+    <!-- whole for their COM interfaces: a COM interface without its unused methods calls the wrong vtable slots -->
+    <TrimmerRootAssembly Include="Microsoft.CSharp" />
+    <TrimmerRootAssembly Include="Microsoft.VisualBasic.Core" />
+    <TrimmerRootAssembly Include="System.DirectoryServices" />
+    <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
+    <!-- Desktop assemblies the app only uses in part: trimmed too. WinForms itself stays whole (AutoUpdater.NET's forms name
+         its types in resources), so do Ribbon and WindowsFormsIntegration (the XAML loader loads every assembly of the WPF
+         namespace) and the themes that ship (WPF loads them by name). -->
+    <TrimmableAssembly Include="System.Windows.Forms.Design" />
+    <TrimmableAssembly Include="System.Windows.Forms.Design.Editors" />
+    <TrimmableAssembly Include="System.Design" />
+    <TrimmableAssembly Include="System.Drawing.Design" />
+    <TrimmableAssembly Include="Microsoft.VisualBasic.Forms" />
+    <TrimmableAssembly Include="UIAutomationClientSideProviders" />
+    <TrimmableAssembly Include="ReachFramework" />
+    <TrimmableAssembly Include="PresentationUI" />
+    <!-- The settings and the support links only read and write plain JSON: the converters they use are named in code -->
+    <TrimmableAssembly Include="Newtonsoft.Json" />
+  </ItemGroup>
+  <!-- The Store build updates through the Store: AutoUpdater.NET and its WebView2 aren't used there, and the trimmer drops them.
+       Without AutoUpdater.NET's forms nothing uses WinForms, so it's trimmed there too. -->
+  <ItemGroup Condition="'$(Configuration)' == 'Store'">
+    <TrimmableAssembly Include="System.Windows.Forms" />
+    <TrimmableAssembly Include="System.Windows.Forms.Primitives" />
+    <TrimmableAssembly Include="AutoUpdater.NET" />
+    <TrimmableAssembly Include="Microsoft.Web.WebView2.Core" />
+    <TrimmableAssembly Include="Microsoft.Web.WebView2.WinForms" />
+    <TrimmableAssembly Include="Microsoft.Web.WebView2.Wpf" />
+  </ItemGroup>
+  <Target Name="RemoveWebView2LoaderFromStorePublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(Configuration)' == 'Store'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Filename)' == 'WebView2Loader'" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ReadyToRun only for what runs: assemblies the app doesn't load in normal use (start, mixer, settings, OSD, update check),
+       and three big ones it loads at start but barely uses (about 12 ms more at start), are compiled on first use instead -->
+  <ItemGroup Condition="'$(PublishReadyToRun)' == 'true'">
+    <PublishReadyToRunExclude Include="System.Private.Xml.dll" />
+    <PublishReadyToRunExclude Include="System.Linq.Expressions.dll" />
+    <PublishReadyToRunExclude Include="System.Data.Common.dll" />
+    <PublishReadyToRunExclude Include="H.GeneratedIcons.System.Drawing.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.CSharp.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.VisualBasic.Core.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.VisualBasic.Forms.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.Web.WebView2.Core.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.Web.WebView2.WinForms.dll" />
+    <PublishReadyToRunExclude Include="Microsoft.Web.WebView2.Wpf.dll" />
+    <PublishReadyToRunExclude Include="PresentationUI.dll" />
+    <PublishReadyToRunExclude Include="ReachFramework.dll" />
+    <PublishReadyToRunExclude Include="System.ComponentModel.Annotations.dll" />
+    <PublishReadyToRunExclude Include="System.Console.dll" />
+    <PublishReadyToRunExclude Include="System.Diagnostics.EventLog.dll" />
+    <PublishReadyToRunExclude Include="System.Diagnostics.StackTrace.dll" />
+    <PublishReadyToRunExclude Include="System.Diagnostics.TextWriterTraceListener.dll" />
+    <PublishReadyToRunExclude Include="System.DirectoryServices.dll" />
+    <PublishReadyToRunExclude Include="System.Formats.Asn1.dll" />
+    <PublishReadyToRunExclude Include="System.Formats.Nrbf.dll" />
+    <PublishReadyToRunExclude Include="System.IO.Compression.Brotli.dll" />
+    <PublishReadyToRunExclude Include="System.IO.Compression.dll" />
+    <PublishReadyToRunExclude Include="System.IO.FileSystem.AccessControl.dll" />
+    <PublishReadyToRunExclude Include="System.IO.FileSystem.DriveInfo.dll" />
+    <PublishReadyToRunExclude Include="System.IO.FileSystem.Watcher.dll" />
+    <PublishReadyToRunExclude Include="System.IO.IsolatedStorage.dll" />
+    <PublishReadyToRunExclude Include="System.IO.MemoryMappedFiles.dll" />
+    <PublishReadyToRunExclude Include="System.IO.Pipelines.dll" />
+    <PublishReadyToRunExclude Include="System.Net.Mail.dll" />
+    <PublishReadyToRunExclude Include="System.Net.NetworkInformation.dll" />
+    <PublishReadyToRunExclude Include="System.Private.DataContractSerialization.dll" />
+    <PublishReadyToRunExclude Include="System.Private.Xml.Linq.dll" />
+    <PublishReadyToRunExclude Include="System.Resources.Writer.dll" />
+    <PublishReadyToRunExclude Include="System.Security.AccessControl.dll" />
+    <PublishReadyToRunExclude Include="System.Security.Cryptography.Pkcs.dll" />
+    <PublishReadyToRunExclude Include="System.Security.Cryptography.ProtectedData.dll" />
+    <PublishReadyToRunExclude Include="System.Security.Cryptography.Xml.dll" />
+    <PublishReadyToRunExclude Include="System.Text.Encoding.CodePages.dll" />
+    <PublishReadyToRunExclude Include="System.Text.Encodings.Web.dll" />
+    <PublishReadyToRunExclude Include="System.Text.Json.dll" />
+    <PublishReadyToRunExclude Include="System.Threading.AccessControl.dll" />
+    <PublishReadyToRunExclude Include="System.Threading.Channels.dll" />
+    <PublishReadyToRunExclude Include="System.Windows.Forms.Design.dll" />
+  </ItemGroup>
+  <!-- Release builds ship without the app's symbols and the libraries' XML docs -->
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+  </PropertyGroup>
+  <!-- WPF themes of older Windows and the opt-in Fluent theme: on Windows 10 and 11 WPF loads Aero2, AeroLite with high contrast
+       and Classic without visual styles -->
+  <Target Name="RemoveUnusedThemesFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+        Condition="'%(Filename)' == 'PresentationFramework.Aero' Or '%(Filename)' == 'PresentationFramework.Luna' Or '%(Filename)' == 'PresentationFramework.Royale' Or '%(Filename)' == 'PresentationFramework.Fluent'" />
+    </ItemGroup>
+  </Target>
+  <!-- Self-contained builds ship without the runtime's debugger files (attaching a debugger, reading dumps) -->
+  <Target Name="RemoveDebuggerFilesFromPublish" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+        Condition="'%(Filename)' == 'mscordbi' Or '%(Filename)' == 'Microsoft.DiaSymReader.Native.amd64' Or $([System.String]::Copy('%(Filename)').StartsWith('mscordaccore'))" />
+    </ItemGroup>
+  </Target>
+
   <!-- portable PDBs: with Windows PDBs (pdbonly/full) the settings weaver rewrites the symbols through the native symbol writer,
        which sometimes crashes the build -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
