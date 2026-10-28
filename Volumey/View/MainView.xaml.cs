@@ -655,14 +655,30 @@ public sealed partial class MainView
 	private void FitHeight(double workAreaHeight)
 	{
 		var (chrome, apps) = Mixer.MeasureHeights(Width);
+		double titleBarHeight = 0;
 		if(TitleBar.Visibility == Visibility.Visible)
 		{
 			TitleBar.Measure(new Size(Width, double.PositiveInfinity));
-			chrome += TitleBar.DesiredSize.Height;
+			titleBarHeight = TitleBar.DesiredSize.Height;
+			chrome += titleBarHeight;
 		}
-		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea);
+
+		//the title bar (window mode) doesn't count against the share of the work area, or the apps list would lose its room
+		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea + titleBarHeight);
+		double targetHeight = chrome + Math.Max(apps, MinRows * RowHeight);
+
+		//The window is a little taller than its content (the border); that gap is a fixed number of physical pixels,
+		//so it changes with the display scaling and is measured here.
+		//Measure the difference BEFORE overwriting Height, otherwise Height has the new value
+		//while content.ActualHeight still holds the old value from the previous Win32 WM_SIZE pass.
+		if(!double.IsNaN(Height) && Content is FrameworkElement { ActualHeight: > 0 } content)
+		{
+			targetHeight += Math.Max(0, Height - content.ActualHeight);
+		}
+
+		//the gap is only added to the target: the cap above is a limit on the content, not on the window frame
 		applyingPlacement = true;
-		Height = Math.Clamp(chrome + Math.Max(apps, MinRows * RowHeight), MinHeight, max);
+		Height = Math.Clamp(targetHeight, MinHeight, max);
 		applyingPlacement = false;
 	}
 
