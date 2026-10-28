@@ -9,7 +9,7 @@ using Volumey.Model;
 namespace Volumey.ViewModel;
 
 /// <summary>
-/// The level meters of the mixer: while the mixer is visible, reads the peaks of the shown device's sessions
+/// The level meters of the mixer: while the mixer is visible, reads the peaks of the shown device and its sessions
 /// about 30 times a second and sets the <c>Level</c> of every session, app and the device. Peaks have no event in Windows, so they
 /// are polled; nothing is read while the mixer is hidden.
 /// </summary>
@@ -106,12 +106,12 @@ public sealed partial class LevelMeters : ObservableObject
 	/// <summary>
 	/// Sets the levels of the device's sessions, apps and the device from the sessions' current peaks.
 	/// A session's level is its peak, or what is left of an earlier one; an app's is its loudest unmuted session;
-	/// the device's is its loudest unmuted app at that app's volume. Muted ones show nothing.
+	/// the device's is its own peak, which also follows volumes an app sets on its own stream (a session's peak is read before them).
+	/// Muted ones show nothing.
 	/// </summary>
 	/// <param name="elapsed">Time since the last reading: how far the earlier levels have fallen</param>
 	internal static void Read(OutputDeviceModel device, TimeSpan elapsed)
 	{
-		double deviceLevel = 0;
 		foreach(var process in device.GetImmutableProcesses())
 		{
 			double processLevel = 0;
@@ -124,9 +124,8 @@ public sealed partial class LevelMeters : ObservableObject
 			if(process.IsMuted)
 				processLevel = 0;
 			process.Level = processLevel;
-			deviceLevel = Math.Max(deviceLevel, processLevel * process.Volume / 100.0);
 		}
-		device.Master.Level = device.Master.IsMuted ? 0 : deviceLevel;
+		device.Master.Level = device.Master.IsMuted ? 0 : Next(device.Master.Level, device.ReadPeak(), elapsed);
 	}
 
 	/// <summary>A new peak shows at once; without one the level falls by <see cref="DecayPerFrame"/> per 1/30 s</summary>

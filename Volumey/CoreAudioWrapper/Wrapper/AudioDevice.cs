@@ -69,6 +69,16 @@ public sealed class AudioDevice : IDevice
 		catch { return true; }
 	}
 
+	/// <summary>
+	/// The endpoint's peak meter. Read many times a second while the mixer shows level meters:
+	/// a device that just went away fails, which reads as silence.
+	/// </summary>
+	public float GetPeak()
+	{
+		try { return Device.AudioMeterInformation.MasterPeakValue; }
+		catch { return 0f; }
+	}
+
 	public DeviceFormat? GetDeviceFormat()
 	{
 		try

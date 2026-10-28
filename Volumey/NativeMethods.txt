@@ -22,6 +22,7 @@ MapVirtualKey
 GetKeyNameText
 SetWindowPos
 GetForegroundWindow
+SetForegroundWindow
 GetWindowThreadProcessId
 SendInput
 IShellLinkW
@@ -49,3 +50,4 @@ WM_GETICON
 ICON_BIG
 ICON_SMALL2
 Shell_NotifyIconGetRect
+DwmSetWindowAttribute

@@ -119,6 +119,9 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 	/// </summary>
 	internal IReadOnlyList<float> GetChannelVolumes() => disposed ? Array.Empty<float>() : device.GetChannelVolumes();
 
+	/// <summary>The device's current peak (0..1, before the device volume); 0 if it can't be read</summary>
+	internal float ReadPeak() => disposed ? 0f : device.GetPeak();
+
 	internal void SetChannelVolume(int channel, float level)
 	{
 		if(!disposed)

@@ -34,7 +34,8 @@ public class LevelMetersTests : ViewModelTestBase
 		player.AddSession(quiet);
 		var browser = CreateProcess("browser");
 		browser.AddSession(Session(0.2, volume: 100));
-		var device = CreateDevice("1", "Speakers", player, browser);
+		//an app that turns down its own stream: the sessions' peaks don't show it, the device's does
+		var device = CreateDevice("1", "Speakers", () => 0.05f, player, browser);
 
 		LevelMeters.Read(device, Frame);
 
@@ -42,8 +43,7 @@ public class LevelMetersTests : ViewModelTestBase
 		Assert.AreEqual(0.3, quiet.Level, 1e-6);
 		Assert.AreEqual(0.6, player.Level, 1e-6, "an app shows its loudest session");
 		Assert.AreEqual(0.2, browser.Level, 1e-6);
-		//the player at 50% (0.3) is louder than the browser at 100% (0.2)
-		Assert.AreEqual(0.3, device.Master.Level, 1e-6, "the device shows its loudest app at that app's volume");
+		Assert.AreEqual(0.05, device.Master.Level, 1e-6, "the device shows its own peak");
 	}
 
 	[TestMethod]
@@ -55,13 +55,13 @@ public class LevelMetersTests : ViewModelTestBase
 		var mutedApp = CreateProcess("muted");
 		mutedApp.AddSession(Session(0.8, volume: 100));
 		mutedApp.IsMuted = true;
-		var device = CreateDevice("1", "Speakers", app, mutedApp);
+		var device = CreateDevice("1", "Speakers", () => 0.4f, app, mutedApp);
 
 		LevelMeters.Read(device, Frame);
 
 		Assert.AreEqual(0, mutedApp.Sessions[0].Level);
 		Assert.AreEqual(0, mutedApp.Level);
-		Assert.AreEqual(0.4, device.Master.Level, 1e-6, "a muted app doesn't count for the device");
+		Assert.AreEqual(0.4, device.Master.Level, 1e-6);
 
 		device.Master.IsMuted = true;
 		LevelMeters.Read(device, Frame);
@@ -77,7 +77,7 @@ public class LevelMetersTests : ViewModelTestBase
 		var session = new AudioSessionModel(false, 100, "s", default, "s", "s", Guid.Empty, volume.Object, new Mock<IAudioSessionStateNotifications>().Object);
 		var app = CreateProcess("app");
 		app.AddSession(session);
-		var device = CreateDevice("1", "Speakers", app);
+		var device = CreateDevice("1", "Speakers", () => peak, app);
 
 		LevelMeters.Read(device, Frame);
 		peak = 0;
@@ -85,6 +85,7 @@ public class LevelMetersTests : ViewModelTestBase
 
 		Assert.AreEqual(0.4, session.Level, 1e-6);
 		Assert.AreEqual(0.4, app.Level, 1e-6);
+		Assert.AreEqual(0.4, device.Master.Level, 1e-6);
 	}
 
 	private static AudioSessionModel Session(double peak, int volume)
