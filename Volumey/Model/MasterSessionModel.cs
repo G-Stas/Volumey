@@ -3,7 +3,6 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Windows.Input;
 using System.Windows.Media;
 using log4net;
@@ -156,18 +155,6 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
-	// Latest requested volume waiting to be processed (-1 if none)
-	private int _pendingHardwareVolume = -1;
-
-	// The event context associated with the pending volume update
-	private Guid _pendingHardwareContext;
-
-	// Tracks if the background worker is currently executing COM calls
-	private bool _isHardwareUpdateActive = false;
-
-	// Synchronizes thread access to the pending hardware update variables
-	private readonly Lock _hardwareUpdateLock = new();
-
 	public MasterSessionModel(string friendlyName, string desc,
 		int volume, bool muteState, string id, Icon? icon,
 		IAudioSessionVolume mVolume, IMasterVolumeNotificationHandler nHandler, IHotkeyService hotkeys)
@@ -182,6 +169,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		FilePath = Name;
 		DeviceDesc = desc;
 		masterVolume = mVolume;
+		masterVolume.WriteFailed += OnWriteFailed;
 		notificationHandler = nHandler;
 		notificationHandler.VolumeChanged += OnVolumeChanged;
 
@@ -316,63 +304,22 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 			StateNotificationMediator?.NotifyAudioStateChange(this);
 	}
 
+
 	//only write (true if they did); the public overloads notify (when asked to). Notifying here as well would show the OSD twice for every hotkey press
 	private bool SetVolume(int newVol, Guid context)
 	{
 		if(masterVolume == null)
 			return false;
-
-		lock(_hardwareUpdateLock)
+		try
 		{
-			_pendingHardwareVolume = newVol;
-			_pendingHardwareContext = context;
-
-			// If the background worker isn't running, wake it up.
-			if(!_isHardwareUpdateActive)
-			{
-				_isHardwareUpdateActive = true;
-
-				_ = System.Threading.Tasks.Task.Run(() =>
-				{
-					while(true)
-					{
-						int targetVolume;
-						Guid targetContext;
-
-						lock(_hardwareUpdateLock)
-						{
-							// If no new volume commands were queued while we were busy, sleep the worker.
-							if(_pendingHardwareVolume == -1)
-							{
-								_isHardwareUpdateActive = false;
-								break;
-							}
-
-							// Grab the absolute latest volume.
-							targetVolume = _pendingHardwareVolume;
-							targetContext = _pendingHardwareContext;
-
-							// Reset the queue so we know if a new request comes in during the COM call.
-							_pendingHardwareVolume = -1;
-						}
-
-						// Execute the potentially blocking COM call on the background thread.
-						// The UI thread remains entirely responsive regardless of the audio driver's latency.
-						try
-						{
-							masterVolume.SetVolume(targetVolume, targetContext);
-						}
-						catch(Exception e)
-						{
-							LogStateException(e);
-						}
-					}
-				});
-			}
+			masterVolume.SetVolume(newVol, context);
+			return true;
 		}
-
-		// Always return true immediately so the public SetVolume method updates the UI property instantly.
-		return true;
+		catch(Exception e)
+		{
+			LogStateException(e);
+			return false;
+		}
 	}
 
 	private bool SetMute(bool muteState, Guid context)
@@ -393,13 +340,23 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 
 	private void OnVolumeChanged(VolumeChangedEventArgs e)
 	{
+		//a write of ours is queued or running: this is the echo of an older write (or one about to be superseded), and applying it
+		//would undo newer steps. The UI already shows the latest requested value
+		if(masterVolume.HasPendingWrites)
+			return;
+
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 		{
 			if(Volume != e.NewVolume || IsMuted != e.IsMuted)
 				StateNotificationMediator?.NotifyAudioStateChange(this);
 		}
 
-		//taken over without writing it back to Windows, which already has it
+		TakeOver(e);
+	}
+
+	//taken over without writing it back to Windows, which already has it
+	private void TakeOver(VolumeChangedEventArgs e)
+	{
 		if(_volume != e.NewVolume)
 		{
 			_volume = e.NewVolume;
@@ -410,6 +367,29 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 			_isMuted = e.IsMuted;
 			OnPropertyChanged(nameof(IsMuted));
 		}
+	}
+
+	//raised on the worker thread once the queued writes are done and at least one of them failed
+	private void OnWriteFailed(Exception e, VolumeChangedEventArgs? real)
+	{
+		LogStateException(e);
+		if(!real.HasValue)
+			return;
+		VolumeChangedEventArgs deviceState = real.Value;
+		//the properties this changes belong to the UI thread
+		var dispatcher = System.Windows.Application.Current?.Dispatcher;
+		if(dispatcher != null)
+			dispatcher.InvokeAsync(() => ShowDeviceState(deviceState));
+		else
+			ShowDeviceState(deviceState);
+	}
+
+	private void ShowDeviceState(VolumeChangedEventArgs real)
+	{
+		//the device never got what the UI shows: show what it really has, unless a newer write is already on its way
+		if(disposed || masterVolume.HasPendingWrites)
+			return;
+		TakeOver(real);
 	}
 
 	private void LogStateException(Exception e)
@@ -434,6 +414,9 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		StateNotificationMediator?.NotifyOfDisposing(this);
 		notificationHandler.VolumeChanged -= OnVolumeChanged;
+		masterVolume.WriteFailed -= OnWriteFailed;
+		//stops the background worker (waits for the write in progress) before the device is released
+		(masterVolume as IDisposable)?.Dispose();
 		notificationHandler.Dispose();
 		_icon?.Dispose();
 	}

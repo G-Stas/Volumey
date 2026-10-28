@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -384,6 +386,77 @@ public class MasterSessionModelTests
 	}
 
 	[TestMethod]
+	public void AnEchoMustBeIgnoredWhileWritesArePending()
+	{
+		//arrange
+		var volumeMock = new Mock<IAudioSessionVolume>();
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, volumeMock.Object, handlerMock.Object, new HotkeyService());
+		master.SetVolume(60, notify: false, GuidValue.Internal.Empty);
+
+		//act: an old echo arrives while a write is still pending
+		volumeMock.SetupGet(v => v.HasPendingWrites).Returns(true);
+		handlerMock.Raise(h => h.VolumeChanged += null, new VolumeChangedEventArgs(55, false));
+
+		//assert
+		Assert.AreEqual(60, master.Volume);
+
+		//nothing pending anymore: a change from outside is taken over again
+		volumeMock.SetupGet(v => v.HasPendingWrites).Returns(false);
+		handlerMock.Raise(h => h.VolumeChanged += null, new VolumeChangedEventArgs(40, false));
+		Assert.AreEqual(40, master.Volume);
+	}
+
+	[TestMethod]
+	public void HoldingAHotkeyWithASlowDeviceMustNotLoseSteps()
+	{
+		//arrange
+		var blockingVolume = new BlockingVolume();
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var managerMock = new Mock<IHotkeyManager>();
+		var service = new HotkeyService();
+		service.SetHotkeyManager(managerMock.Object);
+		var upHotkey = new HotKey(Key.A);
+		var downHotkey = new HotKey(Key.B);
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, blockingVolume, handlerMock.Object, service);
+		master.SetVolumeHotkeys(upHotkey, downHotkey);
+
+		//act: press several times while the device blocks
+		for(int i = 0; i < 3; i++)
+			managerMock.Raise(m => m.HotkeyPressed += null, upHotkey);
+
+		//assert
+		int expected = 50 + 3 * service.VolumeStep;
+		Assert.AreEqual(expected, master.Volume);
+
+		//the echo of the first write arrives while the others are still pending
+		handlerMock.Raise(h => h.VolumeChanged += null, new VolumeChangedEventArgs(50 + service.VolumeStep, false));
+		Assert.AreEqual(expected, master.Volume);
+
+		//release the device: the last write must be the final value
+		blockingVolume.Release();
+		blockingVolume.WaitIdle();
+		Assert.AreEqual(expected, blockingVolume.Writes[^1]);
+		Assert.AreEqual(expected, master.Volume);
+	}
+
+	[TestMethod]
+	public void AFailedWriteMustShowTheDeviceState()
+	{
+		//arrange
+		var volumeMock = new Mock<IAudioSessionVolume>();
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, volumeMock.Object, handlerMock.Object, new HotkeyService());
+		master.SetVolume(60, notify: false, GuidValue.Internal.Empty);
+
+		//act: the worker reports that the device kept its previous state
+		volumeMock.Raise(v => v.WriteFailed += null, new Exception("write failed"), new VolumeChangedEventArgs(50, false));
+
+		//assert
+		Assert.AreEqual(50, master.Volume);
+	}
+
+	[TestMethod]
 	public void MuteCommandInvertsMuteState()
 	{
 		//arrange
@@ -394,6 +467,42 @@ public class MasterSessionModelTests
 
 		//assert
 		Assert.AreEqual(!muteState, model.IsMuted);
+	}
+
+	/// <summary>
+	/// A fake volume whose writes block until <see cref="Release"/> is called
+	/// </summary>
+	private sealed class BlockingVolume : IAudioSessionVolume
+	{
+		private readonly ManualResetEventSlim gate = new();
+		private int pending;
+		private Task chain = Task.CompletedTask;
+
+		public List<int> Writes { get; } = new();
+
+		public bool HasPendingWrites => Volatile.Read(ref pending) > 0;
+
+		public float GetVolume() => 0f;
+
+		public bool GetMute() => false;
+
+		public void SetMute(bool newState, Guid context) { }
+
+		public void SetVolume(int newVolume, Guid context)
+		{
+			Interlocked.Increment(ref pending);
+			chain = chain.ContinueWith(_ =>
+			{
+				gate.Wait();
+				lock(Writes)
+					Writes.Add(newVolume);
+				Interlocked.Decrement(ref pending);
+			});
+		}
+
+		public void Release() => gate.Set();
+
+		public void WaitIdle() => chain.Wait(TimeSpan.FromSeconds(5));
 	}
 
 	internal static MasterSessionModel GetMasterMock(string name, int volume, bool muteState, string id, Icon icon, IHotkeyService hotkeys = null)
