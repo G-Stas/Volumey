@@ -75,6 +75,15 @@ public class TrayWheelTests : UiTest
 			App.HideMixer();
 	}
 
+	/// <summary>A notch down over the icon lowers the device by the step (so a check that nothing changes means something)</summary>
+	/// <returns>The device volume after the notch</returns>
+	private static int WheelWorks(int start)
+	{
+		Wheel(-Notch);
+		Assert.AreEqual(start - Step, Audio.WaitFor(() => Audio.DeviceVolume, start - Step), "wheel down over the icon didn't lower the device");
+		return start - Step;
+	}
+
 	private bool DevicePillShown(int timeoutMs) => Eventually(() => App.FindOsdPill(Audio.DefaultDeviceName) != null, timeoutMs);
 
 	[TestMethod]
@@ -110,6 +119,7 @@ public class TrayWheelTests : UiTest
 		Start(osd: false);
 		int start = StartVolume();
 		PointAtTrayIcon();
+		start = WheelWorks(start);
 
 		using(Keyboard.Pressing(VirtualKeyShort.CONTROL))
 			Wheel(-Notch);
@@ -125,6 +135,7 @@ public class TrayWheelTests : UiTest
 		StartApp(Seed(osd: false));
 		int start = StartVolume();
 		PointAtTrayIcon();
+		start = WheelWorks(start);
 
 		//the settings window's title bar, away from its buttons
 		var r = Settings.Window.BoundingRectangle;
