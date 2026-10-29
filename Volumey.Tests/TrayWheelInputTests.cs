@@ -46,4 +46,14 @@ public class TrayWheelInputTests
 		Assert.AreEqual(-1, TrayWheelInput.AddDelta(ref remainder, -120));
 		Assert.AreEqual(0, remainder);
 	}
+
+	[TestMethod]
+	public void AZeroDeltaKeepsThePartLeft()
+	{
+		int remainder = 0;
+		TrayWheelInput.AddDelta(ref remainder, 90);
+
+		Assert.AreEqual(0, TrayWheelInput.AddDelta(ref remainder, 0));
+		Assert.AreEqual(1, TrayWheelInput.AddDelta(ref remainder, 30));
+	}
 }

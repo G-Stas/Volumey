@@ -98,7 +98,7 @@ internal sealed class TrayWheelInput(IntPtr hwnd)
 	/// <returns>The number of full wheel notches: positive up, negative down, 0 for none</returns>
 	internal static int AddDelta(ref int remainder, int delta)
 	{
-		if(Math.Sign(delta) != Math.Sign(remainder))
+		if(Math.Sign(delta) == -Math.Sign(remainder))
 			remainder = 0;
 		int wheelDelta = (int)PInvoke.WHEEL_DELTA;
 		int total = remainder + delta;
