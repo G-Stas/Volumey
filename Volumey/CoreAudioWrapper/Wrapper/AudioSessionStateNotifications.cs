@@ -17,6 +17,7 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 {
 	public event Action? SessionEnded;
 	public event Action? Deactivated;
+	public event Action? Activated;
 	public event Action<VolumeChangedEventArgs>? VolumeChanged;
 	public event Action<string>? NameChanged;
 	public event Action<AudioSessionDisconnectReason>? Disconnected;
@@ -74,7 +75,12 @@ public sealed class AudioSessionStateNotifications : IAudioSessionStateNotificat
 			SessionEnded?.Invoke();
 		else if(newState == NAudioSessionState.AudioSessionStateInactive)
 			Deactivated?.Invoke();
+		else if(newState == NAudioSessionState.AudioSessionStateActive)
+			Activated?.Invoke();
 	}
+
+	/// <summary>Whether the session plays now; read it after <see cref="RegisterNotifications"/>, so a change in between isn't lost</summary>
+	public bool ReadIsActive() => sessionControl.State == NAudioSessionState.AudioSessionStateActive;
 
 	public void RegisterNotifications()
 		=> sessionControl.RegisterEventClient(this);

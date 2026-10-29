@@ -58,6 +58,73 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public Guid GroupingParam { get; private set; } = Guid.Empty;
 
+	public AppIdentity Identity => new(GroupingParam, FilePath);
+
+	/// <summary>Windows' System Sounds: its session has no process</summary>
+	public bool IsSystemSounds => _processId == 0;
+
+	private AppRoute _route = new AppRoute.FollowsDefault();
+	/// <summary>Where Windows plays the app; set by <see cref="AppRouting"/> on the UI thread</summary>
+	public AppRoute Route
+	{
+		get => _route;
+		private set
+		{
+			if(_route != value)
+			{
+				_route = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	private string? _routeDeviceName;
+	/// <summary>The name of the device the app is pinned to; null when it follows the default device or Windows can't name the device</summary>
+	public string? RouteDeviceName
+	{
+		get => _routeDeviceName;
+		private set
+		{
+			if(_routeDeviceName != value)
+			{
+				_routeDeviceName = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	private bool _playsHere = true;
+	/// <summary>The app's row belongs in its device's list (<see cref="AppRoutingRules.PlaysHere"/>)</summary>
+	public bool PlaysHere
+	{
+		get => _playsHere;
+		private set
+		{
+			if(_playsHere != value)
+			{
+				_playsHere = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	internal void SetPlacement(AppRoute route, string? routeDeviceName, bool playsHere)
+	{
+		Route = route;
+		RouteDeviceName = routeDeviceName;
+		PlaysHere = playsHere;
+	}
+
+	/// <summary>A session of the app plays now</summary>
+	internal bool PlaysNow => SessionsSnapshot().Any(s => s.IsActive);
+
+	private void OnSessionActivityChanged(AudioSessionModel session) => ActivityChanged?.Invoke(this);
+
+	/// <summary>A session started or stopped playing, or one that plays was added or removed; on any thread</summary>
+	internal event Action<AudioProcessModel>? ActivityChanged;
+
+	internal bool IsDisposed => _disposed;
+
 	private bool _isMuted;
 	public bool IsMuted
 	{
@@ -199,12 +266,15 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public void AddSession(AudioSessionModel newSession)
 	{
+		bool addedPlaying = false;
 		lock(_sessionsLock)
 		{
 			if(!Sessions.Contains(newSession))
 			{
 				newSession.SessionEnded += OnSessionEnded;
 				newSession.Deactivated += OnSessionDeactivated;
+				newSession.ActivityChanged += OnSessionActivityChanged;
+				addedPlaying = newSession.IsActive;
 				Sessions.Add(newSession);
 				newSession.IconSource = IconSource;
 				if(Sessions.Count == 1)
@@ -223,6 +293,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 				}
 			}
 		}
+		if(addedPlaying)
+			ActivityChanged?.Invoke(this);
 	}
 
 	//also raised when this model's own setter changes the sessions: the setter raises PropertyChanged then
@@ -429,6 +501,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	{
 		endedSession.SessionEnded -= OnSessionEnded;
 		endedSession.Deactivated -= OnSessionDeactivated;
+		endedSession.ActivityChanged -= OnSessionActivityChanged;
+		if(endedSession.IsActive)
+			ActivityChanged?.Invoke(this);
 		if(endedSession.EndedByFormatChange)
 			DeviceReconfigured?.Invoke(this);
 		await _dispatcher.InvokeAsync(() =>
@@ -501,10 +576,14 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 				_trackedSession = null;
 			}
 			foreach(AudioSessionModel session in Sessions)
+			{
+				session.ActivityChanged -= OnSessionActivityChanged;
 				session.Dispose();
+			}
 		}
 
 		Exited = null;
+		ActivityChanged = null;
 		DeviceReconfigured = null;
 	}
 }

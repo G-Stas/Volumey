@@ -74,6 +74,17 @@ public class AudioLayerTests
 	}
 
 	[TestMethod]
+	public void APlayingSessionIsSeenPlaying()
+	{
+		using var session = new TestAudioSession();
+		using var devices = new LoadedDevices();
+
+		var process = WaitForOwnProcess(devices.Get(session.DeviceId));
+
+		WaitFor(() => process.PlaysNow, "the playing session wasn't seen as playing\n");
+	}
+
+	[TestMethod]
 	public void NewSessionIsAdded()
 	{
 		using var devices = new LoadedDevices();

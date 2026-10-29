@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -121,7 +121,7 @@ internal static class AudioModelFactory
 				if(session == null)
 					continue;
 
-				if(processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || Equals(p.FilePath, session.FilePath)) is { } process)
+				if(processes.FirstOrDefault(p => AppRoutingRules.SameApp(p.Identity, session.Identity)) is { } process)
 				{
 					session.Name = process.Name;
 					process.AddSession(session);
@@ -281,15 +281,18 @@ internal static class AudioModelFactory
 
 			AudioSessionStateNotifications sessionStateNotifications = new AudioSessionStateNotifications(sControl, sessionVolume.EchoFilter);
 
-			try { sessionStateNotifications.RegisterNotifications(); }
-			catch { }
-
 			AudioSessionModel session = new AudioSessionModel(muteState, VolumePercent.FromScalar(volume), sessionId, processId,
 															  name,
 															  filePath,
 															  groupingParam,
 															  sessionVolume,
 															  sessionStateNotifications);
+
+			//the model listens first, then the state is read: a change in between arrives as an event and isn't overwritten
+			try { sessionStateNotifications.RegisterNotifications(); }
+			catch { }
+			try { session.ApplyInitialState(sessionStateNotifications.ReadIsActive()); }
+			catch(Exception e) { Logger.Debug("Couldn't read whether a session plays", e); }
 			return session;
 		}
 		catch(Exception e)

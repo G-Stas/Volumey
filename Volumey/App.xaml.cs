@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Threading;
 using log4net;
 using Microsoft.Extensions.DependencyInjection;
+using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Services;
 using Volumey.View;
@@ -46,6 +47,8 @@ public sealed partial class App
 		services.GetRequiredService<AppBehaviorViewModel>();
 		//creating it enumerates the audio devices
 		services.GetRequiredService<DeviceProviderViewModel>();
+		//reads where Windows plays each app and keeps the rows following it
+		services.GetRequiredService<AppRouting>();
 		services.GetRequiredService<HotkeyModeViewModel>();
 		foreach(var feature in ServiceRegistration.Features)
 			services.GetRequiredService(feature);

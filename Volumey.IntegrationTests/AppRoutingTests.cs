@@ -25,6 +25,16 @@ public class AppRoutingTests
 		Assert.AreEqual(new AppRoute.FollowsDefault(), routing.GetRoute(TestAudioSession.ProcessId));
 	}
 
+	[TestMethod]
+	public void WindowsNamesADeviceByItsId()
+	{
+		RequireOutputDevice();
+		using var session = new TestAudioSession();
+
+		Assert.IsFalse(string.IsNullOrEmpty(DeviceEnumerator.GetDeviceName(session.DeviceId)));
+		Assert.IsNull(DeviceEnumerator.GetDeviceName("{0.0.0.00000000}.{00000000-0000-0000-0000-000000000000}"));
+	}
+
 	// C2
 	[TestMethod]
 	public void SystemSoundsHasNoRoute()

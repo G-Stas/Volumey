@@ -48,6 +48,8 @@ internal static class ServiceRegistration
 		services.AddSingleton<INotificationService>(sp => new NotificationService(sp.Get<IHotkeyService>()));
 		//creating it doesn't call Windows: the policy factory is read on first use
 		services.AddSingleton<IAppAudioRouting>(_ => new AudioPolicyRouting());
+		services.AddSingleton(sp => new AppRouting(sp.Get<IDeviceProvider>(), sp.Get<IAppAudioRouting>(), DeviceEnumerator.GetDeviceName,
+			sp.Get<IAppShell>().Dispatcher));
 		services.AddSingleton<IScreenInfoProvider, ScreenInfoProvider>();
 		services.AddSingleton<IAppShell>(_ => new AppShell(application));
 		services.AddSingleton<ISystemIntegration, SystemIntegration>();
