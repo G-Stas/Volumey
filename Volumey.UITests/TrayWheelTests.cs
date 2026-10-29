@@ -1,7 +1,10 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
+using FlaUI.Core.Tools;
 using FlaUI.Core.WindowsAPI;
 using Volumey.UITests.Infrastructure;
 
@@ -170,5 +173,36 @@ public class TrayWheelTests : UiTest
 		Assert.AreEqual(start - Step, Audio.WaitFor(() => Audio.DeviceVolume, start - Step), "the wheel didn't change the device with the mixer open");
 		Assert.IsTrue(App.MixerIsVisible, "the mixer closed");
 		Assert.IsFalse(DevicePillShown(1500), "an OSD showed while the mixer is open");
+	}
+
+	[TestMethod]
+	public void WithAnotherDevicePickedInTheMixerTheWheelChangesThatDevice()
+	{
+		if(Audio.OutputDeviceNames().Count < 2)
+			Assert.Inconclusive("Only one output device");
+		Start(osd: false, mixer: true);
+		string defaultId = Audio.DefaultDeviceId;
+		var mixer = Retry.WhileNull(() => App.FindWindow("Volumey"), TimeSpan.FromSeconds(5)).Result
+		            ?? throw new AssertFailedException("The mixer didn't show");
+		string DeviceShown() => App.Mixer.FindFirstDescendant(cf => cf.ByAutomationId("DeviceVolumeSlider"))!.Name;
+		string defaultName = DeviceShown();
+
+		var picker = mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox).And(cf.ByName("Output device")))!.AsComboBox();
+		//real clicks, not a selection through UI Automation: the list is a popup, and the window's drag handling sees its presses too
+		picker.Click();
+		Assert.IsTrue(Eventually(() => picker.ExpandCollapseState == ExpandCollapseState.Expanded), "the device list didn't open");
+		picker.Items.First(i => !i.IsSelected).Click();
+		Assert.IsTrue(Eventually(() => DeviceShown() != defaultName), "the mixer still shows the default device");
+		string picked = DeviceShown();
+
+		Later(Audio.KeepStateOf(picked));
+		int start = StartVolume();
+		Audio.SetVolumeOf(picked, 50);
+		PointAtTrayIcon();
+
+		Wheel(-Notch);
+		Assert.AreEqual(50 - Step, Audio.WaitFor(() => Audio.VolumeOf(picked), 50 - Step), "the wheel didn't change the device picked in the mixer");
+		Assert.AreEqual(start, Audio.DeviceVolume, "the wheel changed the default device instead of the picked one");
+		Assert.AreEqual(defaultId, Audio.DefaultDeviceId, "the default device changed");
 	}
 }
