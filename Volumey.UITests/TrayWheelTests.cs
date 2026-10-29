@@ -201,8 +201,9 @@ public class TrayWheelTests : UiTest
 		PointAtTrayIcon();
 
 		Wheel(-Notch);
-		Assert.AreEqual(50 - Step, Audio.WaitFor(() => Audio.VolumeOf(picked), 50 - Step), "the wheel didn't change the device picked in the mixer");
+		int pickedVolume = Audio.WaitFor(() => Audio.VolumeOf(picked), 50 - Step);
 		Assert.AreEqual(start, Audio.DeviceVolume, "the wheel changed the default device instead of the picked one");
+		Assert.AreEqual(50 - Step, pickedVolume, "the wheel didn't change the device picked in the mixer");
 		Assert.AreEqual(defaultId, Audio.DefaultDeviceId, "the default device changed");
 	}
 }
