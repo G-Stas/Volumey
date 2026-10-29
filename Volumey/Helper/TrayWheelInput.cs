@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Runtime.InteropServices;
+using log4net;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input;
@@ -23,10 +24,15 @@ internal sealed class TrayWheelInput(IntPtr hwnd)
 			VIRTUAL_KEY.VK_RWIN
 		];
 
+	private static ILog? logger;
+	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(TrayWheelInput));
+
 	private readonly HWND window = (HWND)hwnd;
 	private RECT iconRect;
 	//the part of a wheel notch that wasn't applied yet (touchpads send small deltas)
 	private int remainder;
+	//Start runs on every tray mouse move until it works, so a failure is logged once until a registration works again
+	private bool failureLogged;
 
 	public bool IsActive { get; private set; }
 
@@ -35,7 +41,15 @@ internal sealed class TrayWheelInput(IntPtr hwnd)
 	{
 		iconRect = rect;
 		remainder = 0;
-		return IsActive = Register(RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK, window);
+		IsActive = Register(RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK, window);
+		if(IsActive)
+			failureLogged = false;
+		else if(!failureLogged)
+		{
+			failureLogged = true;
+			Logger.Warn($"Failed to read the mouse wheel over the tray icon, error {Marshal.GetLastPInvokeError()}");
+		}
+		return IsActive;
 	}
 
 	public void Stop()
