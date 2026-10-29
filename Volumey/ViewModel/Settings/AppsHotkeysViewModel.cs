@@ -15,7 +15,7 @@ namespace Volumey.ViewModel.Settings;
 
 /// <summary>
 /// Volume and mute hotkeys for single apps, stored by process name (App hotkeys page); each is optional, an app has at least one.
-/// The hotkeys are registered while the app runs on the default device. <see cref="SelectedProcess"/>, <see cref="VolumeUp"/>,
+/// The hotkeys are registered while the app runs, on its home model (where it is set to play); a press changes it on every device. <see cref="SelectedProcess"/>, <see cref="VolumeUp"/>,
 /// <see cref="VolumeDown"/>, <see cref="Mute"/> and <see cref="AddErrors"/> are the "Add app" dialog's; each saved app is an <see cref="AppHotkeysItem"/> whose hotkeys can be changed in place.
 /// </summary>
 public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
@@ -66,7 +66,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	}
 
 	/// <summary>
-	/// The running apps the "Add app" dialog offers: the default device's apps that have no hotkeys yet (see <see cref="PrepareAddApp"/>)
+	/// The running apps the "Add app" dialog offers: the apps on every device that have no hotkeys yet (see <see cref="PrepareAddApp"/>)
 	/// </summary>
 	public ObservableCollection<AudioProcessModel> AddableProcesses { get; } = new ObservableCollection<AudioProcessModel>();
 
@@ -93,28 +93,29 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	public ObservableCollection<AppHotkeysItem> Apps { get; }
 
 	/// <summary>
-	/// Containts registered processes that are currently launched
+	/// The apps' models whose hotkeys are registered: each running app's home model (<see cref="IAppRouting.GetApps"/>)
 	/// </summary>
 	private readonly List<AudioProcessModel> LaunchedProcesses = new List<AudioProcessModel>();
 
-	[ObservableProperty]
-	public partial OutputDeviceModel? DefaultDevice { get; set; }
+	private readonly IAppRouting appRouting;
+	private bool hotkeysActive;
 
 	//shows the OSD when a hotkey changes a volume (the models' state mediator)
 	private readonly INotificationService notifications;
 
-	internal AppsHotkeysViewModel(IDeviceProvider dProvider, IHotkeyService hotkeys, INotificationService notifications) : base(hotkeys)
+	internal AppsHotkeysViewModel(IHotkeyService hotkeys, INotificationService notifications, IAppRouting appRouting) : base(hotkeys)
 	{
 		this.notifications = notifications;
-
-		dProvider.DefaultDeviceChanged += OnDefaultDeviceSwitched;
-		DefaultDevice = dProvider.DefaultDevice;
-
+		this.appRouting = appRouting;
 
 		VolumeStep = SettingsProvider.Settings.General.VolumeStep;
 		Apps = LoadApps();
-		if(Apps.Count > 0)
-			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
+		RegisterWhenHotkeysActive(() =>
+		{
+			hotkeysActive = true;
+			Reconcile();
+		});
+		appRouting.AppsChanged += Reconcile;
 		SettingsProvider.Settings.Notifications.PropertyChanged += OnNotificationSettingsChanged;
 		ErrorDictionary.LanguageChanged += () =>
 		{
@@ -125,48 +126,18 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	}
 
 	/// <summary>
-	/// Registers hotkeys that were loaded from settings on app startup
+	/// Keeps the saved apps' hotkeys on the running apps' home models: released from models that are no longer home (the app exited,
+	/// moved to another device, the default device changed), then set up on the saved apps' home models. Windows refuses a combination
+	/// twice, so an app's hotkeys sit on one model; a press changes all of them
 	/// </summary>
-	private void RegisterLoadedHotkeys()
+	private void Reconcile()
 	{
-		if(DefaultDevice == null)
+		if(!hotkeysActive)
 			return;
-		//-= first: a default device change may have subscribed already
-		DefaultDevice.ProcessCreated -= OnProcessStarted;
-		DefaultDevice.ProcessCreated += OnProcessStarted;
-		FindAndSetupRegisteredHotkeys();
-	}
-
-	private void OnDefaultDeviceSwitched(OutputDeviceModel? newDevice)
-	{
-		if(DefaultDevice != null)
-			DefaultDevice.ProcessCreated -= OnProcessStarted;
-
-		//Reset hotkeys for all currently launched processes
-		for(int i = LaunchedProcesses.Count - 1; i >= 0; i--)
-			Release(LaunchedProcesses[i]);
-
-		DefaultDevice = newDevice;
-
-		if(newDevice == null)
-			return;
-
-		if(Apps.Count != 0)
-		{
-			newDevice.ProcessCreated -= OnProcessStarted;
-			newDevice.ProcessCreated += OnProcessStarted;
-			FindAndSetupRegisteredHotkeys();
-		}
-	}
-
-	/// <summary>
-	/// Search for registered processes amongst processes of the current default output device and set its hotkeys
-	/// </summary>
-	private void FindAndSetupRegisteredHotkeys()
-	{
-		if(DefaultDevice == null)
-			return;
-		foreach(AudioProcessModel process in DefaultDevice.GetImmutableProcesses())
+		var homes = appRouting.GetApps();
+		foreach(var process in LaunchedProcesses.Where(p => !homes.Contains(p)).ToList())
+			Release(process);
+		foreach(AudioProcessModel process in homes)
 		{
 			//an app that is set up already would get its hotkeys registered twice
 			if(FindApp(process.Name) is { } app && !LaunchedProcesses.Contains(process))
@@ -193,8 +164,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	/// <returns>False if any was refused</returns>
 	private bool SetUp(AudioProcessModel process, AppHotkeysItem app, out IReadOnlyList<HotKey> failed)
 	{
-		bool all = process.SetHotkeys(app.VolumeUp, app.VolumeDown, app.Mute, out failed);
-		process.Exited += OnProcessExited;
+		bool all = Register(process, app.VolumeUp, app.VolumeDown, app.Mute, out failed);
 		LaunchedProcesses.Add(process);
 		app.Icon = process.IconSource;
 		if(SettingsProvider.Settings.Notifications.Enabled && process.StateNotificationMediator == null)
@@ -202,14 +172,17 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		return all;
 	}
 
+	/// <summary>A press changes every model of the app on all devices</summary>
+	private bool Register(AudioProcessModel process, HotKey? up, HotKey? down, HotKey? mute, out IReadOnlyList<HotKey> failed)
+		=> process.SetHotkeys(up, down, mute, out failed, () => appRouting.GetModels(process));
+
 	/// <summary>
-	/// Releases a running process's hotkeys (it exited, its app was removed or the default device changed)
+	/// Releases a model's hotkeys (it's no longer its app's home model, or its app was removed)
 	/// </summary>
 	private void Release(AudioProcessModel process)
 	{
 		process.ResetVolumeHotkeys();
 		process.ResetStateMediator();
-		process.Exited -= OnProcessExited;
 		LaunchedProcesses.Remove(process);
 		if(FindApp(process.Name) is { } app && !LaunchedProcesses.Any(p => p.Name == app.ProcessName))
 			app.Icon = null;
@@ -224,9 +197,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 		VolumeUp = VolumeDown = Mute = null;
 		AddErrors.Clear();
 		AddableProcesses.Clear();
-		if(DefaultDevice == null)
-			return;
-		foreach(var process in DefaultDevice.GetImmutableProcesses())
+		foreach(var process in appRouting.GetApps())
 		{
 			if(FindApp(process.Name) == null && AddableProcesses.All(p => p.Name != process.Name))
 				AddableProcesses.Add(process);
@@ -259,9 +230,6 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			return false;
 		}
 
-		//Subscribe to ProcessCreated event to search for registered processes amongst new processes
-		if(Apps.Count == 0 && DefaultDevice != null)
-			DefaultDevice.ProcessCreated += OnProcessStarted;
 		Apps.Add(app);
 
 		Logger.Info($"Registered app hotkeys. App: [{process.Name}] +vol: [{VolumeUp}] -vol: [{VolumeDown}] mute: [{Mute}], count: [{Apps.Count.ToString()}]");
@@ -311,7 +279,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			foreach(AudioProcessModel process in processes)
 			{
 				process.ResetVolumeHotkeys();
-				process.SetHotkeys(up, down, mute, out var failed);
+				Register(process, up, down, mute, out var failed);
 				refused.UnionWith(failed);
 			}
 			if(changed != null && refused.Contains(changed))
@@ -320,7 +288,7 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 				foreach(AudioProcessModel process in processes)
 				{
 					process.ResetVolumeHotkeys();
-					process.SetHotkeys(app.VolumeUp, app.VolumeDown, app.Mute, out _);
+					Register(process, app.VolumeUp, app.VolumeDown, app.Mute, out _);
 				}
 				error = ErrorMessageType.VolumeReg;
 			}
@@ -346,10 +314,6 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			Release(process);
 
 		Apps.Remove(app);
-
-		//no need to handle this event if there are no registered hotkeys anymore
-		if(Apps.Count == 0 && DefaultDevice != null)
-			DefaultDevice.ProcessCreated -= OnProcessStarted;
 		SaveApps();
 	}
 
@@ -384,13 +348,5 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 					process.ResetStateMediator();
 			}
 		}
-	}
-
-	private void OnProcessExited(AudioProcessModel process) => Release(process);
-
-	private void OnProcessStarted(AudioProcessModel process)
-	{
-		if(FindApp(process.Name) is { } app)
-			SetUpSaved(process, app);
 	}
 }

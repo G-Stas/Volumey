@@ -85,7 +85,8 @@ public static class AppRoutingRules
 	/// One app: the same grouping parameter or the same executable. Device models group an app's sessions by this rule
 	/// </summary>
 	public static bool SameApp(AppIdentity a, AppIdentity b)
-		=> a.GroupingParam.Equals(b.GroupingParam) || Equals(a.FilePath, b.FilePath);
+		=> a.GroupingParam != Guid.Empty && a.GroupingParam.Equals(b.GroupingParam)
+		   || !string.IsNullOrEmpty(a.FilePath) && Equals(a.FilePath, b.FilePath);
 
 	/// <summary>
 	/// The apps among the models of all devices: models linked by <see cref="SameApp"/>, directly or through others, are one app

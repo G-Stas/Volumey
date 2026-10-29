@@ -62,7 +62,7 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 		//another app took the combination since the last start
 		HotkeyManager.Setup(m => m.RegisterHotkey(Down)).Throws(new Win32Exception(1409));
 		SetDefaultDevice(CreateDevice("1", "Speakers"));
-		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting);
 
 		ActivateHotkeys();
 
@@ -125,17 +125,19 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 		Settings.Hotkeys.Apps = new[] { new DataProvider.Settings.AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
 		var device = CreateDevice("1", "Speakers");
 		SetDefaultDevice(device);
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		ActivateHotkeys();
 		var app = vm.Apps[0];
 
 		HotkeyManager.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
-		RaiseProcessCreated(device, CreateProcess("Spotify"));
+		var first = CreateProcess("Spotify");
+		RaiseProcessCreated(device, first);
 		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], app.Errors.VolumeUp);
 		Assert.AreEqual(Up, Settings.Hotkeys.Apps[0].VolumeUp);
 
 		//it starts again once the combination is free: the error goes away
 		HotkeyManager.Setup(m => m.RegisterHotkey(Up));
+		Exit(device, first);
 		var restarted = CreateProcess("Spotify");
 		RaiseProcessCreated(device, restarted);
 		Assert.IsTrue(restarted.AnyHotkeyRegistered);

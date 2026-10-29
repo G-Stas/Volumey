@@ -168,6 +168,15 @@ public class AppRoutingRulesTests
 
 	// U5
 	[TestMethod]
+	public void NoGroupingParameterOrNoFileIsNothingShared()
+	{
+		Assert.IsFalse(SameApp(new AppIdentity(Guid.Empty, PathA), new AppIdentity(Guid.Empty, PathB)));
+		Assert.IsFalse(SameApp(new AppIdentity(ParamA, null), new AppIdentity(ParamB, null)));
+		Assert.IsFalse(SameApp(new AppIdentity(ParamA, ""), new AppIdentity(ParamB, "")));
+	}
+
+	// U5
+	[TestMethod]
 	public void AppsLinkedThroughAnotherModelAreOneAppInAnyOrder()
 	{
 		AppIdentity[] chain = [new(ParamA, PathA), new(ParamA, PathB), new(ParamB, PathB)];

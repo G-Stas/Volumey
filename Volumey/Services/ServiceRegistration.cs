@@ -63,13 +63,13 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new HotkeyModeViewModel(sp.Get<IHotkeyService>()));
 
 		services.AddSingleton(_ => new LangSettings());
-		services.AddSingleton(sp => new AppsHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
+		services.AddSingleton(sp => new AppsHotkeysViewModel(sp.Get<IHotkeyService>(), sp.Get<INotificationService>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new DeviceVolumeHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
 		services.AddSingleton(sp => new OpenHotkeyViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new VolumeLimitViewModel(sp.Get<IDeviceProvider>()));
 		services.AddSingleton(sp => new AppVolumeSyncViewModel(sp.Get<IDeviceProvider>()));
 		services.AddSingleton(sp => new DefaultDeviceHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>()));
-		services.AddSingleton(sp => new ForegroundWindowVolumeViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
+		services.AddSingleton(sp => new ForegroundWindowVolumeViewModel(sp.Get<IHotkeyService>(), sp.Get<INotificationService>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new NotificationViewModel(sp.Get<IDeviceProvider>(), sp.Get<INotificationService>(), sp.Get<IScreenInfoProvider>()));
 		services.AddSingleton(sp => new SystemHotkeysViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new AboutViewModel(sp.Get<SupportLinks>()));
