@@ -80,7 +80,7 @@ public sealed partial class MainView
 	/// </summary>
 	private bool placed;
 
-  /// <summary>
+	/// <summary>
 	/// Indicates whether the current operating system requires the native window cloaking workaround to prevent white flashes during display.
 	/// This evaluates to <see langword="true"/> on systems where the configured window backdrop is not supported (such as Windows 10), 
 	/// and <see langword="false"/> on systems that handle it natively without visual glitches (such as Windows 11).
@@ -182,11 +182,7 @@ public sealed partial class MainView
 			notifications.NotifyAudioStateChange(master);
 	}
 
-	/// <summary>
-	/// Stops reading the mouse wheel and unsubscribes from the tray icon when the window closes.
-	/// </summary>
-	/// <param name="sender">The event sender.</param>
-	/// <param name="e">The event arguments.</param>
+	/// <summary>Stops reading the mouse wheel and unsubscribes from the tray icon when the window closes</summary>
 	private void OnClosed(object? sender, EventArgs e)
 	{
 		trayWheel.Stop();
