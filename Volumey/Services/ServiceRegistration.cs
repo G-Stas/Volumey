@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.View;
 using Volumey.View.SettingsPage;
@@ -45,6 +46,8 @@ internal static class ServiceRegistration
 		//creating it enumerates the audio devices and their sessions
 		services.AddSingleton(sp => DeviceProvider.Create(sp.Get<IHotkeyService>()));
 		services.AddSingleton<INotificationService>(sp => new NotificationService(sp.Get<IHotkeyService>()));
+		//creating it doesn't call Windows: the policy factory is read on first use
+		services.AddSingleton<IAppAudioRouting>(_ => new AudioPolicyRouting());
 		services.AddSingleton<IScreenInfoProvider, ScreenInfoProvider>();
 		services.AddSingleton<IAppShell>(_ => new AppShell(application));
 		services.AddSingleton<ISystemIntegration, SystemIntegration>();
