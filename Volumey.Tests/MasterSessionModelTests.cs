@@ -384,6 +384,52 @@ public class MasterSessionModelTests
 	}
 
 	[TestMethod]
+	public void ChangeVolumeByStepMustUseTheHotkeysStep()
+	{
+		var expected = model.Volume + hotkeys.VolumeStep;
+
+		model.ChangeVolumeByStep(up: true, notify: false);
+
+		sessionVolumeMock.Verify(m => m.SetVolume(expected, GuidValue.Internal.Empty), Times.Once);
+		Assert.AreEqual(expected, model.Volume);
+	}
+
+	[TestMethod]
+	public void ChangeVolumeByStepDownMustUseTheHotkeysStep()
+	{
+		SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance = false;
+		var expected = model.Volume - hotkeys.VolumeStep;
+
+		model.ChangeVolumeByStep(up: false, notify: false);
+
+		sessionVolumeMock.Verify(m => m.SetVolume(expected, GuidValue.Internal.Empty), Times.Once);
+		Assert.AreEqual(expected, model.Volume);
+	}
+
+	[TestMethod]
+	public void ChangeVolumeByStepDownMustMuteInsteadOfReachingZero_IfEnabled()
+	{
+		SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance = true;
+		model.Volume = hotkeys.VolumeStep;
+
+		model.ChangeVolumeByStep(up: false, notify: false);
+
+		sessionVolumeMock.Verify(m => m.SetMute(true, GuidValue.Internal.Empty), Times.Once);
+		Assert.IsTrue(model.IsMuted);
+	}
+
+	[TestMethod]
+	public void ChangeVolumeByStepMustNotNotifyTheMediator_IfNotifyIsFalse()
+	{
+		var mediator = new Mock<IAudioProcessStateMediator>();
+		model.SetStateMediator(mediator.Object);
+
+		model.ChangeVolumeByStep(up: true, notify: false);
+
+		mediator.Verify(m => m.NotifyAudioStateChange(It.IsAny<IManagedMasterAudioSession>()), Times.Never);
+	}
+
+	[TestMethod]
 	public void MuteCommandInvertsMuteState()
 	{
 		//arrange

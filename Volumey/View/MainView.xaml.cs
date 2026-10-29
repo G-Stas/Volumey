@@ -17,6 +17,7 @@ using H.NotifyIcon;
 using log4net;
 using Volumey.Helper;
 using Volumey.Model;
+using Volumey.Services;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -66,6 +67,10 @@ public sealed partial class MainView
 	private readonly Func<SettingsWindow> getSettingsWindow;
 	private SettingsWindow? settingsWindow;
 
+	private readonly DeviceProviderViewModel devices;
+	private readonly TrayWheelInput trayWheel;
+	private readonly INotificationService notifications;
+
 	/// <summary>Set while the window mode's size or position is applied, so applying it isn't saved as a user change</summary>
 	private bool applyingPlacement;
 
@@ -82,9 +87,11 @@ public sealed partial class MainView
 	/// </summary>
 	private readonly bool requiresCloak;
 
-	internal MainView(MainViewModel main, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow)
+	internal MainView(MainViewModel main, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow, INotificationService notifications)
 	{
 		vm = main.Window;
+		devices = main.Devices;
+		this.notifications = notifications;
 		DataContext = main;
 		this.getSettingsWindow = getSettingsWindow;
 		InitializeComponent();
@@ -98,6 +105,8 @@ public sealed partial class MainView
 		//since the window is hidden at the startup
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
+
+		trayWheel = new TrayWheelInput(Hwnd);
 
 		if(requiresCloak)
 			SetCloaked(true);
@@ -134,6 +143,51 @@ public sealed partial class MainView
 		//and the hotkey features then register their saved hotkeys
 		messages.HotkeyMessageHandler = hotkeyMode.GetHotkeyMessageHandler();
 		hotkeyMode.SetWindowHandle(Hwnd);
+
+		Tray.TrayMouseMove += OnTrayMouseMove;
+
+		Closed += OnClosed;
+	}
+
+	/// <summary>
+	/// Explorer sends this while the cursor is over the tray icon. The first move reads the icon's rectangle and
+	/// starts reading the mouse wheel through raw input, which stops when the cursor leaves the icon
+	/// </summary>
+	private void OnTrayMouseMove(object sender, RoutedEventArgs e)
+	{
+		if(trayWheel.IsActive || !trayWheel.CanStart)
+			return;
+		if(NativeMethods.TryGetTrayIconRect(Tray.TrayIcon.Id, out RECT rect))
+			trayWheel.Start(rect);
+	}
+
+	/// <summary>
+	/// Changes the default output device volume by the hotkeys' step for each wheel notch over the tray icon
+	/// </summary>
+	/// <param name="steps">Positive for wheel-up, negative for wheel-down</param>
+	private void ChangeOutputVolumeFromTrayWheel(int steps)
+	{
+		//while the mixer is open, the wheel changes the device it shows, even if it isn't the default one yet
+		var device = IsVisible ? devices.SelectedDevice ?? devices.DefaultDevice : devices.DefaultDevice;
+		var master = device?.Master;
+		if(master == null)
+			return;
+
+		for(int i = 0; i < Math.Abs(steps); i++)
+			master.ChangeVolumeByStep(up: steps > 0, notify: false);
+
+		//the open mixer window shows the new volume itself; otherwise the tray
+		//tooltip that is already shown isn't repainted by Explorer, so the OSD shows it (when OSD notifications are on).
+		if(!IsVisible)
+			notifications.NotifyAudioStateChange(master);
+	}
+
+	/// <summary>Stops reading the mouse wheel and unsubscribes from the tray icon when the window closes</summary>
+	private void OnClosed(object? sender, EventArgs e)
+	{
+		trayWheel.Stop();
+		Tray.TrayMouseMove -= OnTrayMouseMove;
+		Closed -= OnClosed;
 	}
 
 	private void SetBindings()
@@ -832,6 +886,14 @@ public sealed partial class MainView
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
+		if(msg == (int)PInvoke.WM_INPUT)
+		{
+			int steps = trayWheel.ReadSteps(lParam);
+			if(steps != 0)
+				ChangeOutputVolumeFromTrayWheel(steps);
+			//not marked as handled: Windows needs its default processing of raw input
+			return IntPtr.Zero;
+		}
 		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}
