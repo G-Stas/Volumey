@@ -13,11 +13,20 @@ namespace Volumey.UITests;
 /// <summary>
 /// The mouse wheel over the tray icon changes the real default device's volume by the volume step (put back afterwards).
 /// The wheel is only turned over the tray icon or the settings window's title bar, where it does nothing else.
+/// Windows 10 only: Windows 11's taskbar doesn't tell the app that a pointer moved by a program is over its icon, so the app
+/// never starts reading the wheel there.
 /// </summary>
 [TestClass]
 [TestCategory("Audio")]
 public class TrayWheelTests : UiTest
 {
+	[TestInitialize]
+	public void SkipOnWindows11()
+	{
+		if(Environment.OSVersion.Version.Build >= 22000)
+			Assert.Inconclusive("Windows 11 doesn't report a pointer moved by a program over a tray icon");
+	}
+
 	private const int Step = 5;
 	private const int Notch = 120;
 	private const uint MouseEventWheel = 0x0800;
