@@ -177,9 +177,9 @@ public sealed partial class MainView
 			master.ChangeVolumeByStep(up: steps > 0, notify: false);
 
 		//the open mixer window shows the new volume itself; otherwise the tray
-		//tooltip that is already shown isn't repainted by Explorer, so the OSD shows it.
+		//tooltip that is already shown isn't repainted by Explorer, so the OSD shows it (when OSD notifications are on).
 		if(!IsVisible)
-			notifications.ShowNotification(master);
+			notifications.NotifyAudioStateChange(master);
 	}
 
 	/// <summary>
