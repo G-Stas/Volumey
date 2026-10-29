@@ -384,6 +384,17 @@ public class MasterSessionModelTests
 	}
 
 	[TestMethod]
+	public void ChangeVolumeByStepMustUseTheHotkeysStep()
+	{
+		var expected = model.Volume + hotkeys.VolumeStep;
+
+		model.ChangeVolumeByStep(up: true, notify: false);
+
+		sessionVolumeMock.Verify(m => m.SetVolume(expected, GuidValue.Internal.Empty), Times.Once);
+		Assert.AreEqual(expected, model.Volume);
+	}
+
+	[TestMethod]
 	public void MuteCommandInvertsMuteState()
 	{
 		//arrange

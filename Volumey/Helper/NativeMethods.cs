@@ -242,29 +242,17 @@ static class NativeMethods
 		return (end < 0 ? names : names[..end]).ToString();
 	}
 
-	[StructLayout(LayoutKind.Sequential)]
-	private struct NotifyIconIdentifier
-	{
-		public uint cbSize;
-		public IntPtr hWnd;
-		public uint uID;
-		public Guid guidItem;
-	}
-
 	/// <summary>
-	/// Checks whether a screen coordinate is inside the Volumey tray icon.
+	/// Gets the screen rectangle of the Volumey tray icon, in physical pixels.
 	/// </summary>
 	/// <param name="trayIconId">The registered notification icon GUID.</param>
-	/// <param name="x">The mouse X-coordinate in screen pixels.</param>
-	/// <param name="y">The mouse Y-coordinate in screen pixels.</param>
-	/// <returns>True if the point is inside the icon; otherwise, false.</returns>
-	/// <exception cref="ArgumentException">Thrown when the tray icon identifier is empty.</exception>
-	internal static bool IsPointOverTrayIcon(Guid trayIconId, int x, int y)
+	/// <param name="rect">The icon's rectangle when this returns true.</param>
+	/// <returns>False if the identifier is empty or the icon is unavailable (e.g. while the shell restarts); otherwise, true.</returns>
+	internal static bool TryGetTrayIconRect(Guid trayIconId, out RECT rect)
 	{
+		rect = default;
 		if(trayIconId == Guid.Empty)
-		{
-			throw new ArgumentException("The tray icon identifier must not be empty.", nameof(trayIconId));
-		}
+			return false;
 
 		var identifier = new NOTIFYICONIDENTIFIER
 		{
@@ -272,19 +260,7 @@ static class NativeMethods
 			guidItem = trayIconId
 		};
 
-		// CsWin32 automatically generates the exact PInvoke signature and HRESULT wrapper.
-		// Note: CsWin32 typically uses 'in' for structs passed by reference without modification.
-		HRESULT result = PInvoke.Shell_NotifyIconGetRect(in identifier, out RECT iconLocation);
-
-		// The icon may temporarily be unavailable while the shell restarts.
-		if(result.Value < 0)
-		{
-			return false;
-		}
-
-		return x >= iconLocation.left
-			&& x < iconLocation.right
-			&& y >= iconLocation.top
-			&& y < iconLocation.bottom;
+		HRESULT result = PInvoke.Shell_NotifyIconGetRect(in identifier, out rect);
+		return result.Value >= 0;
 	}
 }

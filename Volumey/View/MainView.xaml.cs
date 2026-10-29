@@ -15,8 +15,6 @@ using System.Windows.Threading;
 using System.Windows.Media.Animation;
 using H.NotifyIcon;
 using log4net;
-using SharpHook;
-using SharpHook.Data;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
@@ -70,8 +68,7 @@ public sealed partial class MainView
 	private SettingsWindow? settingsWindow;
 
 	private readonly DeviceProviderViewModel devices;
-	private readonly InputHookHost inputHookHost;
-	private readonly IDisposable trayMouseHook;
+	private readonly TrayWheelInput trayWheel;
 	private readonly INotificationService notifications;
 
 	/// <summary>Set while the window mode's size or position is applied, so applying it isn't saved as a user change</summary>
@@ -109,6 +106,8 @@ public sealed partial class MainView
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
 
+		trayWheel = new TrayWheelInput(Hwnd);
+
 		if(requiresCloak)
 			SetCloaked(true);
 
@@ -145,65 +144,37 @@ public sealed partial class MainView
 		messages.HotkeyMessageHandler = hotkeyMode.GetHotkeyMessageHandler();
 		hotkeyMode.SetWindowHandle(Hwnd);
 
-		inputHookHost = InputHookHost.Shared;
-		inputHookHost.MouseWheel += OnTrayMouseWheel;
-		trayMouseHook = inputHookHost.Use(GlobalHookType.Mouse);
+		Tray.TrayMouseMove += OnTrayMouseMove;
 
 		Closed += OnClosed;
 	}
 
 	/// <summary>
-	/// Handles global mouse wheel events and forwards vertical scrolling
-	/// over the Volumey tray icon to the default output device.
+	/// Explorer sends this while the cursor is over the tray icon. The first move reads the icon's rectangle and
+	/// starts reading the mouse wheel through raw input, which stops when the cursor leaves the icon
 	/// </summary>
-	/// <param name="sender">The event sender.</param>
-	/// <param name="e">The mouse wheel event.</param>
-	private void OnTrayMouseWheel(object? sender, MouseWheelHookEventArgs e)
+	private void OnTrayMouseMove(object sender, RoutedEventArgs e)
 	{
-		var wheel = e.Data;
-
-		if(wheel.Direction != MouseWheelScrollDirection.Vertical || wheel.Rotation == 0)
-		{
+		if(trayWheel.IsActive)
 			return;
-		}
-
-		int x = wheel.X;
-		int y = wheel.Y;
-		int direction = Math.Sign(wheel.Rotation);
-
-		if(Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
-			return;
-
-		_ = Dispatcher.BeginInvoke(
-			DispatcherPriority.Input,
-			new Action(() => ChangeOutputVolumeFromTrayWheel(x, y, direction)));
+		if(NativeMethods.TryGetTrayIconRect(Tray.TrayIcon.Id, out RECT rect))
+			trayWheel.Start(rect);
 	}
 
 	/// <summary>
-	/// Changes the default output device volume when the wheel event occurred
-	/// inside the Volumey notification area icon.
+	/// Changes the default output device volume by the hotkeys' step for each wheel notch over the tray icon
 	/// </summary>
-	/// <param name="x">The mouse X-coordinate in screen pixels.</param>
-	/// <param name="y">The mouse Y-coordinate in screen pixels.</param>
-	/// <param name="direction">Positive for wheel-up, negative for wheel-down.</param>
-	private void ChangeOutputVolumeFromTrayWheel(int x, int y, int direction)
+	/// <param name="steps">Positive for wheel-up, negative for wheel-down</param>
+	private void ChangeOutputVolumeFromTrayWheel(int steps)
 	{
-		if(!NativeMethods.IsPointOverTrayIcon(Tray.TrayIcon.Id, x, y))
-			return;
-
-		var master = devices.DefaultDevice?.Master;
-
+		//while the mixer is open, the wheel changes the device it shows, even if it isn't the default one yet
+		var device = IsVisible ? devices.SelectedDevice ?? devices.DefaultDevice : devices.DefaultDevice;
+		var master = device?.Master;
 		if(master == null)
 			return;
 
-		int currentVolume = master.Volume;
-
-		if(direction > 0 && currentVolume < 100)
-			master.Volume = currentVolume + 1;
-		else if(direction < 0 && currentVolume > 0)
-			master.Volume = currentVolume - 1;
-		else
-			return;
+		for(int i = 0; i < Math.Abs(steps); i++)
+			master.ChangeVolumeByStep(up: steps > 0, notify: false);
 
 		//the open mixer window shows the new volume itself; otherwise the tray
 		//tooltip that is already shown isn't repainted by Explorer, so the OSD shows it.
@@ -212,14 +183,14 @@ public sealed partial class MainView
 	}
 
 	/// <summary>
-	/// Releases the mouse wheel subscription when the window closes.
+	/// Stops reading the mouse wheel and unsubscribes from the tray icon when the window closes.
 	/// </summary>
 	/// <param name="sender">The event sender.</param>
 	/// <param name="e">The event arguments.</param>
 	private void OnClosed(object? sender, EventArgs e)
 	{
-		inputHookHost.MouseWheel -= OnTrayMouseWheel;
-		trayMouseHook.Dispose();
+		trayWheel.Stop();
+		Tray.TrayMouseMove -= OnTrayMouseMove;
 		Closed -= OnClosed;
 	}
 
@@ -903,6 +874,14 @@ public sealed partial class MainView
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
+		if(msg == (int)PInvoke.WM_INPUT)
+		{
+			int steps = trayWheel.ReadSteps(lParam);
+			if(steps != 0)
+				ChangeOutputVolumeFromTrayWheel(steps);
+			//not marked as handled: Windows needs its default processing of raw input
+			return IntPtr.Zero;
+		}
 		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}
