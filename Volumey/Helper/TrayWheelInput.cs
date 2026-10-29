@@ -77,8 +77,17 @@ internal sealed class TrayWheelInput(IntPtr hwnd)
 		if(IsModifierPressed())
 			return 0;
 
+		return AddDelta(ref remainder, (short)mouse.usButtonData);
+	}
+
+	/// <summary>Adds a wheel delta to the part of a notch not applied yet; a change of direction drops that part</summary>
+	/// <returns>The number of full wheel notches: positive up, negative down, 0 for none</returns>
+	internal static int AddDelta(ref int remainder, int delta)
+	{
+		if(Math.Sign(delta) != Math.Sign(remainder))
+			remainder = 0;
 		int wheelDelta = (int)PInvoke.WHEEL_DELTA;
-		int total = remainder + (short)mouse.usButtonData;
+		int total = remainder + delta;
 		remainder = total % wheelDelta;
 		return total / wheelDelta;
 	}
