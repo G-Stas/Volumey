@@ -302,11 +302,11 @@ internal static class AudioModelFactory
 	/// <summary>
 	/// Path errors that are expected and only logged as debug (not sent to Loggly): access denied (other users' processes,
 	/// games guarded by anti-cheat), a general failure and an invalid parameter (the process is exiting or has exited),
-	/// and a drive that isn't ready (an app started from a drive that was removed since).
+	/// and a drive that isn't ready or a volume that changed under the file (an app started from a drive that was removed since).
 	/// </summary>
 	private static bool IsExpectedPathError(int error)
 		=> error is (int)WIN32_ERROR.ERROR_ACCESS_DENIED or (int)WIN32_ERROR.ERROR_GEN_FAILURE or (int)WIN32_ERROR.ERROR_INVALID_PARAMETER
-			or (int)WIN32_ERROR.ERROR_NOT_READY;
+			or (int)WIN32_ERROR.ERROR_NOT_READY or (int)WIN32_ERROR.ERROR_FILE_INVALID;
 
 	/// <summary>Neither the process nor the system's process list had the path</summary>
 	private static void LogPathError(uint processId, int error)
