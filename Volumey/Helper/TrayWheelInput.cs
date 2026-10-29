@@ -31,10 +31,16 @@ internal sealed class TrayWheelInput(IntPtr hwnd)
 	private RECT iconRect;
 	//the part of a wheel notch that wasn't applied yet (touchpads send small deltas)
 	private int remainder;
-	//Start runs on every tray mouse move until it works, so a failure is logged once until a registration works again
+	//every tray mouse move asks to start, so a failure is logged once until a registration works again,
+	//and the next try waits a moment
 	private bool failureLogged;
+	private long retryAt;
+	private const int RetryDelayMs = 5000;
 
 	public bool IsActive { get; private set; }
+
+	/// <summary>Whether Start may run now: not right after a failed registration</summary>
+	public bool CanStart => Environment.TickCount64 >= retryAt;
 
 	/// <param name="rect">The icon's rectangle in physical screen coordinates</param>
 	public bool Start(RECT rect)
@@ -44,10 +50,14 @@ internal sealed class TrayWheelInput(IntPtr hwnd)
 		IsActive = Register(RAWINPUTDEVICE_FLAGS.RIDEV_INPUTSINK, window);
 		if(IsActive)
 			failureLogged = false;
-		else if(!failureLogged)
+		else
 		{
-			failureLogged = true;
-			Logger.Warn($"Failed to read the mouse wheel over the tray icon, error {Marshal.GetLastPInvokeError()}");
+			retryAt = Environment.TickCount64 + RetryDelayMs;
+			if(!failureLogged)
+			{
+				failureLogged = true;
+				Logger.Warn($"Failed to read the mouse wheel over the tray icon, error {Marshal.GetLastPInvokeError()}");
+			}
 		}
 		return IsActive;
 	}

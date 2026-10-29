@@ -155,7 +155,7 @@ public sealed partial class MainView
 	/// </summary>
 	private void OnTrayMouseMove(object sender, RoutedEventArgs e)
 	{
-		if(trayWheel.IsActive)
+		if(trayWheel.IsActive || !trayWheel.CanStart)
 			return;
 		if(NativeMethods.TryGetTrayIconRect(Tray.TrayIcon.Id, out RECT rect))
 			trayWheel.Start(rect);
