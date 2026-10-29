@@ -249,6 +249,8 @@ public sealed class AppRouting : IDisposable
 		}
 		await OnUi(() =>
 		{
+			if(IsStopped)
+				return;
 			string? target = move.To is AppRoute.Pinned pinned ? pinned.DeviceId : devices.DefaultDevice?.Id;
 			string targetName = devices.ActiveDevices.FirstOrDefault(d => AppRoutingRules.SameDevice(d.Id, target))?.Master.Name ?? target ?? "";
 			foreach(var refused in writes.OfType<RouteWrite.Refused>())
@@ -266,8 +268,19 @@ public sealed class AppRouting : IDisposable
 					break;
 			}
 		});
-		await RefreshAsync(move.App);
-		move.Result.TrySetResult(outcome);
+		try
+		{
+			await RefreshAsync(move.App);
+		}
+		catch(Exception e) when(!IsStopped)
+		{
+			//Windows has the new route either way; the next trigger reads it again
+			Logger.Error($"Failed to read the route of [{move.App.Name}] after a move", e);
+		}
+		if(IsStopped)
+			move.Result.TrySetCanceled();
+		else
+			move.Result.TrySetResult(outcome);
 	}
 
 	/// <summary>The route of the first process Windows answers for; an app none answers for follows the default device</summary>
