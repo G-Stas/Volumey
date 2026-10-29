@@ -143,6 +143,7 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 		{
 			(int Volume, Guid Context)? volume;
 			(bool Mute, Guid Context)? mute;
+			bool idle;
 			lock(stateLock)
 			{
 				volume = pendingVolume;
@@ -155,11 +156,15 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 					busy = false;
 					return;
 				}
+				idle = volume == null && mute == null;
+				//from here on the model applies notifications again, so the state read below can't miss a change
+				if(idle)
+					busy = false;
 			}
 
-			if(volume == null && mute == null)
+			if(idle)
 			{
-				//the queue is empty: read what the device has before going idle. A change made meanwhile by someone else
+				//the queue is empty: read what the device has. A change made meanwhile by someone else
 				//(e.g. the keyboard's mute key) was dropped as a possible echo, and nothing else would pick it up
 				state = ReadDeviceState();
 				lock(stateLock)
@@ -168,7 +173,6 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 					if(disposed || (pendingVolume == null && pendingMute == null))
 					{
 						worker = null;
-						busy = false;
 						break;
 					}
 				}
