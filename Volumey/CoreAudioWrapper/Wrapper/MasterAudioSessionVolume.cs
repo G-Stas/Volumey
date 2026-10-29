@@ -26,6 +26,8 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	private (int Volume, Guid Context)? pendingVolume;
 	private (bool Mute, Guid Context)? pendingMute;
 	private Task? worker;
+	//the latest worker, kept after it ends so it can be awaited
+	private Task completion = Task.CompletedTask;
 	//written under stateLock, read without it: the model asks for every notification on the UI thread
 	private volatile bool busy;
 	private volatile bool disposed;
@@ -36,10 +38,10 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	public bool HasPendingWrites => busy;
 
 	/// <summary>
-	/// Raised on a worker thread once the queued writes are done and at least one failed: the error and what the device really has now
-	/// (null if even that couldn't be read)
+	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did)
+	/// and what the device has now (null if it couldn't be read)
 	/// </summary>
-	public event Action<Exception, VolumeChangedEventArgs?>? WriteFailed;
+	public event Action<Exception?, VolumeChangedEventArgs?>? WritesCompleted;
 
 	public MasterAudioSessionVolume(AudioEndpointVolume aVol)
 	{
@@ -128,13 +130,15 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 			if(volume != null) pendingVolume = volume;
 			if(mute != null) pendingMute = mute;
 			busy = true;
-			worker ??= Task.Run(Run);
+			if(worker == null)
+				completion = worker = Task.Run(Run);
 		}
 	}
 
 	private void Run()
 	{
 		Exception? error = null;
+		VolumeChangedEventArgs? state = null;
 		while(true)
 		{
 			(int Volume, Guid Context)? volume;
@@ -145,13 +149,30 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 				mute = pendingMute;
 				pendingVolume = null;
 				pendingMute = null;
-				//nothing came in while we were writing: go idle
-				if(disposed || (volume == null && mute == null))
+				if(disposed)
 				{
 					worker = null;
 					busy = false;
-					break;
+					return;
 				}
+			}
+
+			if(volume == null && mute == null)
+			{
+				//the queue is empty: read what the device has before going idle. A change made meanwhile by someone else
+				//(e.g. the keyboard's mute key) was dropped as a possible echo, and nothing else would pick it up
+				state = ReadDeviceState();
+				lock(stateLock)
+				{
+					//nothing came in while we were reading: go idle
+					if(disposed || (pendingVolume == null && pendingMute == null))
+					{
+						worker = null;
+						busy = false;
+						break;
+					}
+				}
+				continue;
 			}
 
 			//mute first: an unmute that precedes a volume step must not leave the step inaudible
@@ -161,28 +182,34 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 			catch(Exception e) { error = e; }
 		}
 
-		//reported once the queue is empty (and busy is false): the model only trusts the device's state when nothing newer is coming
-		if(error != null && !disposed)
-		{
-			VolumeChangedEventArgs? real = null;
-			try { real = new VolumeChangedEventArgs(VolumePercent.FromScalar(GetVolume()), GetMute()); }
-			catch { }
-			WriteFailed?.Invoke(error, real);
-		}
+		//reported once the worker is idle: the model only trusts the device's state when nothing newer is coming
+		if(!disposed)
+			WritesCompleted?.Invoke(error, state);
 	}
 
+	private VolumeChangedEventArgs? ReadDeviceState()
+	{
+		try { return new VolumeChangedEventArgs(VolumePercent.FromScalar(GetVolume()), GetMute()); }
+		catch { return null; }
+	}
+
+	public Task WaitForWritesAsync()
+	{
+		lock(stateLock)
+			return completion;
+	}
+
+	/// <summary>
+	/// Drops the queued writes and doesn't write anything else. It doesn't wait for the write in progress (it can't be interrupted):
+	/// await <see cref="WaitForWritesAsync"/> before the device is released
+	/// </summary>
 	public void Dispose()
 	{
-		Task? running;
 		lock(stateLock)
 		{
 			disposed = true;
 			pendingVolume = null;
 			pendingMute = null;
-			running = worker;
 		}
-		//a write in progress can't be interrupted: wait for it (bounded) so nothing touches the device after this returns
-		try { running?.Wait(TimeSpan.FromSeconds(2)); }
-		catch { }
 	}
 }

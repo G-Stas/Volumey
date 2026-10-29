@@ -42,13 +42,13 @@ public class MasterAudioSessionVolumeTests
 		var volume = new MasterAudioSessionVolume((v, c) =>
 		{
 			started.Set();
-			gate.Wait();
+			gate.Wait(TestContext.CancellationToken);
 			lock(written)
 				written.Add(v);
 		}, (m, c) => { }, background: true);
 
 		volume.SetVolume(10, Guid.Empty);
-		Assert.IsTrue(started.Wait(Timeout));
+		Assert.IsTrue(started.Wait(Timeout, TestContext.CancellationToken));
 		volume.SetVolume(20, Guid.Empty);
 		volume.SetVolume(30, Guid.Empty);
 		volume.SetVolume(40, Guid.Empty);
@@ -56,7 +56,7 @@ public class MasterAudioSessionVolumeTests
 
 		gate.Set();
 		Assert.IsTrue(SpinWait.SpinUntil(() => !volume.HasPendingWrites, Timeout));
-		CollectionAssert.AreEqual(new[] { 10, 40 }, written);
+        Assert.AreSequenceEqual([10, 40], written);
 	}
 
 	[TestMethod]
@@ -68,7 +68,7 @@ public class MasterAudioSessionVolumeTests
 		var volume = new MasterAudioSessionVolume((v, c) =>
 		{
 			started.Set();
-			gate.Wait();
+			gate.Wait(TestContext.CancellationToken);
 		}, (m, c) =>
 		{
 			lock(muted)
@@ -76,25 +76,25 @@ public class MasterAudioSessionVolumeTests
 		}, background: true);
 
 		volume.SetVolume(10, Guid.Empty);
-		Assert.IsTrue(started.Wait(Timeout));
+		Assert.IsTrue(started.Wait(Timeout, TestContext.CancellationToken));
 
 		//returns at once although the device is still busy with the volume write
 		volume.SetMute(true, Guid.Empty);
-		Assert.AreEqual(0, muted.Count);
+		Assert.IsEmpty(muted);
 
 		gate.Set();
 		Assert.IsTrue(SpinWait.SpinUntil(() => !volume.HasPendingWrites, Timeout));
-		CollectionAssert.AreEqual(new[] { true }, muted);
+        Assert.AreSequenceEqual([true], muted);
 	}
 
 	[TestMethod]
-	public void FailedWriteMustBeReported()
+	public void WritesCompletedMustReportTheErrorOfAFailedWrite()
 	{
 		var error = new COMException();
 		using var reported = new ManualResetEventSlim();
 		Exception received = null;
 		var volume = new MasterAudioSessionVolume((v, c) => throw error, (m, c) => { }, background: true);
-		volume.WriteFailed += (e, real) =>
+		volume.WritesCompleted += (e, state) =>
 		{
 			received = e;
 			reported.Set();
@@ -102,12 +102,31 @@ public class MasterAudioSessionVolumeTests
 
 		volume.SetVolume(10, Guid.Empty);
 
-		Assert.IsTrue(reported.Wait(Timeout));
+		Assert.IsTrue(reported.Wait(Timeout, TestContext.CancellationToken));
 		Assert.AreSame(error, received);
 	}
 
 	[TestMethod]
-	public void DisposeMustDropPendingWritesAndWaitForTheRunningOne()
+	public void WritesCompletedMustBeRaisedAfterSuccessfulWritesToo()
+	{
+		using var reported = new ManualResetEventSlim();
+		Exception received = new Exception("not raised");
+		var volume = new MasterAudioSessionVolume((v, c) => { }, (m, c) => { }, background: true);
+		volume.WritesCompleted += (e, state) =>
+		{
+			received = e;
+			reported.Set();
+		};
+
+		volume.SetVolume(10, Guid.Empty);
+
+		Assert.IsTrue(reported.Wait(Timeout, TestContext.CancellationToken));
+		Assert.IsNull(received);
+		Assert.IsFalse(volume.HasPendingWrites);
+	}
+
+	[TestMethod]
+	public void DisposeMustNotBlockAndMustDropPendingWrites()
 	{
 		var written = new List<int>();
 		using var started = new ManualResetEventSlim();
@@ -115,24 +134,29 @@ public class MasterAudioSessionVolumeTests
 		var volume = new MasterAudioSessionVolume((v, c) =>
 		{
 			started.Set();
-			gate.Wait();
+			gate.Wait(TestContext.CancellationToken);
 			lock(written)
 				written.Add(v);
 		}, (m, c) => { }, background: true);
 
 		volume.SetVolume(10, Guid.Empty);
-		Assert.IsTrue(started.Wait(Timeout));
+		Assert.IsTrue(started.Wait(Timeout, TestContext.CancellationToken));
 		volume.SetVolume(20, Guid.Empty);
 
-		var disposing = Task.Run(volume.Dispose);
-		//it waits for the write in progress
-		Assert.IsFalse(disposing.Wait(TimeSpan.FromMilliseconds(100)));
+		//returns although a write is in progress
+		Assert.IsTrue(Task.Run(volume.Dispose, TestContext.CancellationToken).Wait(Timeout, TestContext.CancellationToken));
+
+		//the write in progress can be awaited before releasing the device
+		var waiting = volume.WaitForWritesAsync();
+		Assert.IsFalse(waiting.IsCompleted);
 
 		gate.Set();
-		Assert.IsTrue(disposing.Wait(Timeout));
+		Assert.IsTrue(waiting.Wait(Timeout, TestContext.CancellationToken));
 		//the queued 20 was dropped, and nothing is written after the dispose
 		volume.SetVolume(30, Guid.Empty);
 		Assert.IsFalse(volume.HasPendingWrites);
-		CollectionAssert.AreEqual(new[] { 10 }, written);
+        Assert.AreSequenceEqual([10], written);
 	}
+
+    public TestContext TestContext { get; set; }
 }

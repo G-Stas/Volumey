@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using log4net;
@@ -169,7 +170,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		FilePath = Name;
 		DeviceDesc = desc;
 		masterVolume = mVolume;
-		masterVolume.WriteFailed += OnWriteFailed;
+		masterVolume.WritesCompleted += OnWritesCompleted;
 		notificationHandler = nHandler;
 		notificationHandler.VolumeChanged += OnVolumeChanged;
 
@@ -345,6 +346,11 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		if(masterVolume.HasPendingWrites)
 			return;
 
+		ApplyDeviceState(e);
+	}
+
+	private void ApplyDeviceState(VolumeChangedEventArgs e)
+	{
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 		{
 			if(Volume != e.NewVolume || IsMuted != e.IsMuted)
@@ -369,13 +375,14 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
-	//raised on the worker thread once the queued writes are done and at least one of them failed
-	private void OnWriteFailed(Exception e, VolumeChangedEventArgs? real)
+	//raised on the worker thread each time the queued writes are done
+	private void OnWritesCompleted(Exception? e, VolumeChangedEventArgs? state)
 	{
-		LogStateException(e);
-		if(!real.HasValue)
+		if(e != null)
+			LogStateException(e);
+		if(!state.HasValue)
 			return;
-		VolumeChangedEventArgs deviceState = real.Value;
+		VolumeChangedEventArgs deviceState = state.Value;
 		//the properties this changes belong to the UI thread
 		var dispatcher = System.Windows.Application.Current?.Dispatcher;
 		if(dispatcher != null)
@@ -386,11 +393,17 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 
 	private void ShowDeviceState(VolumeChangedEventArgs real)
 	{
-		//the device never got what the UI shows: show what it really has, unless a newer write is already on its way
+		//the device may have changed while we were writing (its notification was dropped) or never got what the UI shows:
+		//show what it really has, unless a newer write is already on its way
 		if(disposed || masterVolume.HasPendingWrites)
 			return;
-		TakeOver(real);
+		ApplyDeviceState(real);
 	}
+
+	/// <summary>
+	/// Completes once the write in progress (if any) has finished: the device must not be released before
+	/// </summary>
+	internal Task WaitForWritesAsync() => masterVolume.WaitForWritesAsync();
 
 	private void LogStateException(Exception e)
 	{
@@ -414,8 +427,8 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		StateNotificationMediator?.NotifyOfDisposing(this);
 		notificationHandler.VolumeChanged -= OnVolumeChanged;
-		masterVolume.WriteFailed -= OnWriteFailed;
-		//stops the background worker (waits for the write in progress) before the device is released
+		masterVolume.WritesCompleted -= OnWritesCompleted;
+		//drops the queued writes without waiting: OutputDeviceModel awaits WaitForWritesAsync before it releases the device
 		(masterVolume as IDisposable)?.Dispose();
 		notificationHandler.Dispose();
 		_icon?.Dispose();

@@ -450,10 +450,43 @@ public class MasterSessionModelTests
 		master.SetVolume(60, notify: false, GuidValue.Internal.Empty);
 
 		//act: the worker reports that the device kept its previous state
-		volumeMock.Raise(v => v.WriteFailed += null, new Exception("write failed"), new VolumeChangedEventArgs(50, false));
+		volumeMock.Raise(v => v.WritesCompleted += null, new Exception("write failed"), new VolumeChangedEventArgs(50, false));
 
 		//assert
 		Assert.AreEqual(50, master.Volume);
+	}
+
+	[TestMethod]
+	public void ADeviceChangeMadeWhileWritingMustBeTakenOverWhenTheWritesComplete()
+	{
+		//arrange
+		var volumeMock = new Mock<IAudioSessionVolume>();
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, volumeMock.Object, handlerMock.Object, new HotkeyService());
+
+		//act: every write succeeded, but the device was muted meanwhile (its notification was dropped)
+		volumeMock.Raise(v => v.WritesCompleted += null, (Exception)null, new VolumeChangedEventArgs(50, true));
+
+		//assert
+		Assert.IsTrue(master.IsMuted);
+	}
+
+	[TestMethod]
+	public void TheDeviceStateMustNotBeTakenOverWhileNewerWritesArePending()
+	{
+		//arrange
+		var volumeMock = new Mock<IAudioSessionVolume>();
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, volumeMock.Object, handlerMock.Object, new HotkeyService());
+		master.SetVolume(60, notify: false, GuidValue.Internal.Empty);
+
+		//act: the writes completed with an old state, but a newer write is already queued
+		volumeMock.SetupGet(v => v.HasPendingWrites).Returns(true);
+		volumeMock.Raise(v => v.WritesCompleted += null, (Exception)null, new VolumeChangedEventArgs(50, true));
+
+		//assert
+		Assert.AreEqual(60, master.Volume);
+		Assert.IsFalse(master.IsMuted);
 	}
 
 	[TestMethod]

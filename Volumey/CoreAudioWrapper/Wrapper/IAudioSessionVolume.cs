@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading.Tasks;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
 
@@ -8,7 +9,7 @@ public interface IAudioSessionVolume
 	float GetVolume();
 
 	/// <summary>
-	/// Sets the volume. Implementations may write in the background, in which case failures are reported through <see cref="WriteFailed"/>
+	/// Sets the volume. Implementations may write in the background, in which case failures are reported through <see cref="WritesCompleted"/>
 	/// </summary>
 	void SetVolume(int newVolume, Guid context);
 
@@ -30,8 +31,13 @@ public interface IAudioSessionVolume
 	bool HasPendingWrites => false;
 
 	/// <summary>
-	/// Raised on a worker thread once the queued writes are done and at least one failed: the error and what the device really has now
-	/// (null if even that couldn't be read)
+	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did)
+	/// and what the device has now (null if it couldn't be read)
 	/// </summary>
-	event Action<Exception, VolumeChangedEventArgs?>? WriteFailed { add { } remove { } }
+	event Action<Exception?, VolumeChangedEventArgs?>? WritesCompleted { add { } remove { } }
+
+	/// <summary>
+	/// Completes once the write in progress (if any) has finished. It doesn't block, so it can be awaited before the device is released
+	/// </summary>
+	Task WaitForWritesAsync() => Task.CompletedTask;
 }

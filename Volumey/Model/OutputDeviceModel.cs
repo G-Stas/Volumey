@@ -424,6 +424,10 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 		{
 			_processesSemaphore.Release();
 		}
+
+		//a write still running on the master volume's worker must end before the device is released
+		await Master.WaitForWritesAsync();
+
 		var disposedDevice = device;
 		await Task.Run(() => disposedDevice.Dispose());
 	}
