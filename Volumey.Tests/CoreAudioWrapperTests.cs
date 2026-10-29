@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Volumey.CoreAudioWrapper.Wrapper;
 
 namespace Volumey.Tests;
@@ -148,5 +149,16 @@ public class CoreAudioWrapperTests
 		Assert.AreEqual("float 32/32 bit 2 ch 48000 Hz mask 0x3", PolicyClient.Describe(mix));
 		Assert.AreEqual("tag 0x1 16 bit 2 ch 44100 Hz", PolicyClient.Describe(plain));
 		Assert.AreEqual("10 bytes", PolicyClient.Describe(new byte[10]));
+	}
+
+	[TestMethod]
+	public void TheDevicesOwnContainerIsCheckedFirst()
+	{
+		var in32 = new DeviceFormat(Channels: 2, SamplesPerSec: 48000, AvgBytesPerSec: 384000, BlockAlign: 8, BitsPerSample: 32, ValidBitsPerSample: 24, ChannelMask: 3);
+		var in24 = in32 with { AvgBytesPerSec = 288000, BlockAlign = 6, BitsPerSample = 24 };
+
+		CollectionAssert.AreEqual(new (ushort, ushort)[] { (16, 16), (24, 32), (24, 24), (32, 32) }, AudioDevice.SampleSizesToCheck(in32).ToArray());
+		CollectionAssert.AreEqual(new (ushort, ushort)[] { (16, 16), (24, 24), (24, 32), (32, 32) }, AudioDevice.SampleSizesToCheck(in24).ToArray());
+		CollectionAssert.AreEqual(new (ushort, ushort)[] { (16, 16), (24, 24), (24, 32), (32, 32) }, AudioDevice.SampleSizesToCheck(null).ToArray());
 	}
 }
