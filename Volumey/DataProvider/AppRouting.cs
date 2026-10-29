@@ -38,7 +38,8 @@ public sealed class AppRouting : IAppRouting, IDisposable
 
 	/// <summary>An app's models on all devices and what the UI thread knew when the refresh started</summary>
 	private sealed record AppSnapshot(IReadOnlyList<Member> Members, string? DefaultDeviceId,
-		IReadOnlyList<(string Id, string Name)> ActiveDevices, IReadOnlyList<uint> ProcessIds, bool IsSystemSounds);
+		IReadOnlyList<(string Id, string Name)> ActiveDevices, IReadOnlyList<uint> ProcessIds, bool IsSystemSounds,
+		IReadOnlyCollection<string> ReturnedDevices);
 
 	private readonly IDeviceProvider devices;
 	private readonly IAppAudioRouting windows;
@@ -48,6 +49,8 @@ public sealed class AppRouting : IAppRouting, IDisposable
 	private readonly object gate = new();
 	private readonly HashSet<AudioProcessModel> waiting = new();
 	private readonly Queue<PendingMove> moves = new();
+	//devices that became active since the worker was last idle: apps pinned to them are set again (AppRoutingRules.ReappliesRoute)
+	private readonly HashSet<string> returnedDevices = new(StringComparer.OrdinalIgnoreCase);
 	private bool working;
 	private bool stopped;
 
@@ -184,6 +187,8 @@ public sealed class AppRouting : IAppRouting, IDisposable
 				}
 				else
 				{
+					//every app was read since those devices came back
+					returnedDevices.Clear();
 					working = false;
 					return;
 				}
@@ -219,6 +224,12 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		if(snapshot == null || IsStopped)
 			return;
 		var route = snapshot.IsSystemSounds ? new AppRoute.FollowsDefault() : ReadRoute(snapshot.ProcessIds);
+		if(route is AppRoute.Pinned pinnedRoute && AppRoutingRules.ReappliesRoute(route, snapshot.ReturnedDevices,
+			   snapshot.Members.Any(m => m.PlaysNow && AppRoutingRules.SameDevice(m.DeviceId, pinnedRoute.DeviceId))))
+		{
+			var writes = snapshot.ProcessIds.Select(processId => Timed(() => windows.SetRoute(processId, route))).ToList();
+			Logger.Info($"Sent [{app.Name}] back to its device, which is active again: {AppRoutingRules.OutcomeOf(writes, route).GetType().Name}");
+		}
 		string? deviceName = route is AppRoute.Pinned pinned ? NameOf(pinned.DeviceId, snapshot.ActiveDevices) : null;
 		var activeIds = snapshot.ActiveDevices.Select(d => d.Id).ToList();
 		var placements = snapshot.Members.Select(m => (m.App, PlaysHere: AppRoutingRules.PlaysHere(new PlacementFacts(m.App.IsSystemSounds, m.PlaysNow,
@@ -332,15 +343,17 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		var members = GroupOf(AllModels(), app);
 		if(members == null)
 			return null;
+		string[] returned;
 		lock(gate)
 		{
 			//this refresh covers them
 			waiting.ExceptWith(members.Select(m => m.App));
+			returned = returnedDevices.ToArray();
 		}
 		return new AppSnapshot(members, devices.DefaultDevice?.Id,
 			devices.ActiveDevices.Select(d => (d.Id, d.Master.Name)).ToList(),
 			members.SelectMany(m => m.App.SessionsSnapshot().Select(s => s.ProcessId)).Where(id => id != 0).Distinct().ToList(),
-			members.Any(m => m.App.IsSystemSounds));
+			members.Any(m => m.App.IsSystemSounds), returned);
 	}
 
 	//UI thread: the app's volume and mute on the device it was moved from, once it plays on the device it was moved to
@@ -397,6 +410,8 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		foreach(var device in e.NewItems?.OfType<OutputDeviceModel>() ?? [])
 		{
 			inactiveDeviceNames.TryRemove(device.Id, out _);
+			lock(gate)
+				returnedDevices.Add(device.Id);
 			Watch(device);
 		}
 		//whether a pinned device is active changes the rows of its apps everywhere

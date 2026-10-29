@@ -148,6 +148,14 @@ public static class AppRoutingRules
 			: writes.All(w => w is RouteWrite.ProcessGone) ? new MoveOutcome.AppGone()
 			: new MoveOutcome.Refused();
 
+	/// <summary>
+	/// Whether to set the app's route again: Windows plays a pinned app on the default device while its device is away and doesn't
+	/// send it back when the device returns (the app hears of its route only when it's set)
+	/// </summary>
+	/// <param name="returnedDeviceIds">Devices that became active since the apps were last read</param>
+	public static bool ReappliesRoute(AppRoute route, IReadOnlyCollection<string> returnedDeviceIds, bool playsNowOnPinnedDevice)
+		=> route is AppRoute.Pinned pinned && !playsNowOnPinnedDevice && returnedDeviceIds.Any(id => SameDevice(id, pinned.DeviceId));
+
 	/// <summary>Device IDs Windows' audio policy returns may differ in case from the device enumerator's</summary>
 	public static bool SameDevice(string? a, string? b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 }

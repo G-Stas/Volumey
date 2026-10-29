@@ -560,6 +560,58 @@ public class AppRoutingTests
 		Assert.AreEqual(2, windows.Gets);
 	}
 
+	private readonly List<(uint ProcessId, AppRoute Route)> sets = new();
+
+	private void RecordSets() => windows.OnSet = (processId, route) =>
+	{
+		lock(sets)
+			sets.Add((processId, route));
+		return new RouteWrite.Done();
+	};
+
+	// U20
+	[TestMethod]
+	public void AnAppPinnedToADeviceThatComesBackIsSentThereAgain()
+	{
+		//Windows plays it on the default device while its device is away, and doesn't send it back when the device returns
+		var app = NewApp("player", 50, true, 100);
+		windows.Routes[100] = new AppRoute.Pinned(B);
+		RecordSets();
+		var a = Device(A, "Speakers", app);
+		Start(a);
+		Settle();
+		Assert.AreEqual(0, sets.Count, "set while its device is away");
+
+		Device(B, "Headset");
+		Settle();
+
+		CollectionAssert.AreEqual(new[] { (100u, (AppRoute)new AppRoute.Pinned(B)) }, sets.ToArray());
+		OnUi(routing.RefreshAll);
+		Settle();
+		Assert.AreEqual(1, sets.Count, "set again on a later refresh");
+	}
+
+	// U20
+	[TestMethod]
+	public void OnlyAppsPinnedToTheReturningDeviceAndNotPlayingThereAreSentAgain()
+	{
+		var following = NewApp("browser", 50, true, 100);
+		var elsewhere = NewApp("game", 50, true, 200);
+		var playingThere = NewApp("voice", 50, false, 300);
+		var playingThereOnB = NewApp("voice", 50, true, 300);
+		windows.Routes[200] = new AppRoute.Pinned(Unplugged);
+		windows.Routes[300] = new AppRoute.Pinned(B);
+		RecordSets();
+		var a = Device(A, "Speakers", following, elsewhere, playingThere);
+		Start(a);
+		Settle();
+
+		Device(B, "Headset", playingThereOnB);
+		Settle();
+
+		Assert.AreEqual(0, sets.Count, string.Join(", ", sets));
+	}
+
 	// U12 (badge data): an app pinned to an unplugged device keeps the device's name, read from Windows once
 	[TestMethod]
 	public void AnUnpluggedPinnedDeviceIsNamedByWindowsOnce()

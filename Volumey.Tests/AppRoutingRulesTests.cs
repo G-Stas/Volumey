@@ -209,6 +209,19 @@ public class AppRoutingRulesTests
 			? [items]
 			: items.SelectMany(item => Permutations(items.Where(i => i != item).ToArray()).Select(rest => rest.Prepend(item).ToArray()));
 
+	// U20
+	[TestMethod]
+	public void AnAppIsSentAgainOnlyToItsReturningDeviceWhenItDoesntPlayThere()
+	{
+		string[] returned = [Other];
+		Assert.IsTrue(ReappliesRoute(new AppRoute.Pinned(Other), returned, playsNowOnPinnedDevice: false));
+		Assert.IsTrue(ReappliesRoute(new AppRoute.Pinned(Other.ToUpperInvariant()), returned, playsNowOnPinnedDevice: false));
+		Assert.IsFalse(ReappliesRoute(new AppRoute.Pinned(Other), returned, playsNowOnPinnedDevice: true));
+		Assert.IsFalse(ReappliesRoute(new AppRoute.Pinned(Here), returned, playsNowOnPinnedDevice: false));
+		Assert.IsFalse(ReappliesRoute(new AppRoute.FollowsDefault(), returned, playsNowOnPinnedDevice: false));
+		Assert.IsFalse(ReappliesRoute(new AppRoute.Pinned(Other), [], playsNowOnPinnedDevice: false));
+	}
+
 	private static readonly AppRoute Previous = new AppRoute.Pinned(Here);
 
 	// U6
