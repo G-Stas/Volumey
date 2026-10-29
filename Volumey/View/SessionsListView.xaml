@@ -13,6 +13,39 @@
         <!-- visible unless the app has exactly one session -->
         <converters:CollectionCountToVisibilityConverter CountLimit="1" x:Key="SeveralSessionsToVisibility"/>
         <converters:MultipleVisibilityToSingleVisibilityConverter x:Key="AllVisible"/>
+        <converters:AppCanMoveConverter x:Key="AppCanMove"/>
+        <converters:AppOutputOptionConverter x:Key="OptionPart"/>
+        <converters:LocalizedFormatConverter x:Key="LocalizedFormat"/>
+
+        <!-- an item of an app's device box in the closed box: "Default device · <default>" in one line, or the device's name -->
+        <DataTemplate x:Key="OutputOptionClosed">
+            <Grid>
+                <TextBlock TextTrimming="CharacterEllipsis"
+                           Visibility="{Binding Converter={StaticResource OptionPart}, ConverterParameter=DefaultOrNameless}">
+                    <Run Text="{lc:Localization Mixer_DefaultDevice}" /><Run Text=" · " Foreground="{DynamicResource TextFillColorSecondaryBrush}" /><Run Text="{Binding Detail, Mode=OneWay}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </TextBlock>
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                           Visibility="{Binding Converter={StaticResource OptionPart}, ConverterParameter=Named}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- an item in the open list: "Default device" over the default's name; a device Windows can't name is only its icon -->
+        <DataTemplate x:Key="OutputOptionInList">
+            <Grid>
+                <StackPanel Visibility="{Binding Converter={StaticResource OptionPart}, ConverterParameter=Default}">
+                    <TextBlock Text="{lc:Localization Mixer_DefaultDevice}" />
+                    <TextBlock Style="{StaticResource Caption}" Text="{Binding Detail}" />
+                </StackPanel>
+                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"
+                           Visibility="{Binding Converter={StaticResource OptionPart}, ConverterParameter=Named}" />
+                <ui:SymbolIcon Symbol="Headphones20" HorizontalAlignment="Left"
+                               Visibility="{Binding Converter={StaticResource OptionPart}, ConverterParameter=Nameless}" />
+            </Grid>
+        </DataTemplate>
+
+        <converters:OutputOptionTemplateSelector x:Key="OutputOptionTemplates"
+                                                 Closed="{StaticResource OutputOptionClosed}"
+                                                 InList="{StaticResource OutputOptionInList}" />
 
         <!-- the app's icon is the button that shows its sessions; a subtle (transparent) button like WinUI's -->
         <Style x:Key="IconToggle" TargetType="ToggleButton">
@@ -50,7 +83,8 @@
         </ItemsControl.ItemContainerStyle>
         <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <StackPanel>
+                <!-- an app that plays on another device has no row here (its model stays, see AppRouting) -->
+                <StackPanel Visibility="{Binding PlaysHere, Converter={StaticResource BoolToVisibility}}">
                     <!-- 16 on the right too: WPF-UI's scroll bar (up to 14 px) is drawn over the content and would cover the mute buttons -->
                     <Grid Margin="16 6 16 6">
                         <Grid.ColumnDefinitions>
@@ -73,12 +107,18 @@
                                        Width="24"
                                        Height="24"
                                        RenderOptions.BitmapScalingMode="HighQuality" />
-                                <!-- the expand badge of an app with several sessions -->
-                                <Border Width="16" Height="16" CornerRadius="8"
+                                <!-- the expand badge of an app that opens: one that can be moved, or has several sessions -->
+                                <Border x:Name="OpensBadge" Width="16" Height="16" CornerRadius="8"
                                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 2 2"
                                         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-                                        BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="1"
-                                        Visibility="{Binding Sessions.Count, Converter={StaticResource SeveralSessionsToVisibility}}">
+                                        BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="1">
+                                    <Border.Visibility>
+                                        <MultiBinding Converter="{StaticResource AppCanMove}">
+                                            <Binding Path="DataContext.CanMoveApps" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                            <Binding Path="IsSystemSounds" />
+                                            <Binding Path="Sessions.Count" />
+                                        </MultiBinding>
+                                    </Border.Visibility>
                                     <!-- the toggle's own template sets no text color, so the theme's is given here (otherwise it's black on dark) -->
                                     <ui:SymbolIcon FontSize="10" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
                                         <ui:SymbolIcon.Style>
@@ -96,11 +136,51 @@
                             </Grid>
                         </ToggleButton>
 
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding Name}"
-                                   FontSize="13"
-                                   TextTrimming="CharacterEllipsis"
-                                   Margin="10 0 0 0" />
+                        <StackPanel Grid.Column="1" Margin="10 0 0 0" Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}"
+                                       FontSize="13"
+                                       TextTrimming="CharacterEllipsis">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="MaxWidth" Value="150" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RouteDeviceName}" Value="{x:Null}">
+                                                <Setter Property="MaxWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <!-- the device the app is set to play on, when it's not the default device -->
+                            <Border Height="18"
+                                    Margin="6 0 0 0"
+                                    Padding="6 0"
+                                    CornerRadius="9"
+                                    BorderThickness="1"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RouteDeviceName}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Headphones20" FontSize="12" Margin="0 0 4 0"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="{Binding RouteDeviceName}"
+                                               FontSize="11"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="130"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
 
                         <!-- the slider, the number and the mute button share one row, so the button lines up with the slider -->
                         <Grid Grid.Row="1" Grid.Column="1" Margin="10 0 0 0">
@@ -134,71 +214,112 @@
                         </ui:Button>
                     </Grid>
 
-                    <ItemsControl ItemsSource="{Binding Sessions}"
-                                  Margin="57 0 16 4"
-                                  BorderThickness="1 0 0 0"
-                                  BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}">
-                        <ItemsControl.Visibility>
+                    <!-- the opened app: its device box, then its sessions when it has several -->
+                    <Border Margin="57 0 16 4"
+                            BorderThickness="1 0 0 0"
+                            BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}">
+                        <Border.Visibility>
                             <MultiBinding Converter="{StaticResource AllVisible}">
                                 <Binding ElementName="Expand" Path="IsChecked" Converter="{StaticResource BoolToVisibility}"/>
-                                <Binding Path="Sessions.Count" Converter="{StaticResource SeveralSessionsToVisibility}"/>
+                                <!-- the app opens: the same condition as its expand badge -->
+                                <Binding ElementName="OpensBadge" Path="Visibility" />
                             </MultiBinding>
-                        </ItemsControl.Visibility>
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.Template>
-                            <ControlTemplate TargetType="ItemsControl">
-                                <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
-                                    <ItemsPresenter />
-                                </Border>
-                            </ControlTemplate>
-                        </ItemsControl.Template>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="16 2 0 2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="20" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Image Source="{Binding IconSource}"
-                                           Width="20"
-                                           Height="20"
-                                           RenderOptions.BitmapScalingMode="HighQuality" />
-                                    <controls:VolumeSlider Grid.Column="1"
-                                                           Margin="10 0 8 0"
-                                                           Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                                                           IsMuted="{Binding IsMuted}"
-                                                           Level="{Binding Level}"
-                                                           AutomationProperties.Name="{Binding Name}" />
-                                    <TextBlock Grid.Column="2"
-                                               Style="{StaticResource VolumeValue}"
-                                               FontSize="13"
-                                               Text="{Binding Volume}" />
-                                    <ui:Button Grid.Column="3"
-                                               Style="{StaticResource IconButton}"
-                                               Width="28"
-                                               Height="28"
-                                               Margin="10 0 0 0"
-                                               Tag="{Binding IsMuted}"
-                                               Command="{Binding MuteCommand}">
-                                        <AutomationProperties.Name>
-                                            <MultiBinding Converter="{StaticResource MuteButtonName}">
-                                                <Binding Path="IsMuted" />
-                                                <Binding Path="Name" />
-                                                <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                                            </MultiBinding>
-                                        </AutomationProperties.Name>
-                                        <ui:SymbolIcon Style="{StaticResource MuteIcon}" FontSize="16" />
-                                    </ui:Button>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </Border.Visibility>
+                        <StackPanel>
+                            <DockPanel Margin="16 2 0 6">
+                                <DockPanel.Visibility>
+                                    <MultiBinding Converter="{StaticResource AppCanMove}">
+                                        <Binding Path="DataContext.CanMoveApps" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        <Binding Path="IsSystemSounds" />
+                                    </MultiBinding>
+                                </DockPanel.Visibility>
+                                <ui:SymbolIcon Symbol="Headphones20" Margin="0 0 10 0" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <ComboBox x:Name="OutputBox"
+                                          ItemTemplateSelector="{StaticResource OutputOptionTemplates}"
+                                          AutomationProperties.AutomationId="AppOutputDeviceBox"
+                                          Loaded="OnOutputBoxLoaded"
+                                          Unloaded="OnOutputBoxUnloaded"
+                                          SelectionChanged="OnOutputPicked">
+                                    <AutomationProperties.Name>
+                                        <MultiBinding Converter="{StaticResource LocalizedFormat}" ConverterParameter="Mixer_PlayOn">
+                                            <Binding Path="Name" />
+                                            <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                        </MultiBinding>
+                                    </AutomationProperties.Name>
+                                    <ComboBox.ItemContainerStyle>
+                                        <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                                            <Setter Property="AutomationProperties.Name">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource OptionPart}" ConverterParameter="AutomationName">
+                                                        <Binding />
+                                                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ComboBox.ItemContainerStyle>
+                                </ComboBox>
+                            </DockPanel>
+                            <ItemsControl ItemsSource="{Binding Sessions}"
+                                          Visibility="{Binding Sessions.Count, Converter={StaticResource SeveralSessionsToVisibility}}">
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.Template>
+                                    <ControlTemplate TargetType="ItemsControl">
+                                        <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                                            <ItemsPresenter />
+                                        </Border>
+                                    </ControlTemplate>
+                                </ItemsControl.Template>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="16 2 0 2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="20" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Image Source="{Binding IconSource}"
+                                                   Width="20"
+                                                   Height="20"
+                                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                                            <controls:VolumeSlider Grid.Column="1"
+                                                                   Margin="10 0 8 0"
+                                                                   Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                                                   IsMuted="{Binding IsMuted}"
+                                                                   Level="{Binding Level}"
+                                                                   AutomationProperties.Name="{Binding Name}" />
+                                            <TextBlock Grid.Column="2"
+                                                       Style="{StaticResource VolumeValue}"
+                                                       FontSize="13"
+                                                       Text="{Binding Volume}" />
+                                            <ui:Button Grid.Column="3"
+                                                       Style="{StaticResource IconButton}"
+                                                       Width="28"
+                                                       Height="28"
+                                                       Margin="10 0 0 0"
+                                                       Tag="{Binding IsMuted}"
+                                                       Command="{Binding MuteCommand}">
+                                                <AutomationProperties.Name>
+                                                    <MultiBinding Converter="{StaticResource MuteButtonName}">
+                                                        <Binding Path="IsMuted" />
+                                                        <Binding Path="Name" />
+                                                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                                    </MultiBinding>
+                                                </AutomationProperties.Name>
+                                                <ui:SymbolIcon Style="{StaticResource MuteIcon}" FontSize="16" />
+                                            </ui:Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </DataTemplate>
         </ItemsControl.ItemTemplate>

@@ -23,7 +23,7 @@ namespace Volumey.DataProvider;
 /// The device, app and session lists are read on the UI thread, their only writer; Windows is called on the worker.
 /// The worker never waits for the UI thread to finish other work, and the UI thread never waits for the worker.
 /// </summary>
-public sealed class AppRouting : IDisposable
+public sealed class AppRouting : IAppRouting, IDisposable
 {
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppRouting));
 

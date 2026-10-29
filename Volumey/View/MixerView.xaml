@@ -55,6 +55,11 @@
                    FontWeight="SemiBold"
                    Margin="16 12 16 4" />
 
+        <!-- the notice after an app was moved to another device, above the bottom bar: the list gives it the room while it shows -->
+        <ui:SnackbarPresenter x:Name="Notices"
+                              DockPanel.Dock="Bottom"
+                              Margin="8 0 8 0" />
+
         <ScrollViewer x:Name="ScrollViewer"
                       VerticalScrollBarVisibility="Auto"
                       Padding="0 0 0 4">

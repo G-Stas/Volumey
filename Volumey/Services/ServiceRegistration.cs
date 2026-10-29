@@ -50,6 +50,7 @@ internal static class ServiceRegistration
 		services.AddSingleton<IAppAudioRouting>(_ => new AudioPolicyRouting());
 		services.AddSingleton(sp => new AppRouting(sp.Get<IDeviceProvider>(), sp.Get<IAppAudioRouting>(), DeviceEnumerator.GetDeviceName,
 			sp.Get<IAppShell>().Dispatcher));
+		services.AddSingleton<IAppRouting>(sp => sp.Get<AppRouting>());
 		services.AddSingleton<IScreenInfoProvider, ScreenInfoProvider>();
 		services.AddSingleton<IAppShell>(_ => new AppShell(application));
 		services.AddSingleton<ISystemIntegration, SystemIntegration>();
@@ -58,7 +59,7 @@ internal static class ServiceRegistration
 		services.AddSingleton<ThemeViewModel>();
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
 			sp.Get<IAppShell>(), sp.Get<ISystemIntegration>()));
-		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>()));
+		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new HotkeyModeViewModel(sp.Get<IHotkeyService>()));
 
 		services.AddSingleton(_ => new LangSettings());

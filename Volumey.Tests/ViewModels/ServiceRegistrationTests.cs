@@ -34,6 +34,7 @@ public class ServiceRegistrationTests : ViewModelTestBase
 		services.AddSingleton(screens.Object);
 		services.AddSingleton(shell.Object);
 		services.AddSingleton(new Mock<ISystemIntegration>().Object);
+		services.AddSingleton(new Mock<IAppRouting>().Object);
 		services.AddSingleton(new SupportLinks(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".json"),
 			() => Task.FromException<string>(new IOException("offline"))));
 		return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });

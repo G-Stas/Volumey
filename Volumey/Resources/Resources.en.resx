@@ -696,4 +696,19 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Can't save settings.</value>
   </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Play {0} on</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Default device</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} set to play on {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Couldn&apos;t move {0} to {1}</value>
+  </data>
 </root>
