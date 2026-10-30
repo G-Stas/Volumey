@@ -8,6 +8,8 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View.Converters;
@@ -243,10 +245,10 @@ public class ConvertersTests
 	[TestMethod]
 	public void TrayIconPicksTheDeviceIconOnlyWhenThereIsOne()
 	{
-		Assert.AreEqual(TrayIconConverter.IconType.DeviceIcon, TrayIconConverter.Pick(true, false, 50, false, true));
-		Assert.AreEqual(TrayIconConverter.IconType.DeviceIcon, TrayIconConverter.Pick(true, false, 50, true, true));
-		Assert.AreEqual(TrayIconConverter.IconType.Mid, TrayIconConverter.Pick(true, false, 50, false, false));
-		Assert.AreEqual(TrayIconConverter.IconType.Mute, TrayIconConverter.Pick(true, false, 50, true, false));
+		Assert.AreEqual(TrayIconConverter.IconType.DeviceIcon, TrayIconConverter.Pick(TrayIconKind.DeviceIcon, false, 50, false, true));
+		Assert.AreEqual(TrayIconConverter.IconType.DeviceIcon, TrayIconConverter.Pick(TrayIconKind.DeviceIcon, false, 50, true, true));
+		Assert.AreEqual(TrayIconConverter.IconType.Mid, TrayIconConverter.Pick(TrayIconKind.DeviceIcon, false, 50, false, false));
+		Assert.AreEqual(TrayIconConverter.IconType.Mute, TrayIconConverter.Pick(TrayIconKind.DeviceIcon, false, 50, true, false));
 	}
 
 	// U3
@@ -262,27 +264,61 @@ public class ConvertersTests
 	[DataRow(true, 50, false, "NoDevice")]
 	public void TrayIconPicksTheVolumeGlyph(bool noOutputDevices, int volume, bool muted, string expected)
 	{
-		Assert.AreEqual(System.Enum.Parse<TrayIconConverter.IconType>(expected), TrayIconConverter.Pick(false, noOutputDevices, volume, muted, false));
+		Assert.AreEqual(System.Enum.Parse<TrayIconConverter.IconType>(expected), TrayIconConverter.Pick(TrayIconKind.VolumeLevel, noOutputDevices, volume, muted, false));
 	}
 
 	// U3
 	[TestMethod]
 	public void TrayIconPicksNothingWithoutAVolume()
 	{
-		Assert.AreEqual(TrayIconConverter.IconType.None, TrayIconConverter.Pick(false, false, null, false, false));
+		Assert.AreEqual(TrayIconConverter.IconType.None, TrayIconConverter.Pick(TrayIconKind.VolumeLevel, false, null, false, false));
 	}
 
+	// U1
 	[TestMethod]
-	public void TrayIconShowsTheDeviceIconWhenEnabled()
+	public void TrayIconPicksTheAppIconWhateverTheDevice()
 	{
-		var converter = new TrayIconConverter();
-		using var icon = (Icon)SystemIcons.Application.Clone();
+		foreach(bool noOutputDevices in new[] { false, true })
+		foreach(bool muted in new[] { false, true })
+		foreach(bool hasDeviceIcon in new[] { false, true })
+		foreach(int? volume in new int?[] { null, 0, 50, 100 })
+			Assert.AreEqual(TrayIconConverter.IconType.AppIcon,
+				TrayIconConverter.Pick(TrayIconKind.AppIcon, noOutputDevices, volume, muted, hasDeviceIcon));
+	}
 
-		Assert.AreSame(icon, Convert(converter, false, 50, false, null, true, icon));
+	// U4
+	[TestMethod]
+	public void TrayIconSendsAnIconOnlyWhenWhatItShowsChanges()
+	{
+		using var appIcon = (Icon)SystemIcons.Application.Clone();
+		using var deviceIcon = (Icon)SystemIcons.Information.Clone();
+		var converter = new TrayIconConverter(() => appIcon);
+
+		Assert.AreSame(deviceIcon, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, deviceIcon));
 		//the same icon again doesn't update the tray
-		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, true, icon));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, deviceIcon));
+
+		Assert.AreSame(appIcon, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.AppIcon, deviceIcon));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, true, AppTheme.Dark, TrayIconKind.AppIcon, deviceIcon));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, true, null, false, AppTheme.Light, TrayIconKind.AppIcon, null));
+		//neither the app icon nor the device icon needs a theme
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, deviceIcon));
+		Assert.AreSame(deviceIcon, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, deviceIcon));
+		Assert.AreSame(appIcon, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, deviceIcon));
+
+		//back to the volume glyph, in the theme that came in while the app icon showed
+		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Light, TrayIconKind.VolumeLevel, deviceIcon));
 		//without a theme there is no volume icon to show
-		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, false, icon));
+		Assert.AreEqual(Binding.DoNothing, Convert(new TrayIconConverter(() => appIcon), false, 50, false, null, TrayIconKind.VolumeLevel, deviceIcon));
+	}
+
+	// U4
+	[TestMethod]
+	public void TrayIconKeepsItsIconWhenTheAppIconCantBeRead()
+	{
+		var converter = new TrayIconConverter(() => null);
+
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.AppIcon, null));
 	}
 
 	private static string[] VisibleParts(AppOutputOption option)

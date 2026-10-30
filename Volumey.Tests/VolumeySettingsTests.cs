@@ -89,6 +89,32 @@ public class VolumeySettingsTests
 		Assert.AreEqual(new HotKey(Key.M, ModifierKeys.Control), reloaded.Hotkeys.DeviceMute);
 	}
 
+	// U5
+	[TestMethod]
+	[DataRow("\"DisplayDeviceIconAtTray\": true", TrayIconKind.DeviceIcon)]
+	[DataRow("\"DisplayDeviceIconAtTray\": false", TrayIconKind.VolumeLevel)]
+	[DataRow("\"PopupMode\": true", TrayIconKind.VolumeLevel)]
+	[DataRow("\"TrayIcon\": \"AppIcon\"", TrayIconKind.AppIcon)]
+	public void TheTrayIconChoiceIsReadFromOldAndNewFiles(string window, TrayIconKind expected)
+	{
+		File.WriteAllText(file, "{ \"Window\": { " + window + " } }");
+
+		Assert.AreEqual(expected, Load().Window.TrayIcon);
+	}
+
+	// U5
+	[TestMethod]
+	public void TheOldTrayIconKeyIsNotWrittenBack()
+	{
+		File.WriteAllText(file, """{ "Window": { "DisplayDeviceIconAtTray": true } }""");
+
+		Load().SaveNow();
+
+		string saved = File.ReadAllText(file);
+		StringAssert.Contains(saved, "\"TrayIcon\": \"DeviceIcon\"");
+		Assert.IsFalse(saved.Contains("DisplayDeviceIconAtTray"), saved);
+	}
+
 	[TestMethod]
 	public void AHotkeySavedWithoutASourceIsAKeyboardHotkey()
 	{

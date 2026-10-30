@@ -45,7 +45,7 @@ public class LegacySettingsImporterTests
 		Assert.IsTrue(settings.Window.PopupMode);
 		Assert.IsTrue(settings.Window.AlwaysOnTop);
 		Assert.IsTrue(settings.Window.DeviceViewAtTheBottom);
-		Assert.IsTrue(settings.Window.DisplayDeviceIconAtTray);
+		Assert.AreEqual(TrayIconKind.DeviceIcon, settings.Window.TrayIcon); // U6
 		Assert.AreEqual(100.5, settings.Window.Left);
 		Assert.AreEqual(200.25, settings.Window.Top);
 		//the file stores screen index 1, the name of that screen now is kept

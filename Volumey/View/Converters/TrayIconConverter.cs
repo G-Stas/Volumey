@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 
 namespace Volumey.View.Converters;
 
@@ -17,6 +18,7 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 		Mute,
 		NoDevice,
 		DeviceIcon,
+		AppIcon,
 		None
 	}
 
@@ -27,10 +29,25 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 	private LightIconProvider? lightIconProvider;
 	private DarkIconProvider? darkIconProvider;
 
+	//read once, also when it fails: it's part of the app and won't appear later
+	private readonly Lazy<Icon?> appIcon;
+
+	public TrayIconConverter() : this(IconExtensions.LoadAppTrayIcon) { }
+
+	internal TrayIconConverter(Func<Icon?> loadAppIcon) => appIcon = new Lazy<Icon?>(loadAppIcon);
+
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
 		var defaultDeviceIcon = values[5] as Icon;
-		var type = Pick(values[4] is true, values[0] is true, values[1] as int?, values[2] is true, defaultDeviceIcon != null);
+		var type = Pick(values[4] is TrayIconKind kind ? kind : TrayIconKind.VolumeLevel, values[0] is true, values[1] as int?, values[2] is true, defaultDeviceIcon != null);
+
+		if(type == IconType.AppIcon)
+		{
+			if(currentIconType == IconType.AppIcon || appIcon.Value is not { } icon)
+				return Binding.DoNothing;
+			currentIconType = IconType.AppIcon;
+			return icon;
+		}
 
 		if(type == IconType.DeviceIcon)
 		{
@@ -77,9 +94,11 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 	}
 
 	/// <summary>What the tray shows; Convert then loads the icon and skips repeats</summary>
-	internal static IconType Pick(bool displayDeviceIcon, bool noOutputDevices, int? volume, bool muted, bool hasDeviceIcon)
+	internal static IconType Pick(TrayIconKind kind, bool noOutputDevices, int? volume, bool muted, bool hasDeviceIcon)
 	{
-		if(displayDeviceIcon && hasDeviceIcon)
+		if(kind == TrayIconKind.AppIcon)
+			return IconType.AppIcon;
+		if(kind == TrayIconKind.DeviceIcon && hasDeviceIcon)
 			return IconType.DeviceIcon;
 		if(noOutputDevices)
 			return IconType.NoDevice;

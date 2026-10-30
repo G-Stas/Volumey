@@ -33,6 +33,7 @@ GetWindowRect
 MonitorFromWindow
 MonitorFromPoint
 GetDpiForMonitor
+GetSystemMetricsForDpi
 GetMonitorInfo
 GetMessageTime
 GetWindowLongPtr

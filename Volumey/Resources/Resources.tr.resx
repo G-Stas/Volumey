@@ -182,10 +182,16 @@
     <value>Sistem ayarını kullan</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Tepside varsayılan aygıtın simgesini göster</value>
+    <value>Tepsi simgesi</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Volumey simgesi yerine</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Ses düzeyi</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Varsayılan aygıtın simgesi</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey simgesi</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Başlangıç</value>

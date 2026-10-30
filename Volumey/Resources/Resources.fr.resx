@@ -182,10 +182,16 @@
     <value>Utiliser le paramètre système</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Afficher l'icône du périphérique par défaut dans la zone de notification</value>
+    <value>Icône dans la zone de notification</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>À la place de l'icône de Volumey</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Niveau du volume</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Icône du périphérique par défaut</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Icône de Volumey</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Démarrage</value>

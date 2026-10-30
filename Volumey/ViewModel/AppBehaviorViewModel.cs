@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using log4net;
 using Microsoft.Win32;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
@@ -99,10 +100,12 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnShowDevicePickerChanged(bool value) => SettingsProvider.Settings.Window.ShowDevicePicker = value;
 
-	[ObservableProperty]
-	public partial bool DisplayDeviceIconAtTray { get; set; }
+	public TrayIconKind[] TrayIcons { get; } = { TrayIconKind.VolumeLevel, TrayIconKind.DeviceIcon, TrayIconKind.AppIcon };
 
-	partial void OnDisplayDeviceIconAtTrayChanged(bool value) => SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
+	[ObservableProperty]
+	public partial TrayIconKind TrayIcon { get; set; }
+
+	partial void OnTrayIconChanged(TrayIconKind value) => SettingsProvider.Settings.Window.TrayIcon = value;
 
 	private bool launchAtStartup;
 	public bool LaunchAtStartup
@@ -241,7 +244,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
 		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
-		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
+		TrayIcon = SettingsProvider.Settings.Window.TrayIcon;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;

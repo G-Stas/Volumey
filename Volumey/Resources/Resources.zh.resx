@@ -182,10 +182,16 @@
     <value>使用系统设置</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>在托盘中显示默认设备的图标</value>
+    <value>托盘图标</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>代替 Volumey 图标</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>音量级别</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>默认设备的图标</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey 图标</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>启动</value>

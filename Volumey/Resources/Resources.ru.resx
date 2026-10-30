@@ -182,10 +182,16 @@
     <value>Как в системе</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Значок устройства по умолчанию в трее</value>
+    <value>Значок в трее</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Вместо значка Volumey</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Уровень громкости</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Значок устройства по умолчанию</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Значок Volumey</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Автозагрузка</value>
