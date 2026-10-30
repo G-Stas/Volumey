@@ -218,10 +218,11 @@ public class ConvertersTests
 	[TestMethod]
 	public void ThemeNamesAreTranslated()
 	{
-		var converter = new ThemeNameConverter();
-		Assert.AreEqual("Use system setting", Convert(converter, Volumey.DataProvider.AppTheme.System, "English"));
-		Assert.AreEqual("Dark", Convert(converter, Volumey.DataProvider.AppTheme.Dark, "English"));
-		Assert.IsNull(Convert(converter, "Dark"));
+		var converter = new EnumNameConverter();
+		Assert.AreEqual("Use system setting", converter.Convert([Volumey.DataProvider.AppTheme.System, "English"], typeof(object), "Theme_", Culture));
+		Assert.AreEqual("Dark", converter.Convert([Volumey.DataProvider.AppTheme.Dark, "English"], typeof(object), "Theme_", Culture));
+		Assert.IsNull(converter.Convert([Volumey.DataProvider.AppTheme.Dark, "English"], typeof(object), null, Culture));
+		Assert.IsNull(converter.Convert(["Dark"], typeof(object), "Theme_", Culture));
 	}
 
 	[TestMethod]

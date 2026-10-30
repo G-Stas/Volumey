@@ -2,21 +2,20 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
-using Volumey.DataProvider;
 using Volumey.Localization;
 
 namespace Volumey.View.Converters;
 
 /// <summary>
-/// The translated name of a theme ("Theme_Light", "Theme_Dark", "Theme_System").
+/// The translated name of an enum value: the string with the key ConverterParameter + value (e.g. "Theme_" + Dark).
 /// The second value is the current language, only bound so the name changes with it
 /// </summary>
-public sealed class ThemeNameConverter : IMultiValueConverter
+public sealed class EnumNameConverter : IMultiValueConverter
 {
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
-		if(values is { Length: > 0 } && values[0] is AppTheme theme)
-			return TranslationSource.Instance["Theme_" + theme];
+		if(values is { Length: > 0 } && values[0] is Enum value && parameter is string prefix)
+			return TranslationSource.Instance[prefix + value];
 		return null;
 	}
 
