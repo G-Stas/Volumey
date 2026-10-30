@@ -25,6 +25,9 @@ internal sealed class InputHookHost
 	/// <summary>How long a hook may take to start or to stop</summary>
 	private static readonly TimeSpan HookTimeout = TimeSpan.FromSeconds(3);
 
+	private const int StopAttempts = 5;
+	private static readonly TimeSpan StopRetryDelay = TimeSpan.FromMilliseconds(50);
+
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(InputHookHost));
 
@@ -189,7 +192,8 @@ internal sealed class InputHookHost
 
 	/// <summary>
 	/// Stops the hook and waits until its thread has ended, which is when libuiohook is free for the next one.
-	/// A hook disposed before it has started isn't stopped (SharpHook only stops a running hook), so a starting hook is waited for first.
+	/// SharpHook only stops a running hook, so a starting hook is waited for first.
+	/// The hook is gone afterwards even when stopping it failed, so the next one can start.
 	/// </summary>
 	private void Stop()
 	{
@@ -199,15 +203,47 @@ internal sealed class InputHookHost
 		hook.MousePressed -= OnMousePressed;
 		hook.MouseWheel -= OnMouseWheel;
 		hookEnabled?.Wait(HookTimeout);
-		hook.Dispose();
-		if(hookThread != null && !hookThread.Join(HookTimeout))
-			Logger.Warn("The input hook didn't stop in time");
-		hook = null;
-		hookThread = null;
-		hookEnabled?.Dispose();
-		hookEnabled = null;
-		lock(sync)
-			running = null;
+		try
+		{
+			StopRunning(hook);
+			if(hookThread != null && !hookThread.Join(HookTimeout))
+				Logger.Warn("The input hook didn't stop in time");
+			hook.Dispose();
+		}
+		catch(HookException e)
+		{
+			Logger.Error("Failed to stop the input hook", e);
+		}
+		finally
+		{
+			hook = null;
+			hookThread = null;
+			hookEnabled?.Dispose();
+			hookEnabled = null;
+			lock(sync)
+				running = null;
+		}
+	}
+
+	/// <summary>
+	/// libuiohook stops its hook by posting messages to the hook's thread and window, which fails now and then, so it's tried again.
+	/// Stop is used for that and not Dispose: SharpHook counts a hook as disposed before it tries to stop it, and a disposed hook isn't stopped again.
+	/// </summary>
+	private static void StopRunning(IGlobalHook runningHook)
+	{
+		for(int attempt = 1; runningHook.IsRunning; attempt++)
+		{
+			try
+			{
+				runningHook.Stop();
+				return;
+			}
+			catch(HookException e) when(attempt < StopAttempts)
+			{
+				Logger.Warn($"Failed to stop the input hook, trying again: {e.Message}");
+				Thread.Sleep(StopRetryDelay);
+			}
+		}
 	}
 
 	private void OnKeyPressed(object? sender, KeyboardHookEventArgs e) => KeyPressed?.Invoke(this, e);

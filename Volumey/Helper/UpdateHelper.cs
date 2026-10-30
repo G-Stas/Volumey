@@ -2,7 +2,9 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+#if(!STORE)
 using AutoUpdaterDotNET;
+#endif
 using Windows.ApplicationModel;
 using Windows.Services.Store;
 
@@ -10,7 +12,6 @@ namespace Volumey.Helper;
 
 internal static class UpdateHelper
 {
-	private const string UpdateFeed = "https://raw.githubusercontent.com/G-Stas/Volumey/main/LatestUpdateInfo.xml";
 	internal const string StorePage = "ms-windows-store://pdp/?productid=9MZCQ03MX0S3";
 
 	/// <summary>
@@ -42,6 +43,9 @@ internal static class UpdateHelper
 		return updates.Count > 0;
 	}
 
+#if(!STORE)
+	private const string UpdateFeed = "https://raw.githubusercontent.com/G-Stas/Volumey/main/LatestUpdateInfo.xml";
+
 	/// <summary>
 	/// Non-Store build: AutoUpdater.NET reads the feed on GitHub and offers an update in its own window
 	/// </summary>
@@ -55,4 +59,5 @@ internal static class UpdateHelper
 		AutoUpdater.RemindLaterAt = 1;
 		AutoUpdater.Start(UpdateFeed);
 	}
+#endif
 }

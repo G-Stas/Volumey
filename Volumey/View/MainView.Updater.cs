@@ -31,6 +31,7 @@ public sealed partial class MainView
 #endif
 	}
 
+#if(!STORE)
 	private void CheckForUpdate()
 	{
 		try
@@ -42,6 +43,7 @@ public sealed partial class MainView
 			Logger.Error("Failed to check for update", e);
 		}
 	}
+#endif
 
 	//runs on the UI thread: the awaits resume there, which the dialog needs
 	private async Task CheckForStoreUpdate()

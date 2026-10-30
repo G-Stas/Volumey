@@ -12,13 +12,16 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Windows.Media.Animation;
 using H.NotifyIcon;
 using log4net;
 using Volumey.Helper;
 using Volumey.Model;
+using Volumey.Services;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 using ContentDialog = Wpf.Ui.Controls.ContentDialog;
@@ -64,6 +67,10 @@ public sealed partial class MainView
 	private readonly Func<SettingsWindow> getSettingsWindow;
 	private SettingsWindow? settingsWindow;
 
+	private readonly DeviceProviderViewModel devices;
+	private readonly TrayWheelInput trayWheel;
+	private readonly INotificationService notifications;
+
 	/// <summary>Set while the window mode's size or position is applied, so applying it isn't saved as a user change</summary>
 	private bool applyingPlacement;
 
@@ -73,13 +80,23 @@ public sealed partial class MainView
 	/// </summary>
 	private bool placed;
 
-	internal MainView(MainViewModel main, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow)
+	/// <summary>
+	/// Indicates whether the current operating system requires the native window cloaking workaround to prevent white flashes during display.
+	/// This evaluates to <see langword="true"/> on systems where the configured window backdrop is not supported (such as Windows 10), 
+	/// and <see langword="false"/> on systems that handle it natively without visual glitches (such as Windows 11).
+	/// </summary>
+	private readonly bool requiresCloak;
+
+	internal MainView(MainViewModel main, HotkeyModeViewModel hotkeyMode, Func<SettingsWindow> getSettingsWindow, INotificationService notifications)
 	{
 		vm = main.Window;
+		devices = main.Devices;
+		this.notifications = notifications;
 		DataContext = main;
 		this.getSettingsWindow = getSettingsWindow;
 		InitializeComponent();
 		WindowBackdropType = ThemeViewModel.Backdrop;
+		requiresCloak = !Wpf.Ui.Controls.WindowBackdrop.IsSupported(ThemeViewModel.Backdrop);
 
 		//size before the HWND exists
 		ApplyMode();
@@ -88,6 +105,16 @@ public sealed partial class MainView
 		//since the window is hidden at the startup
 		//and HWND of the window is not going to be created until the window is shown at least once
 		Hwnd = ForceCreateHwnd();
+
+		trayWheel = new TrayWheelInput(Hwnd);
+
+		if(requiresCloak)
+			SetCloaked(true);
+
+		Wpf.Ui.Appearance.ApplicationThemeManager.Changed += (_, _) =>
+		    Dispatcher.BeginInvoke(new Action(UpdateFallbackCompositionBackground));
+
+		UpdateFallbackCompositionBackground();
 
 		//the hidden window goes to its remembered place, so a window shown at startup appears there right away (placed again when it shows)
 		if(!vm.DisplayMinimalistic && vm.WindowWidth > 0 && TryGetRememberedPosition(vm.WindowLeft, vm.WindowTop, out var position, out _))
@@ -116,6 +143,51 @@ public sealed partial class MainView
 		//and the hotkey features then register their saved hotkeys
 		messages.HotkeyMessageHandler = hotkeyMode.GetHotkeyMessageHandler();
 		hotkeyMode.SetWindowHandle(Hwnd);
+
+		Tray.TrayMouseMove += OnTrayMouseMove;
+
+		Closed += OnClosed;
+	}
+
+	/// <summary>
+	/// Explorer sends this while the cursor is over the tray icon. The first move reads the icon's rectangle and
+	/// starts reading the mouse wheel through raw input, which stops when the cursor leaves the icon
+	/// </summary>
+	private void OnTrayMouseMove(object sender, RoutedEventArgs e)
+	{
+		if(trayWheel.IsActive || !trayWheel.CanStart)
+			return;
+		if(NativeMethods.TryGetTrayIconRect(Tray.TrayIcon.Id, out RECT rect))
+			trayWheel.Start(rect);
+	}
+
+	/// <summary>
+	/// Changes the default output device volume by the hotkeys' step for each wheel notch over the tray icon
+	/// </summary>
+	/// <param name="steps">Positive for wheel-up, negative for wheel-down</param>
+	private void ChangeOutputVolumeFromTrayWheel(int steps)
+	{
+		//while the mixer is open, the wheel changes the device it shows, even if it isn't the default one yet
+		var device = IsVisible ? devices.SelectedDevice ?? devices.DefaultDevice : devices.DefaultDevice;
+		var master = device?.Master;
+		if(master == null)
+			return;
+
+		for(int i = 0; i < Math.Abs(steps); i++)
+			master.ChangeVolumeByStep(up: steps > 0, notify: false);
+
+		//the open mixer window shows the new volume itself; otherwise the tray
+		//tooltip that is already shown isn't repainted by Explorer, so the OSD shows it (when OSD notifications are on).
+		if(!IsVisible)
+			notifications.NotifyAudioStateChange(master);
+	}
+
+	/// <summary>Stops reading the mouse wheel and unsubscribes from the tray icon when the window closes</summary>
+	private void OnClosed(object? sender, EventArgs e)
+	{
+		trayWheel.Stop();
+		Tray.TrayMouseMove -= OnTrayMouseMove;
+		Closed -= OnClosed;
 	}
 
 	private void SetBindings()
@@ -139,7 +211,25 @@ public sealed partial class MainView
 		BindingOperations.SetBinding(this, TrayIconImageProperty, (MultiBinding)TryFindResource("TrayIconBinding"));
 		BindingOperations.SetBinding(this, TrayToolTipTextProperty, (MultiBinding)TryFindResource("TrayTextTooltip"));
 
+		Tray.PreviewTrayContextMenuOpen += OnTrayMenuOpening;
 		CreateTrayIcon();
+	}
+
+	/// <summary>
+	/// Opens the tray menu at the cursor. TaskbarIcon would convert the cursor's pixels with one DPI for all monitors,
+	/// which puts the menu on another monitor and at the wrong scale when the monitors' scales differ;
+	/// WPF's mouse placement takes the cursor's pixels as they are
+	/// </summary>
+	private void OnTrayMenuOpening(object sender, RoutedEventArgs e)
+	{
+		e.Handled = true;
+		if(Tray.ContextMenu is not { } menu)
+			return;
+		menu.Placement = PlacementMode.Mouse;
+		menu.IsOpen = true;
+		//the menu has to be the foreground window, or a click elsewhere doesn't close it
+		if(PresentationSource.FromVisual(menu) is HwndSource source)
+			PInvoke.SetForegroundWindow((HWND)source.Handle);
 	}
 
 	/// <summary>Delays of the attempts to create the tray icon again after Explorer refused it, then every minute</summary>
@@ -277,6 +367,114 @@ public sealed partial class MainView
 
 	private IntPtr ForceCreateHwnd() => Hwnd = new WindowInteropHelper(this).EnsureHandle();
 
+	/// <summary>Frames WPF must have rendered after the window was shown before the window is uncloaked</summary>
+	private const int CloakFrames = 3;
+
+	/// <summary>The cloak never lasts longer than this, in case no frames are rendered (e.g. the window ended up hidden)</summary>
+	private static readonly TimeSpan MaxCloakDuration = TimeSpan.FromMilliseconds(400);
+
+	private DispatcherTimer? uncloakTimer;
+	private bool cloakFramesHooked;
+	private int cloakedFrames;
+	private TimeSpan lastCloakFrameTime;
+
+	private DispatcherTimer? cloakOnHideTimer;
+
+	private void StartUncloakSequence()
+	{
+		if(Hwnd == IntPtr.Zero)
+			return;
+
+		// Ensure the window is cloaked immediately if reopened while the fade-out timer is still running
+		cloakOnHideTimer?.Stop();
+		SetCloaked(true);
+
+		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
+		{
+			// Take control of the storyboard to override the XAML trigger during the cloak.
+			// The 'true' parameter makes it controllable (pause/resume).
+			fadeIn.Begin(this, true);
+
+			// Advance slightly to bypass visual tree culling (preventing the solid frame glitch)
+			// and pause it so it doesn't animate while the window is still native-cloaked.
+			fadeIn.Seek(this, TimeSpan.FromMilliseconds(1), TimeSeekOrigin.BeginTime);
+			fadeIn.Pause(this);
+		}
+
+		cloakedFrames = 0;
+		lastCloakFrameTime = TimeSpan.MinValue;
+		if(!cloakFramesHooked)
+		{
+			CompositionTarget.Rendering += OnCloakedFrameRendering;
+			cloakFramesHooked = true;
+		}
+		if(uncloakTimer == null)
+		{
+			var timer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher) { Interval = MaxCloakDuration };
+			timer.Tick += (s, a) => EndCloak();
+			uncloakTimer = timer;
+		}
+		uncloakTimer.Stop();
+		uncloakTimer.Start();
+	}
+
+	private void StopUncloakSequence()
+	{
+		uncloakTimer?.Stop();
+		if(cloakFramesHooked)
+		{
+			CompositionTarget.Rendering -= OnCloakedFrameRendering;
+			cloakFramesHooked = false;
+		}
+	}
+
+	private void EndCloak()
+	{
+		StopUncloakSequence();
+		SetCloaked(false);
+
+		if(FindResource("DisplayFadeIn") is Storyboard fadeIn)
+		{
+			// Resume the smooth fade-in now that the native cloak is dropped
+			fadeIn.Resume(this);
+		}
+	}
+
+	private void OnCloakedFrameRendering(object? sender, EventArgs e)
+	{
+		//Rendering can be raised more than once for the same frame
+		if(e is not RenderingEventArgs args || args.RenderingTime == lastCloakFrameTime)
+			return;
+		lastCloakFrameTime = args.RenderingTime;
+		if(++cloakedFrames >= CloakFrames)
+			EndCloak();
+	}
+
+	private unsafe void SetCloaked(bool cloaked)
+	{
+		if(Hwnd == IntPtr.Zero) return;
+
+		int value = cloaked ? 1 : 0;
+		_ = PInvoke.DwmSetWindowAttribute((HWND)Hwnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &value, sizeof(int));
+	}
+
+	/// <summary>
+	/// Sets the composition target's background to the window's current background
+	/// when the configured backdrop is not supported by the operating system.
+	/// This prevents the unpainted client area from flashing white before WPF renders.
+	/// </summary>
+	private void UpdateFallbackCompositionBackground()
+	{
+		if(Wpf.Ui.Controls.WindowBackdrop.IsSupported(ThemeViewModel.Backdrop))
+			return;
+
+		if(HwndSource.FromHwnd(Hwnd)?.CompositionTarget is { } compositionTarget
+		   && Application.Current.TryFindResource("ApplicationBackgroundColor") is Color backgroundColor)
+		{
+			compositionTarget.BackgroundColor = backgroundColor;
+		}
+	}
+
 	private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		if(e.PropertyName == nameof(AppBehaviorViewModel.DisplayMinimalistic))
@@ -318,12 +516,55 @@ public sealed partial class MainView
 	{
 		bool isVisible = (bool)e.NewValue;
 		if(!isVisible)
-			placed = false;
-		else if(IsLoaded)
 		{
-			PlaceWindow();
-			Activate();
-			Focus();
+			placed = false;
+			if(requiresCloak)
+			{
+				StopUncloakSequence();
+
+				if(cloakOnHideTimer == null)
+				{
+					TimeSpan fadeOutDuration;
+					if(FindResource("HideFadeOut") is Storyboard hideStoryboard
+						&& hideStoryboard.Children.Count > 0
+						&& hideStoryboard.Children[0].Duration.HasTimeSpan)
+					{
+						fadeOutDuration = hideStoryboard.Children[0].Duration.TimeSpan;
+					}
+					else
+					{
+						fadeOutDuration = TimeSpan.FromMilliseconds(120);
+					}
+
+					var timer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher) { Interval = fadeOutDuration };
+					timer.Tick += (s, a) =>
+					{
+						cloakOnHideTimer?.Stop();
+						if(!IsVisible)
+							SetCloaked(true);
+					};
+					cloakOnHideTimer = timer;
+				}
+
+				cloakOnHideTimer.Stop();
+				cloakOnHideTimer.Start();
+			}
+		}
+		else
+		{
+			if(requiresCloak)
+			{
+				// Windows 10: Manually handle the uncloak and storyboard pause/resume
+				StartUncloakSequence();
+			}
+
+			// Windows 11 (!requiresCloak) relies entirely on the XAML DataTrigger. No code needed here.
+			if(IsLoaded)
+			{
+				PlaceWindow();
+				Activate();
+				Focus();
+			}
 		}
 	}
 
@@ -449,7 +690,7 @@ public sealed partial class MainView
 	private static bool IsInControl(DependencyObject? source)
 	{
 		for(var element = source; element != null;
-		    element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
+			element = element is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element))
 		{
 			if(element is ButtonBase or RangeBase or Thumb or Selector or TextBoxBase)
 				return true;
@@ -468,14 +709,30 @@ public sealed partial class MainView
 	private void FitHeight(double workAreaHeight)
 	{
 		var (chrome, apps) = Mixer.MeasureHeights(Width);
+		double titleBarHeight = 0;
 		if(TitleBar.Visibility == Visibility.Visible)
 		{
 			TitleBar.Measure(new Size(Width, double.PositiveInfinity));
-			chrome += TitleBar.DesiredSize.Height;
+			titleBarHeight = TitleBar.DesiredSize.Height;
+			chrome += titleBarHeight;
 		}
-		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea);
+
+		//the title bar (window mode) doesn't count against the share of the work area, or the apps list would lose its room
+		double max = Math.Max(MinHeight, workAreaHeight * MaxShareOfWorkArea + titleBarHeight);
+		double targetHeight = chrome + Math.Max(apps, MinRows * RowHeight);
+
+		//The window is a little taller than its content (the border); that gap is a fixed number of physical pixels,
+		//so it changes with the display scaling and is measured here.
+		//Measure the difference BEFORE overwriting Height, otherwise Height has the new value
+		//while content.ActualHeight still holds the old value from the previous Win32 WM_SIZE pass.
+		if(!double.IsNaN(Height) && Content is FrameworkElement { ActualHeight: > 0 } content)
+		{
+			targetHeight += Math.Max(0, Height - content.ActualHeight);
+		}
+
+		//the gap is only added to the target: the cap above is a limit on the content, not on the window frame
 		applyingPlacement = true;
-		Height = Math.Clamp(chrome + Math.Max(apps, MinRows * RowHeight), MinHeight, max);
+		Height = Math.Clamp(targetHeight, MinHeight, max);
 		applyingPlacement = false;
 	}
 
@@ -629,6 +886,14 @@ public sealed partial class MainView
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
 	{
+		if(msg == (int)PInvoke.WM_INPUT)
+		{
+			int steps = trayWheel.ReadSteps(lParam);
+			if(steps != 0)
+				ChangeOutputVolumeFromTrayWheel(steps);
+			//not marked as handled: Windows needs its default processing of raw input
+			return IntPtr.Zero;
+		}
 		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}

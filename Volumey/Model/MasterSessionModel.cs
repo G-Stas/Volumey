@@ -253,26 +253,39 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		if(volumeHotkeysRegistered)
 		{
 			if(hotkey.Equals(volumeUp))
-			{
-				if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && IsMuted)
-					SetMute(false, notify: false, GuidValue.Internal.Empty);
-				SetVolume(Volume + hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
-			}
+				ChangeVolumeByStep(up: true, notify: true);
 			else if(hotkey.Equals(volumeDown))
-			{
-				int newValue = Volume - hotkeys.VolumeStep;
-				if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
-				{
-					SetMute(true, notify: true, GuidValue.Internal.Empty);
-				}
-				else
-					SetVolume(newValue, notify: true, GuidValue.Internal.Empty);
-			}
+				ChangeVolumeByStep(up: false, notify: true);
 		}
 
 		if(muteHotkeyRegistered && hotkey.Equals(muteKey))
 		{
 			SetMute(!_isMuted, notify: true, GuidValue.Internal.Empty);
+		}
+	}
+
+	/// <summary>
+	/// Raises or lowers the volume by the hotkeys' step, with the hotkeys' mute rules.
+	/// Used by the volume hotkeys and by the mouse wheel over the tray icon
+	/// </summary>
+	/// <param name="notify">Whether the state mediator is notified (shows the OSD)</param>
+	public void ChangeVolumeByStep(bool up, bool notify)
+	{
+		if(up)
+		{
+			if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && IsMuted)
+				SetMute(false, notify: false, GuidValue.Internal.Empty);
+			SetVolume(Volume + hotkeys.VolumeStep, notify, GuidValue.Internal.Empty);
+		}
+		else
+		{
+			int newValue = Volume - hotkeys.VolumeStep;
+			if(SettingsProvider.Settings.Hotkeys.PreventResettingVolumeBalance && newValue <= 0)
+			{
+				SetMute(true, notify, GuidValue.Internal.Empty);
+			}
+			else
+				SetVolume(newValue, notify, GuidValue.Internal.Empty);
 		}
 	}
 

@@ -56,7 +56,7 @@ On GitHub, the *UI tests* workflow (Actions → UI tests → Run workflow) runs 
 
 `build-release.ps1` builds the two GitHub release zips of the version in `Volumey/Volumey.csproj` into `artifacts\<version>`, with `SHA256SUMS.txt`:
 
-- `Volumey_<version>_x64.zip` is self-contained: it carries the .NET 10 runtime (about 80 MB) and starts on any PC. `LatestUpdateInfo.xml` points the in-app updater to this one.
-- `Volumey_<version>_x64_framework-dependent.zip` is small (about 12 MB) but needs the .NET 10 Desktop Runtime. It's only offered on the release page.
+- `Volumey_<version>_x64.zip` is self-contained: it carries the .NET 10 runtime and starts on any PC. `LatestUpdateInfo.xml` points the in-app updater to this one.
+- `Volumey_<version>_x64_framework-dependent.zip` needs the .NET 10 Desktop Runtime. It's only offered on the release page.
 
 Both are Release builds and send logs to Loggly only with an input key (`loggly.key` or `VOLUMEY_LOGGLY_INPUT_KEY`); the script stops without one unless `-NoLoggly` is given.

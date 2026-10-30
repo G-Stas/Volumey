@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -180,6 +182,97 @@ public class HotkeyManagerTests
 		manager.Dispose();
 
 		hook.Verify(m => m.Dispose(), Times.Once);
+	}
+
+	/// <summary>
+	/// A hook that runs like SharpHook's: Run blocks until the hook is stopped, stopping fails as many times as asked,
+	/// and Dispose stops a running hook once
+	/// </summary>
+	private static Mock<IGlobalHook> RunningHook(int failedStops)
+	{
+		var hook = new Mock<IGlobalHook>();
+		var stopped = new ManualResetEventSlim();
+		bool running = false;
+		bool disposed = false;
+		void StopNative()
+		{
+			if(failedStops-- > 0)
+				throw new HookException(UioHookResult.Failure, "Failed stopping the global hook");
+			stopped.Set();
+		}
+		hook.SetupGet(h => h.IsRunning).Returns(() => running);
+		hook.Setup(h => h.Run(It.IsAny<GlobalHookType>())).Callback(() =>
+		{
+			running = true;
+			hook.Raise(h => h.HookEnabled += null, hook.Object, new HookEventArgs(new UioHookEvent { Type = EventType.HookEnabled }));
+			stopped.Wait();
+			running = false;
+		});
+		hook.Setup(h => h.Stop()).Callback(() =>
+		{
+			if(disposed)
+				throw new ObjectDisposedException(nameof(IGlobalHook));
+			if(running)
+				StopNative();
+		});
+		hook.Setup(h => h.Dispose()).Callback(() =>
+		{
+			if(disposed)
+				return;
+			disposed = true;
+			if(running)
+				StopNative();
+		});
+		return hook;
+	}
+
+	private static void WaitFor(Func<bool> condition)
+	{
+		var timeout = Stopwatch.StartNew();
+		while(!condition() && timeout.Elapsed < TimeSpan.FromSeconds(10))
+			Thread.Sleep(10);
+	}
+
+	[TestMethod]
+	public void AHookThatFailsToStopIsStoppedOnTheNextTry()
+	{
+		var hooks = new List<Mock<IGlobalHook>>();
+		var host = new InputHookHost(() =>
+		{
+			var hook = RunningHook(failedStops: hooks.Count == 0 ? 2 : 0);
+			hooks.Add(hook);
+			return hook.Object;
+		}, start: true);
+		using var keyboard = new SharpHookHotkeyManager(host);
+		WaitFor(() => host.Running == GlobalHookType.Keyboard);
+
+		using var mouse = new MouseHotkeyManager(host);
+		WaitFor(() => host.Running == GlobalHookType.All);
+
+		Assert.AreEqual(GlobalHookType.All, host.Running);
+		hooks[0].Verify(h => h.Stop(), Times.Exactly(3));
+		hooks[0].Verify(h => h.Dispose(), Times.Once);
+		hooks[1].Verify(h => h.Run(GlobalHookType.All), Times.Once);
+	}
+
+	[TestMethod]
+	public void AHookThatNeverStopsDoesNotKeepTheNextOneFromStarting()
+	{
+		var hooks = new List<Mock<IGlobalHook>>();
+		var host = new InputHookHost(() =>
+		{
+			var hook = RunningHook(failedStops: hooks.Count == 0 ? int.MaxValue : 0);
+			hooks.Add(hook);
+			return hook.Object;
+		}, start: true);
+		using var keyboard = new SharpHookHotkeyManager(host);
+		WaitFor(() => host.Running == GlobalHookType.Keyboard);
+
+		using var mouse = new MouseHotkeyManager(host);
+		WaitFor(() => host.Running == GlobalHookType.All);
+
+		Assert.AreEqual(GlobalHookType.All, host.Running);
+		hooks[1].Verify(h => h.Run(GlobalHookType.All), Times.Once);
 	}
 
 	[TestMethod]

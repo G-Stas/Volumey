@@ -71,6 +71,20 @@ public abstract class ViewModelTestBase
 		=> CreateDevice(id, name, out _, 70, processes);
 
 	/// <summary>
+	/// A device whose own peak meter reads <paramref name="peak"/>
+	/// </summary>
+	protected OutputDeviceModel CreateDevice(string id, string name, Func<float> peak, params AudioProcessModel[] processes)
+	{
+		var master = new MasterSessionModel(name, name, 70, false, id, null, new Mock<IAudioSessionVolume>().Object,
+			new Mock<IMasterVolumeNotificationHandler>().Object, Hotkeys);
+		var device = new Mock<IDevice>();
+		device.Setup(m => m.GetId()).Returns(id);
+		device.Setup(m => m.GetPeak()).Returns(peak);
+		return new OutputDeviceModel(device.Object, new Mock<IDeviceStateNotificationHandler>().Object, new Mock<ISessionProvider>().Object,
+									 master, processes.ToList());
+	}
+
+	/// <summary>
 	/// A device running at <paramref name="format"/> that supports <paramref name="supported"/>
 	/// </summary>
 	protected OutputDeviceModel CreateDevice(string id, string name, DeviceFormat format, params DeviceFormatOption[] supported)

@@ -69,6 +69,16 @@ public sealed class AudioDevice : IDevice
 		catch { return true; }
 	}
 
+	/// <summary>
+	/// The endpoint's peak meter. Read many times a second while the mixer shows level meters:
+	/// a device that just went away fails, which reads as silence.
+	/// </summary>
+	public float GetPeak()
+	{
+		try { return Device.AudioMeterInformation.MasterPeakValue; }
+		catch { return 0f; }
+	}
+
 	public DeviceFormat? GetDeviceFormat()
 	{
 		try
@@ -89,6 +99,14 @@ public sealed class AudioDevice : IDevice
 	private static readonly (ushort bits, ushort container)[] CandidateSampleSizes = { (16, 16), (24, 24), (24, 32), (32, 32) };
 	private static readonly uint[] CandidateSampleRates = { 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000 };
 
+	/// <summary>
+	/// The sample sizes to check, the device's own container first among those of its bits: a driver can pass 24 bit in a 24-bit
+	/// container in the exclusive-mode check and still refuse it as the device format while it runs 24 bit in 32-bit containers
+	/// </summary>
+	internal static IEnumerable<(ushort bits, ushort container)> SampleSizesToCheck(DeviceFormat? current)
+		=> CandidateSampleSizes.OrderBy(s => s.bits)
+			.ThenBy(s => current is { } f && f.Bits == s.bits && f.BitsPerSample == s.container ? 0 : 1);
+
 	public IReadOnlyList<DeviceFormatOption> GetSupportedFormats()
 	{
 		var supported = new List<DeviceFormatOption>();
@@ -101,7 +119,7 @@ public sealed class AudioDevice : IDevice
 			int channelMask = (int)(current?.ChannelMask ?? 0);
 			if(channelMask == 0 && client.MixFormat is WaveFormatExtensible mix)
 				channelMask = mix.ChannelMask;
-			foreach(var (bits, container) in CandidateSampleSizes)
+			foreach(var (bits, container) in SampleSizesToCheck(current))
 			{
 				foreach(uint rate in CandidateSampleRates)
 				{

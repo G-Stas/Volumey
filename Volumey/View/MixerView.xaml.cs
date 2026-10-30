@@ -24,3 +24,4 @@ public sealed partial class MixerView
 		return (DesiredSize.Height - apps, apps);
 	}
 }
+

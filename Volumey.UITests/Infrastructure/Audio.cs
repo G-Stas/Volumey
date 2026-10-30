@@ -100,6 +100,33 @@ internal static class Audio
 	/// <summary>The default device's endpoint ID (to check that a test didn't switch it)</summary>
 	public static string DefaultDeviceId => WithDefaultDevice(d => d.ID);
 
+	private static T WithDevice<T>(string name, Func<MMDevice, T> read)
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		foreach(var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+			using(device)
+				if(device.FriendlyName == name)
+					return read(device);
+		throw new InvalidOperationException($"No active output device \"{name}\"");
+	}
+
+	/// <summary>An output device's volume, 0–100, by its name</summary>
+	public static int VolumeOf(string device) => WithDevice(device, d => (int)Math.Round(d.AudioEndpointVolume.MasterVolumeLevelScalar * 100));
+
+	public static void SetVolumeOf(string device, int volume) => WithDevice(device, d => d.AudioEndpointVolume.MasterVolumeLevelScalar = volume / 100f);
+
+	/// <summary>Remembers an output device's volume and mute, by its name, and puts them back when disposed</summary>
+	public static IDisposable KeepStateOf(string device)
+	{
+		var (volume, mute) = WithDevice(device, d => (d.AudioEndpointVolume.MasterVolumeLevelScalar, d.AudioEndpointVolume.Mute));
+		return new Restore(() => WithDevice(device, d =>
+		{
+			d.AudioEndpointVolume.MasterVolumeLevelScalar = volume;
+			d.AudioEndpointVolume.Mute = mute;
+			return 0;
+		}));
+	}
+
 	/// <summary>The names of the active output devices</summary>
 	public static List<string> OutputDeviceNames()
 	{

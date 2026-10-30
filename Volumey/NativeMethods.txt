@@ -22,6 +22,7 @@ MapVirtualKey
 GetKeyNameText
 SetWindowPos
 GetForegroundWindow
+SetForegroundWindow
 GetWindowThreadProcessId
 SendInput
 IShellLinkW
@@ -48,3 +49,16 @@ GetClassLongPtr
 WM_GETICON
 ICON_BIG
 ICON_SMALL2
+DwmSetWindowAttribute
+Shell_NotifyIconGetRect
+RegisterRawInputDevices
+GetRawInputData
+RAWINPUT
+RAWINPUTDEVICE
+RAWINPUTHEADER
+GetCursorPos
+GetAsyncKeyState
+WM_INPUT
+RI_MOUSE_WHEEL
+RID_DEVICE_INFO_TYPE
+WHEEL_DELTA

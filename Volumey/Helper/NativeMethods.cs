@@ -7,6 +7,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.LibraryLoader;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
+using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace Volumey.Helper;
@@ -239,5 +240,27 @@ static class NativeMethods
 		var names = target[..(int)length];
 		int end = names.IndexOf('\0');
 		return (end < 0 ? names : names[..end]).ToString();
+	}
+
+	/// <summary>
+	/// Gets the screen rectangle of the Volumey tray icon, in physical pixels.
+	/// </summary>
+	/// <param name="trayIconId">The registered notification icon GUID.</param>
+	/// <param name="rect">The icon's rectangle when this returns true.</param>
+	/// <returns>False if the identifier is empty or the icon is unavailable (e.g. while the shell restarts); otherwise, true.</returns>
+	internal static bool TryGetTrayIconRect(Guid trayIconId, out RECT rect)
+	{
+		rect = default;
+		if(trayIconId == Guid.Empty)
+			return false;
+
+		var identifier = new NOTIFYICONIDENTIFIER
+		{
+			cbSize = (uint)Marshal.SizeOf<NOTIFYICONIDENTIFIER>(),
+			guidItem = trayIconId
+		};
+
+		HRESULT result = PInvoke.Shell_NotifyIconGetRect(in identifier, out rect);
+		return result.Value >= 0;
 	}
 }
