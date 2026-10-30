@@ -238,6 +238,39 @@ public class ConvertersTests
 		Assert.AreEqual(Binding.DoNothing, converter.Convert(null, typeof(string), null, Culture));
 	}
 
+	// U2
+	[TestMethod]
+	public void TrayIconPicksTheDeviceIconOnlyWhenThereIsOne()
+	{
+		Assert.AreEqual(TrayIconConverter.IconType.DeviceIcon, TrayIconConverter.Pick(true, false, 50, false, true));
+		Assert.AreEqual(TrayIconConverter.IconType.DeviceIcon, TrayIconConverter.Pick(true, false, 50, true, true));
+		Assert.AreEqual(TrayIconConverter.IconType.Mid, TrayIconConverter.Pick(true, false, 50, false, false));
+		Assert.AreEqual(TrayIconConverter.IconType.Mute, TrayIconConverter.Pick(true, false, 50, true, false));
+	}
+
+	// U3
+	[TestMethod]
+	[DataRow(false, 0, false, "Low")]
+	[DataRow(false, 34, false, "Low")]
+	[DataRow(false, 35, false, "Mid")]
+	[DataRow(false, 65, false, "Mid")]
+	[DataRow(false, 66, false, "High")]
+	[DataRow(false, 100, false, "High")]
+	[DataRow(false, 100, true, "Mute")]
+	[DataRow(true, 100, true, "NoDevice")]
+	[DataRow(true, 50, false, "NoDevice")]
+	public void TrayIconPicksTheVolumeGlyph(bool noOutputDevices, int volume, bool muted, string expected)
+	{
+		Assert.AreEqual(System.Enum.Parse<TrayIconConverter.IconType>(expected), TrayIconConverter.Pick(false, noOutputDevices, volume, muted, false));
+	}
+
+	// U3
+	[TestMethod]
+	public void TrayIconPicksNothingWithoutAVolume()
+	{
+		Assert.AreEqual(TrayIconConverter.IconType.None, TrayIconConverter.Pick(false, false, null, false, false));
+	}
+
 	[TestMethod]
 	public void TrayIconShowsTheDeviceIconWhenEnabled()
 	{

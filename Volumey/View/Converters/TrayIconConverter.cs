@@ -29,7 +29,10 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
-		if(values[4] is bool displayDeviceIconAtTray && displayDeviceIconAtTray && values[5] is Icon defaultDeviceIcon)
+		var defaultDeviceIcon = values[5] as Icon;
+		var type = Pick(values[4] is true, values[0] is true, values[1] as int?, values[2] is true, defaultDeviceIcon != null);
+
+		if(type == IconType.DeviceIcon)
 		{
 			if(currentIconType == IconType.DeviceIcon && curDeviceIcon == defaultDeviceIcon)
 				return Binding.DoNothing;
@@ -57,32 +60,34 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 					newIconProvider = true;
 				}
 			}
-			return GetIcon(values, currentIconProvider, newIconProvider);
+			return GetIcon(type, currentIconProvider, newIconProvider);
 		}
 		return Binding.DoNothing;
 	}
 
-	/// <summary></summary>
-	/// <param name="values"></param>
+	/// <param name="type">A volume glyph or <see cref="IconType.None"/></param>
 	/// <param name="iconProvider">The provider of the current theme</param>
-	/// <param name="newIconProvider">Flag used to indicate that the color of the current icon has to change</param>
-	/// <returns></returns>
-	private object? GetIcon(object[] values, TrayIconProvider iconProvider, bool newIconProvider)
+	/// <param name="newIconProvider">The theme changed, so the current glyph has to be sent again in the new color</param>
+	private object? GetIcon(IconType type, TrayIconProvider iconProvider, bool newIconProvider)
 	{
-		var type = IconType.None;
-		if(values[0] is true) //NoOutputDevices
-			type = IconType.NoDevice;
-		else
-		{
-			if(values[2] is true) //isMuted
-				type = IconType.Mute;
-			else if(values[1] is int newVolume)
-				type = newVolume > 65 ? IconType.High : (newVolume < 35) ? IconType.Low : IconType.Mid;
-		}
 		if((currentIconType == type || type == IconType.None) && !newIconProvider)
 			return Binding.DoNothing;
 		currentIconType = type;
 		return iconProvider.GetIcon(type);
+	}
+
+	/// <summary>What the tray shows; Convert then loads the icon and skips repeats</summary>
+	internal static IconType Pick(bool displayDeviceIcon, bool noOutputDevices, int? volume, bool muted, bool hasDeviceIcon)
+	{
+		if(displayDeviceIcon && hasDeviceIcon)
+			return IconType.DeviceIcon;
+		if(noOutputDevices)
+			return IconType.NoDevice;
+		if(muted)
+			return IconType.Mute;
+		if(volume is not { } v)
+			return IconType.None;
+		return v > 65 ? IconType.High : v < 35 ? IconType.Low : IconType.Mid;
 	}
 
 	public object[]? ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => null;
