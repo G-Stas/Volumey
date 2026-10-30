@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,6 +11,7 @@ using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View.Converters;
+using Volumey.ViewModel;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests;
@@ -247,5 +249,37 @@ public class ConvertersTests
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, true, icon));
 		//without a theme there is no volume icon to show
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, false, icon));
+	}
+
+	private static string[] VisibleParts(AppOutputOption option)
+		=> new[] { "Default", "DefaultOrNameless", "Named", "Nameless" }
+			.Where(p => (Visibility)new AppOutputOptionConverter().Convert(option, typeof(Visibility), p, Culture) == Visibility.Visible).ToArray();
+
+	[TestMethod]
+	public void AnAppsDeviceBoxShowsEachItemOnce()
+	{
+		var defaultItem = new AppOutputOption(null, "", "Headphones", true);
+		var device = new AppOutputOption("{id}", "Speakers", null, true);
+		var nameless = new AppOutputOption("{gone}", "", "Headphones", false);
+
+		//the open list uses Default, Named, Nameless; the closed box DefaultOrNameless, Named
+		CollectionAssert.AreEqual(new[] { "Default", "DefaultOrNameless" }, VisibleParts(defaultItem));
+		CollectionAssert.AreEqual(new[] { "Named" }, VisibleParts(device));
+		//the closed box shows a device Windows can't name as "Default device": Windows plays the app there meanwhile
+		CollectionAssert.AreEqual(new[] { "DefaultOrNameless", "Nameless" }, VisibleParts(nameless));
+		var converter = (IMultiValueConverter)new AppOutputOptionConverter();
+		Assert.AreEqual("Default device", converter.Convert([defaultItem, null], typeof(string), null, Culture));
+		Assert.AreEqual("Speakers", converter.Convert([device, null], typeof(string), null, Culture));
+	}
+
+	[TestMethod]
+	public void AnAppOpensWhenItCanBeMovedOrHasSeveralSessions()
+	{
+		var converter = new AppCanMoveConverter();
+		Assert.AreEqual(Visibility.Visible, Convert(converter, true, false, 1));
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true, 1), "System Sounds can't be moved");
+		Assert.AreEqual(Visibility.Visible, Convert(converter, true, true, 2));
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, false, false, 1), "without Windows support");
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true));
 	}
 }

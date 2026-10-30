@@ -4,10 +4,8 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Volumey.Controls;
-using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.Helper;
 using Volumey.Model;
@@ -64,18 +62,16 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		}
 	}
 
-	private OutputDeviceModel? _defaultDevice;
+	private readonly IAppRouting appRouting;
 
 	private readonly INotificationService notifications;
 
-	internal ForegroundWindowVolumeViewModel(IDeviceProvider deviceProvider, IHotkeyService hotkeys, INotificationService notifications)
+	internal ForegroundWindowVolumeViewModel(IHotkeyService hotkeys, INotificationService notifications, IAppRouting appRouting)
 		: base(hotkeys)
 	{
 		this.notifications = notifications;
+		this.appRouting = appRouting;
 		ErrorDictionary.LanguageChanged += Errors.Refresh;
-
-		_defaultDevice = deviceProvider.DefaultDevice;
-		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 
 		var saved = SettingsProvider.Settings.Hotkeys;
 		if(saved.ForegroundVolumeUp != null || saved.ForegroundVolumeDown != null || saved.ForegroundMute != null)
@@ -136,50 +132,35 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 		hotkeys.HotkeyPressed -= OnHotkeyPressed;
 	}
 
-	private async Task<(bool succeed, AudioProcessModel? foundProcess)> TryGetForegroundAudioProcess()
+	/// <summary>The home model of the foreground window's app on any device; null if it has no audio. On the UI thread</summary>
+	private AudioProcessModel? FindForegroundApp()
 	{
-		if(_defaultDevice == null)
-		{
-			return (false, null);
-		}
-
 		uint foregroundWindowProcId = GetForegroundWindowProcessId();
 		if(foregroundWindowProcId == uint.MinValue)
-		{
-			return (false, null);
-		}
+			return null;
 
 		long started = Stopwatch.GetTimestamp();
 		AudioProcessModel? foundProcess = null;
-		IImmutableList<AudioProcessModel> curDeviceProcesses = ImmutableList<AudioProcessModel>.Empty;
+		IImmutableList<AudioProcessModel> apps = ImmutableList<AudioProcessModel>.Empty;
 		string? processName = null;
 		string filePath = string.Empty;
 		Exception? pathError = null;
 		try
 		{
-			curDeviceProcesses = await _defaultDevice.GetImmutableProcessesAsync();
-			//the process id matches most of the time; the process is only opened when it doesn't
-			foundProcess = FindByProcessId(curDeviceProcesses, foregroundWindowProcId);
+			//the process id matches most of the time (also a process that only has a session on another device);
+			//the process is only opened when it doesn't
+			foundProcess = appRouting.FindApp(foregroundWindowProcId);
 			if(foundProcess == null)
 			{
+				apps = appRouting.GetApps();
 				(processName, filePath, pathError) = GetProcessNameAndPath(foregroundWindowProcId);
-				foundProcess = FindByNameOrPath(curDeviceProcesses, processName, filePath);
+				foundProcess = FindByNameOrPath(apps, processName, filePath);
 			}
 		}
 		catch { }
-		HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, processName, filePath, pathError, curDeviceProcesses, foundProcess,
+		HotkeyDiagnostics.ForegroundLookup(foregroundWindowProcId, processName, filePath, pathError, apps, foundProcess,
 			Stopwatch.GetElapsedTime(started).TotalMilliseconds);
-		return (foundProcess != null, foundProcess);
-	}
-
-	private static AudioProcessModel? FindByProcessId(IImmutableList<AudioProcessModel> processes, uint processId)
-	{
-		foreach(var process in processes)
-		{
-			if(process.ProcessId == processId)
-				return process;
-		}
-		return null;
+		return foundProcess;
 	}
 
 	private static AudioProcessModel? FindByNameOrPath(IImmutableList<AudioProcessModel> processes, string? processName, string filePath)
@@ -228,37 +209,25 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 
 	private void OnHotkeyPressed(HotKey hotkey)
 	{
-		if(!_hotkeysRegistered || _defaultDevice == null)
+		if(!_hotkeysRegistered)
 			return;
 
 		int direction = hotkey.Equals(VolumeUpHotkey) ? 1 : hotkey.Equals(VolumeDownHotkey) ? -1 : 0;
-		if(direction != 0)
-			ChangeForegroundVolumeAsync(hotkey, direction).Forget(Logger, "Failed to change the volume of the foreground app");
-		else if(hotkey.Equals(MuteHotkey))
-			ChangeForegroundVolumeAsync(hotkey, 0).Forget(Logger, "Failed to mute the foreground app");
+		if(direction != 0 || hotkey.Equals(MuteHotkey))
+			ChangeForegroundVolume(hotkey, direction);
 	}
 
-	/// <param name="direction">1 up, -1 down by the volume step; 0 mutes or unmutes the whole app</param>
-	private async Task ChangeForegroundVolumeAsync(HotKey hotkey, int direction)
+	/// <param name="direction">1 up, -1 down by the volume step; 0 mutes or unmutes the whole app. On every device the app has a model on</param>
+	private void ChangeForegroundVolume(HotKey hotkey, int direction)
 	{
 		HotkeyDiagnostics.ForegroundHotkeyPressed(hotkey);
-		if(await TryGetForegroundAudioProcess() is (true, AudioProcessModel foundProcess))
-		{
-			//like the app hotkeys: the OSD only while notifications are on
-			if(SettingsProvider.Settings.Notifications.Enabled && foundProcess.StateNotificationMediator == null)
-				foundProcess.SetStateMediator(notifications);
-			if(direction == 0)
-			{
-				foundProcess.SetMute(!foundProcess.IsMuted, notify: true, GuidValue.Internal.Empty);
-				return;
-			}
-			foundProcess.SetVolume(foundProcess.Volume + direction * hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+		if(FindForegroundApp() is not { } foundProcess)
+			return;
+		//like the app hotkeys: the OSD only while notifications are on
+		if(SettingsProvider.Settings.Notifications.Enabled && foundProcess.StateNotificationMediator == null)
+			foundProcess.SetStateMediator(notifications);
+		foundProcess.ApplyHotkey(direction, appRouting.GetModels(foundProcess));
+		if(direction != 0)
 			HotkeyDiagnostics.ForegroundVolumeSet(foundProcess, foundProcess.Volume);
-		}
-	}
-
-	private void OnDefaultDeviceChanged(OutputDeviceModel? newDefaultDevice)
-	{
-		_defaultDevice = newDefaultDevice;
 	}
 }

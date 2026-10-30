@@ -637,4 +637,19 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>सेटिंग्स सहेजी नहीं जा सकतीं।</value>
   </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>{0} को इस पर चलाएँ</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} अब {1} पर चलेगा</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>पूर्ववत करें</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>{0} को {1} पर नहीं ले जाया जा सका</value>
+  </data>
 </root>

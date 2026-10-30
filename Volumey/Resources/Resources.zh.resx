@@ -637,4 +637,19 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>无法保存设置。</value>
   </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>在以下设备上播放 {0}</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>默认设备</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} 将在 {1} 上播放</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>撤消</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>无法将 {0} 移到 {1}</value>
+  </data>
 </root>

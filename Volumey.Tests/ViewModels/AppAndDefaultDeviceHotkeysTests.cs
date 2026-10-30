@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
 using Volumey.Model;
 using Volumey.ViewModel.Settings;
@@ -24,7 +26,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify", 50);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
 
 		Assert.IsTrue(vm.TryAddApp());
 
@@ -48,7 +50,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify };
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting) { SelectedProcess = spotify };
 		Assert.IsFalse(vm.CanAdd);
 
 		Assert.IsFalse(vm.TryAddApp());
@@ -65,7 +67,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, Mute = Up };
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting) { SelectedProcess = spotify, VolumeUp = Up, Mute = Up };
 
 		Assert.IsFalse(vm.TryAddApp());
 
@@ -85,7 +87,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object)
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting)
 			{ SelectedProcess = spotify, VolumeUp = up ? Up : null, VolumeDown = down ? Down : null, Mute = mute ? muteKey : null };
 		Assert.IsTrue(vm.CanAdd);
 
@@ -107,7 +109,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		Assert.IsNull(vm.Apps.Single().VolumeUp);
 
 		HotkeyManager.Raise(m => m.HotkeyPressed += null, muteKey);
@@ -127,7 +129,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		HotkeyManager.Setup(m => m.RegisterHotkey(taken)).Throws(new System.InvalidOperationException("taken by another app"));
 		var spotify = CreateProcess("Spotify", 50);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 
 		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], app.Errors.Mute);
@@ -153,7 +155,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 
 		//one volume hotkey alone is fine
@@ -178,7 +180,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new System.InvalidOperationException("taken by another app"));
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = taken };
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = taken };
 
 		Assert.IsFalse(vm.TryAddApp());
 		Assert.AreEqual(string.Empty, vm.AddErrors.VolumeUp);
@@ -200,7 +202,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting) { SelectedProcess = spotify, VolumeUp = Up, VolumeDown = Down };
 		vm.TryAddApp();
 
 		vm.Apps.Single().RemoveCommand.Execute(null);
@@ -218,7 +220,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var chrome = CreateProcess("Chrome");
 		SetDefaultDevice(CreateDevice("1", "Speakers", CreateProcess("Spotify"), chrome, CreateProcess("Chrome")));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { SelectedProcess = chrome, VolumeUp = Up };
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting) { SelectedProcess = chrome, VolumeUp = Up };
 		vm.TryAddApp(); //fails without the second hotkey, which sets an error
 
 		vm.PrepareAddApp();
@@ -236,7 +238,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify", 50);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 
 		app.VolumeUp = newUp;
@@ -253,33 +255,34 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void ChangingAnAppsHotkeyReachesEveryProcessOfTheApp()
+	public void ChangingAnAppsHotkeyReachesTheAppOnEveryDevice()
 	{
 		var newUp = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
 		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
 		ActivateHotkeys();
-		//one app running as two processes with the same name
+		//one app with sessions on two devices
 		var first = CreateProcess("Spotify", 50);
 		var second = CreateProcess("Spotify", 30);
-		SetDefaultDevice(CreateDevice("1", "Speakers", first, second));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		SetDefaultDevice(CreateDevice("1", "Speakers", first));
+		ActiveDevices.Add(CreateDevice("2", "Headphones", second));
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 
 		app.VolumeUp = newUp;
 
 		Assert.IsFalse(app.Errors.Any);
-		//the old hotkey is released by both (the service unregisters it once its last user lets go)
 		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
 		PressHotkey(Up);
 		Assert.AreEqual(50, first.Volume);
 		Assert.AreEqual(30, second.Volume);
+		//the app gets the same volume wherever Windows plays it: the new volume of its home model (on the default device)
 		PressHotkey(newUp);
 		Assert.AreEqual(50 + Hotkeys.VolumeStep, first.Volume);
-		Assert.AreEqual(30 + Hotkeys.VolumeStep, second.Volume);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, second.Volume);
 	}
 
 	[TestMethod]
-	public void ARefusedHotkeyChangeKeepsTheOldHotkeyOnEveryProcessOfTheApp()
+	public void ARefusedHotkeyChangeKeepsTheOldHotkeyForTheAppOnEveryDevice()
 	{
 		var refused = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
 		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new InvalidOperationException("taken by another app"));
@@ -287,8 +290,9 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var first = CreateProcess("Spotify", 50);
 		var second = CreateProcess("Spotify", 30);
-		SetDefaultDevice(CreateDevice("1", "Speakers", first, second));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		SetDefaultDevice(CreateDevice("1", "Speakers", first));
+		ActiveDevices.Add(CreateDevice("2", "Headphones", second));
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 
 		app.VolumeUp = refused;
@@ -298,7 +302,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		Assert.AreEqual(Up, Settings.Hotkeys.Apps.Single().VolumeUp);
 		PressHotkey(Up);
 		Assert.AreEqual(50 + Hotkeys.VolumeStep, first.Volume);
-		Assert.AreEqual(30 + Hotkeys.VolumeStep, second.Volume);
+		Assert.AreEqual(50 + Hotkeys.VolumeStep, second.Volume);
 	}
 
 	[TestMethod]
@@ -308,7 +312,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
 		ActivateHotkeys();
 		SetDefaultDevice(CreateDevice("1", "Speakers"));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 
 		vm.Apps.Single().VolumeDown = newDown;
 
@@ -325,7 +329,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		ActivateHotkeys();
 		var spotify = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 		var changes = 0;
 		app.PropertyChanged += (_, e) => { if(e.PropertyName == nameof(AppHotkeysItem.VolumeUp)) changes++; };
@@ -360,7 +364,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		HotkeyManager.Setup(m => m.RegisterHotkey(refused)).Throws(new System.InvalidOperationException("taken by another app"));
 		var spotify = CreateProcess("Spotify", 50);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		var app = vm.Apps.Single();
 
 		app.VolumeUp = refused;
@@ -380,15 +384,74 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		var other = CreateProcess("Chrome");
 		var device = CreateDevice("1", "Speakers", running, other);
 		SetDefaultDevice(device);
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 
 		ActivateHotkeys();
 		Assert.IsTrue(running.AnyHotkeyRegistered);
 		Assert.IsFalse(other.AnyHotkeyRegistered);
 
+		Exit(device, running);
+		Assert.IsFalse(running.AnyHotkeyRegistered);
 		var restarted = CreateProcess("Spotify");
 		RaiseProcessCreated(device, restarted);
 		Assert.IsTrue(restarted.AnyHotkeyRegistered);
+	}
+
+	[TestMethod]
+	public void WhenTheAppsHomeRowExitsItsHotkeysMoveToItsOtherRow()
+	{
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var onDefault = CreateProcess("Spotify");
+		var onOther = CreateProcess("Spotify");
+		var speakers = CreateDevice("1", "Speakers", onDefault);
+		SetDefaultDevice(speakers);
+		ActiveDevices.Add(CreateDevice("2", "Headphones", onOther));
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
+		Assert.IsTrue(onDefault.AnyHotkeyRegistered);
+		Assert.IsFalse(onOther.AnyHotkeyRegistered);
+
+		Exit(speakers, onDefault);
+
+		Assert.IsFalse(onDefault.AnyHotkeyRegistered);
+		Assert.IsTrue(onOther.AnyHotkeyRegistered);
+	}
+
+	[TestMethod]
+	public void AnAppOnlyOnAnotherDeviceGetsItsHotkeys()
+	{
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Discord", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var discord = CreateProcess("Discord", 40);
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		ActiveDevices.Add(CreateDevice("2", "Headset", discord));
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
+
+		PressHotkey(Up);
+
+		Assert.AreEqual(40 + Hotkeys.VolumeStep, discord.Volume);
+	}
+
+	[TestMethod]
+	public void AfterAMoveTheHotkeysSitOnTheRowOfThePinnedDevice()
+	{
+		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
+		ActivateHotkeys();
+		var onDefault = CreateProcess("Spotify");
+		var onHeadset = CreateProcess("Spotify");
+		var routing = new Mock<IAppRouting>();
+		routing.Setup(r => r.GetApps()).Returns(ImmutableList.Create(onDefault));
+		routing.Setup(r => r.GetModels(It.IsAny<AudioProcessModel>())).Returns([onDefault, onHeadset]);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, routing.Object);
+		Assert.IsTrue(onDefault.AnyHotkeyRegistered);
+
+		//moved to the headset: its row there is the app's home now
+		routing.Setup(r => r.GetApps()).Returns(ImmutableList.Create(onHeadset));
+		routing.Raise(r => r.AppsChanged += null);
+
+		Assert.IsFalse(onDefault.AnyHotkeyRegistered);
+		Assert.IsTrue(onHeadset.AnyHotkeyRegistered);
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
 	}
 
 	[TestMethod]
@@ -399,7 +462,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		var onOld = CreateProcess("Spotify");
 		var onNew = CreateProcess("Spotify");
 		SetDefaultDevice(CreateDevice("1", "Speakers", onOld));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 		Assert.IsTrue(onOld.AnyHotkeyRegistered);
 
 		ChangeDefaultDevice(CreateDevice("2", "Headphones", onNew));
@@ -412,7 +475,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	public void VolumeStepIsSavedAndUsedByHotkeys()
 	{
 		SetDefaultDevice(CreateDevice("1", "Speakers"));
-		var vm = new AppsHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new AppsHotkeysViewModel(Hotkeys, Notifications.Object, AppRouting);
 
 		vm.VolumeStep = 5;
 
@@ -916,7 +979,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	{
 		ActivateHotkeys();
 		SetDefaultDevice(CreateDevice("1", "Speakers"));
-		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { VolumeUpHotkey = Up, VolumeDownHotkey = Down };
+		var vm = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting) { VolumeUpHotkey = Up, VolumeDownHotkey = Down };
 
 		vm.HotkeysRegistered = true;
 		Assert.IsTrue(vm.HotkeysRegistered);
@@ -933,7 +996,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	public void ForegroundHotkeysMustDiffer()
 	{
 		ActivateHotkeys();
-		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { VolumeUpHotkey = Up, VolumeDownHotkey = Up };
+		var vm = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting) { VolumeUpHotkey = Up, VolumeDownHotkey = Up };
 
 		vm.HotkeysRegistered = true;
 
@@ -947,7 +1010,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	{
 		var muteKey = new HotKey(Key.M, ModifierKeys.Control | ModifierKeys.Alt);
 		ActivateHotkeys();
-		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { MuteHotkey = muteKey };
+		var vm = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting) { MuteHotkey = muteKey };
 
 		vm.HotkeysRegistered = true;
 		Assert.IsTrue(vm.HotkeysRegistered);
@@ -955,7 +1018,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		Assert.IsNull(Settings.Hotkeys.ForegroundVolumeUp);
 		HotkeyManager.Verify(m => m.RegisterHotkey(muteKey), Times.Once);
 
-		var restarted = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var restarted = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting);
 		Assert.IsTrue(restarted.HotkeysRegistered);
 		Assert.AreEqual(muteKey, restarted.MuteHotkey);
 
@@ -970,7 +1033,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		Settings.Hotkeys.ForegroundVolumeUp = Up;
 		Settings.Hotkeys.ForegroundMute = taken;
 		HotkeyManager.Setup(m => m.RegisterHotkey(taken)).Throws(new System.InvalidOperationException("taken by another app"));
-		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting);
 		ActivateHotkeys();
 
 		HotkeyManager.Verify(m => m.RegisterHotkey(Up), Times.Once);
@@ -987,7 +1050,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	public void TheForegroundCardNeedsAHotkeyToTurnOn()
 	{
 		ActivateHotkeys();
-		var vm = new ForegroundWindowVolumeViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		var vm = new ForegroundWindowVolumeViewModel(Hotkeys, Notifications.Object, AppRouting);
 
 		vm.HotkeysRegistered = true;
 

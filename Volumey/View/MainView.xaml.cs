@@ -559,6 +559,7 @@ public sealed partial class MainView
 			}
 
 			// Windows 11 (!requiresCloak) relies entirely on the XAML DataTrigger. No code needed here.
+			devices.OnMixerOpened();
 			if(IsLoaded)
 			{
 				PlaceWindow();

@@ -637,4 +637,19 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Não é possível salvar as configurações.</value>
   </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Reproduzir {0} em</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Dispositivo padrão</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} será reproduzido em {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Desfazer</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Não foi possível mover {0} para {1}</value>
+  </data>
 </root>

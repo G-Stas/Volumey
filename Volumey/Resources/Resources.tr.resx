@@ -637,4 +637,19 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Ayarlar kaydedilemiyor.</value>
   </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>{0} şurada çalınsın</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Varsayılan cihaz</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} artık {1} üzerinde çalacak</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Geri al</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>{0}, {1} cihazına taşınamadı</value>
+  </data>
 </root>

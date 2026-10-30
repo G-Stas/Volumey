@@ -25,6 +25,25 @@ public sealed class DeviceEnumerator : IDeviceEnumerator
 		Enumerator = new MMDeviceEnumerator();
 	}
 
+	/// <summary>
+	/// The friendly name of a device in any state (also unplugged or disabled); null when Windows no longer knows it.
+	/// Makes its own enumerator: for any thread, also while Windows audio couldn't be reached at start
+	/// </summary>
+	internal static string? GetDeviceName(string deviceId)
+	{
+		try
+		{
+			using var enumerator = new MMDeviceEnumerator();
+			using var device = enumerator.GetDevice(deviceId);
+			return device.FriendlyName;
+		}
+		catch(Exception e)
+		{
+			Logger.Debug($"Couldn't read the name of the device {deviceId}", e);
+			return null;
+		}
+	}
+
 	public uint GetDeviceCount()
 	{
 		try

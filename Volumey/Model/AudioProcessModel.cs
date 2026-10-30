@@ -58,6 +58,73 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public Guid GroupingParam { get; private set; } = Guid.Empty;
 
+	public AppIdentity Identity => new(GroupingParam, FilePath);
+
+	/// <summary>Windows' System Sounds: its session has no process</summary>
+	public bool IsSystemSounds => _processId == 0;
+
+	private AppRoute _route = new AppRoute.FollowsDefault();
+	/// <summary>Where Windows plays the app; set by <see cref="AppRouting"/> on the UI thread</summary>
+	public AppRoute Route
+	{
+		get => _route;
+		private set
+		{
+			if(_route != value)
+			{
+				_route = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	private string? _routeDeviceName;
+	/// <summary>The name of the device the app is pinned to; null when it follows the default device or Windows can't name the device</summary>
+	public string? RouteDeviceName
+	{
+		get => _routeDeviceName;
+		private set
+		{
+			if(_routeDeviceName != value)
+			{
+				_routeDeviceName = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	private bool _playsHere = true;
+	/// <summary>The app's row belongs in its device's list (<see cref="AppRoutingRules.PlaysHere"/>)</summary>
+	public bool PlaysHere
+	{
+		get => _playsHere;
+		private set
+		{
+			if(_playsHere != value)
+			{
+				_playsHere = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	internal void SetPlacement(AppRoute route, string? routeDeviceName, bool playsHere)
+	{
+		Route = route;
+		RouteDeviceName = routeDeviceName;
+		PlaysHere = playsHere;
+	}
+
+	/// <summary>A session of the app plays now</summary>
+	internal bool PlaysNow => SessionsSnapshot().Any(s => s.IsActive);
+
+	private void OnSessionActivityChanged(AudioSessionModel session) => ActivityChanged?.Invoke(this);
+
+	/// <summary>A session started or stopped playing, or one that plays was added or removed; on any thread</summary>
+	internal event Action<AudioProcessModel>? ActivityChanged;
+
+	internal bool IsDisposed => _disposed;
+
 	private bool _isMuted;
 	public bool IsMuted
 	{
@@ -152,6 +219,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	private HotKey? _volumeUp;
 	private HotKey? _volumeDown;
 	private HotKey? _mute;
+	//the app's models on all devices, which a hotkey press changes too
+	private Func<IReadOnlyList<AudioProcessModel>>? _sameApp;
 
 	public ICommand MuteCommand { get; set; }
 
@@ -199,12 +268,15 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	public void AddSession(AudioSessionModel newSession)
 	{
+		bool addedPlaying = false;
 		lock(_sessionsLock)
 		{
 			if(!Sessions.Contains(newSession))
 			{
 				newSession.SessionEnded += OnSessionEnded;
 				newSession.Deactivated += OnSessionDeactivated;
+				newSession.ActivityChanged += OnSessionActivityChanged;
+				addedPlaying = newSession.IsActive;
 				Sessions.Add(newSession);
 				newSession.IconSource = IconSource;
 				if(Sessions.Count == 1)
@@ -223,6 +295,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 				}
 			}
 		}
+		if(addedPlaying)
+			ActivityChanged?.Invoke(this);
 	}
 
 	//also raised when this model's own setter changes the sessions: the setter raises PropertyChanged then
@@ -276,8 +350,11 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	/// Registers the app's hotkeys that are set, each on its own: one the system refuses doesn't keep the others from working
 	/// </summary>
 	/// <param name="failed">The hotkeys the system refused</param>
+	/// <param name="sameApp">The models of this app on all devices, which a press changes to this model's new volume or mute;
+	/// null for this model only</param>
 	/// <returns>False if any was refused</returns>
-	public bool SetHotkeys(HotKey? volUp, HotKey? volDown, HotKey? mute, out IReadOnlyList<HotKey> failed)
+	public bool SetHotkeys(HotKey? volUp, HotKey? volDown, HotKey? mute, out IReadOnlyList<HotKey> failed,
+		Func<IReadOnlyList<AudioProcessModel>>? sameApp = null)
 	{
 		var refused = new List<HotKey>();
 		HotKey? Register(HotKey? hotkey)
@@ -294,6 +371,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			return null;
 		}
 
+		_sameApp = sameApp;
 		_volumeUp = Register(volUp);
 		_volumeDown = Register(volDown);
 		_mute = Register(mute);
@@ -322,6 +400,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		_hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		AnyHotkeyRegistered = false;
 		_volumeUp = _volumeDown = _mute = null;
+		_sameApp = null;
 	}
 
 	public void SetVolume(int newValue, bool notify, Guid guid)
@@ -352,13 +431,35 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private void OnHotkeyPressed(HotKey hotkey)
 	{
+		IReadOnlyList<AudioProcessModel> sameApp = _sameApp?.Invoke() ?? [];
 		if(hotkey.Equals(_volumeUp))
-			SetVolume(Volume + _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+			ApplyHotkey(1, sameApp);
 		else if(hotkey.Equals(_volumeDown))
-			SetVolume(Volume - _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+			ApplyHotkey(-1, sameApp);
 		//the whole app: all its sessions, like the mixer's mute button
 		else if(hotkey.Equals(_mute))
+			ApplyHotkey(0, sameApp);
+	}
+
+	/// <summary>
+	/// A hotkey press: the volume by the volume step (<paramref name="direction"/> 1 or -1) or the mute toggled (0), with the OSD for this
+	/// model; the app's other models (<paramref name="sameApp"/>, on other devices) get the same volume or mute
+	/// </summary>
+	internal void ApplyHotkey(int direction, IReadOnlyList<AudioProcessModel> sameApp)
+	{
+		if(direction == 0)
 			SetMute(!IsMuted, notify: true, GuidValue.Internal.Empty);
+		else
+			SetVolume(Volume + direction * _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+		foreach(var other in sameApp)
+		{
+			if(other == this || other.IsDisposed)
+				continue;
+			if(direction == 0)
+				other.IsMuted = IsMuted;
+			else
+				other.Volume = Volume;
+		}
 	}
 
 	private int _exitedInvoked;
@@ -429,6 +530,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	{
 		endedSession.SessionEnded -= OnSessionEnded;
 		endedSession.Deactivated -= OnSessionDeactivated;
+		endedSession.ActivityChanged -= OnSessionActivityChanged;
+		if(endedSession.IsActive)
+			ActivityChanged?.Invoke(this);
 		if(endedSession.EndedByFormatChange)
 			DeviceReconfigured?.Invoke(this);
 		await _dispatcher.InvokeAsync(() =>
@@ -501,10 +605,14 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 				_trackedSession = null;
 			}
 			foreach(AudioSessionModel session in Sessions)
+			{
+				session.ActivityChanged -= OnSessionActivityChanged;
 				session.Dispose();
+			}
 		}
 
 		Exited = null;
+		ActivityChanged = null;
 		DeviceReconfigured = null;
 	}
 }

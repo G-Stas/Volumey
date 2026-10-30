@@ -37,6 +37,45 @@ public sealed class AudioSessionModel : IManagedAudioSession
 
 	public string FilePath { get; }
 
+	public AppIdentity Identity => new(GroupingParam, FilePath);
+
+	/// <summary>The session plays now</summary>
+	public bool IsActive
+	{
+		get
+		{
+			lock(_activityLock)
+				return _isActive;
+		}
+	}
+
+	private readonly object _activityLock = new();
+	private bool _isActive;
+	private bool _stateChangeArrived;
+
+	/// <summary>
+	/// Takes the state read from Windows when the session was created, unless a state change arrived first (it's newer)
+	/// </summary>
+	internal void ApplyInitialState(bool isActive) => SetActive(isActive, fromWindowsEvent: false);
+
+	private void SetActive(bool isActive, bool fromWindowsEvent)
+	{
+		lock(_activityLock)
+		{
+			if(fromWindowsEvent)
+				_stateChangeArrived = true;
+			else if(_stateChangeArrived)
+				return;
+			if(_isActive == isActive)
+				return;
+			_isActive = isActive;
+		}
+		ActivityChanged?.Invoke(this);
+	}
+
+	/// <summary><see cref="IsActive"/> changed, on a COM thread</summary>
+	internal event Action<AudioSessionModel>? ActivityChanged;
+
 	private bool _isMuted;
 	public bool IsMuted
 	{
@@ -122,6 +161,7 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		sessionStateNotifications.VolumeChanged += OnVolumeChanged;
 		sessionStateNotifications.SessionEnded += OnSessionEnded;
 		sessionStateNotifications.Deactivated += OnDeactivated;
+		sessionStateNotifications.Activated += OnActivated;
 		sessionStateNotifications.NameChanged += OnNameChanged;
 		sessionStateNotifications.Disconnected += OnDisconnected;
 
@@ -129,7 +169,12 @@ public sealed class AudioSessionModel : IManagedAudioSession
 	}
 
 	private void OnDeactivated()
-		=> Deactivated?.Invoke(this);
+	{
+		SetActive(false, fromWindowsEvent: true);
+		Deactivated?.Invoke(this);
+	}
+
+	private void OnActivated() => SetActive(true, fromWindowsEvent: true);
 
 	private void OnSessionEnded()
 		=> SessionEnded?.Invoke(this);
@@ -212,6 +257,7 @@ public sealed class AudioSessionModel : IManagedAudioSession
 		sessionStateNotifications.VolumeChanged -= OnVolumeChanged;
 		sessionStateNotifications.SessionEnded -= OnSessionEnded;
 		sessionStateNotifications.Deactivated -= OnDeactivated;
+		sessionStateNotifications.Activated -= OnActivated;
 		sessionStateNotifications.NameChanged -= OnNameChanged;
 		sessionStateNotifications.Disconnected -= OnDisconnected;
 		sessionStateNotifications.Dispose();

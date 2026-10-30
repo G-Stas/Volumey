@@ -24,7 +24,7 @@ internal sealed class TestAudioApp : IDisposable
 	/// </summary>
 	public string DisplayName => FileVersionInfo.GetVersionInfo(Process.MainModule!.FileName).FileDescription is { Length: > 0 } d ? d : Name;
 
-	private TestAudioApp(string name, bool window, bool reset = true)
+	private TestAudioApp(string name, bool window, bool reset = true, bool routing = false)
 	{
 		Name = name;
 		string dir = Path.Combine(Path.GetTempPath(), "Volumey-uitests", "apps", name);
@@ -42,7 +42,7 @@ internal sealed class TestAudioApp : IDisposable
 				//a second copy of a running app (one exe, two processes): its files are in use and already there
 			}
 		}
-		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), "600" + (window ? " --window" : "") + (reset ? "" : " --no-reset")) { UseShellExecute = false, CreateNoWindow = true })
+		Process = Process.Start(new ProcessStartInfo(Path.Combine(dir, name + ".exe"), "600" + (window ? " --window" : "") + (reset ? "" : " --no-reset") + (routing ? " --routing" : "")) { UseShellExecute = false, CreateNoWindow = true })
 		          ?? throw new InvalidOperationException("The test audio app didn't start");
 	}
 
@@ -51,9 +51,10 @@ internal sealed class TestAudioApp : IDisposable
 	/// <paramref name="window"/> also shows a small window (<see cref="BringToFront"/>).
 	/// </summary>
 	/// <param name="atFullVolume">false: only wait for the session (Volumey's volume limit lowers a new app right away)</param>
-	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, bool atFullVolume = true)
+	/// <param name="routing">it plays through Windows' stream routing and moves at once when Windows sends it to another device</param>
+	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, bool atFullVolume = true, bool routing = false)
 	{
-		var app = new TestAudioApp(name, window, reset: atFullVolume);
+		var app = new TestAudioApp(name, window, reset: atFullVolume, routing);
 		if(!atFullVolume)
 		{
 			if(!FlaUI.Core.Tools.Retry.WhileFalse(() => Audio.SessionVolume(app.Process.Id) != null, TimeSpan.FromSeconds(10)).Result)
