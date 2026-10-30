@@ -696,4 +696,16 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Can't save settings.</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Middle-clicking the tray icon</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>Do nothing</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Mute or unmute the default device</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Switch to the next output device</value>
+  </data>
 </root>

@@ -637,4 +637,16 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Einstellungen können nicht gespeichert werden.</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Mittelklick auf das Tray-Symbol</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>Nichts tun</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Standardgerät stummschalten oder Stummschaltung aufheben</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Zum nächsten Ausgabegerät wechseln</value>
+  </data>
 </root>

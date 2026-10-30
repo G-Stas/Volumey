@@ -145,6 +145,7 @@ public sealed partial class MainView
 		hotkeyMode.SetWindowHandle(Hwnd);
 
 		Tray.TrayMouseMove += OnTrayMouseMove;
+		Tray.TrayMiddleMouseDown += OnTrayMiddleMouseDown;
 
 		Closed += OnClosed;
 	}
@@ -182,11 +183,33 @@ public sealed partial class MainView
 			notifications.NotifyAudioStateChange(master);
 	}
 
+	private void OnTrayMiddleMouseDown(object sender, RoutedEventArgs e)
+	{
+		switch(vm.TrayMiddleClickAction)
+		{
+			case Volumey.DataProvider.Settings.TrayMiddleClickAction.ToggleMute:
+				var device = IsVisible ? devices.SelectedDevice ?? devices.DefaultDevice : devices.DefaultDevice;
+				var master = device?.Master;
+				if(master == null)
+					return;
+
+				master.SetMute(!master.IsMuted, notify: false, Volumey.CoreAudioWrapper.Wrapper.GuidValue.Internal.Empty);
+				if(!IsVisible)
+					notifications.NotifyAudioStateChange(master);
+				break;
+
+			case Volumey.DataProvider.Settings.TrayMiddleClickAction.SwitchDevice:
+				devices.SwitchToNextDevice();
+				break;
+		}
+	}
+
 	/// <summary>Stops reading the mouse wheel and unsubscribes from the tray icon when the window closes</summary>
 	private void OnClosed(object? sender, EventArgs e)
 	{
 		trayWheel.Stop();
 		Tray.TrayMouseMove -= OnTrayMouseMove;
+		Tray.TrayMiddleMouseDown -= OnTrayMiddleMouseDown;
 		Closed -= OnClosed;
 	}
 

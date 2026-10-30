@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using log4net;
 using Microsoft.Win32;
 using Volumey.DataProvider;
+using Volumey.DataProvider.Settings;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
@@ -103,6 +104,13 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	public partial bool DisplayDeviceIconAtTray { get; set; }
 
 	partial void OnDisplayDeviceIconAtTrayChanged(bool value) => SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
+
+	public TrayMiddleClickAction[] TrayMiddleClickActions { get; } = Enum.GetValues<TrayMiddleClickAction>();
+
+	[ObservableProperty]
+	public partial TrayMiddleClickAction TrayMiddleClickAction { get; set; }
+
+	partial void OnTrayMiddleClickActionChanged(TrayMiddleClickAction value) => SettingsProvider.Settings.Window.TrayMiddleClickAction = value;
 
 	private bool launchAtStartup;
 	public bool LaunchAtStartup
@@ -242,6 +250,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
 		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
 		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
+		TrayMiddleClickAction = SettingsProvider.Settings.Window.TrayMiddleClickAction;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;

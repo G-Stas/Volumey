@@ -73,4 +73,52 @@ public class DeviceProviderViewModelTests
 
 		Assert.AreEqual(newDevice, model.SelectedDevice);
 	}
+
+	[TestMethod]
+	public void SwitchToNextDeviceCyclesThroughActiveDevicesAndWrapsAround()
+	{
+		var notifMock = new Mock<IDeviceStateNotificationHandler>().Object;
+		var dev1 = OutputDeviceModelTests.GetDeviceMock("id-1", "device1", notifMock);
+		var dev2 = OutputDeviceModelTests.GetDeviceMock("id-2", "device2", notifMock);
+		var dev3 = OutputDeviceModelTests.GetDeviceMock("id-3", "device3", notifMock);
+		var activeDevices = new ObservableCollection<OutputDeviceModel> { dev1, dev2, dev3 };
+
+		var providerMock = new Mock<IDeviceProvider>();
+		providerMock.SetupGet(p => p.ActiveDevices).Returns(activeDevices);
+		providerMock.SetupGet(p => p.DefaultDevice).Returns(() => dev2);
+
+		var shellMock = new Mock<IAppShell>();
+		var vm = new DeviceProviderViewModel(providerMock.Object, shellMock.Object);
+
+		// Second device -> third device
+		vm.SwitchToNextDevice();
+		providerMock.Verify(p => p.SetDefaultDevice("id-3"), Times.Once);
+
+		// Third device -> wraps around to first device
+		providerMock.SetupGet(p => p.DefaultDevice).Returns(() => dev3);
+		vm.SwitchToNextDevice();
+		providerMock.Verify(p => p.SetDefaultDevice("id-1"), Times.Once);
+	}
+
+	[TestMethod]
+	public void SwitchToNextDeviceDoesNothingWhenSingleOrNoDevice()
+	{
+		var notifMock = new Mock<IDeviceStateNotificationHandler>().Object;
+		var dev1 = OutputDeviceModelTests.GetDeviceMock("id-1", "device1", notifMock);
+		var activeDevices = new ObservableCollection<OutputDeviceModel> { dev1 };
+
+		var providerMock = new Mock<IDeviceProvider>();
+		providerMock.SetupGet(p => p.ActiveDevices).Returns(activeDevices);
+		providerMock.SetupGet(p => p.DefaultDevice).Returns(dev1);
+
+		var shellMock = new Mock<IAppShell>();
+		var vm = new DeviceProviderViewModel(providerMock.Object, shellMock.Object);
+
+		vm.SwitchToNextDevice();
+		providerMock.Verify(p => p.SetDefaultDevice(It.IsAny<string>()), Times.Never);
+
+		activeDevices.Clear();
+		vm.SwitchToNextDevice();
+		providerMock.Verify(p => p.SetDefaultDevice(It.IsAny<string>()), Times.Never);
+	}
 }

@@ -103,4 +103,29 @@ public sealed partial class DeviceProviderViewModel : ObservableObject
 
 		DeviceProvider.SetDefaultDevice(deviceId);
 	}
+
+	/// <summary>Switches the default output device to the next available one in the active devices list</summary>
+	internal void SwitchToNextDevice()
+	{
+		var activeDevices = DeviceProvider.ActiveDevices;
+		if(activeDevices == null || activeDevices.Count <= 1)
+			return;
+
+		var currentDefault = DeviceProvider.DefaultDevice;
+		int currentIndex = -1;
+		if(currentDefault != null)
+		{
+			for(int i = 0; i < activeDevices.Count; i++)
+			{
+				if(activeDevices[i].CompareId(currentDefault.Id))
+				{
+					currentIndex = i;
+					break;
+				}
+			}
+		}
+
+		int nextIndex = (currentIndex + 1) % activeDevices.Count;
+		SetAsDefaultDevice(activeDevices[nextIndex].Id);
+	}
 }

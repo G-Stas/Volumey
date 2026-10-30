@@ -637,4 +637,16 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>No se puede guardar la configuración.</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Al hacer clic central en el icono de la bandeja</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>No hacer nada</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Silenciar o activar sonido del dispositivo predeterminado</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Cambiar al siguiente dispositivo de salida</value>
+  </data>
 </root>

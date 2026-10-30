@@ -637,4 +637,16 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Impossibile salvare le impostazioni.</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Clic centrale sull'icona della barra delle applicazioni</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>Nessuna azione</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Disattiva o riattiva l'audio del dispositivo predefinito</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Passa al dispositivo di output successivo</value>
+  </data>
 </root>

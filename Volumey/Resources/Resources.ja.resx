@@ -637,4 +637,16 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>設定を保存できません。</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>トレイアイコンの中央クリック</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>何もしない</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>既定のデバイスをミュートまたはミュート解除する</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>次の出力デバイスに切り替える</value>
+  </data>
 </root>

@@ -637,4 +637,16 @@
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>सेटिंग्स सहेजी नहीं जा सकतीं।</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>ट्रे आइकन पर मध्य-क्लिक करना</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>कुछ न करें</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस को म्यूट या अनम्यूट करें</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>अगले आउटपुट डिवाइस पर स्विच करें</value>
+  </data>
 </root>
