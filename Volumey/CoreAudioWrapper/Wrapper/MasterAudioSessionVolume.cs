@@ -10,15 +10,10 @@ namespace Volumey.CoreAudioWrapper.Wrapper;
 /// </summary>
 sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 {
-	private readonly AudioEndpointVolume audioVolume;
-	//own lock object: locking the NAudio object could interfere with locks NAudio takes on it
-	private readonly System.Threading.Lock writeLock = new();
-
 	private readonly Action<int, Guid> volumeWriter;
 	private readonly Action<bool, Guid> muteWriter;
-
-	//whether writes are done by the worker or synchronously on the caller's thread
-	private readonly bool background;
+	private readonly Func<float> volumeReader;
+	private readonly Func<bool> muteReader;
 
 	//guards the fields below; never held during a device write
 	private readonly System.Threading.Lock stateLock = new();
@@ -38,35 +33,40 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	public bool HasPendingWrites => busy;
 
 	/// <summary>
-	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did)
-	/// and what the device has now (null if it couldn't be read)
+	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did).
+	/// The listener reads the device state itself when it handles it
 	/// </summary>
-	public event Action<Exception?, VolumeChangedEventArgs?>? WritesCompleted;
+	public event Action<Exception?>? WritesCompleted;
 
-	public MasterAudioSessionVolume(AudioEndpointVolume aVol)
+	public MasterAudioSessionVolume(AudioEndpointVolume aVol) : this(aVol, new System.Threading.Lock())
 	{
-		audioVolume = aVol;
-		volumeWriter = WriteVolume;
-		muteWriter = WriteMute;
-		background = true;
+	}
+
+	//own lock object: locking the NAudio object could interfere with locks NAudio takes on it
+	private MasterAudioSessionVolume(AudioEndpointVolume aVol, System.Threading.Lock writeLock)
+		: this((level, context) => WriteVolume(aVol, writeLock, level, context),
+			   (state, context) => WriteMute(aVol, writeLock, state, context),
+			   () => aVol.MasterVolumeLevelScalar,
+			   () => aVol.Mute)
+	{
 	}
 
 	/// <param name="volumeWriter">Writes the volume to the device</param>
 	/// <param name="muteWriter">Writes the mute state to the device</param>
-	/// <param name="background">False writes synchronously on the caller's thread instead of on the worker (for tests)</param>
-	internal MasterAudioSessionVolume(Action<int, Guid> volumeWriter, Action<bool, Guid> muteWriter, bool background)
+	/// <param name="volumeReader">Reads the device's volume as a uniform scaling factor</param>
+	/// <param name="muteReader">Reads the device's mute state</param>
+	internal MasterAudioSessionVolume(Action<int, Guid> volumeWriter, Action<bool, Guid> muteWriter, Func<float> volumeReader, Func<bool> muteReader)
 	{
-		//there is no device: only the writers are used
-		audioVolume = null!;
 		this.volumeWriter = volumeWriter;
 		this.muteWriter = muteWriter;
-		this.background = background;
+		this.volumeReader = volumeReader;
+		this.muteReader = muteReader;
 	}
 
 	/// <summary>
 	/// Get's the master volume level as a uniform scaling factor.
 	/// </summary>
-	public float GetVolume() => audioVolume.MasterVolumeLevelScalar;
+	public float GetVolume() => volumeReader();
 
 	/// <summary>
 	/// Sets the master volume level, using a uniform scaling factor.
@@ -74,10 +74,10 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	public void SetVolume(int volumeLevel, Guid context)
 		=> Enqueue((Math.Clamp(volumeLevel, 0, 100), context), null);
 
-	private void WriteVolume(int volumeLevel, Guid context)
+	private static void WriteVolume(AudioEndpointVolume audioVolume, System.Threading.Lock writeLock, int volumeLevel, Guid context)
 	{
 		int sysVol = -1;
-		try { sysVol = VolumePercent.FromScalar(GetVolume()); }
+		try { sysVol = VolumePercent.FromScalar(audioVolume.MasterVolumeLevelScalar); }
 		catch { }
 
 		//prevent setting volume in system if the master session already has the same value
@@ -95,7 +95,7 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	/// <summary>
 	/// Get the mute state for the master volume.
 	/// </summary>
-	public bool GetMute() => audioVolume.Mute;
+	public bool GetMute() => muteReader();
 
 	/// <summary>
 	/// Set the mute state for the master volume.
@@ -103,7 +103,7 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	public void SetMute(bool muteState, Guid context)
 		=> Enqueue(null, (muteState, context));
 
-	private void WriteMute(bool muteState, Guid context)
+	private static void WriteMute(AudioEndpointVolume audioVolume, System.Threading.Lock writeLock, bool muteState, Guid context)
 	{
 		lock(writeLock)
 		{
@@ -115,14 +115,6 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 
 	private void Enqueue((int Volume, Guid Context)? volume, (bool Mute, Guid Context)? mute)
 	{
-		if(!background)
-		{
-			//exceptions reach the caller, as with the original synchronous writes
-			if(mute is { } m) muteWriter(m.Mute, m.Context);
-			if(volume is { } v) volumeWriter(v.Volume, v.Context);
-			return;
-		}
-
 		lock(stateLock)
 		{
 			if(disposed)
@@ -138,45 +130,23 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 	private void Run()
 	{
 		Exception? error = null;
-		VolumeChangedEventArgs? state = null;
 		while(true)
 		{
 			(int Volume, Guid Context)? volume;
 			(bool Mute, Guid Context)? mute;
-			bool idle;
 			lock(stateLock)
 			{
 				volume = pendingVolume;
 				mute = pendingMute;
 				pendingVolume = null;
 				pendingMute = null;
-				if(disposed)
+				//nothing came in while we were writing: go idle. From here on the model applies notifications again
+				if(disposed || (volume == null && mute == null))
 				{
 					worker = null;
 					busy = false;
-					return;
+					break;
 				}
-				idle = volume == null && mute == null;
-				//from here on the model applies notifications again, so the state read below can't miss a change
-				if(idle)
-					busy = false;
-			}
-
-			if(idle)
-			{
-				//the queue is empty: read what the device has. A change made meanwhile by someone else
-				//(e.g. the keyboard's mute key) was dropped as a possible echo, and nothing else would pick it up
-				state = ReadDeviceState();
-				lock(stateLock)
-				{
-					//nothing came in while we were reading: go idle
-					if(disposed || (pendingVolume == null && pendingMute == null))
-					{
-						worker = null;
-						break;
-					}
-				}
-				continue;
 			}
 
 			//mute first: an unmute that precedes a volume step must not leave the step inaudible
@@ -186,15 +156,9 @@ sealed class MasterAudioSessionVolume : IAudioSessionVolume, IDisposable
 			catch(Exception e) { error = e; }
 		}
 
-		//reported once the worker is idle: the model only trusts the device's state when nothing newer is coming
+		//reported once the worker is idle: the model reads the device then, so it can't miss a change made while it was busy
 		if(!disposed)
-			WritesCompleted?.Invoke(error, state);
-	}
-
-	private VolumeChangedEventArgs? ReadDeviceState()
-	{
-		try { return new VolumeChangedEventArgs(VolumePercent.FromScalar(GetVolume()), GetMute()); }
-		catch { return null; }
+			WritesCompleted?.Invoke(error);
 	}
 
 	public Task WaitForWritesAsync()

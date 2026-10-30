@@ -31,10 +31,10 @@ public interface IAudioSessionVolume
 	bool HasPendingWrites => false;
 
 	/// <summary>
-	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did)
-	/// and what the device has now (null if it couldn't be read)
+	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did).
+	/// The listener reads the device state itself when it handles it
 	/// </summary>
-	event Action<Exception?, VolumeChangedEventArgs?>? WritesCompleted { add { } remove { } }
+	event Action<Exception?>? WritesCompleted { add { } remove { } }
 
 	/// <summary>
 	/// Completes once the write in progress (if any) has finished. It doesn't block, so it can be awaited before the device is released

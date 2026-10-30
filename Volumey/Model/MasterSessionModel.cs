@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
@@ -153,6 +154,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	private readonly IHotkeyService hotkeys;
 	private IAudioSessionVolume masterVolume { get; }
 	private IMasterVolumeNotificationHandler notificationHandler { get; }
+	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
@@ -376,28 +378,35 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	}
 
 	//raised on the worker thread each time the queued writes are done
-	private void OnWritesCompleted(Exception? e, VolumeChangedEventArgs? state)
+	private void OnWritesCompleted(Exception? e)
 	{
 		if(e != null)
 			LogStateException(e);
-		if(!state.HasValue)
-			return;
-		VolumeChangedEventArgs deviceState = state.Value;
 		//the properties this changes belong to the UI thread
-		var dispatcher = System.Windows.Application.Current?.Dispatcher;
-		if(dispatcher != null)
-			dispatcher.InvokeAsync(() => ShowDeviceState(deviceState));
+		if(dispatcher.CheckAccess())
+			ShowDeviceState();
 		else
-			ShowDeviceState(deviceState);
+			dispatcher.InvokeAsync(ShowDeviceState);
 	}
 
-	private void ShowDeviceState(VolumeChangedEventArgs real)
+	private void ShowDeviceState()
 	{
 		//the device may have changed while we were writing (its notification was dropped) or never got what the UI shows:
-		//show what it really has, unless a newer write is already on its way
+		//show what it has now, unless a newer write is already on its way. It's read here, on the UI thread, so a change that came
+		//in after the worker went idle can't be overwritten by an older state
 		if(disposed || masterVolume.HasPendingWrites)
 			return;
-		ApplyDeviceState(real);
+		VolumeChangedEventArgs state;
+		try
+		{
+			state = new VolumeChangedEventArgs(VolumePercent.FromScalar(masterVolume.GetVolume()), masterVolume.GetMute());
+		}
+		catch(Exception e)
+		{
+			LogStateException(e);
+			return;
+		}
+		ApplyDeviceState(state);
 	}
 
 	/// <summary>

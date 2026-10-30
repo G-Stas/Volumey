@@ -13,25 +13,8 @@ public class MasterAudioSessionVolumeTests
 {
 	private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
-	[TestMethod]
-	public void SynchronousModeMustWriteOnTheCallerThread()
-	{
-		int writerThread = -1;
-		var volume = new MasterAudioSessionVolume((v, c) => writerThread = Environment.CurrentManagedThreadId, (m, c) => { }, background: false);
-
-		volume.SetVolume(30, Guid.Empty);
-
-		Assert.AreEqual(Environment.CurrentManagedThreadId, writerThread);
-		Assert.IsFalse(volume.HasPendingWrites);
-	}
-
-	[TestMethod]
-	public void SynchronousModeMustThrowWriteExceptionsToTheCaller()
-	{
-		var volume = new MasterAudioSessionVolume((v, c) => throw new COMException(), (m, c) => { }, background: false);
-
-		Assert.Throws<COMException>(() => volume.SetVolume(30, Guid.Empty));
-	}
+	private static MasterAudioSessionVolume Create(Action<int, Guid> volumeWriter, Action<bool, Guid> muteWriter = null)
+		=> new(volumeWriter, muteWriter ?? ((m, c) => { }), () => 0f, () => false);
 
 	[TestMethod]
 	public void QueuedVolumesMustBeCoalescedIntoTheLatest()
@@ -39,13 +22,13 @@ public class MasterAudioSessionVolumeTests
 		var written = new List<int>();
 		using var started = new ManualResetEventSlim();
 		using var gate = new ManualResetEventSlim();
-		var volume = new MasterAudioSessionVolume((v, c) =>
+		var volume = Create((v, c) =>
 		{
 			started.Set();
 			gate.Wait(TestContext.CancellationToken);
 			lock(written)
 				written.Add(v);
-		}, (m, c) => { }, background: true);
+		});
 
 		volume.SetVolume(10, Guid.Empty);
 		Assert.IsTrue(started.Wait(Timeout, TestContext.CancellationToken));
@@ -56,7 +39,7 @@ public class MasterAudioSessionVolumeTests
 
 		gate.Set();
 		Assert.IsTrue(SpinWait.SpinUntil(() => !volume.HasPendingWrites, Timeout));
-        Assert.AreSequenceEqual([10, 40], written);
+		Assert.AreSequenceEqual([10, 40], written);
 	}
 
 	[TestMethod]
@@ -65,7 +48,7 @@ public class MasterAudioSessionVolumeTests
 		var muted = new List<bool>();
 		using var started = new ManualResetEventSlim();
 		using var gate = new ManualResetEventSlim();
-		var volume = new MasterAudioSessionVolume((v, c) =>
+		var volume = Create((v, c) =>
 		{
 			started.Set();
 			gate.Wait(TestContext.CancellationToken);
@@ -73,7 +56,7 @@ public class MasterAudioSessionVolumeTests
 		{
 			lock(muted)
 				muted.Add(m);
-		}, background: true);
+		});
 
 		volume.SetVolume(10, Guid.Empty);
 		Assert.IsTrue(started.Wait(Timeout, TestContext.CancellationToken));
@@ -84,7 +67,7 @@ public class MasterAudioSessionVolumeTests
 
 		gate.Set();
 		Assert.IsTrue(SpinWait.SpinUntil(() => !volume.HasPendingWrites, Timeout));
-        Assert.AreSequenceEqual([true], muted);
+		Assert.AreSequenceEqual([true], muted);
 	}
 
 	[TestMethod]
@@ -93,8 +76,8 @@ public class MasterAudioSessionVolumeTests
 		var error = new COMException();
 		using var reported = new ManualResetEventSlim();
 		Exception received = null;
-		var volume = new MasterAudioSessionVolume((v, c) => throw error, (m, c) => { }, background: true);
-		volume.WritesCompleted += (e, state) =>
+		var volume = Create((v, c) => throw error);
+		volume.WritesCompleted += e =>
 		{
 			received = e;
 			reported.Set();
@@ -111,8 +94,8 @@ public class MasterAudioSessionVolumeTests
 	{
 		using var reported = new ManualResetEventSlim();
 		Exception received = new Exception("not raised");
-		var volume = new MasterAudioSessionVolume((v, c) => { }, (m, c) => { }, background: true);
-		volume.WritesCompleted += (e, state) =>
+		var volume = Create((v, c) => { });
+		volume.WritesCompleted += e =>
 		{
 			received = e;
 			reported.Set();
@@ -131,13 +114,13 @@ public class MasterAudioSessionVolumeTests
 		var written = new List<int>();
 		using var started = new ManualResetEventSlim();
 		using var gate = new ManualResetEventSlim();
-		var volume = new MasterAudioSessionVolume((v, c) =>
+		var volume = Create((v, c) =>
 		{
 			started.Set();
 			gate.Wait(TestContext.CancellationToken);
 			lock(written)
 				written.Add(v);
-		}, (m, c) => { }, background: true);
+		});
 
 		volume.SetVolume(10, Guid.Empty);
 		Assert.IsTrue(started.Wait(Timeout, TestContext.CancellationToken));
@@ -155,8 +138,8 @@ public class MasterAudioSessionVolumeTests
 		//the queued 20 was dropped, and nothing is written after the dispose
 		volume.SetVolume(30, Guid.Empty);
 		Assert.IsFalse(volume.HasPendingWrites);
-        Assert.AreSequenceEqual([10], written);
+		Assert.AreSequenceEqual([10], written);
 	}
 
-    public TestContext TestContext { get; set; }
+	public TestContext TestContext { get; set; }
 }
