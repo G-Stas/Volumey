@@ -127,6 +127,80 @@ internal static class Audio
 		}));
 	}
 
+	/// <summary>Whether the device is Windows' default for any role (console, multimedia, communications)</summary>
+	public static bool IsDefaultForAnyRole(string deviceId)
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		foreach(var role in new[] { Role.Console, Role.Multimedia, Role.Communications })
+		{
+			if(!enumerator.HasDefaultAudioEndpoint(DataFlow.Render, role))
+				continue;
+			using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, role);
+			if(device.ID == deviceId)
+				return true;
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// An active output device that isn't a default for any role and that no app plays on now (ID and name), so a test may move
+	/// its own app there and turn the device off; null when there is none
+	/// </summary>
+	public static (string Id, string Name)? OtherOutputDevice()
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		foreach(var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+			using(device)
+				if(!IsDefaultForAnyRole(device.ID) && !AnyAppPlaysOn(device))
+					return (device.ID, device.FriendlyName);
+		return null;
+	}
+
+	private static bool AnyAppPlaysOn(MMDevice device)
+	{
+		var sessions = device.AudioSessionManager.Sessions;
+		for(int i = 0; i < sessions.Count; i++)
+		{
+			using var session = sessions[i];
+			if(session.State == NAudio.CoreAudioApi.Interfaces.AudioSessionState.AudioSessionStateActive && !session.IsSystemSoundsSession)
+				return true;
+		}
+		return false;
+	}
+
+	/// <summary>The name of the device the process plays on now (its session there is active); null when it plays nowhere</summary>
+	public static string? PlaysOn(int processId)
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		foreach(var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+			using(device)
+			{
+				var sessions = device.AudioSessionManager.Sessions;
+				for(int i = 0; i < sessions.Count; i++)
+				{
+					using var session = sessions[i];
+					if(session.GetProcessID == processId && session.State == NAudio.CoreAudioApi.Interfaces.AudioSessionState.AudioSessionStateActive)
+						return device.FriendlyName;
+				}
+			}
+		return null;
+	}
+
+	/// <summary>The volume (0–100) of the process's session on the device, or null if it has none there</summary>
+	public static int? SessionVolumeOn(string deviceId, int processId)
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		using var device = enumerator.GetDevice(deviceId);
+		var sessions = device.AudioSessionManager.Sessions;
+		for(int i = 0; i < sessions.Count; i++)
+		{
+			using var session = sessions[i];
+			if(session.GetProcessID == processId)
+				return (int)Math.Round(session.SimpleAudioVolume.Volume * 100);
+		}
+		return null;
+	}
+
 	/// <summary>The names of the active output devices</summary>
 	public static List<string> OutputDeviceNames()
 	{

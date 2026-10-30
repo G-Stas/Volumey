@@ -45,6 +45,176 @@ public class AppOutputDeviceTests : UiTest
 		box.Patterns.ExpandCollapse.Pattern.Collapse();
 	}
 
+	/// <summary>A device to move test apps to: never a default device, and no other app plays there</summary>
+	private static (string Id, string Name) OtherDevice()
+	{
+		var other = Audio.OtherOutputDevice();
+		if(other == null)
+			Assert.Inconclusive("No second output device that no app plays on: an app can't be moved");
+		if(!Routes.Available)
+			Assert.Inconclusive("Windows doesn't offer per-app output devices");
+		return other.Value;
+	}
+
+	/// <summary>A test app that follows Windows' routing like a real player, under a fresh exe name (Windows keeps routes and
+	/// per-device volumes per executable), put back on the default device after the test</summary>
+	private TestAudioApp StartRoutingApp(string name)
+	{
+		var app = Later(TestAudioApp.Start($"{name}{Guid.NewGuid().ToString("N")[..6]}", routing: true));
+		Later(Routes.ResetLater(app));
+		return app;
+	}
+
+	private bool HasRow(string app) => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(app))) != null;
+
+	private AutomationElement? Badge(string device) => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName(device)));
+
+	/// <summary>Shows the device in the mixer through its device picker</summary>
+	private void ShowInMixer(string device)
+	{
+		var picker = App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox).And(cf.ByName("Output device")))
+		             ?? throw new AssertFailedException("The mixer has no device picker");
+		picker.Patterns.ExpandCollapse.Pattern.Expand();
+		var item = Retry.WhileNull(() => picker.FindFirstDescendant(cf => cf.ByControlType(ControlType.ListItem).And(cf.ByName(device))),
+			           TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"{device} isn't in the device picker");
+		item.Patterns.SelectionItem.Pattern.Select();
+		picker.Patterns.ExpandCollapse.Pattern.Collapse();
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AMovedAppPlaysThereLeavesTheDefaultsListAndComesBackWithUndo()
+	{
+		var other = OtherDevice();
+		var testApp = StartRoutingApp("VolumeyUiRouted");
+		StartMixer();
+		string app = testApp.DisplayName;
+		string defaultDevice = Audio.DefaultDeviceName;
+
+		Pick(OpenDeviceBox(app), other.Name);
+
+		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Name, 5000), $"the app plays on {Audio.PlaysOn(testApp.Process.Id)}");
+		Assert.AreEqual(other.Id, Routes.PinnedDevice(testApp.Process.Id), "Windows doesn't have the app on the chosen device");
+		Assert.IsTrue(Eventually(() => !HasRow(app), 5000), "the app's row stayed in the default device's list");
+		Assert.AreEqual(defaultDevice, Audio.DefaultDeviceName, "the default device changed");
+
+		var undo = App.Mixer.FindFirstDescendant(cf => cf.ByAutomationId("UndoMoveButton")) ?? throw new AssertFailedException("No Undo");
+		undo.Patterns.Invoke.Pattern.Invoke();
+
+		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == defaultDevice, 5000), $"Undo left the app on {Audio.PlaysOn(testApp.Process.Id)}");
+		Assert.IsNull(Routes.PinnedDevice(testApp.Process.Id), "Windows still has the app on the other device");
+		Assert.IsTrue(Eventually(() => HasRow(app), 5000), "the app's row didn't come back");
+		Assert.IsNull(Badge(other.Name), "the device's name is still shown next to the app");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AMovedAppIsListedOnItsDeviceWithTheDevicesName()
+	{
+		var other = OtherDevice();
+		var testApp = StartRoutingApp("VolumeyUiListed");
+		StartMixer();
+		string app = testApp.DisplayName;
+		Pick(OpenDeviceBox(app), other.Name);
+		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Name, 5000), "the app didn't move");
+
+		ShowInMixer(other.Name);
+
+		Assert.IsTrue(Eventually(() => HasRow(app), 5000), $"no row for the app on {other.Name}");
+		Assert.IsNotNull(Retry.WhileNull(() => Badge(other.Name), TimeSpan.FromSeconds(3)).Result, "no device name next to the app");
+		Assert.AreEqual(other.Name, Selected(OpenDeviceBox(app)));
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AMovedAppKeepsItsVolumeOnTheNewDevice()
+	{
+		var other = OtherDevice();
+		var testApp = StartRoutingApp("VolumeyUiKeepsVolume");
+		StartMixer();
+		string app = testApp.DisplayName;
+		var slider = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Slider).And(cf.ByName(app))),
+			             TimeSpan.FromSeconds(10)).Result ?? throw new AssertFailedException("No row for the app");
+		slider.Patterns.RangeValue.Pattern.SetValue(40);
+		Assert.AreEqual(40, Audio.WaitFor(() => testApp.Volume, 40), "the slider didn't set the app's volume");
+
+		Pick(OpenDeviceBox(app), other.Name);
+
+		//Windows starts the app at its own volume for that device (a fresh executable: 100); Volumey copies the app's volume there
+		Assert.AreEqual(40, Audio.WaitFor(() => Audio.SessionVolumeOn(other.Id, testApp.Process.Id), 40, 5000),
+			"the app didn't keep its volume on the new device");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AnAppGoesBackToItsDeviceWhenTheDeviceIsTurnedOnAgain()
+	{
+		var other = OtherDevice();
+		var testApp = StartRoutingApp("VolumeyUiReturns");
+		StartMixer();
+		string defaultDevice = Audio.DefaultDeviceName;
+		Pick(OpenDeviceBox(testApp.DisplayName), other.Name);
+		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Name, 5000), "the app didn't move");
+
+		using(Later(Routes.KeepDeviceEnabled(other.Id)))
+		{
+			Routes.SetDeviceEnabled(other.Id, false);
+			Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == defaultDevice, 5000),
+				$"with its device off the app plays on {Audio.PlaysOn(testApp.Process.Id)}");
+
+			Routes.SetDeviceEnabled(other.Id, true);
+
+			//Windows doesn't send the app back itself; Volumey sets its route again
+			Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Name, 8000),
+				$"after its device came back the app plays on {Audio.PlaysOn(testApp.Process.Id)}");
+		}
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AnAppMovedOutsideVolumeyIsShownOnItsDevice()
+	{
+		var other = OtherDevice();
+		var testApp = StartRoutingApp("VolumeyUiOutside");
+		//as Windows' own volume mixer settings would, before Volumey starts
+		Routes.Pin(testApp.Process.Id, other.Id);
+		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Name, 5000), "the app didn't move");
+		StartMixer();
+		string app = testApp.DisplayName;
+
+		Assert.IsTrue(Eventually(() => !HasRow(app), 5000), "the app has a row in the default device's list");
+		ShowInMixer(other.Name);
+		Assert.IsTrue(Eventually(() => HasRow(app), 5000), $"no row for the app on {other.Name}");
+		Assert.AreEqual(other.Name, Selected(OpenDeviceBox(app)));
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AppHotkeysReachTheAppOnItsNewDevice()
+	{
+		var other = OtherDevice();
+		var testApp = StartRoutingApp("VolumeyUiHotkeyFollows");
+		string app = testApp.DisplayName;
+		var down = Combo.F(21);
+		StartMixer(new System.Text.Json.Nodes.JsonObject
+		{
+			["Hotkeys"] = new System.Text.Json.Nodes.JsonObject
+			{
+				["Apps"] = new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject
+					{ ["ProcessName"] = app, ["VolumeUp"] = HotkeyJson(Combo.F(20)), ["VolumeDown"] = HotkeyJson(down) })
+			}
+		});
+		Pick(OpenDeviceBox(app), other.Name);
+		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Name, 5000), "the app didn't move");
+		Assert.AreEqual(100, Audio.WaitFor(() => Audio.SessionVolumeOn(other.Id, testApp.Process.Id), 100, 5000));
+		int step = App.ReadSettings()["General"]?["VolumeStep"]?.GetValue<int>() ?? 1;
+
+		down.Press();
+
+		Assert.AreEqual(100 - step, Audio.WaitFor(() => Audio.SessionVolumeOn(other.Id, testApp.Process.Id), 100 - step, 5000),
+			"the hotkey didn't reach the app on its new device");
+	}
+
 	// A1
 	[TestMethod]
 	[TestCategory("Audio")]
