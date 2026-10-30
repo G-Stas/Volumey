@@ -51,6 +51,8 @@ public sealed class AppRouting : IAppRouting, IDisposable
 	private readonly Queue<PendingMove> moves = new();
 	//devices that became active since the worker was last idle: apps pinned to them are set again (AppRoutingRules.ReappliesRoute)
 	private readonly HashSet<string> returnedDevices = new(StringComparer.OrdinalIgnoreCase);
+	//the apps sent back to one of those devices: once each, a Set makes the app reopen its stream
+	private readonly HashSet<(AppIdentity App, string DeviceId)> sentBack = new();
 	private bool working;
 	private bool stopped;
 
@@ -189,6 +191,7 @@ public sealed class AppRouting : IAppRouting, IDisposable
 				{
 					//every app was read since those devices came back
 					returnedDevices.Clear();
+					sentBack.Clear();
 					working = false;
 					return;
 				}
@@ -227,6 +230,11 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		if(route is AppRoute.Pinned pinnedRoute && AppRoutingRules.ReappliesRoute(route, snapshot.ReturnedDevices,
 			   snapshot.Members.Any(m => m.PlaysNow && AppRoutingRules.SameDevice(m.DeviceId, pinnedRoute.DeviceId))))
 		{
+			lock(gate)
+			{
+				foreach(var member in snapshot.Members)
+					sentBack.Add((member.App.Identity, pinnedRoute.DeviceId.ToUpperInvariant()));
+			}
 			var writes = snapshot.ProcessIds.Select(processId => Timed(() => windows.SetRoute(processId, route))).ToList();
 			Logger.Info($"Sent [{app.Name}] back to its device, which is active again: {AppRoutingRules.OutcomeOf(writes, route).GetType().Name}");
 		}
@@ -348,7 +356,7 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		{
 			//this refresh covers them
 			waiting.ExceptWith(members.Select(m => m.App));
-			returned = returnedDevices.ToArray();
+			returned = returnedDevices.Where(id => !members.Any(m => sentBack.Contains((m.App.Identity, id.ToUpperInvariant())))).ToArray();
 		}
 		return new AppSnapshot(members, devices.DefaultDevice?.Id,
 			devices.ActiveDevices.Select(d => (d.Id, d.Master.Name)).ToList(),
@@ -411,7 +419,11 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		{
 			inactiveDeviceNames.TryRemove(device.Id, out _);
 			lock(gate)
+			{
 				returnedDevices.Add(device.Id);
+				//a device that went away and came back again: its apps are sent back again
+				sentBack.RemoveWhere(s => s.DeviceId == device.Id.ToUpperInvariant());
+			}
 			Watch(device);
 		}
 		//whether a pinned device is active changes the rows of its apps everywhere

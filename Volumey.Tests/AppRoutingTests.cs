@@ -593,6 +593,70 @@ public class AppRoutingTests
 
 	// U20
 	[TestMethod]
+	public void AnAppIsSentBackOnceWhileItsSessionsChangeDuringTheReturn()
+	{
+		//each Set makes the app reopen its stream: refreshes before it plays on the device mustn't set it again
+		var app = NewApp("player", 50, true, 100);
+		windows.Routes[100] = new AppRoute.Pinned(B);
+		RecordSets();
+		var a = Device(A, "Speakers", app);
+		Start(a);
+		Settle();
+		windows.GetGate.Reset();
+
+		Device(B, "Headset");
+		WaitForFirstGetAfter(Volatile.Read(ref windows.Gets));
+		app.Stop();
+		app.Play();
+		windows.GetGate.Set();
+		Settle();
+
+		Assert.AreEqual(1, sets.Count, string.Join(", ", sets));
+	}
+
+	// U20
+	[TestMethod]
+	public void ADeviceThatComesBackTwiceSendsTheAppBackTwice()
+	{
+		var app = NewApp("player", 50, true, 100);
+		windows.Routes[100] = new AppRoute.Pinned(B);
+		var a = Device(A, "Speakers", app);
+		Start(a);
+		Settle();
+		OutputDeviceModel b = null;
+		windows.OnSet = (processId, route) =>
+		{
+			lock(sets)
+				sets.Add((processId, route));
+			//right after the first return was handled: away and back again before the worker is done
+			if(sets.Count == 1)
+				OnUi(() =>
+				{
+					devices.Remove(b);
+					Device(B, "Headset");
+				});
+			return new RouteWrite.Done();
+		};
+
+		b = Device(B, "Headset");
+		Settle();
+
+		Assert.AreEqual(2, sets.Count, string.Join(", ", sets));
+	}
+
+	private void WaitForFirstGetAfter(int gets)
+	{
+		var watch = Stopwatch.StartNew();
+		while(Volatile.Read(ref windows.Gets) == gets)
+		{
+			if(watch.ElapsedMilliseconds > 3000)
+				Assert.Fail("Windows wasn't asked");
+			Thread.Sleep(5);
+		}
+	}
+
+	// U20
+	[TestMethod]
 	public void OnlyAppsPinnedToTheReturningDeviceAndNotPlayingThereAreSentAgain()
 	{
 		var following = NewApp("browser", 50, true, 100);
