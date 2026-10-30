@@ -321,6 +321,47 @@ public class ConvertersTests
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.AppIcon, null));
 	}
 
+	private static Icon ReadAppIcon(int size)
+	{
+		using var file = System.IO.File.OpenRead(System.IO.Path.Combine(System.AppContext.BaseDirectory, "TestData", "icon.ico"));
+		return IconExtensions.ReadIconOfSize(file, size);
+	}
+
+	// U8
+	[TestMethod]
+	[DataRow(20)]
+	[DataRow(28)]
+	[DataRow(36)]
+	[DataRow(56)]
+	public void TheAppIconIsMadeAtTheTraySizeWhenTheFileHasNoSuchFrame(int size)
+	{
+		using var icon = ReadAppIcon(size);
+		using var bitmap = icon.ToBitmap();
+
+		Assert.AreEqual(size, icon.Width);
+		Assert.AreEqual(size, bitmap.Width);
+		Assert.AreEqual(size, bitmap.Height);
+		//the key cap is drawn, not an empty square
+		Assert.AreNotEqual(0, bitmap.GetPixel(size / 2, size / 2).A);
+		Assert.AreEqual(0, bitmap.GetPixel(0, 0).A);
+	}
+
+	// U8
+	[TestMethod]
+	public void TheAppIconUsesTheFilesOwnFrameWhenItHasOne()
+	{
+		using var icon = ReadAppIcon(24);
+		using var file = System.IO.File.OpenRead(System.IO.Path.Combine(System.AppContext.BaseDirectory, "TestData", "icon.ico"));
+		using var frame = new Icon(file, 24, 24);
+		using var expected = frame.ToBitmap();
+		using var actual = icon.ToBitmap();
+
+		Assert.AreEqual(24, actual.Width);
+		for(int x = 0; x < 24; x++)
+			for(int y = 0; y < 24; y++)
+				Assert.AreEqual(expected.GetPixel(x, y), actual.GetPixel(x, y), $"pixel {x},{y}");
+	}
+
 	private static string[] VisibleParts(AppOutputOption option)
 		=> new[] { "Default", "DefaultOrNameless", "Named", "Nameless" }
 			.Where(p => (Visibility)new AppOutputOptionConverter().Convert(option, typeof(Visibility), p, Culture) == Visibility.Visible).ToArray();

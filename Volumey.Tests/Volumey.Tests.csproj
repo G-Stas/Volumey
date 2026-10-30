@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <None Include="TestData\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Volumey\Resources\Icons\icon.ico" Link="TestData\icon.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
