@@ -22,11 +22,13 @@ param(
     [string]$Config = (Join-Path (Split-Path $PSScriptRoot -Parent) 'ui-tests-vm.settings'),
     [string]$Filter = '',
     [switch]$NoAudio,
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    # another Debug build of the app to test instead of the one in bin, e.g. a self-contained (trimmed) publish
+    [string]$AppDir = ''
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
-$appDir = Join-Path $repo 'Volumey\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64'
+$appDir = if ($AppDir) { $AppDir } else { Join-Path $repo 'Volumey\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64' }
 $testsDir = Join-Path $repo 'Volumey.UITests\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64'
 $vmrun = Join-Path ${env:ProgramFiles(x86)} 'VMware\VMware Workstation\vmrun.exe'
 if (-not (Test-Path $vmrun)) { $vmrun = Join-Path $env:ProgramFiles 'VMware\VMware Workstation\vmrun.exe' }
