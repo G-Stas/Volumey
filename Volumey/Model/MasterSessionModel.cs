@@ -3,8 +3,10 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using log4net;
 using Microsoft.Xaml.Behaviors.Core;
 using Volumey.Controls;
@@ -152,6 +154,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	private readonly IHotkeyService hotkeys;
 	private IAudioSessionVolume masterVolume { get; }
 	private IMasterVolumeNotificationHandler notificationHandler { get; }
+	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
@@ -169,6 +172,7 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		FilePath = Name;
 		DeviceDesc = desc;
 		masterVolume = mVolume;
+		masterVolume.WritesCompleted += OnWritesCompleted;
 		notificationHandler = nHandler;
 		notificationHandler.VolumeChanged += OnVolumeChanged;
 
@@ -352,13 +356,28 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 
 	private void OnVolumeChanged(VolumeChangedEventArgs e)
 	{
+		//a write of ours is queued or running: this is the echo of an older write (or one about to be superseded), and applying it
+		//would undo newer steps. The UI already shows the latest requested value
+		if(masterVolume.HasPendingWrites)
+			return;
+
+		ApplyDeviceState(e);
+	}
+
+	private void ApplyDeviceState(VolumeChangedEventArgs e)
+	{
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
 		{
 			if(Volume != e.NewVolume || IsMuted != e.IsMuted)
 				StateNotificationMediator?.NotifyAudioStateChange(this);
 		}
 
-		//taken over without writing it back to Windows, which already has it
+		TakeOver(e);
+	}
+
+	//taken over without writing it back to Windows, which already has it
+	private void TakeOver(VolumeChangedEventArgs e)
+	{
 		if(_volume != e.NewVolume)
 		{
 			_volume = e.NewVolume;
@@ -370,6 +389,43 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 			OnPropertyChanged(nameof(IsMuted));
 		}
 	}
+
+	//raised on the worker thread each time the queued writes are done
+	private void OnWritesCompleted(Exception? e)
+	{
+		if(e != null)
+			LogStateException(e);
+		//the properties this changes belong to the UI thread
+		if(dispatcher.CheckAccess())
+			ShowDeviceState();
+		else
+			dispatcher.InvokeAsync(ShowDeviceState);
+	}
+
+	private void ShowDeviceState()
+	{
+		//the device may have changed while we were writing (its notification was dropped) or never got what the UI shows:
+		//show what it has now, unless a newer write is already on its way. It's read here, on the UI thread, so a change that came
+		//in after the worker went idle can't be overwritten by an older state
+		if(disposed || masterVolume.HasPendingWrites)
+			return;
+		VolumeChangedEventArgs state;
+		try
+		{
+			state = new VolumeChangedEventArgs(VolumePercent.FromScalar(masterVolume.GetVolume()), masterVolume.GetMute());
+		}
+		catch(Exception e)
+		{
+			LogStateException(e);
+			return;
+		}
+		ApplyDeviceState(state);
+	}
+
+	/// <summary>
+	/// Completes once the write in progress (if any) has finished: the device must not be released before
+	/// </summary>
+	internal Task WaitForWritesAsync() => masterVolume.WaitForWritesAsync();
 
 	private void LogStateException(Exception e)
 	{
@@ -393,6 +449,9 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		hotkeys.HotkeyPressed -= OnHotkeyPressed;
 		StateNotificationMediator?.NotifyOfDisposing(this);
 		notificationHandler.VolumeChanged -= OnVolumeChanged;
+		masterVolume.WritesCompleted -= OnWritesCompleted;
+		//drops the queued writes without waiting: OutputDeviceModel awaits WaitForWritesAsync before it releases the device
+		(masterVolume as IDisposable)?.Dispose();
 		notificationHandler.Dispose();
 		_icon?.Dispose();
 	}

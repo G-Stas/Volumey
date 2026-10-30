@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Threading.Tasks;
 
 namespace Volumey.CoreAudioWrapper.Wrapper;
 
@@ -7,6 +8,9 @@ public interface IAudioSessionVolume
 {
 	float GetVolume();
 
+	/// <summary>
+	/// Sets the volume. Implementations may write in the background, in which case failures are reported through <see cref="WritesCompleted"/>
+	/// </summary>
 	void SetVolume(int newVolume, Guid context);
 
 	bool GetMute();
@@ -19,4 +23,21 @@ public interface IAudioSessionVolume
 	/// The highest sample level (0..1) of the last device period, before this volume is applied; 0 without a meter
 	/// </summary>
 	float GetPeak() => 0f;
+
+	/// <summary>
+	/// True while a write is queued or running (always false for volumes that write synchronously).
+	/// It's read for every notification on the UI thread, so it must never block
+	/// </summary>
+	bool HasPendingWrites => false;
+
+	/// <summary>
+	/// Raised on a worker thread each time the queued writes are done: the error of the last write that failed (null if none did).
+	/// The listener reads the device state itself when it handles it
+	/// </summary>
+	event Action<Exception?>? WritesCompleted { add { } remove { } }
+
+	/// <summary>
+	/// Completes once the write in progress (if any) has finished. It doesn't block, so it can be awaited before the device is released
+	/// </summary>
+	Task WaitForWritesAsync() => Task.CompletedTask;
 }
