@@ -16,7 +16,6 @@ public class SessionActivityTests
 	private static AudioProcessModel Process()
 		=> new(50, false, "app", 100, @"C:\Apps\app.exe", null, null, new HotkeyService());
 
-	// U15
 	[TestMethod]
 	public void ASessionThatStartsPlayingWhileItIsReadStaysPlaying()
 	{
@@ -30,7 +29,6 @@ public class SessionActivityTests
 		Assert.IsTrue(session.IsActive);
 	}
 
-	// U15
 	[TestMethod]
 	public void TheInitialStateIsTakenWhenNoChangeCameFirst()
 	{
@@ -39,7 +37,6 @@ public class SessionActivityTests
 		Assert.IsTrue(session.IsActive);
 	}
 
-	// U15
 	[TestMethod]
 	public void TheAppHearsOnlyRealActivityChanges()
 	{
@@ -61,7 +58,6 @@ public class SessionActivityTests
 		Assert.IsFalse(app.PlaysNow);
 	}
 
-	// U15
 	[TestMethod]
 	public void APlayingSessionJoiningTheAppIsAnActivityChange()
 	{

@@ -17,7 +17,6 @@ public class AppOutputTests : ViewModelTestBase
 	private const string Speakers = "{0.0.0.00000000}.{speakers}";
 	private static readonly (string, string)[] Active = [(Game, "Headphones (Game)"), (Chat, "Headphones (Chat)")];
 
-	// U12
 	[TestMethod]
 	public void TheDefaultDeviceComesFirstThenEveryActiveDevice()
 	{
@@ -32,7 +31,6 @@ public class AppOutputTests : ViewModelTestBase
 		Assert.AreEqual(0, AppOutputOptions.IndexOf(options, new AppRoute.FollowsDefault()));
 	}
 
-	// U12
 	[TestMethod]
 	public void AnAppPinnedToAnActiveDeviceAddsNothing()
 	{
@@ -43,7 +41,6 @@ public class AppOutputTests : ViewModelTestBase
 		Assert.AreEqual(2, AppOutputOptions.IndexOf(options, new AppRoute.Pinned(Chat.ToUpperInvariant())));
 	}
 
-	// U12
 	[TestMethod]
 	public void AnUnpluggedPinnedDeviceComesLastAndCantBePicked()
 	{
@@ -53,7 +50,6 @@ public class AppOutputTests : ViewModelTestBase
 		Assert.AreEqual(3, AppOutputOptions.IndexOf(options, new AppRoute.Pinned(Speakers)));
 	}
 
-	// U12
 	[TestMethod]
 	public void ADeviceWindowsCantNameHasNoNameAndTheDefaultsDetail()
 	{
@@ -84,7 +80,6 @@ public class AppOutputTests : ViewModelTestBase
 
 	private async Task PickChat() => await vm.PickOutputAsync(app, ChatOption);
 
-	// U18
 	[TestMethod]
 	public async Task AMovedPickShowsTheNoticeWithUndo()
 	{
@@ -99,7 +94,6 @@ public class AppOutputTests : ViewModelTestBase
 		routing.Verify(r => r.MoveAsync(app, new AppRoute.Pinned(Chat)));
 	}
 
-	// U18
 	[TestMethod]
 	public async Task PickingDefaultDeviceNamesTheCurrentDefault()
 	{
@@ -113,7 +107,6 @@ public class AppOutputTests : ViewModelTestBase
 		routing.Verify(r => r.MoveAsync(app, new AppRoute.FollowsDefault()));
 	}
 
-	// U18
 	[TestMethod]
 	public async Task PickingTheCurrentChoiceDoesNothing()
 	{
@@ -125,7 +118,6 @@ public class AppOutputTests : ViewModelTestBase
 		routing.Verify(r => r.MoveAsync(It.IsAny<AudioProcessModel>(), It.IsAny<AppRoute>()), Times.Never);
 	}
 
-	// U18
 	[TestMethod]
 	public async Task ARefusedPickShowsTheFailureWithoutUndo()
 	{
@@ -139,7 +131,6 @@ public class AppOutputTests : ViewModelTestBase
 		StringAssert.Contains(vm.Notice.Text, "Headphones (Chat)");
 	}
 
-	// U18
 	[TestMethod]
 	public async Task APickOfAGoneDeviceOrAGoneAppShowsNothing()
 	{
@@ -166,7 +157,6 @@ public class AppOutputTests : ViewModelTestBase
 		routing.Verify(r => r.MoveAsync(app, new AppRoute.FollowsDefault()));
 	}
 
-	// U18
 	[TestMethod]
 	public async Task ADoneUndoClosesTheNotice()
 	{
@@ -174,7 +164,6 @@ public class AppOutputTests : ViewModelTestBase
 		Assert.IsNull(vm.Notice);
 	}
 
-	// U18
 	[TestMethod]
 	public async Task ARefusedUndoShowsTheFailure()
 	{
@@ -184,7 +173,6 @@ public class AppOutputTests : ViewModelTestBase
 		StringAssert.Contains(vm.Notice.Text, "Headphones (Game)");
 	}
 
-	// U18
 	[TestMethod]
 	public async Task AnUndoToADeviceThatLeftShowsTheFailure()
 	{
@@ -192,7 +180,6 @@ public class AppOutputTests : ViewModelTestBase
 		Assert.IsFalse(vm.Notice.CanUndo);
 	}
 
-	// U18
 	[TestMethod]
 	public async Task AnUndoOfAnExitedAppShowsNothing()
 	{

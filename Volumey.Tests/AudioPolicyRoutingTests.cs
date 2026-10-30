@@ -15,7 +15,6 @@ public class AudioPolicyRoutingTests
 	private const string DeviceId = "{0.0.0.00000000}.{8f2c1a4e-0b6d-4c39-9e1f-5a7d3b2c6e10}";
 	private const string PolicyId = @"\\?\SWD#MMDEVAPI#{0.0.0.00000000}.{8f2c1a4e-0b6d-4c39-9e1f-5a7d3b2c6e10}#{e6327cad-dcec-4949-ae8a-991e976a79d2}";
 
-	// U1
 	[TestMethod]
 	public void TheKnownInterfaceIsPicked()
 	{
@@ -23,7 +22,6 @@ public class AudioPolicyRoutingTests
 		Assert.AreEqual(Windows10, AudioPolicyRouting.PickInterface([AgileObject, Windows10]));
 	}
 
-	// U1
 	[TestMethod]
 	public void AnUnknownInterfaceIsNotPicked()
 	{
@@ -31,21 +29,18 @@ public class AudioPolicyRoutingTests
 		Assert.IsNull(AudioPolicyRouting.PickInterface([]));
 	}
 
-	// U1
 	[TestMethod]
 	public void WithBothKnownInterfacesTheWindows11OneIsPicked()
 	{
 		Assert.AreEqual(Windows11, AudioPolicyRouting.PickInterface([Windows10, AgileObject, Windows11]));
 	}
 
-	// U2
 	[TestMethod]
 	public void ADeviceIdIsWrappedForThePolicy()
 	{
 		Assert.AreEqual(PolicyId, AudioPolicyRouting.ToPolicyId(DeviceId));
 	}
 
-	// U2
 	[TestMethod]
 	public void AnAlreadyWrappedIdStaysAsItIs()
 	{
@@ -53,21 +48,18 @@ public class AudioPolicyRoutingTests
 		Assert.AreEqual(PolicyId.ToLowerInvariant(), AudioPolicyRouting.ToPolicyId(PolicyId.ToLowerInvariant()));
 	}
 
-	// U2
 	[TestMethod]
 	public void APolicyIdIsUnwrapped()
 	{
 		Assert.AreEqual(DeviceId, AudioPolicyRouting.FromPolicyId(PolicyId));
 	}
 
-	// U2
 	[TestMethod]
 	public void APolicyIdInAnotherCaseIsUnwrapped()
 	{
 		Assert.AreEqual(DeviceId.ToUpperInvariant(), AudioPolicyRouting.FromPolicyId(PolicyId.ToUpperInvariant()));
 	}
 
-	// U2
 	[TestMethod]
 	public void NoPolicyIdIsNoDevice()
 	{
@@ -75,7 +67,6 @@ public class AudioPolicyRoutingTests
 		Assert.IsNull(AudioPolicyRouting.FromPolicyId(null));
 	}
 
-	// U2
 	[TestMethod]
 	public void AnUnknownFormStaysAsItIs()
 	{

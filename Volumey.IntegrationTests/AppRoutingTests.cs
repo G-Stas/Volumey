@@ -12,7 +12,6 @@ namespace Volumey.IntegrationTests;
 [TestCategory("Integration")]
 public class AppRoutingTests
 {
-	// C1
 	[TestMethod]
 	public void AnAppWithASessionFollowsTheDefaultDevice()
 	{
@@ -35,7 +34,6 @@ public class AppRoutingTests
 		Assert.IsNull(DeviceEnumerator.GetDeviceName("{0.0.0.00000000}.{00000000-0000-0000-0000-000000000000}"));
 	}
 
-	// C2
 	[TestMethod]
 	public void SystemSoundsHasNoRoute()
 	{

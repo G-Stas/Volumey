@@ -215,7 +215,6 @@ public class AppOutputDeviceTests : UiTest
 			"the hotkey didn't reach the app on its new device");
 	}
 
-	// A1
 	[TestMethod]
 	[TestCategory("Audio")]
 	public void AnOpenedAppListsTheDefaultDeviceAndEveryOutputDevice()
@@ -233,7 +232,6 @@ public class AppOutputDeviceTests : UiTest
 		Assert.IsNull(App.Mixer.FindFirstDescendant(cf => cf.ByAutomationId("UndoMoveButton")), "a notice showed without a move");
 	}
 
-	// A2
 	[TestMethod]
 	[TestCategory("Audio")]
 	public void AnAppMovedToAnotherDeviceComesBackWithUndo()

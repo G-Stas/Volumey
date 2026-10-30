@@ -31,7 +31,6 @@ public class AppRoutingRulesTests
 	private static PlacementFacts Facts(RouteHere route, bool playsNow = false, bool elsewhere = true, bool systemSounds = false)
 		=> new(systemSounds, playsNow, route, elsewhere);
 
-	// U4
 	[TestMethod]
 	public void SystemSoundsAlwaysPlaysHere()
 	{
@@ -39,7 +38,6 @@ public class AppRoutingRulesTests
 		Assert.IsTrue(PlaysHere(Facts(new RouteHere.FollowsDefault(false), systemSounds: true)));
 	}
 
-	// U4
 	[TestMethod]
 	public void AnAppPlayingHereNowPlaysHere()
 	{
@@ -48,37 +46,30 @@ public class AppRoutingRulesTests
 		Assert.IsTrue(PlaysHere(Facts(new RouteHere.FollowsDefault(false), playsNow: true)));
 	}
 
-	// U4
 	[TestMethod]
 	public void AnAppPinnedHerePlaysHere()
 		=> Assert.IsTrue(PlaysHere(Facts(new RouteHere.PinnedHere())));
 
-	// U4
 	[TestMethod]
 	public void AnIdleAppPinnedToAnotherActiveDeviceDoesNotPlayHere()
 		=> Assert.IsFalse(PlaysHere(Facts(new RouteHere.PinnedElsewhere(true))));
 
-	// U4
 	[TestMethod]
 	public void AnAppPinnedToAnInactiveDevicePlaysWhereItIs()
 		=> Assert.IsTrue(PlaysHere(Facts(new RouteHere.PinnedElsewhere(false))));
 
-	// U4
 	[TestMethod]
 	public void AnIdleLeftoverRowOnANonDefaultDeviceDoesNotPlayHere()
 		=> Assert.IsFalse(PlaysHere(Facts(new RouteHere.FollowsDefault(false), elsewhere: true)));
 
-	// U4
 	[TestMethod]
 	public void AnAppOnlyOnANonDefaultDeviceKeepsItsRow()
 		=> Assert.IsTrue(PlaysHere(Facts(new RouteHere.FollowsDefault(false), elsewhere: false)));
 
-	// U4
 	[TestMethod]
 	public void AnAppFollowingTheDefaultPlaysOnTheDefaultDevice()
 		=> Assert.IsTrue(PlaysHere(Facts(new RouteHere.FollowsDefault(true), elsewhere: true)));
 
-	// U4
 	[TestMethod]
 	public void PlaysHereAnswersEveryFactAndHidesOnlyIdleRowsOfAppsPlayingElsewhere()
 	{
@@ -91,7 +82,6 @@ public class AppRoutingRulesTests
 		}
 	}
 
-	// U5
 	[TestMethod]
 	public void TheRouteIsSeenFromEachDevice()
 	{
@@ -103,7 +93,6 @@ public class AppRoutingRulesTests
 		Assert.AreEqual(new RouteHere.PinnedElsewhere(false), Of(new AppRoute.Pinned(Gone), Here, Here, Active));
 	}
 
-	// U5
 	[TestMethod]
 	public void DeviceIdsFromWindowsAreComparedWithoutCase()
 	{
@@ -112,17 +101,14 @@ public class AppRoutingRulesTests
 		Assert.AreEqual(Other, HomeDevice(new AppRoute.Pinned(Other.ToUpperInvariant()), Here, [Here, Other]));
 	}
 
-	// U5
 	[TestMethod]
 	public void ThePinnedDevicesRowIsHome()
 		=> Assert.AreEqual(Other, HomeDevice(new AppRoute.Pinned(Other), Here, [Here, Other]));
 
-	// U5
 	[TestMethod]
 	public void WithoutARowOnThePinnedDeviceTheDefaultDevicesRowIsHome()
 		=> Assert.AreEqual(Here, HomeDevice(new AppRoute.Pinned(Gone), Here, [Other, Here]));
 
-	// U5
 	[TestMethod]
 	public void AnAppFollowingTheDefaultIsHomeOnTheDefaultDeviceElseOnItsFirstDevice()
 	{
@@ -131,7 +117,6 @@ public class AppRoutingRulesTests
 		Assert.AreEqual(Other, HomeDevice(new AppRoute.FollowsDefault(), null, [Other, Here]));
 	}
 
-	// U5
 	[TestMethod]
 	public void AnAppWithoutRowsHasNoHome()
 	{
@@ -139,7 +124,6 @@ public class AppRoutingRulesTests
 		Assert.IsNull(HomeDevice(new AppRoute.Pinned(Here), Here, []));
 	}
 
-	// U5
 	[TestMethod]
 	public void AVolumeCopyAppliesOnlyOnItsTargetWhileTheAppPlaysThereAndItsSourceExists()
 	{
@@ -155,7 +139,6 @@ public class AppRoutingRulesTests
 	private const string PathA = @"C:\Apps\a.exe";
 	private const string PathB = @"C:\Apps\b.exe";
 
-	// U5
 	[TestMethod]
 	public void TheSameGroupingParameterOrTheSameFileIsOneApp()
 	{
@@ -166,7 +149,6 @@ public class AppRoutingRulesTests
 		Assert.IsTrue(SameApp(new AppIdentity(ParamA, "1234"), new AppIdentity(ParamA, "5678")));
 	}
 
-	// U5
 	[TestMethod]
 	public void NoGroupingParameterOrNoFileIsNothingShared()
 	{
@@ -175,7 +157,6 @@ public class AppRoutingRulesTests
 		Assert.IsFalse(SameApp(new AppIdentity(ParamA, ""), new AppIdentity(ParamB, "")));
 	}
 
-	// U5
 	[TestMethod]
 	public void AppsLinkedThroughAnotherModelAreOneAppInAnyOrder()
 	{
@@ -191,7 +172,6 @@ public class AppRoutingRulesTests
 		}
 	}
 
-	// U5
 	[TestMethod]
 	public void EveryModelIsInExactlyOneGroupListedInInputOrder()
 	{
@@ -209,7 +189,6 @@ public class AppRoutingRulesTests
 			? [items]
 			: items.SelectMany(item => Permutations(items.Where(i => i != item).ToArray()).Select(rest => rest.Prepend(item).ToArray()));
 
-	// U20
 	[TestMethod]
 	public void AnAppIsSentAgainOnlyToItsReturningDeviceWhenItDoesntPlayThere()
 	{
@@ -224,7 +203,6 @@ public class AppRoutingRulesTests
 
 	private static readonly AppRoute Previous = new AppRoute.Pinned(Here);
 
-	// U6
 	[TestMethod]
 	public void OneDoneWriteIsAMove()
 	{
@@ -232,7 +210,6 @@ public class AppRoutingRulesTests
 		Assert.AreEqual(new MoveOutcome.Moved(Previous), OutcomeOf([new RouteWrite.Refused(5), new RouteWrite.Done()], Previous));
 	}
 
-	// U6
 	[TestMethod]
 	public void OnlyGoneProcessesMeanTheAppIsGone()
 	{
@@ -240,7 +217,6 @@ public class AppRoutingRulesTests
 		Assert.AreEqual(new MoveOutcome.AppGone(), OutcomeOf([], Previous));
 	}
 
-	// U6
 	[TestMethod]
 	public void ARefusalWithoutADoneWriteIsARefusal()
 		=> Assert.AreEqual(new MoveOutcome.Refused(), OutcomeOf([new RouteWrite.Refused(5), new RouteWrite.ProcessGone()], Previous));

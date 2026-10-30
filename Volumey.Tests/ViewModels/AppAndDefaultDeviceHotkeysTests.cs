@@ -255,7 +255,6 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	// U14
 	public void ChangingAnAppsHotkeyReachesTheAppOnEveryDevice()
 	{
 		var newUp = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
@@ -283,7 +282,6 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	// U14
 	public void ARefusedHotkeyChangeKeepsTheOldHotkeyForTheAppOnEveryDevice()
 	{
 		var refused = new HotKey(Key.Up, ModifierKeys.Control | ModifierKeys.Shift);
@@ -400,7 +398,6 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	// U14
 	public void WhenTheAppsHomeRowExitsItsHotkeysMoveToItsOtherRow()
 	{
 		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };
@@ -421,7 +418,6 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	// U14
 	public void AnAppOnlyOnAnotherDeviceGetsItsHotkeys()
 	{
 		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Discord", VolumeUp = Up, VolumeDown = Down } };
@@ -437,7 +433,6 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	// U14
 	public void AfterAMoveTheHotkeysSitOnTheRowOfThePinnedDevice()
 	{
 		Settings.Hotkeys.Apps = new[] { new AppHotkeysEntry { ProcessName = "Spotify", VolumeUp = Up, VolumeDown = Down } };

@@ -218,7 +218,6 @@ public class AppRoutingTests
 
 	private bool PlaysHere(App app) => OnUi(() => app.Model.PlaysHere);
 
-	// U3
 	[TestMethod]
 	public void WithoutWindowsSupportNothingIsAskedAndRowsStayAsToday()
 	{
@@ -237,7 +236,7 @@ public class AppRoutingTests
 		Assert.AreEqual(new AppRoute.FollowsDefault(), OnUi(() => app.Model.Route));
 	}
 
-	// U4 (rows): an app pinned elsewhere outside Volumey leaves this list once it's read
+	//an app pinned elsewhere outside Volumey leaves this list once it's read
 	[TestMethod]
 	public void AnIdleAppPinnedToAnotherDeviceOutsideVolumeyIsHiddenAtStart()
 	{
@@ -252,7 +251,6 @@ public class AppRoutingTests
 		Assert.AreEqual("Headset", OnUi(() => app.Model.RouteDeviceName));
 	}
 
-	// U7
 	[TestMethod]
 	public void AnIdleAppLeavesTheOldDeviceRightAfterAMove()
 	{
@@ -270,7 +268,6 @@ public class AppRoutingTests
 		Assert.AreEqual("Headset", OnUi(() => app.Model.RouteDeviceName));
 	}
 
-	// U7
 	[TestMethod]
 	public void APlayingAppStaysOnTheOldDeviceUntilItPlaysOnTheNewOne()
 	{
@@ -292,7 +289,6 @@ public class AppRoutingTests
 		Assert.IsTrue(PlaysHere(onB));
 	}
 
-	// U8
 	[TestMethod]
 	public void RowsOfAppsFollowingTheDefaultFollowItsChange()
 	{
@@ -308,7 +304,6 @@ public class AppRoutingTests
 		Eventually(() => !onA.Model.PlaysHere && onB.Model.PlaysHere, "the rows didn't follow the default device");
 	}
 
-	// U9
 	[TestMethod]
 	public void UndoRestoresThePreviousRoute()
 	{
@@ -327,7 +322,6 @@ public class AppRoutingTests
 		Assert.IsTrue(PlaysHere(app));
 	}
 
-	// U10
 	[TestMethod]
 	public void TheAppTakesItsVolumeOfThatMomentToTheNewDeviceOnce()
 	{
@@ -354,7 +348,6 @@ public class AppRoutingTests
 		Assert.AreEqual(40, OnUi(() => onB.Model.Volume), "copied twice");
 	}
 
-	// U10
 	[TestMethod]
 	public void WithoutAMoveMadeInVolumeyNothingIsCopied()
 	{
@@ -373,7 +366,6 @@ public class AppRoutingTests
 		Assert.AreEqual(100, OnUi(() => onB.Model.Volume));
 	}
 
-	// U19
 	[TestMethod]
 	public void UndoTakesTheVolumeSetOnTheNewDeviceBack()
 	{
@@ -396,7 +388,6 @@ public class AppRoutingTests
 		Eventually(() => onA.Model.Volume == 55, "the old device didn't get the volume set on the new one");
 	}
 
-	// U11
 	[TestMethod]
 	public void AnExitedHelperProcessDoesNotTurnAMoveIntoARefusal()
 	{
@@ -410,7 +401,6 @@ public class AppRoutingTests
 		Assert.IsInstanceOfType<MoveOutcome.Moved>(Move(app, new AppRoute.Pinned(B)));
 	}
 
-	// U11
 	[TestMethod]
 	public void ARefusedMoveChangesNothingAndIsLogged()
 	{
@@ -443,7 +433,6 @@ public class AppRoutingTests
 		}
 	}
 
-	// U11
 	[TestMethod]
 	public void AMoveToADeviceThatLeftIsNotMade()
 	{
@@ -456,7 +445,6 @@ public class AppRoutingTests
 		Assert.AreEqual(0, windows.Sets);
 	}
 
-	// U13
 	[TestMethod]
 	public void AppsAreFoundOnEveryDeviceAtTheirHomeRow()
 	{
@@ -478,7 +466,6 @@ public class AppRoutingTests
 		Assert.IsNull(OnUi(() => routing.FindApp(999)));
 	}
 
-	// U13
 	[TestMethod]
 	public void AppsChangedIsRaisedWhenAnAppsHomeRowChanges()
 	{
@@ -497,7 +484,6 @@ public class AppRoutingTests
 		Assert.AreSame(gameOnB.Model, OnUi(() => routing.GetApps()).Single());
 	}
 
-	// U17
 	[TestMethod]
 	public void AChangeDuringTheAppsRefreshLeadsToAnotherRefresh()
 	{
@@ -517,7 +503,6 @@ public class AppRoutingTests
 		Assert.AreEqual(2, windows.Gets);
 	}
 
-	// U17
 	[TestMethod]
 	public void DisposeDoesNotWaitForAHungWindowsCallAndNothingHappensAfterIt()
 	{
@@ -539,7 +524,6 @@ public class AppRoutingTests
 		Assert.AreEqual(new AppRoute.FollowsDefault(), OnUi(() => app.Model.Route));
 	}
 
-	// U16
 	[TestMethod]
 	public void ManyChangesWhileWindowsIsBusyMakeOneRefresh()
 	{
@@ -569,7 +553,6 @@ public class AppRoutingTests
 		return new RouteWrite.Done();
 	};
 
-	// U20
 	[TestMethod]
 	public void AnAppPinnedToADeviceThatComesBackIsSentThereAgain()
 	{
@@ -591,7 +574,6 @@ public class AppRoutingTests
 		Assert.AreEqual(1, sets.Count, "set again on a later refresh");
 	}
 
-	// U20
 	[TestMethod]
 	public void AnAppIsSentBackOnceWhileItsSessionsChangeDuringTheReturn()
 	{
@@ -614,7 +596,6 @@ public class AppRoutingTests
 		Assert.AreEqual(1, sets.Count, string.Join(", ", sets));
 	}
 
-	// U20
 	[TestMethod]
 	public void ADeviceThatComesBackTwiceSendsTheAppBackTwice()
 	{
@@ -655,7 +636,6 @@ public class AppRoutingTests
 		}
 	}
 
-	// U20
 	[TestMethod]
 	public void OnlyAppsPinnedToTheReturningDeviceAndNotPlayingThereAreSentAgain()
 	{
@@ -676,7 +656,7 @@ public class AppRoutingTests
 		Assert.AreEqual(0, sets.Count, string.Join(", ", sets));
 	}
 
-	// U12 (badge data): an app pinned to an unplugged device keeps the device's name, read from Windows once
+	//an app pinned to an unplugged device keeps the device's name, read from Windows once
 	[TestMethod]
 	public void AnUnpluggedPinnedDeviceIsNamedByWindowsOnce()
 	{
