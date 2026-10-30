@@ -15,6 +15,7 @@
                 <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
+            <converters:TrayMiddleClickActionConverter x:Key="TrayMiddleClickActionConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         </ResourceDictionary>
     </Page.Resources>
@@ -62,8 +63,26 @@
                                  AutomationProperties.Name="{lc:Localization General_TrayIcon}"
                                  AutomationProperties.AutomationId="TrayIconToggle" />
             </ui:CardControl>
-
-            <!-- the Store build starts through the package's startup task and is always in the Start menu -->
+            <ui:CardControl Icon="{ui:SymbolIcon Cursor24}" Header="{lc:Localization General_TrayMiddleClick}">
+                <ComboBox ItemsSource="{Binding Window.TrayMiddleClickActions}"
+                              SelectedItem="{Binding Window.TrayMiddleClickAction}"
+                              AutomationProperties.Name="{lc:Localization General_TrayMiddleClick}"
+                              AutomationProperties.AutomationId="TrayMiddleClickBox">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource TrayMiddleClickActionConverter}">
+                                        <Binding />
+                                        <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </ui:CardControl>
+        <!-- the Store build starts through the package's startup task and is always in the Start menu -->
             <StackPanel x:Name="NonStoreSection" DataContext="{Binding Window}">
                 <TextBlock Text="{lc:Localization General_Startup}" Style="{StaticResource SectionHeader}" />
                 <ui:CardControl Icon="{ui:SymbolIcon Power24}">
