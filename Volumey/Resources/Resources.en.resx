@@ -241,10 +241,16 @@
     <value>Use system setting</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Show the default device's icon in the tray</value>
+    <value>Tray icon</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Instead of the Volumey icon</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Volume level</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Default device's icon</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey icon</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Startup</value>

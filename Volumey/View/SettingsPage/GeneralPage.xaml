@@ -14,7 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
+            <converters:EnumNameConverter x:Key="EnumNameConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         </ResourceDictionary>
     </Page.Resources>
@@ -41,7 +41,7 @@
                         <DataTemplate>
                             <TextBlock>
                                 <TextBlock.Text>
-                                    <MultiBinding Converter="{StaticResource ThemeNameConverter}">
+                                    <MultiBinding Converter="{StaticResource EnumNameConverter}" ConverterParameter="Theme_">
                                         <Binding />
                                         <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
                                     </MultiBinding>
@@ -51,16 +51,24 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </ui:CardControl>
-            <ui:CardControl Icon="{ui:SymbolIcon Headphones24}">
-                <ui:CardControl.Header>
-                    <StackPanel>
-                        <TextBlock Text="{lc:Localization General_TrayIcon}" />
-                        <TextBlock Text="{lc:Localization General_TrayIconHint}" Style="{StaticResource Caption}" />
-                    </StackPanel>
-                </ui:CardControl.Header>
-                <ui:ToggleSwitch IsChecked="{Binding Window.DisplayDeviceIconAtTray}"
-                                 AutomationProperties.Name="{lc:Localization General_TrayIcon}"
-                                 AutomationProperties.AutomationId="TrayIconToggle" />
+            <ui:CardControl Icon="{ui:SymbolIcon Headphones24}" Header="{lc:Localization General_TrayIcon}">
+                <ComboBox ItemsSource="{Binding Window.TrayIcons}"
+                          SelectedItem="{Binding Window.TrayIcon}"
+                          AutomationProperties.Name="{lc:Localization General_TrayIcon}"
+                          AutomationProperties.AutomationId="TrayIconBox">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource EnumNameConverter}" ConverterParameter="TrayIcon_">
+                                        <Binding />
+                                        <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
             </ui:CardControl>
 
             <!-- the Store build starts through the package's startup task and is always in the Start menu -->

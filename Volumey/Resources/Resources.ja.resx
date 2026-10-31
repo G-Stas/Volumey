@@ -182,10 +182,16 @@
     <value>システム設定を使用</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>通知領域に既定のデバイスのアイコンを表示</value>
+    <value>通知領域のアイコン</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Volumey のアイコンの代わりに表示します</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>音量レベル</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>既定のデバイスのアイコン</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey のアイコン</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>スタートアップ</value>

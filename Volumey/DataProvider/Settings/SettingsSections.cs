@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Nucs.JsonSettings.NotifyChanges;
 using Volumey.Controls;
 
@@ -29,7 +30,17 @@ public sealed class WindowSettings : SettingsSection
 	public bool DeviceViewAtTheBottom { get; set; }
 	/// <summary>The mixer's output device picker; without it the mixer shows the default device</summary>
 	public bool ShowDevicePicker { get; set; } = true;
-	public bool DisplayDeviceIconAtTray { get; set; }
+	public TrayIconKind TrayIcon { get; set; }
+	/// <summary>Files written before <see cref="TrayIcon"/> had this switch; it is read once and never written back</summary>
+	[JsonProperty("DisplayDeviceIconAtTray")]
+	private bool LegacyDisplayDeviceIconAtTray
+	{
+		set
+		{
+			if(value)
+				TrayIcon = TrayIconKind.DeviceIcon;
+		}
+	}
 	/// <summary>The mixer opens where it was last (window mode: <see cref="Left"/>/<see cref="Top"/>, popup: <see cref="PopupLeft"/>/<see cref="PopupTop"/>), not next to the tray</summary>
 	public bool RememberPosition { get; set; }
 	/// <summary>Where the popup was last dragged to, in physical pixels (WPF's Left/Top depend on the screen the window is on); null = never</summary>

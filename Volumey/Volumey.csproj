@@ -261,6 +261,7 @@
     <Resource Include="Resources\Icons\TrayLight\mid.ico" />
     <Resource Include="Resources\Icons\TrayLight\mute.ico" />
     <Resource Include="Resources\Icons\TrayLight\no-device.ico" />
+    <Resource Include="Resources\Icons\icon.ico" />
     <Resource Include="Resources\Icons\ButtonIcon\github.png" />
     <Resource Include="Resources\Icons\ButtonIcon\github-dark.png" />
     <Resource Include="Resources\Icons\ButtonIcon\mug.png" />
