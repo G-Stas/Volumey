@@ -193,6 +193,9 @@
   <data name="TrayIcon_AppIcon" xml:space="preserve">
     <value>Volumey-Symbol</value>
   </data>
+  <data name="TrayIcon_SystemIcons" xml:space="preserve">
+    <value>Windows-Lautstärkesymbole</value>
+  </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Start</value>
   </data>

@@ -403,6 +403,21 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
+	public void EveryTrayIconKindIsOffered()
+	{
+		CollectionAssert.AreEquivalent(Enum.GetValues<TrayIconKind>(), CreateAppBehavior().TrayIcons);
+	}
+
+	[TestMethod]
+	public void TheSystemIconsChoiceIsSavedAndReadAtStart()
+	{
+		CreateAppBehavior().TrayIcon = TrayIconKind.SystemIcons;
+		Assert.AreEqual(TrayIconKind.SystemIcons, Settings.Window.TrayIcon);
+
+		Assert.AreEqual(TrayIconKind.SystemIcons, CreateAppBehavior().TrayIcon);
+	}
+
+	[TestMethod]
 	public void TrayMiddleClickActionIsReadFromSettings()
 	{
 		Assert.AreEqual(TrayMiddleClickAction.None, CreateAppBehavior().TrayMiddleClickAction);

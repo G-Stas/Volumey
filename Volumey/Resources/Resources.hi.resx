@@ -193,6 +193,9 @@
   <data name="TrayIcon_AppIcon" xml:space="preserve">
     <value>Volumey आइकन</value>
   </data>
+  <data name="TrayIcon_SystemIcons" xml:space="preserve">
+    <value>Windows वॉल्यूम आइकन</value>
+  </data>
   <data name="General_Startup" xml:space="preserve">
     <value>स्टार्टअप</value>
   </data>

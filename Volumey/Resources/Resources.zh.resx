@@ -193,6 +193,9 @@
   <data name="TrayIcon_AppIcon" xml:space="preserve">
     <value>Volumey 图标</value>
   </data>
+  <data name="TrayIcon_SystemIcons" xml:space="preserve">
+    <value>Windows 音量图标</value>
+  </data>
   <data name="General_Startup" xml:space="preserve">
     <value>启动</value>
   </data>

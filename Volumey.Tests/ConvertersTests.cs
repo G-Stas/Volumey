@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -325,6 +326,84 @@ public class ConvertersTests
 		var converter = new TrayIconConverter(() => null);
 
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.AppIcon, null));
+	}
+
+	[TestMethod]
+	public void TrayIconPicksTheSameGlyphForTheSystemIconsExceptForAVolumeOfZero()
+	{
+		foreach(bool noOutputDevices in new[] { false, true })
+		foreach(bool muted in new[] { false, true })
+		foreach(int? volume in new int?[] { null, 0, 1, 34, 35, 65, 66, 100 })
+		{
+			var expected = volume == 0 && !noOutputDevices && !muted
+				? TrayIconConverter.IconType.Zero
+				: TrayIconConverter.Pick(TrayIconKind.VolumeLevel, noOutputDevices, volume, muted, false);
+			Assert.AreEqual(expected, TrayIconConverter.Pick(TrayIconKind.SystemIcons, noOutputDevices, volume, muted, true));
+		}
+	}
+
+	[TestMethod]
+	public void EveryVolumeStateHasASystemIconResource()
+	{
+		var ids = TrayIconConverter.SystemIconProvider.ResourceIds;
+		var glyphs = new[]
+		{
+			TrayIconConverter.IconType.High, TrayIconConverter.IconType.Mid, TrayIconConverter.IconType.Low,
+			TrayIconConverter.IconType.Zero, TrayIconConverter.IconType.Mute, TrayIconConverter.IconType.NoDevice
+		};
+
+		CollectionAssert.AreEquivalent(glyphs, ids.Keys.ToArray());
+		Assert.AreEqual(glyphs.Length, ids.Values.Distinct().Count());
+	}
+
+	[TestMethod]
+	public void TrayIconShowsTheSystemGlyphOfTheVolumeState()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = (Icon)SystemIcons.Application.Clone();
+		var converter = new TrayIconConverter(() => null, type => icons[type]);
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		//the same glyph again, in whatever theme, doesn't update the tray
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 90, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Mid], Convert(converter, false, 50, false, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Low], Convert(converter, false, 10, false, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Zero], Convert(converter, false, 0, false, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Mute], Convert(converter, false, 0, true, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.NoDevice], Convert(converter, true, null, false, null, TrayIconKind.SystemIcons, null));
+
+		//back to Volumey's glyph for the same state: the tray gets it again
+		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, true, null, false, AppTheme.Light, TrayIconKind.VolumeLevel, null));
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
+	[TestMethod]
+	public void TrayIconShowsVolumeysGlyphWhenTheSystemOneIsMissing()
+	{
+		var converter = new TrayIconConverter(() => null, type => null);
+
+		//the volume of zero has no glyph of Volumey's: its lowest one
+		var zero = Convert(converter, false, 0, false, AppTheme.Light, TrayIconKind.SystemIcons, null);
+		var low = Convert(converter, false, 10, false, AppTheme.Light, TrayIconKind.SystemIcons, null);
+
+		Assert.IsNotNull(zero);
+		Assert.AreNotEqual(Binding.DoNothing, zero);
+		Assert.AreEqual(Binding.DoNothing, low);
+	}
+
+	[TestMethod]
+	public void TheSystemIconsAreReadFromWindowsFile()
+	{
+		if(!System.IO.File.Exists(TrayIconConverter.SystemIconProvider.GetResourceFilePath()))
+			Assert.Inconclusive("This Windows has no file with the volume icons");
+
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+		{
+			using var icon = TrayIconConverter.SystemIconProvider.LoadFromSystem(type);
+			Assert.IsNotNull(icon, type.ToString());
+		}
 	}
 
 	private static Icon ReadAppIcon(int size)
