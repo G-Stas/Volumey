@@ -15,6 +15,7 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 		High,
 		Mid,
 		Low,
+		Zero,
 		Mute,
 		NoDevice,
 		DeviceIcon,
@@ -34,12 +35,21 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 	public TrayIconConverter() : this(IconExtensions.LoadAppTrayIcon) { }
 
-	internal TrayIconConverter(Func<Icon?> loadAppIcon) => appIcon = new Lazy<Icon?>(loadAppIcon);
+	/// <summary>Reads the system glyph of a volume state; the file of Windows' own icons by default</summary>
+	private readonly Func<IconType, Icon?>? loadSystemIcon;
+	private SystemIconProvider? systemIconProvider;
+
+	internal TrayIconConverter(Func<Icon?> loadAppIcon, Func<IconType, Icon?>? loadSystemIcon = null)
+	{
+		appIcon = new Lazy<Icon?>(loadAppIcon);
+		this.loadSystemIcon = loadSystemIcon;
+	}
 
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
 		var defaultDeviceIcon = values[5] as Icon;
-		var type = Pick(values[4] is TrayIconKind kind ? kind : TrayIconKind.VolumeLevel, values[0] is true, values[1] as int?, values[2] is true, defaultDeviceIcon != null);
+		var kind = values[4] is TrayIconKind trayKind ? trayKind : TrayIconKind.VolumeLevel;
+		var type = Pick(kind, values[0] is true, values[1] as int?, values[2] is true, defaultDeviceIcon != null);
 
 		if(type == IconType.AppIcon)
 		{
@@ -57,6 +67,23 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 			curDeviceIcon = defaultDeviceIcon;
 			return defaultDeviceIcon;
 		}
+
+		if(kind == TrayIconKind.SystemIcons && type != IconType.None)
+		{
+			var systemProvider = systemIconProvider ??= loadSystemIcon == null ? new SystemIconProvider() : new SystemIconProvider(loadSystemIcon);
+			//a glyph that Windows' file doesn't give is shown in Volumey's own, in the theme's color
+			if(systemProvider.GetIcon(type) != null)
+			{
+				bool newSystemProvider = currentIconProvider != systemProvider;
+				currentIconProvider = systemProvider;
+				//the system glyphs have their own colors: the theme doesn't matter
+				return GetIcon(type, systemProvider, newSystemProvider);
+			}
+		}
+
+		//Volumey's own glyphs have none for a volume of zero
+		if(type == IconType.Zero)
+			type = IconType.Low;
 
 		if(values[3] is AppTheme theme)
 		{
@@ -106,6 +133,9 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 			return IconType.Mute;
 		if(volume is not { } v)
 			return IconType.None;
+		//Windows has a glyph of its own for a volume of zero
+		if(v == 0 && kind == TrayIconKind.SystemIcons)
+			return IconType.Zero;
 		return v > 65 ? IconType.High : v < 35 ? IconType.Low : IconType.Mid;
 	}
 

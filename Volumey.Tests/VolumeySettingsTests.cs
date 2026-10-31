@@ -95,6 +95,7 @@ public class VolumeySettingsTests
 	[DataRow("\"DisplayDeviceIconAtTray\": false", TrayIconKind.VolumeLevel)]
 	[DataRow("\"PopupMode\": true", TrayIconKind.VolumeLevel)]
 	[DataRow("\"TrayIcon\": \"AppIcon\"", TrayIconKind.AppIcon)]
+	[DataRow("\"TrayIcon\": \"SystemIcons\"", TrayIconKind.SystemIcons)]
 	public void TheTrayIconChoiceIsReadFromOldAndNewFiles(string window, TrayIconKind expected)
 	{
 		File.WriteAllText(file, "{ \"Window\": { " + window + " } }");
