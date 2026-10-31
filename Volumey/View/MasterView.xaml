@@ -33,6 +33,7 @@
                         SelectedItem="{Binding SelectedDevice}"
                         IsSynchronizedWithCurrentItem="False"
                         HorizontalAlignment="Stretch"
+                        controls:ClickToPick.IsEnabled="True"
                         AutomationProperties.Name="{lc:Localization Mixer_OutputDevice}">
                         <ComboBox.ItemContainerStyle>
                             <!-- the name and the "Default" tag for screen readers: the template's text isn't exposed -->
