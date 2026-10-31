@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.View;
 using Volumey.View.SettingsPage;
@@ -45,6 +46,11 @@ internal static class ServiceRegistration
 		//creating it enumerates the audio devices and their sessions
 		services.AddSingleton(sp => DeviceProvider.Create(sp.Get<IHotkeyService>()));
 		services.AddSingleton<INotificationService>(sp => new NotificationService(sp.Get<IHotkeyService>()));
+		//creating it doesn't call Windows: the policy factory is read on first use
+		services.AddSingleton<IAppAudioRouting>(_ => new AudioPolicyRouting());
+		services.AddSingleton(sp => new AppRouting(sp.Get<IDeviceProvider>(), sp.Get<IAppAudioRouting>(), DeviceEnumerator.GetDeviceName,
+			sp.Get<IAppShell>().Dispatcher));
+		services.AddSingleton<IAppRouting>(sp => sp.Get<AppRouting>());
 		services.AddSingleton<IScreenInfoProvider, ScreenInfoProvider>();
 		services.AddSingleton<IAppShell>(_ => new AppShell(application));
 		services.AddSingleton<ISystemIntegration, SystemIntegration>();
@@ -53,17 +59,17 @@ internal static class ServiceRegistration
 		services.AddSingleton<ThemeViewModel>();
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
 			sp.Get<IAppShell>(), sp.Get<ISystemIntegration>()));
-		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>()));
+		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new HotkeyModeViewModel(sp.Get<IHotkeyService>()));
 
 		services.AddSingleton(_ => new LangSettings());
-		services.AddSingleton(sp => new AppsHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
+		services.AddSingleton(sp => new AppsHotkeysViewModel(sp.Get<IHotkeyService>(), sp.Get<INotificationService>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new DeviceVolumeHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
 		services.AddSingleton(sp => new OpenHotkeyViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new VolumeLimitViewModel(sp.Get<IDeviceProvider>()));
 		services.AddSingleton(sp => new AppVolumeSyncViewModel(sp.Get<IDeviceProvider>()));
 		services.AddSingleton(sp => new DefaultDeviceHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>()));
-		services.AddSingleton(sp => new ForegroundWindowVolumeViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>(), sp.Get<INotificationService>()));
+		services.AddSingleton(sp => new ForegroundWindowVolumeViewModel(sp.Get<IHotkeyService>(), sp.Get<INotificationService>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new NotificationViewModel(sp.Get<IDeviceProvider>(), sp.Get<INotificationService>(), sp.Get<IScreenInfoProvider>()));
 		services.AddSingleton(sp => new SystemHotkeysViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new AboutViewModel(sp.Get<SupportLinks>()));

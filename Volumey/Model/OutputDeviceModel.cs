@@ -349,7 +349,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 			if(disposed)
 				return;
 
-			if(Processes.FirstOrDefault(p => p.GroupingParam.Equals(session.GroupingParam) || p.FilePath.Equals(session.FilePath)) is AudioProcessModel process)
+			if(Processes.FirstOrDefault(p => AppRoutingRules.SameApp(p.Identity, session.Identity)) is AudioProcessModel process)
 			{
 				await dispatcher.InvokeAsync(() =>
 				{

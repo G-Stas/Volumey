@@ -182,10 +182,16 @@
     <value>Використовувати системний параметр</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Показувати в області сповіщень значок пристрою за замовчуванням</value>
+    <value>Значок в області сповіщень</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Замість значка Volumey</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Рівень гучності</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Значок пристрою за замовчуванням</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Значок Volumey</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Запуск</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Не вдається зберегти параметри.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Відтворювати {0} на</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Пристрій за замовчуванням</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} відтворюватиметься на {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Скасувати</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Не вдалося перенести {0} на {1}</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>Клацання середньою кнопкою миші на значку в треї</value>

@@ -182,10 +182,16 @@
     <value>Usar configuração do sistema</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Mostrar o ícone do dispositivo padrão na bandeja</value>
+    <value>Ícone da bandeja</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Em vez do ícone do Volumey</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Nível de volume</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Ícone do dispositivo padrão</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Ícone do Volumey</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Inicialização</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Não é possível salvar as configurações.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Reproduzir {0} em</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Dispositivo padrão</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} será reproduzido em {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Desfazer</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Não foi possível mover {0} para {1}</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>Clique do meio no ícone da bandeja</value>

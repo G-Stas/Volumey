@@ -241,10 +241,16 @@
     <value>Use system setting</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Show the default device's icon in the tray</value>
+    <value>Tray icon</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Instead of the Volumey icon</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Volume level</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Default device's icon</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey icon</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Startup</value>
@@ -695,6 +701,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Can't save settings.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Play {0} on</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Default device</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} set to play on {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Couldn&apos;t move {0} to {1}</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>Middle-clicking the tray icon</value>

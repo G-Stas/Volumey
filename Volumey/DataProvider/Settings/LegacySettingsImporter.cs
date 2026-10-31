@@ -37,7 +37,7 @@ internal static class LegacySettingsImporter
 		ReadBool(root, "popupEnabled", v => window.PopupMode = v);
 		ReadBool(root, "alwaysOnTop", v => window.AlwaysOnTop = v);
 		ReadBool(root, "deviceViewAtTheBottom", v => window.DeviceViewAtTheBottom = v);
-		ReadBool(root, "displayDeviceIconAtTray", v => window.DisplayDeviceIconAtTray = v);
+		ReadBool(root, "displayDeviceIconAtTray", v => window.TrayIcon = v ? TrayIconKind.DeviceIcon : TrayIconKind.VolumeLevel);
 		ReadDouble(root, "windowLeft", v => window.Left = v);
 		ReadDouble(root, "windowTop", v => window.Top = v);
 		//1.x stored screens by their index in the list of screens, which changes order when a monitor is detected late.

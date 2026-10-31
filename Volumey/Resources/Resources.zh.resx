@@ -182,10 +182,16 @@
     <value>使用系统设置</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>在托盘中显示默认设备的图标</value>
+    <value>托盘图标</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>代替 Volumey 图标</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>音量级别</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>默认设备的图标</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey 图标</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>启动</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>无法保存设置。</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>在以下设备上播放 {0}</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>默认设备</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} 将在 {1} 上播放</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>撤消</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>无法将 {0} 移到 {1}</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>中键单击托盘图标</value>

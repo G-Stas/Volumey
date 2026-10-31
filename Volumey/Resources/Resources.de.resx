@@ -182,10 +182,16 @@
     <value>Systemeinstellung verwenden</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Symbol des Standardgeräts im Infobereich anzeigen</value>
+    <value>Symbol im Infobereich</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Anstelle des Volumey-Symbols</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Lautstärkepegel</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Symbol des Standardgeräts</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey-Symbol</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Start</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Einstellungen können nicht gespeichert werden.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>{0} wiedergeben auf</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Standardgerät</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} wird auf {1} wiedergegeben</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Rückgängig</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>{0} konnte nicht zu {1} verschoben werden</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>Mittelklick auf das Tray-Symbol</value>

@@ -182,10 +182,16 @@
     <value>सिस्टम सेटिंग का उपयोग करें</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>ट्रे में डिफ़ॉल्ट डिवाइस का आइकन दिखाएँ</value>
+    <value>ट्रे आइकन</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Volumey आइकन के बजाय</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>वॉल्यूम स्तर</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस का आइकन</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Volumey आइकन</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>स्टार्टअप</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>सेटिंग्स सहेजी नहीं जा सकतीं।</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>{0} को इस पर चलाएँ</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>डिफ़ॉल्ट डिवाइस</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} अब {1} पर चलेगा</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>पूर्ववत करें</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>{0} को {1} पर नहीं ले जाया जा सका</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>ट्रे आइकन पर मध्य-क्लिक करना</value>

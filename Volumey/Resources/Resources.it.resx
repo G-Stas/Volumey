@@ -182,10 +182,16 @@
     <value>Usa impostazione di sistema</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Mostra l'icona del dispositivo predefinito nell'area di notifica</value>
+    <value>Icona nell'area di notifica</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>Al posto dell'icona di Volumey</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Livello del volume</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Icona del dispositivo predefinito</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Icona di Volumey</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Avvio</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Impossibile salvare le impostazioni.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Riproduci {0} su</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Dispositivo predefinito</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} verrà riprodotto su {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Impossibile spostare {0} su {1}</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>Clic centrale sull'icona della barra delle applicazioni</value>

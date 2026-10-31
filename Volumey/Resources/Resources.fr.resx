@@ -182,10 +182,16 @@
     <value>Utiliser le paramètre système</value>
   </data>
   <data name="General_TrayIcon" xml:space="preserve">
-    <value>Afficher l'icône du périphérique par défaut dans la zone de notification</value>
+    <value>Icône dans la zone de notification</value>
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
-    <value>À la place de l'icône de Volumey</value>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Niveau du volume</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Icône du périphérique par défaut</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Icône de Volumey</value>
   </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Démarrage</value>
@@ -636,6 +642,21 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value>Impossible d'enregistrer les paramètres.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Lire {0} sur</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Périphérique par défaut</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>{0} sera lu sur {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Impossible de déplacer {0} vers {1}</value>
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value>Clic du milieu sur l'icône de la zone de notification</value>

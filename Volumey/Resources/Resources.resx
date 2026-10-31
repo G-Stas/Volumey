@@ -243,7 +243,13 @@
   <data name="General_TrayIcon" xml:space="preserve">
     <value />
   </data>
-  <data name="General_TrayIconHint" xml:space="preserve">
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value />
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value />
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
     <value />
   </data>
   <data name="General_Startup" xml:space="preserve">
@@ -695,6 +701,20 @@
   </data>
   <data name="Settings_SaveFailed" xml:space="preserve">
     <value />
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
   </data>
   <data name="General_TrayMiddleClick" xml:space="preserve">
     <value />

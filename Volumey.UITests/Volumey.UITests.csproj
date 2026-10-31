@@ -13,11 +13,20 @@
     <Configurations>Debug;Release;Store</Configurations>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+  </ItemGroup>
+
+  <!-- Windows' audio policy interop, to read, set up and reset an app's output device around a test (Infrastructure/Routes.cs) -->
+  <ItemGroup>
+    <Compile Include="..\Volumey\CoreAudioWrapper\CoreAudio\Interfaces\AudioPolicyConfigFactory.cs" Link="Interop\AudioPolicyConfigFactory.cs" />
+    <Compile Include="..\Volumey\CoreAudioWrapper\CoreAudio\Interfaces\IPolicyConfig.cs" Link="Interop\IPolicyConfig.cs" />
+    <Compile Include="..\Volumey\CoreAudioWrapper\CoreAudio\Enums\ERole.cs" Link="Interop\ERole.cs" />
+    <Compile Include="..\Volumey\CoreAudioWrapper\Wrapper\GuidValue.cs" Link="Interop\GuidValue.cs" />
   </ItemGroup>
 
   <!-- the translation tests compare the app's texts with its resx files -->

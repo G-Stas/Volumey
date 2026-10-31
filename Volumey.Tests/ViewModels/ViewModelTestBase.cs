@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Windows.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
@@ -29,9 +30,16 @@ public abstract class ViewModelTestBase
 	protected Mock<IDeviceProvider> DeviceProvider { get; private set; }
 	protected ObservableCollection<OutputDeviceModel> ActiveDevices { get; private set; }
 
+	/// <summary>An app exits: its device removes it from its list</summary>
+	protected static void Exit(OutputDeviceModel device, AudioProcessModel process) => device.Processes.Remove(process);
+
+	[TestCleanup]
+	public void CleanupBase() => appRouting?.Dispose();
+
 	[TestInitialize]
 	public void InitializeBase()
 	{
+		appRouting = null;
 		Settings = new VolumeySettings();
 		SettingsProvider.UseSettings(Settings);
 		ErrorDictionary.UpdateErrorDictionary();
@@ -107,8 +115,20 @@ public abstract class ViewModelTestBase
 									 master, new List<AudioProcessModel>());
 	}
 
+	private uint nextProcessId = 1000;
+
+	/// <summary>An app's model as a device makes it: its own process, the executable by name (models with one name are one app)</summary>
 	protected AudioProcessModel CreateProcess(string name, int volume = 50)
-		=> AudioProcessModelTests.GetProcessMock(name, volume, false, Hotkeys);
+		=> new AudioProcessModel(volume, false, name, nextProcessId += 4, $@"C:\Apps\{name}.exe", null, null, Hotkeys);
+
+	private AppRouting appRouting;
+
+	/// <summary>
+	/// Where apps play, over the fake device provider. Windows is never asked (its interface counts as missing), so every app
+	/// follows the default device; the apps and their home models come from the devices' lists. Made when first used
+	/// </summary>
+	protected AppRouting AppRouting
+		=> appRouting ??= new AppRouting(DeviceProvider.Object, new Mock<IAppAudioRouting>().Object, _ => null, Dispatcher.CurrentDispatcher);
 
 	protected void SetDefaultDevice(OutputDeviceModel device)
 	{
@@ -124,10 +144,11 @@ public abstract class ViewModelTestBase
 	}
 
 	/// <summary>
-	/// Raises <see cref="OutputDeviceModel.ProcessCreated"/>, as a new audio session of a new process would.
+	/// Adds the app to the device's list and raises <see cref="OutputDeviceModel.ProcessCreated"/>, as a new audio session of a new process would.
 	/// </summary>
 	protected static void RaiseProcessCreated(OutputDeviceModel device, AudioProcessModel process)
 	{
+		device.Processes.Add(process);
 		var field = typeof(OutputDeviceModel).GetField(nameof(OutputDeviceModel.ProcessCreated), BindingFlags.Instance | BindingFlags.NonPublic);
 		(field!.GetValue(device) as Action<AudioProcessModel>)?.Invoke(process);
 	}

@@ -100,10 +100,12 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnShowDevicePickerChanged(bool value) => SettingsProvider.Settings.Window.ShowDevicePicker = value;
 
-	[ObservableProperty]
-	public partial bool DisplayDeviceIconAtTray { get; set; }
+	public TrayIconKind[] TrayIcons { get; } = { TrayIconKind.VolumeLevel, TrayIconKind.DeviceIcon, TrayIconKind.AppIcon };
 
-	partial void OnDisplayDeviceIconAtTrayChanged(bool value) => SettingsProvider.Settings.Window.DisplayDeviceIconAtTray = value;
+	[ObservableProperty]
+	public partial TrayIconKind TrayIcon { get; set; }
+
+	partial void OnTrayIconChanged(TrayIconKind value) => SettingsProvider.Settings.Window.TrayIcon = value;
 
 	public TrayMiddleClickAction[] TrayMiddleClickActions { get; } = Enum.GetValues<TrayMiddleClickAction>();
 
@@ -249,7 +251,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		RememberPosition = SettingsProvider.Settings.Window.RememberPosition;
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
 		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
-		DisplayDeviceIconAtTray = SettingsProvider.Settings.Window.DisplayDeviceIconAtTray;
+		TrayIcon = SettingsProvider.Settings.Window.TrayIcon;
 		TrayMiddleClickAction = SettingsProvider.Settings.Window.TrayMiddleClickAction;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;

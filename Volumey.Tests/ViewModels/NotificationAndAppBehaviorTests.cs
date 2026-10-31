@@ -371,7 +371,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	}
 
 	[TestMethod]
-	public void WindowOptionsAreSaved()
+	public void WindowOptionsAreSaved() // U7
 	{
 		var vm = CreateAppBehavior();
 
@@ -379,7 +379,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.AlwaysOnTop = true;
 		vm.DeviceViewAtTheBottom = true;
 		vm.ShowDevicePicker = false;
-		vm.DisplayDeviceIconAtTray = true;
+		vm.TrayIcon = TrayIconKind.AppIcon;
 		vm.TrayMiddleClickAction = TrayMiddleClickAction.SwitchDevice;
 		vm.SelectedScreen = Second;
 
@@ -387,10 +387,19 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.IsTrue(Settings.Window.AlwaysOnTop);
 		Assert.IsTrue(Settings.Window.DeviceViewAtTheBottom);
 		Assert.IsFalse(Settings.Window.ShowDevicePicker);
-		Assert.IsTrue(Settings.Window.DisplayDeviceIconAtTray);
+		Assert.AreEqual(TrayIconKind.AppIcon, Settings.Window.TrayIcon);
 		Assert.AreEqual(TrayMiddleClickAction.SwitchDevice, Settings.Window.TrayMiddleClickAction);
 		Assert.AreEqual(Second.Name, Settings.Window.ScreenName);
 		Assert.IsTrue(vm.DisplayMinimalistic);
+	}
+
+	// U7
+	[TestMethod]
+	public void TheTrayIconChoiceIsReadAtStart()
+	{
+		Settings.Window.TrayIcon = TrayIconKind.DeviceIcon;
+
+		Assert.AreEqual(TrayIconKind.DeviceIcon, CreateAppBehavior().TrayIcon);
 	}
 
 	[TestMethod]

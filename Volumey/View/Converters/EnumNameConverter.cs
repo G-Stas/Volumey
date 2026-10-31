@@ -7,7 +7,7 @@ using Volumey.Localization;
 namespace Volumey.View.Converters;
 
 /// <summary>
-/// The translated name of an enum value: the key is the converter parameter followed by the value ("Theme_" + Dark).
+/// The translated name of an enum value: the string with the key ConverterParameter + value (e.g. "Theme_" + Dark).
 /// The second value is the current language, only bound so the name changes with it
 /// </summary>
 public sealed class EnumNameConverter : IMultiValueConverter

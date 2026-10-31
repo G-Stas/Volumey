@@ -50,7 +50,7 @@
                 <Binding Path="Devices.DefaultDevice.Master.Volume" />
                 <Binding Path="Devices.DefaultDevice.Master.IsMuted" />
                 <Binding Path="Theme.WindowsTheme" />
-                <Binding Path="Window.DisplayDeviceIconAtTray"/>
+                <Binding Path="Window.TrayIcon"/>
                 <Binding Path="Devices.DefaultDevice.Master.Icon" />
             </MultiBinding>
 
