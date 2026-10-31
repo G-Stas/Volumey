@@ -14,8 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Volumey;component/View/Styles/SettingsPage.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <converters:ThemeNameConverter x:Key="ThemeNameConverter" />
-            <converters:TrayMiddleClickActionConverter x:Key="TrayMiddleClickActionConverter" />
+            <converters:EnumNameConverter x:Key="EnumNameConverter" />
             <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         </ResourceDictionary>
     </Page.Resources>
@@ -42,7 +41,7 @@
                         <DataTemplate>
                             <TextBlock>
                                 <TextBlock.Text>
-                                    <MultiBinding Converter="{StaticResource ThemeNameConverter}">
+                                    <MultiBinding Converter="{StaticResource EnumNameConverter}" ConverterParameter="Theme_">
                                         <Binding />
                                         <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
                                     </MultiBinding>
@@ -72,7 +71,7 @@
                         <DataTemplate>
                             <TextBlock>
                                 <TextBlock.Text>
-                                    <MultiBinding Converter="{StaticResource TrayMiddleClickActionConverter}">
+                                    <MultiBinding Converter="{StaticResource EnumNameConverter}" ConverterParameter="TrayMiddleClick_">
                                         <Binding />
                                         <Binding Path="DataContext.Language.SelectedLanguage" RelativeSource="{RelativeSource AncestorType=ComboBox}" />
                                     </MultiBinding>
