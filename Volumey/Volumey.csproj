@@ -21,8 +21,8 @@
     <SelfContained Condition="'$(Configuration)'=='Store'">True</SelfContained>
     <SelfContained Condition="'$(Configuration)'!='Store'">False</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <Version>2.1.0.0</Version>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <Version>2.2.0.0</Version>
   </PropertyGroup>
 
   <!-- Self-contained builds (the Store MSIX, the GitHub zip) are trimmed. WPF doesn't support trimming, so only assemblies marked
