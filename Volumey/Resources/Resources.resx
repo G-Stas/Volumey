@@ -715,6 +715,17 @@
     <value />
   </data>
   <data name="Mixer_MoveFailed" xml:space="preserve">
+  </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value />
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value />
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value />
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
     <value />
   </data>
 </root>

@@ -71,6 +71,22 @@ public class MasterSessionModelTests
 	}
 
 	[TestMethod]
+	public void ToggleMuteMutesAndUnmutesWithoutWaitingForWindows()
+	{
+		var mediator = new Mock<IAudioProcessStateMediator>();
+		model.SetStateMediator(mediator.Object);
+
+		model.ToggleMute(notify: false);
+		Assert.IsTrue(model.IsMuted);
+		model.ToggleMute(notify: true);
+		Assert.IsFalse(model.IsMuted);
+
+		sessionVolumeMock.Verify(m => m.SetMute(true, GuidValue.Internal.Empty), Times.Once);
+		sessionVolumeMock.Verify(m => m.SetMute(false, GuidValue.Internal.Empty), Times.Once);
+		mediator.Verify(m => m.NotifyAudioStateChange(model), Times.Once);
+	}
+
+	[TestMethod]
 	public void IconPathChangedEvent_IconSourceShouldBeChanged()
 	{
 		var newIcon = SystemIcons.WinLogo;

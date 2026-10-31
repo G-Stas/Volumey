@@ -218,14 +218,20 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
-	public void ThemeNamesAreTranslated()
+	public void EnumNamesAreTranslatedByTheirPrefix()
 	{
 		var converter = new EnumNameConverter();
-		Assert.AreEqual("Use system setting", converter.Convert([Volumey.DataProvider.AppTheme.System, "English"], typeof(object), "Theme_", Culture));
-		Assert.AreEqual("Dark", converter.Convert([Volumey.DataProvider.AppTheme.Dark, "English"], typeof(object), "Theme_", Culture));
-		Assert.IsNull(converter.Convert([Volumey.DataProvider.AppTheme.Dark, "English"], typeof(object), null, Culture));
-		Assert.IsNull(converter.Convert(["Dark"], typeof(object), "Theme_", Culture));
+		Assert.AreEqual("Use system setting", ConvertEnum(converter, Volumey.DataProvider.AppTheme.System, "Theme_"));
+		Assert.AreEqual("Dark", ConvertEnum(converter, Volumey.DataProvider.AppTheme.Dark, "Theme_"));
+		Assert.AreEqual("Do nothing", ConvertEnum(converter, Volumey.DataProvider.Settings.TrayMiddleClickAction.None, "TrayMiddleClick_"));
+		Assert.AreEqual("Switch to the next output device",
+			ConvertEnum(converter, Volumey.DataProvider.Settings.TrayMiddleClickAction.SwitchDevice, "TrayMiddleClick_"));
+		Assert.IsNull(ConvertEnum(converter, "Dark", "Theme_"));
+		Assert.IsNull(ConvertEnum(converter, Volumey.DataProvider.AppTheme.Dark, null));
 	}
+
+	private static object ConvertEnum(IMultiValueConverter converter, object value, string prefix)
+		=> converter.Convert([value, "English"], typeof(object), prefix, Culture);
 
 	[TestMethod]
 	public void TrayTooltipShowsVolumeOrMuteOrNoDevice()

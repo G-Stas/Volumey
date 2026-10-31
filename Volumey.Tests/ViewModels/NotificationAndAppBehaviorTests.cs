@@ -380,6 +380,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.DeviceViewAtTheBottom = true;
 		vm.ShowDevicePicker = false;
 		vm.TrayIcon = TrayIconKind.AppIcon;
+		vm.TrayMiddleClickAction = TrayMiddleClickAction.SwitchDevice;
 		vm.SelectedScreen = Second;
 
 		Assert.IsTrue(Settings.Window.PopupMode);
@@ -387,6 +388,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.IsTrue(Settings.Window.DeviceViewAtTheBottom);
 		Assert.IsFalse(Settings.Window.ShowDevicePicker);
 		Assert.AreEqual(TrayIconKind.AppIcon, Settings.Window.TrayIcon);
+		Assert.AreEqual(TrayMiddleClickAction.SwitchDevice, Settings.Window.TrayMiddleClickAction);
 		Assert.AreEqual(Second.Name, Settings.Window.ScreenName);
 		Assert.IsTrue(vm.DisplayMinimalistic);
 	}
@@ -398,6 +400,15 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Settings.Window.TrayIcon = TrayIconKind.DeviceIcon;
 
 		Assert.AreEqual(TrayIconKind.DeviceIcon, CreateAppBehavior().TrayIcon);
+	}
+
+	[TestMethod]
+	public void TrayMiddleClickActionIsReadFromSettings()
+	{
+		Assert.AreEqual(TrayMiddleClickAction.None, CreateAppBehavior().TrayMiddleClickAction);
+
+		Settings.Window.TrayMiddleClickAction = TrayMiddleClickAction.ToggleMute;
+		Assert.AreEqual(TrayMiddleClickAction.ToggleMute, CreateAppBehavior().TrayMiddleClickAction);
 	}
 
 	[TestMethod]

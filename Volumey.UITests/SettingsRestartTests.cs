@@ -33,9 +33,11 @@ public class SettingsRestartTests : UiTest
 		string theme = SelectAnother("ThemeBox");
 		//the default device's icon
 		string trayIcon = Settings.SelectItem("TrayIconBox", 1);
+		string middleClick = SelectAnother("TrayMiddleClickBox");
 		Settings.Select(Settings.Find("ShareHotkeysRadio"));
 		Settings.TypeNumber("VolumeStepBox", 7);
 		App.WaitForSettings(s => Saved(s, "General", "Theme") != "System" && Saved(s, "Window", "TrayIcon") == "DeviceIcon"
+		                         && Saved(s, "Window", "TrayMiddleClickAction") is { } a && a != "None"
 		                         && Saved(s, "Hotkeys", "BlockInSystem") == "false" && Saved(s, "General", "VolumeStep") == "7",
 			"the General page's settings saved");
 
@@ -43,6 +45,7 @@ public class SettingsRestartTests : UiTest
 		Settings.Open("NavGeneral", "ThemeBox");
 		Assert.AreEqual(theme, Settings.SelectedName("ThemeBox"), "theme");
 		Assert.AreEqual(trayIcon, Settings.SelectedName("TrayIconBox"), "tray icon");
+		Assert.AreEqual(middleClick, Settings.SelectedName("TrayMiddleClickBox"), "tray middle click");
 		Assert.IsTrue(SettingsWindow.IsSelected(Settings.Find("ShareHotkeysRadio")), "hotkey mode");
 		Assert.AreEqual("7", Settings.Number("VolumeStepBox"), "volume step");
 	}

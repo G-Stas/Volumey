@@ -107,6 +107,13 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnTrayIconChanged(TrayIconKind value) => SettingsProvider.Settings.Window.TrayIcon = value;
 
+	public TrayMiddleClickAction[] TrayMiddleClickActions { get; } = Enum.GetValues<TrayMiddleClickAction>();
+
+	[ObservableProperty]
+	public partial TrayMiddleClickAction TrayMiddleClickAction { get; set; }
+
+	partial void OnTrayMiddleClickActionChanged(TrayMiddleClickAction value) => SettingsProvider.Settings.Window.TrayMiddleClickAction = value;
+
 	private bool launchAtStartup;
 	public bool LaunchAtStartup
 	{
@@ -245,6 +252,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		DeviceViewAtTheBottom = SettingsProvider.Settings.Window.DeviceViewAtTheBottom;
 		ShowDevicePicker = SettingsProvider.Settings.Window.ShowDevicePicker;
 		TrayIcon = SettingsProvider.Settings.Window.TrayIcon;
+		TrayMiddleClickAction = SettingsProvider.Settings.Window.TrayMiddleClickAction;
 
 		WindowLeft = SettingsProvider.Settings.Window.Left;
 		WindowTop = SettingsProvider.Settings.Window.Top;

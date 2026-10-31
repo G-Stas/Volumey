@@ -15,6 +15,7 @@ using System.Windows.Threading;
 using System.Windows.Media.Animation;
 using H.NotifyIcon;
 using log4net;
+using Volumey.DataProvider.Settings;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
@@ -145,6 +146,7 @@ public sealed partial class MainView
 		hotkeyMode.SetWindowHandle(Hwnd);
 
 		Tray.TrayMouseMove += OnTrayMouseMove;
+		Tray.TrayMiddleMouseDown += OnTrayMiddleMouseDown;
 
 		Closed += OnClosed;
 	}
@@ -167,17 +169,44 @@ public sealed partial class MainView
 	/// <param name="steps">Positive for wheel-up, negative for wheel-down</param>
 	private void ChangeOutputVolumeFromTrayWheel(int steps)
 	{
-		//while the mixer is open, the wheel changes the device it shows, even if it isn't the default one yet
-		var device = IsVisible ? devices.SelectedDevice ?? devices.DefaultDevice : devices.DefaultDevice;
-		var master = device?.Master;
-		if(master == null)
+		if(TrayTargetMaster() is not { } master)
 			return;
 
 		for(int i = 0; i < Math.Abs(steps); i++)
 			master.ChangeVolumeByStep(up: steps > 0, notify: false);
 
-		//the open mixer window shows the new volume itself; otherwise the tray
-		//tooltip that is already shown isn't repainted by Explorer, so the OSD shows it (when OSD notifications are on).
+		NotifyIfHidden(master);
+	}
+
+	/// <summary>Runs the action picked for a middle click on the tray icon</summary>
+	private void OnTrayMiddleMouseDown(object sender, RoutedEventArgs e)
+	{
+		switch(vm.TrayMiddleClickAction)
+		{
+			case TrayMiddleClickAction.ToggleMute when TrayTargetMaster() is { } master:
+				master.ToggleMute(notify: false);
+				NotifyIfHidden(master);
+				break;
+
+			case TrayMiddleClickAction.SwitchDevice:
+				devices.SwitchToNextDevice();
+				break;
+		}
+	}
+
+	/// <summary>
+	/// The device the tray icon's wheel and middle click act on: while the mixer is open, the device it shows,
+	/// even if it isn't the default one yet
+	/// </summary>
+	private MasterSessionModel? TrayTargetMaster()
+		=> (IsVisible ? devices.SelectedDevice ?? devices.DefaultDevice : devices.DefaultDevice)?.Master;
+
+	/// <summary>
+	/// The open mixer window shows the change itself; otherwise the tray tooltip that is already shown isn't repainted
+	/// by Explorer, so the OSD shows it (when OSD notifications are on)
+	/// </summary>
+	private void NotifyIfHidden(MasterSessionModel master)
+	{
 		if(!IsVisible)
 			notifications.NotifyAudioStateChange(master);
 	}
@@ -187,6 +216,7 @@ public sealed partial class MainView
 	{
 		trayWheel.Stop();
 		Tray.TrayMouseMove -= OnTrayMouseMove;
+		Tray.TrayMiddleMouseDown -= OnTrayMiddleMouseDown;
 		Closed -= OnClosed;
 	}
 

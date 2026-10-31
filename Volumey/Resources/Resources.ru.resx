@@ -658,4 +658,16 @@
   <data name="Mixer_MoveFailed" xml:space="preserve">
     <value>Не удалось перенести {0} на {1}</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Щелчок средней кнопкой мыши по значку в трее</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>Ничего не делать</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Отключить или включить звук устройства по умолчанию</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Переключиться на следующее устройство вывода</value>
+  </data>
 </root>

@@ -175,4 +175,21 @@ public sealed partial class DeviceProviderViewModel : ObservableObject
 
 		DeviceProvider.SetDefaultDevice(deviceId);
 	}
+
+	/// <summary>
+	/// Switches the default output device to the one after it in the active devices list. It counts from a switch
+	/// Windows hasn't reported yet, so quick repeats keep moving on
+	/// </summary>
+	internal void SwitchToNextDevice()
+	{
+		var activeDevices = DeviceProvider.ActiveDevices;
+		if(activeDevices.Count <= 1)
+			return;
+
+		string? currentId = DeviceProvider.RequestedDefaultDeviceId ?? DeviceProvider.DefaultDevice?.Id;
+		var current = currentId == null ? null : activeDevices.FirstOrDefault(d => d.CompareId(currentId));
+		//IndexOf(null) is -1: without a known default device the first one is next
+		int nextIndex = (activeDevices.IndexOf(current!) + 1) % activeDevices.Count;
+		SetAsDefaultDevice(activeDevices[nextIndex].Id);
+	}
 }

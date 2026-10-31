@@ -658,4 +658,16 @@
   <data name="Mixer_MoveFailed" xml:space="preserve">
     <value>无法将 {0} 移到 {1}</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>中键单击托盘图标</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>什么都不做</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>静音或取消静音默认设备</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>切换到下一个输出设备</value>
+  </data>
 </root>

@@ -260,9 +260,13 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 
 		if(muteHotkeyRegistered && hotkey.Equals(muteKey))
 		{
-			SetMute(!_isMuted, notify: true, GuidValue.Internal.Empty);
+			ToggleMute(notify: true);
 		}
 	}
+
+	/// <summary>Mutes or unmutes the device. Used by the mute hotkey and by the middle click on the tray icon</summary>
+	/// <param name="notify">Whether the state mediator is notified (shows the OSD)</param>
+	public void ToggleMute(bool notify) => SetMute(!_isMuted, notify, GuidValue.Internal.Empty);
 
 	/// <summary>
 	/// Raises or lowers the volume by the hotkeys' step, with the hotkeys' mute rules.

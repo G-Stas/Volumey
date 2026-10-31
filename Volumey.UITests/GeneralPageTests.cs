@@ -222,4 +222,33 @@ public class GeneralPageTests : UiTest
 
 		Assert.IsNotNull(Settings.TryFind("BlockHotkeysRadio", TimeSpan.FromSeconds(5)), "the General page didn't open");
 	}
+
+	private static readonly string[] MiddleClickKeys = ["TrayMiddleClick_None", "TrayMiddleClick_ToggleMute", "TrayMiddleClick_SwitchDevice"];
+
+	/// <summary>The texts shown for a combo box's items (their names are the values, not the texts)</summary>
+	private string[] ItemTexts(string comboId)
+	{
+		var combo = Settings.Find(comboId).AsComboBox();
+		combo.Expand();
+		try
+		{
+			return combo.Items.Select(i => i.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Text))?.Name ?? "").ToArray();
+		}
+		finally
+		{
+			combo.Collapse();
+		}
+	}
+
+	[TestMethod]
+	public void TheMiddleClickActionsAreNamedInTheUiLanguage()
+	{
+		OpenPage();
+		CollectionAssert.AreEqual(MiddleClickKeys.Select(k => Translation("en", k)).ToArray(), ItemTexts("TrayMiddleClickBox"), "English names");
+
+		//the list's order is TranslationSource.Languages: English, then Russian
+		Settings.SelectItem("LanguageBox", 1);
+		App.WaitForSettings(s => s["General"]?["Language"]?.GetValue<string>() == "ru", "Russian saved");
+		CollectionAssert.AreEqual(MiddleClickKeys.Select(k => Translation("ru", k)).ToArray(), ItemTexts("TrayMiddleClickBox"), "Russian names");
+	}
 }

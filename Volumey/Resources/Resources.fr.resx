@@ -658,4 +658,16 @@
   <data name="Mixer_MoveFailed" xml:space="preserve">
     <value>Impossible de déplacer {0} vers {1}</value>
   </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Clic du milieu sur l'icône de la zone de notification</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>Ne rien faire</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Couper ou réactiver le son du périphérique par défaut</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Passer au périphérique de sortie suivant</value>
+  </data>
 </root>
