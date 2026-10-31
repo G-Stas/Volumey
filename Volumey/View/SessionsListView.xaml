@@ -237,6 +237,7 @@
                                 <ComboBox x:Name="OutputBox"
                                           ItemTemplateSelector="{StaticResource OutputOptionTemplates}"
                                           AutomationProperties.AutomationId="AppOutputDeviceBox"
+                                          controls:ClickToPick.IsEnabled="True"
                                           Loaded="OnOutputBoxLoaded"
                                           Unloaded="OnOutputBoxUnloaded"
                                           SelectionChanged="OnOutputPicked">
