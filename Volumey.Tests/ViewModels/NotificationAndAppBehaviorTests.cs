@@ -380,6 +380,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		vm.DeviceViewAtTheBottom = true;
 		vm.ShowDevicePicker = false;
 		vm.DisplayDeviceIconAtTray = true;
+		vm.TrayMiddleClickAction = TrayMiddleClickAction.SwitchDevice;
 		vm.SelectedScreen = Second;
 
 		Assert.IsTrue(Settings.Window.PopupMode);
@@ -387,8 +388,18 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.IsTrue(Settings.Window.DeviceViewAtTheBottom);
 		Assert.IsFalse(Settings.Window.ShowDevicePicker);
 		Assert.IsTrue(Settings.Window.DisplayDeviceIconAtTray);
+		Assert.AreEqual(TrayMiddleClickAction.SwitchDevice, Settings.Window.TrayMiddleClickAction);
 		Assert.AreEqual(Second.Name, Settings.Window.ScreenName);
 		Assert.IsTrue(vm.DisplayMinimalistic);
+	}
+
+	[TestMethod]
+	public void TrayMiddleClickActionIsReadFromSettings()
+	{
+		Assert.AreEqual(TrayMiddleClickAction.None, CreateAppBehavior().TrayMiddleClickAction);
+
+		Settings.Window.TrayMiddleClickAction = TrayMiddleClickAction.ToggleMute;
+		Assert.AreEqual(TrayMiddleClickAction.ToggleMute, CreateAppBehavior().TrayMiddleClickAction);
 	}
 
 	[TestMethod]
