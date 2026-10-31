@@ -17,7 +17,7 @@ public sealed partial class TrayIconConverter
 	/// </summary>
 	internal sealed class SystemIconProvider : TrayIconProvider
 	{
-		private const string ResourceFileName = "SndVolSSO.dll";
+		private const string ResourceFileName = "SndVolSSO.dll.mun";
 
 		/// <summary>The resource ID of the icon group of each volume state in <see cref="ResourceFileName"/></summary>
 		internal static readonly IReadOnlyDictionary<IconType, int> ResourceIds = new Dictionary<IconType, int>
@@ -32,15 +32,9 @@ public sealed partial class TrayIconConverter
 
 		private static readonly ILog Log = LogManager.GetLogger(typeof(SystemIconProvider));
 
-		/// <summary>
-		/// The file with the icons. Newer Windows keeps the resources of its system files in SystemResources, next to the file's name
-		/// with ".mun" added; the older ones have them in the file itself
-		/// </summary>
+		/// <summary>The file with the icons: Windows keeps the resources of its system files in SystemResources</summary>
 		internal static string GetResourceFilePath()
-		{
-			string packed = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SystemResources", ResourceFileName + ".mun");
-			return File.Exists(packed) ? packed : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), ResourceFileName);
-		}
+			=> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SystemResources", ResourceFileName);
 
 		/// <summary>Null if the file or the icon isn't there (logged)</summary>
 		internal static Icon? LoadFromSystem(IconType type)
