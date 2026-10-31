@@ -62,7 +62,11 @@
                                  AutomationProperties.Name="{lc:Localization General_TrayIcon}"
                                  AutomationProperties.AutomationId="TrayIconToggle" />
             </ui:CardControl>
-            <ui:CardControl Icon="{ui:SymbolIcon Cursor24}" Header="{lc:Localization General_TrayMiddleClick}">
+            <ui:CardControl Icon="{ui:SymbolIcon Cursor24}">
+                <!-- a TextBlock of its own, so the page's wrapping style reaches it (a string header's TextBlock doesn't get it) -->
+                <ui:CardControl.Header>
+                    <TextBlock Text="{lc:Localization General_TrayMiddleClick}" />
+                </ui:CardControl.Header>
                 <ComboBox ItemsSource="{Binding Window.TrayMiddleClickActions}"
                           SelectedItem="{Binding Window.TrayMiddleClickAction}"
                           AutomationProperties.Name="{lc:Localization General_TrayMiddleClick}"
