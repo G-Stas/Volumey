@@ -649,6 +649,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Устройство по умолчанию</value>
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value>Заблокировать громкость, пока приложение работает</value>
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value>Громкость заблокирована до закрытия приложения. Нажмите, чтобы она оставалась заблокированной и после перезапуска приложения</value>
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value>Громкость заблокирована, в том числе после перезапуска приложения. Нажмите, чтобы разблокировать</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} будет воспроизводиться на {1}</value>
   </data>

@@ -649,6 +649,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>डिफ़ॉल्ट डिवाइस</value>
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value>ऐप चलने तक वॉल्यूम लॉक करें</value>
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value>ऐप बंद होने तक वॉल्यूम लॉक है। ऐप दोबारा शुरू होने पर भी लॉक रखने के लिए क्लिक करें</value>
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value>वॉल्यूम लॉक है, ऐप दोबारा शुरू होने पर भी। अनलॉक करने के लिए क्लिक करें</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} अब {1} पर चलेगा</value>
   </data>

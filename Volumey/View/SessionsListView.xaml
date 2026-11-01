@@ -16,6 +16,44 @@
         <converters:AppCanMoveConverter x:Key="AppCanMove"/>
         <converters:AppOutputOptionConverter x:Key="OptionPart"/>
         <converters:LocalizedFormatConverter x:Key="LocalizedFormat"/>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
+
+        <!-- the lock button of an app's row, three states (its Tag is the app's LockMode): free, locked until the app exits, and locked also
+             when the app starts again; the System Sounds can't be locked -->
+        <Style x:Key="LockButton" TargetType="ui:Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="Margin" Value="10 0 0 0" />
+            <Setter Property="ToolTip" Value="{lc:Localization Mixer_LockVolumeOff}" />
+            <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeOff}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding LockMode}" Value="Session">
+                    <Setter Property="ToolTip" Value="{lc:Localization Mixer_LockVolumeSession}" />
+                    <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeSession}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding LockMode}" Value="Persistent">
+                    <Setter Property="ToolTip" Value="{lc:Localization Mixer_LockVolumePersistent}" />
+                    <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumePersistent}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSystemSounds}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- the icon of a lock button: put the lock mode in the button's Tag -->
+        <Style x:Key="LockIcon" TargetType="ui:SymbolIcon">
+            <Setter Property="Symbol" Value="LockOpen20" />
+            <Setter Property="FontSize" Value="18" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ui:Button}}" Value="Session">
+                    <Setter Property="Symbol" Value="LockClosed20" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ui:Button}}" Value="Persistent">
+                    <Setter Property="Symbol" Value="LockShield20" />
+                    <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
         <!-- an item of an app's device box in the closed box: "Default device · <default>" in one line, or the device's name -->
         <DataTemplate x:Key="OutputOptionClosed">
@@ -90,6 +128,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -190,6 +229,7 @@
                             </Grid.ColumnDefinitions>
                             <controls:VolumeSlider Margin="0 0 8 0"
                                                    Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
+                                                   IsEnabled="{Binding IsVolumeLocked, Converter={StaticResource InverseBool}}"
                                                    IsMuted="{Binding IsMuted}"
                                                    Level="{Binding Level}"
                                                    AutomationProperties.Name="{Binding Name}" />
@@ -199,6 +239,13 @@
                         </Grid>
                         <ui:Button Grid.Row="1"
                                    Grid.Column="2"
+                                   Style="{StaticResource LockButton}"
+                                   Tag="{Binding LockMode}"
+                                   Command="{Binding ToggleVolumeLockCommand}">
+                            <ui:SymbolIcon Style="{StaticResource LockIcon}" />
+                        </ui:Button>
+                        <ui:Button Grid.Row="1"
+                                   Grid.Column="3"
                                    Style="{StaticResource IconButton}"
                                    Margin="10 0 0 0"
                                    Tag="{Binding IsMuted}"

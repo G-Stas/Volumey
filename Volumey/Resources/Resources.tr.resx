@@ -649,6 +649,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Varsayılan cihaz</value>
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value>Uygulama çalışırken sesi kilitle</value>
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value>Ses, uygulama kapanana kadar kilitli. Uygulama yeniden başlatıldıktan sonra da kilitli kalması için tıklayın</value>
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value>Ses kilitli, uygulama yeniden başlatıldıktan sonra da. Kilidi açmak için tıklayın</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} artık {1} üzerinde çalacak</value>
   </data>

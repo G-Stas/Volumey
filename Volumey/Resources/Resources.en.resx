@@ -708,6 +708,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Default device</value>
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value>Lock the volume while the app runs</value>
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value>Volume locked until the app closes. Click to keep it locked after the app restarts too</value>
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value>Volume locked, also after the app restarts. Click to unlock</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} set to play on {1}</value>
   </data>

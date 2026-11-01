@@ -649,6 +649,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Пристрій за замовчуванням</value>
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value>Заблокувати гучність, поки застосунок працює</value>
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value>Гучність заблоковано до закриття застосунку. Натисніть, щоб вона залишалася заблокованою і після перезапуску застосунку</value>
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value>Гучність заблоковано, зокрема після перезапуску застосунку. Натисніть, щоб розблокувати</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} відтворюватиметься на {1}</value>
   </data>

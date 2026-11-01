@@ -708,6 +708,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value />
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value />
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value />
   </data>

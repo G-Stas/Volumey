@@ -649,6 +649,15 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>既定のデバイス</value>
   </data>
+  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+    <value>アプリの実行中は音量をロックする</value>
+  </data>
+  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+    <value>アプリを閉じるまで音量をロック中。クリックすると、アプリの再起動後もロックを維持します</value>
+  </data>
+  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+    <value>音量をロック中 (アプリの再起動後も維持)。クリックでロック解除</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} を {1} で再生するように設定しました</value>
   </data>
