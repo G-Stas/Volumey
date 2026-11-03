@@ -553,7 +553,7 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 
 		shell.Raise(m => m.SessionEnding += null);
 
-		Assert.IsFalse(spotify.IsVolumeLocked);
+		Assert.IsFalse(spotify.Lock.IsOn);
 		Assert.AreEqual(100, spotify.Volume);
 		shell.Verify(m => m.Shutdown(), Times.Once);
 	}

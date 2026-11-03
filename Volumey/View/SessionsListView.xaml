@@ -23,32 +23,29 @@
 
         <!-- the lock modes, in the order of the lock bar -->
         <x:Array x:Key="LockModes" Type="model:VolumeLockMode">
-            <model:VolumeLockMode>None</model:VolumeLockMode>
-            <model:VolumeLockMode>Session</model:VolumeLockMode>
-            <model:VolumeLockMode>Persistent</model:VolumeLockMode>
+            <model:VolumeLockMode>Off</model:VolumeLockMode>
+            <model:VolumeLockMode>UntilClosed</model:VolumeLockMode>
+            <model:VolumeLockMode>Always</model:VolumeLockMode>
         </x:Array>
 
         <!-- the icon and the word of a lock mode (the data context) -->
+        <MultiBinding x:Key="LockModeName" Converter="{StaticResource EnumName}" ConverterParameter="LockMode_">
+            <Binding />
+            <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+        </MultiBinding>
         <Style x:Key="LockModeIcon" TargetType="ui:SymbolIcon">
             <Setter Property="Symbol" Value="LockOpen20" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding}" Value="Session">
+                <DataTrigger Binding="{Binding}" Value="UntilClosed">
                     <Setter Property="Symbol" Value="LockClosed20" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding}" Value="Persistent">
+                <DataTrigger Binding="{Binding}" Value="Always">
                     <Setter Property="Symbol" Value="Pin20" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="LockModeText" TargetType="TextBlock">
-            <Setter Property="Text">
-                <Setter.Value>
-                    <MultiBinding Converter="{StaticResource EnumName}" ConverterParameter="LockMode_">
-                        <Binding />
-                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                    </MultiBinding>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Text" Value="{StaticResource LockModeName}" />
         </Style>
 
         <!-- a badge next to an app's name: the device it plays on, its lock -->
@@ -102,14 +99,7 @@
                         <Setter Property="MinHeight" Value="26" />
                         <Setter Property="Padding" Value="6 4" />
                         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                        <Setter Property="AutomationProperties.Name">
-                            <Setter.Value>
-                                <MultiBinding Converter="{StaticResource EnumName}" ConverterParameter="LockMode_">
-                                    <Binding />
-                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
-                                </MultiBinding>
-                            </Setter.Value>
-                        </Setter>
+                        <Setter Property="AutomationProperties.Name" Value="{StaticResource LockModeName}" />
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
@@ -295,13 +285,13 @@
                                 <Border.Style>
                                     <Style TargetType="Border" BasedOn="{StaticResource NameBadge}">
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding LockMode}" Value="None">
+                                            <DataTrigger Binding="{Binding Lock.Mode}" Value="Off">
                                                 <Setter Property="Visibility" Value="Collapsed" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <StackPanel Orientation="Horizontal" DataContext="{Binding LockMode}">
+                                <StackPanel Orientation="Horizontal" DataContext="{Binding Lock.Mode}">
                                     <ui:SymbolIcon FontSize="12" Margin="0 0 4 0" Style="{StaticResource LockModeIcon}"
                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                     <TextBlock FontSize="11"
@@ -321,7 +311,7 @@
                             </Grid.ColumnDefinitions>
                             <controls:VolumeSlider Margin="0 0 8 0"
                                                    Value="{Binding Volume, UpdateSourceTrigger=PropertyChanged}"
-                                                   IsEnabled="{Binding IsVolumeLocked, Converter={StaticResource InverseBool}}"
+                                                   IsEnabled="{Binding Lock.IsOn, Converter={StaticResource InverseBool}}"
                                                    IsMuted="{Binding IsMuted}"
                                                    Level="{Binding Level}"
                                                    AutomationProperties.Name="{Binding Name}" />
@@ -330,7 +320,7 @@
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock" BasedOn="{StaticResource VolumeValue}">
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsVolumeLocked}" Value="True">
+                                            <DataTrigger Binding="{Binding Lock.IsOn}" Value="True">
                                                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -417,7 +407,7 @@
                                 <TextBlock x:Name="LockLabel" Style="{StaticResource Caption}" Margin="0 0 0 4"
                                            Text="{lc:Localization Mixer_LockVolume}" />
                                 <ListBox Style="{StaticResource LockBar}"
-                                         SelectedItem="{Binding LockMode}"
+                                         SelectedItem="{Binding Lock.Mode}"
                                          AutomationProperties.AutomationId="AppVolumeLockBar"
                                          AutomationProperties.LabeledBy="{Binding ElementName=LockLabel}" />
                             </StackPanel>

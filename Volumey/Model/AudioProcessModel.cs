@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -148,14 +147,14 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private int _volume;
 	/// <summary>
-	/// The app's volume. While it's locked (<see cref="IsVolumeLocked"/>) it can't be set, by the slider, a hotkey or anything else
+	/// The app's volume. While it's locked (<see cref="Lock"/>) it can't be set, by the slider, a hotkey or anything else
 	/// </summary>
 	public int Volume
 	{
 		get => _volume;
 		set
 		{
-			if(IsVolumeLocked)
+			if(Lock.IsOn)
 				return;
 			if(_volume != value)
 			{
@@ -176,138 +175,16 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
-	private const int NotLocked = -1;
+	/// <summary>The lock that can hold the app's volume</summary>
+	public AppVolumeLock Lock { get; }
 
-	/// <summary>The volume the app is locked at, or <see cref="NotLocked"/>; read on COM threads as well</summary>
-	private volatile int _lockedVolume = NotLocked;
-
-	/// <summary>The volume is locked: <see cref="LockVolume"/></summary>
-	public bool IsVolumeLocked => _lockedVolume != NotLocked;
-
-	private volatile VolumeLockMode _lockMode;
-
-	/// <summary>
-	/// How the volume is locked: not at all, until the app exits, or also when it starts again. Setting it asks for that lock
-	/// (<see cref="VolumeLockRequested"/>); it changes once the lock is made (<see cref="LockVolume"/>, <see cref="UnlockVolume"/>)
-	/// </summary>
-	public VolumeLockMode LockMode
+	/// <summary>The app is held at <paramref name="volume"/> (<see cref="Lock"/>): the model shows it</summary>
+	internal void ShowHeldVolume(int volume)
 	{
-		get => _lockMode;
-		set
+		if(_volume != volume)
 		{
-			if(value == _lockMode)
-				return;
-			VolumeLockRequested?.Invoke(this, value);
-			//a refused lock: the mixer goes back to the mode the app has
-			if(value != _lockMode)
-				OnPropertyChanged();
-		}
-	}
-
-	/// <summary>A lock mode was picked in the app's row</summary>
-	internal event Action<AudioProcessModel, VolumeLockMode>? VolumeLockRequested;
-
-	/// <summary>
-	/// Runs the work that puts a locked volume back, off the thread of the notification that reported the change: an audio
-	/// notification must not call the audio API
-	/// </summary>
-	internal Action<Action> RunLockWork { get; set; } = RunOnThreadPool;
-
-	private static void RunOnThreadPool(Action work) => Task.Run(() =>
-	{
-		try
-		{
-			work();
-		}
-		catch(Exception e)
-		{
-			Logger.Error("Failed to put a locked volume back", e);
-		}
-	});
-
-	private int _lockWorkQueued;
-	private int _volumeBeforeLock;
-
-	/// <summary>
-	/// Holds the app at <paramref name="volume"/> until <see cref="UnlockVolume"/> or until it exits: the sessions are set to it, any
-	/// later change to them is undone, and a session that is added gets it too. <paramref name="persistent"/> only tells
-	/// <see cref="LockMode"/>; saving the lock is up to the caller
-	/// </summary>
-	internal void LockVolume(int volume, bool persistent = false)
-	{
-		volume = Math.Clamp(volume, 0, 100);
-		bool changed = _volume != volume;
-		lock(_sessionsLock)
-		{
-			if(!IsVolumeLocked)
-				_volumeBeforeLock = _volume;
-			_lockedVolume = volume;
-			_lockMode = persistent ? VolumeLockMode.Persistent : VolumeLockMode.Session;
 			_volume = volume;
-			foreach(AudioSessionModel session in Sessions)
-			{
-				session.VolumeChanged -= OnLockedSessionVolumeChanged;
-				session.VolumeChanged += OnLockedSessionVolumeChanged;
-			}
-		}
-		PutLockedVolumeBack();
-		OnPropertyChanged(nameof(IsVolumeLocked));
-		OnPropertyChanged(nameof(LockMode));
-		if(changed)
 			OnPropertyChanged(nameof(Volume));
-	}
-
-	internal void UnlockVolume()
-	{
-		lock(_sessionsLock)
-		{
-			_lockedVolume = NotLocked;
-			_lockMode = VolumeLockMode.None;
-			foreach(AudioSessionModel session in Sessions)
-				session.VolumeChanged -= OnLockedSessionVolumeChanged;
-		}
-		OnPropertyChanged(nameof(IsVolumeLocked));
-		OnPropertyChanged(nameof(LockMode));
-	}
-
-	/// <summary>Releases the lock and gives the sessions the volume the app had before it was locked. Does nothing if it isn't locked</summary>
-	internal void RestoreVolumeBeforeLock()
-	{
-		if(!IsVolumeLocked)
-			return;
-		UnlockVolume();
-		Volume = _volumeBeforeLock;
-	}
-
-	//raised on a COM thread; also for the writes of this model, which already have the locked volume
-	private void OnLockedSessionVolumeChanged(int volume, Guid context)
-	{
-		if(volume == _lockedVolume || !IsVolumeLocked)
-			return;
-		//one pass puts back everything that changed before it runs
-		if(Interlocked.Exchange(ref _lockWorkQueued, 1) == 0)
-			RunLockWork(RunLockPass);
-	}
-
-	private void RunLockPass()
-	{
-		//first: a change that arrives while the pass runs queues the next one
-		Volatile.Write(ref _lockWorkQueued, 0);
-		PutLockedVolumeBack();
-	}
-
-	private void PutLockedVolumeBack()
-	{
-		int locked = _lockedVolume;
-		if(locked == NotLocked || _disposed)
-			return;
-		foreach(AudioSessionModel session in SessionsSnapshot())
-		{
-			//unlocked or restored while this pass was running
-			if(_lockedVolume != locked)
-				return;
-			if(session.Volume != locked)
-				session.Volume = locked;
 		}
 	}
 
@@ -411,6 +288,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 
 		Sessions = new ObservableCollection<AudioSessionModel>();
+		Lock = new AppVolumeLock(this, _sessionsLock);
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
 		StateNotificationMediator = stateNotificationMediator;
@@ -443,11 +321,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 					newSession.Volume = Volume;
 					newSession.IsMuted = IsMuted;
 				}
-				if(IsVolumeLocked)
-				{
-					newSession.VolumeChanged += OnLockedSessionVolumeChanged;
-					newSession.Volume = _lockedVolume;
-				}
+				Lock.Attach(newSession);
 			}
 		}
 		if(addedPlaying)
@@ -473,7 +347,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	private void OnTrackedSessionVolumeChanged(int volume, Guid context)
 	{
 		//a locked volume doesn't follow the session: it's put back
-		if(IsVolumeLocked)
+		if(Lock.IsOn)
 			return;
 		if(_volume != volume)
 		{
@@ -684,7 +558,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		endedSession.SessionEnded -= OnSessionEnded;
 		endedSession.Deactivated -= OnSessionDeactivated;
 		endedSession.ActivityChanged -= OnSessionActivityChanged;
-		endedSession.VolumeChanged -= OnLockedSessionVolumeChanged;
+		Lock.Detach(endedSession);
 		if(endedSession.IsActive)
 			ActivityChanged?.Invoke(this);
 		if(endedSession.EndedByFormatChange)

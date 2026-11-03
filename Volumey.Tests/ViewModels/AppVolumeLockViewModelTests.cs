@@ -17,6 +17,9 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 	//the processes that run; every process runs unless a test ends it
 	private HashSet<uint> exited;
 
+	//processes whose ID now runs another executable
+	private Dictionary<uint, string> reused;
+
 	[TestInitialize]
 	public void Initialize()
 	{
@@ -25,13 +28,17 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		routing.Setup(m => m.GetModels(It.IsAny<AudioProcessModel>()))
 			.Returns<AudioProcessModel>(app => ActiveDevices.SelectMany(d => d.Processes).Where(p => p.Name == app.Name).ToList());
 		exited = new HashSet<uint>();
+		reused = new Dictionary<uint, string>();
 	}
 
-	private AppVolumeLockViewModel CreateLocks() => new AppVolumeLockViewModel(DeviceProvider.Object, routing.Object, id => !exited.Contains(id));
+	private AppVolumeLockViewModel CreateLocks() => new AppVolumeLockViewModel(DeviceProvider.Object, routing.Object, IsRunning);
+
+	private bool IsRunning(uint id, string path)
+		=> !exited.Contains(id) && (path == null || !reused.TryGetValue(id, out var runs) || runs == path);
 
 	//a process with an ID: the model of the System Sounds has none
-	private AudioProcessModel CreateApp(string name, int volume, uint processId = 100)
-		=> new AudioProcessModel(volume, false, name, processId, string.Empty, null, null, Hotkeys);
+	private AudioProcessModel CreateApp(string name, int volume, uint processId = 100, string filePath = "")
+		=> new AudioProcessModel(volume, false, name, processId, filePath, null, null, Hotkeys);
 
 	private static void SaveLocked(VolumeySettings settings, string name, int volume)
 		=> settings.General.LockedAppVolumes = new[] { new AppVolumeLockEntry { AppName = name, Volume = volume } };
@@ -43,10 +50,10 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		CreateLocks();
 
-		spotify.LockMode = VolumeLockMode.Session;
+		spotify.Lock.Mode = VolumeLockMode.UntilClosed;
 
-		Assert.AreEqual(VolumeLockMode.Session, spotify.LockMode);
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.AreEqual(VolumeLockMode.UntilClosed, spotify.Lock.Mode);
+		Assert.IsTrue(spotify.Lock.IsOn);
 		Assert.AreEqual(40, spotify.Volume);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
@@ -58,10 +65,10 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		CreateLocks();
 
-		spotify.LockMode = VolumeLockMode.Persistent;
+		spotify.Lock.Mode = VolumeLockMode.Always;
 
-		Assert.AreEqual(VolumeLockMode.Persistent, spotify.LockMode);
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.AreEqual(VolumeLockMode.Always, spotify.Lock.Mode);
+		Assert.IsTrue(spotify.Lock.IsOn);
 		var entry = Assert.ContainsSingle(Settings.General.LockedAppVolumes);
 		Assert.AreEqual("Spotify", entry.AppName);
 		Assert.AreEqual(40, entry.Volume);
@@ -73,12 +80,12 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var spotify = CreateApp("Spotify", 40);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		CreateLocks();
-		spotify.LockMode = VolumeLockMode.Persistent;
+		spotify.Lock.Mode = VolumeLockMode.Always;
 
-		spotify.LockMode = VolumeLockMode.None;
+		spotify.Lock.Mode = VolumeLockMode.Off;
 
-		Assert.AreEqual(VolumeLockMode.None, spotify.LockMode);
-		Assert.IsFalse(spotify.IsVolumeLocked);
+		Assert.AreEqual(VolumeLockMode.Off, spotify.Lock.Mode);
+		Assert.IsFalse(spotify.Lock.IsOn);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
 
@@ -88,12 +95,12 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var spotify = CreateApp("Spotify", 40);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		CreateLocks();
-		spotify.LockMode = VolumeLockMode.Persistent;
+		spotify.Lock.Mode = VolumeLockMode.Always;
 
-		spotify.LockMode = VolumeLockMode.Session;
+		spotify.Lock.Mode = VolumeLockMode.UntilClosed;
 
-		Assert.AreEqual(VolumeLockMode.Session, spotify.LockMode);
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.AreEqual(VolumeLockMode.UntilClosed, spotify.Lock.Mode);
+		Assert.IsTrue(spotify.Lock.IsOn);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
 
@@ -105,13 +112,13 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		CreateLocks();
 		var first = CreateApp("Spotify", 40);
 		device.Processes.Add(first);
-		first.LockMode = VolumeLockMode.Session;
+		first.Lock.Mode = VolumeLockMode.UntilClosed;
 
 		device.Processes.Remove(first);
 		var second = CreateApp("Spotify", 100, processId: 101);
 		device.Processes.Add(second);
 
-		Assert.IsFalse(second.IsVolumeLocked);
+		Assert.IsFalse(second.Lock.IsOn);
 		Assert.AreEqual(100, second.Volume);
 	}
 
@@ -123,7 +130,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		CreateLocks();
 		var first = CreateApp("Spotify", 40);
 		device.Processes.Add(first);
-		first.LockMode = VolumeLockMode.Session;
+		first.Lock.Mode = VolumeLockMode.UntilClosed;
 
 		exited.Add(100);
 		device.Processes.Remove(first);
@@ -132,7 +139,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var second = CreateApp("Spotify", 100);
 		device.Processes.Add(second);
 
-		Assert.IsFalse(second.IsVolumeLocked);
+		Assert.IsFalse(second.Lock.IsOn);
 	}
 
 	[TestMethod]
@@ -143,14 +150,14 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		CreateLocks();
 		var first = CreateApp("Spotify", 40);
 		device.Processes.Add(first);
-		first.LockMode = VolumeLockMode.Session;
+		first.Lock.Mode = VolumeLockMode.UntilClosed;
 
 		//the device is read again (a format change) or the app moves: a new model of the same process
 		device.Processes.Remove(first);
 		var again = CreateApp("Spotify", 100);
 		device.Processes.Add(again);
 
-		Assert.AreEqual(VolumeLockMode.Session, again.LockMode);
+		Assert.AreEqual(VolumeLockMode.UntilClosed, again.Lock.Mode);
 		Assert.AreEqual(40, again.Volume);
 	}
 
@@ -160,12 +167,12 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var spotify = CreateApp("Spotify", 40);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		CreateLocks();
-		spotify.LockMode = VolumeLockMode.Session;
+		spotify.Lock.Mode = VolumeLockMode.UntilClosed;
 
 		var onHeadphones = CreateApp("Spotify", 70);
 		ActiveDevices.Add(CreateDevice("2", "Headphones", onHeadphones));
 
-		Assert.AreEqual(VolumeLockMode.Session, onHeadphones.LockMode);
+		Assert.AreEqual(VolumeLockMode.UntilClosed, onHeadphones.Lock.Mode);
 		Assert.AreEqual(40, onHeadphones.Volume);
 	}
 
@@ -178,7 +185,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 
 		CreateLocks();
 
-		Assert.AreEqual(VolumeLockMode.Persistent, spotify.LockMode);
+		Assert.AreEqual(VolumeLockMode.Always, spotify.Lock.Mode);
 	}
 
 	[TestMethod]
@@ -190,19 +197,19 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		ActiveDevices.Add(CreateDevice("2", "Headphones", onHeadphones));
 		CreateLocks();
 
-		onSpeakers.LockMode = VolumeLockMode.Session;
+		onSpeakers.Lock.Mode = VolumeLockMode.UntilClosed;
 
-		Assert.IsTrue(onHeadphones.IsVolumeLocked);
+		Assert.IsTrue(onHeadphones.Lock.IsOn);
 		Assert.AreEqual(40, onHeadphones.Volume);
 
-		onHeadphones.LockMode = VolumeLockMode.Persistent;
+		onHeadphones.Lock.Mode = VolumeLockMode.Always;
 
-		Assert.AreEqual(VolumeLockMode.Persistent, onSpeakers.LockMode);
+		Assert.AreEqual(VolumeLockMode.Always, onSpeakers.Lock.Mode);
 		Assert.ContainsSingle(Settings.General.LockedAppVolumes);
 
-		onSpeakers.LockMode = VolumeLockMode.None;
+		onSpeakers.Lock.Mode = VolumeLockMode.Off;
 
-		Assert.IsFalse(onHeadphones.IsVolumeLocked);
+		Assert.IsFalse(onHeadphones.Lock.IsOn);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
 
@@ -217,7 +224,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var spotify = CreateApp("Spotify", 100);
 		device.Processes.Add(spotify);
 
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.IsTrue(spotify.Lock.IsOn);
 		Assert.AreEqual(25, spotify.Volume);
 	}
 
@@ -230,7 +237,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 
 		CreateLocks();
 
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.IsTrue(spotify.Lock.IsOn);
 		Assert.AreEqual(25, spotify.Volume);
 	}
 
@@ -244,7 +251,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var spotify = CreateApp("Spotify", 100);
 		ActiveDevices.Add(CreateDevice("2", "Headphones", spotify));
 
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.IsTrue(spotify.Lock.IsOn);
 	}
 
 	[TestMethod]
@@ -256,7 +263,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 
 		CreateLocks();
 
-		Assert.IsFalse(chrome.IsVolumeLocked);
+		Assert.IsFalse(chrome.Lock.IsOn);
 		Assert.AreEqual(100, chrome.Volume);
 	}
 
@@ -269,7 +276,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 
 		CreateLocks();
 
-		Assert.IsTrue(spotify.IsVolumeLocked);
+		Assert.IsTrue(spotify.Lock.IsOn);
 	}
 
 	[TestMethod]
@@ -281,10 +288,10 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", systemSounds));
 		CreateLocks();
 
-		systemSounds.LockMode = VolumeLockMode.Persistent;
+		systemSounds.Lock.Mode = VolumeLockMode.Always;
 
-		Assert.AreEqual(VolumeLockMode.None, systemSounds.LockMode);
-		Assert.IsFalse(systemSounds.IsVolumeLocked);
+		Assert.AreEqual(VolumeLockMode.Off, systemSounds.Lock.Mode);
+		Assert.IsFalse(systemSounds.Lock.IsOn);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
 
@@ -295,11 +302,11 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", systemSounds));
 		CreateLocks();
 		var changed = new List<string>();
-		systemSounds.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+		systemSounds.Lock.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 
-		systemSounds.LockMode = VolumeLockMode.Session;
+		systemSounds.Lock.Mode = VolumeLockMode.UntilClosed;
 
-		CollectionAssert.Contains(changed, nameof(AudioProcessModel.LockMode));
+		CollectionAssert.Contains(changed, nameof(AppVolumeLock.Mode));
 	}
 
 	[TestMethod]
@@ -309,10 +316,10 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		CreateLocks();
 
-		spotify.LockMode = VolumeLockMode.Persistent;
-		spotify.LockMode = VolumeLockMode.None;
+		spotify.Lock.Mode = VolumeLockMode.Always;
+		spotify.Lock.Mode = VolumeLockMode.Off;
 		spotify.Volume = 55;
-		spotify.LockMode = VolumeLockMode.Persistent;
+		spotify.Lock.Mode = VolumeLockMode.Always;
 
 		var entry = Assert.ContainsSingle(Settings.General.LockedAppVolumes);
 		Assert.AreEqual(55, entry.Volume);
@@ -327,9 +334,9 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		CreateLocks();
 
 		device.Processes.Remove(spotify);
-		spotify.LockMode = VolumeLockMode.Persistent;
+		spotify.Lock.Mode = VolumeLockMode.Always;
 
-		Assert.IsFalse(spotify.IsVolumeLocked);
+		Assert.IsFalse(spotify.Lock.IsOn);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
 
@@ -340,7 +347,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var device = CreateDevice("1", "Speakers", spotify);
 		SetDefaultDevice(device);
 		CreateLocks();
-		spotify.LockMode = VolumeLockMode.Persistent;
+		spotify.Lock.Mode = VolumeLockMode.Always;
 
 		//the next run reads the saved list
 		var started = CreateApp("Spotify", 100);
@@ -349,7 +356,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		SetDefaultDevice(newDevice);
 		CreateLocks();
 
-		Assert.IsTrue(started.IsVolumeLocked);
+		Assert.IsTrue(started.Lock.IsOn);
 		Assert.AreEqual(40, started.Volume);
 	}
 
@@ -364,7 +371,7 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 
 		locks.ReleaseAll();
 
-		Assert.IsFalse(spotify.IsVolumeLocked);
+		Assert.IsFalse(spotify.Lock.IsOn);
 		Assert.AreEqual(100, spotify.Volume);
 		Assert.ContainsSingle(Settings.General.LockedAppVolumes);
 	}
@@ -375,11 +382,11 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		var spotify = CreateApp("Spotify", 40);
 		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
 		var locks = CreateLocks();
-		spotify.LockMode = VolumeLockMode.Session;
+		spotify.Lock.Mode = VolumeLockMode.UntilClosed;
 
 		locks.ReleaseAll();
 
-		Assert.IsFalse(spotify.IsVolumeLocked);
+		Assert.IsFalse(spotify.Lock.IsOn);
 		Assert.AreEqual(40, spotify.Volume);
 		Assert.IsEmpty(Settings.General.LockedAppVolumes);
 	}
@@ -395,6 +402,84 @@ public class AppVolumeLockViewModelTests : ViewModelTestBase
 		locks.ReleaseAll();
 
 		Assert.AreEqual(60, spotify.Volume);
+	}
+
+	[TestMethod]
+	public void ClosingAfterTheAppsModelIsMadeAgainGivesBackTheVolumeBeforeTheLock()
+	{
+		SaveLocked(Settings, "Spotify", 25);
+		var device = CreateDevice("1", "Speakers");
+		SetDefaultDevice(device);
+		var locks = CreateLocks();
+		var spotify = CreateApp("Spotify", 100);
+		device.Processes.Add(spotify);
+
+		//a format change: the new model reads the held volume from the sessions
+		device.Processes.Remove(spotify);
+		var again = CreateApp("Spotify", 25);
+		device.Processes.Add(again);
+		locks.ReleaseAll();
+
+		Assert.AreEqual(100, again.Volume);
+	}
+
+	[TestMethod]
+	public void ClosingAfterAMoveGivesBackTheVolumeBeforeTheLock()
+	{
+		SaveLocked(Settings, "Spotify", 25);
+		var spotify = CreateApp("Spotify", 100);
+		var speakers = CreateDevice("1", "Speakers", spotify);
+		SetDefaultDevice(speakers);
+		var headphones = CreateDevice("2", "Headphones");
+		ActiveDevices.Add(headphones);
+		var locks = CreateLocks();
+
+		var moved = CreateApp("Spotify", 25);
+		headphones.Processes.Add(moved);
+		speakers.Processes.Remove(spotify);
+		locks.ReleaseAll();
+
+		Assert.AreEqual(100, moved.Volume);
+	}
+
+	[TestMethod]
+	public void ChangingTheModeKeepsTheVolumeBeforeTheLock()
+	{
+		SaveLocked(Settings, "Spotify", 25);
+		var device = CreateDevice("1", "Speakers");
+		SetDefaultDevice(device);
+		var locks = CreateLocks();
+		var spotify = CreateApp("Spotify", 100);
+		device.Processes.Add(spotify);
+
+		spotify.Lock.Mode = VolumeLockMode.UntilClosed;
+		device.Processes.Remove(spotify);
+		var again = CreateApp("Spotify", 25);
+		device.Processes.Add(again);
+		locks.ReleaseAll();
+
+		Assert.AreEqual(100, again.Volume);
+	}
+
+	[TestMethod]
+	public void ALockEndsWhenItsProcessIdRunsAnotherExecutable()
+	{
+		const string spotifyPath = @"C:\Apps\Spotify.exe";
+		var device = CreateDevice("1", "Speakers");
+		SetDefaultDevice(device);
+		CreateLocks();
+		var first = CreateApp("Spotify", 40, filePath: spotifyPath);
+		device.Processes.Add(first);
+		first.Lock.Mode = VolumeLockMode.UntilClosed;
+
+		//the app exited and Windows gave its ID to another program, which is still in the process list
+		reused[100] = @"C:\Other\Other.exe";
+		device.Processes.Remove(first);
+		reused.Remove(100);
+		var second = CreateApp("Spotify", 100, filePath: spotifyPath);
+		device.Processes.Add(second);
+
+		Assert.IsFalse(second.Lock.IsOn);
 	}
 
 	[TestMethod]

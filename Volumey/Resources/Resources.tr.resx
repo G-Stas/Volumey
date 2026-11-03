@@ -652,13 +652,13 @@
   <data name="Mixer_LockVolume" xml:space="preserve">
     <value>Ses düzeyini kilitle</value>
   </data>
-  <data name="LockMode_None" xml:space="preserve">
+  <data name="LockMode_Off" xml:space="preserve">
     <value>Kapalı</value>
   </data>
-  <data name="LockMode_Session" xml:space="preserve">
+  <data name="LockMode_UntilClosed" xml:space="preserve">
     <value>Kapanana kadar</value>
   </data>
-  <data name="LockMode_Persistent" xml:space="preserve">
+  <data name="LockMode_Always" xml:space="preserve">
     <value>Her zaman</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">

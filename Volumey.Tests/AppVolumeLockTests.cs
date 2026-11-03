@@ -21,10 +21,13 @@ public class AppVolumeLockTests
 		sessionNotifications = new Mock<IAudioSessionStateNotifications>();
 		app = AudioProcessModelTests.GetProcessMock("app", 50, false);
 		//the changes are put back at once, so the tests don't wait for the thread pool
-		app.RunLockWork = work => work();
+		app.Lock.RunWork = work => work();
 		app.AddSession(new AudioSessionModel(false, 50, "0", app.ProcessId, default, default, Guid.Empty, sessionVolume.Object,
 			sessionNotifications.Object));
 	}
+
+	private static void Hold(AudioProcessModel model, int volume, VolumeLockMode mode = VolumeLockMode.UntilClosed, int volumeBefore = 50)
+		=> model.Lock.Hold(new VolumeLock(mode, volume, volumeBefore));
 
 	private void ChangeOutsideVolumey(int volume)
 		=> sessionNotifications.Raise(m => m.VolumeChanged += null, new VolumeChangedEventArgs(volume, false));
@@ -32,9 +35,9 @@ public class AppVolumeLockTests
 	[TestMethod]
 	public void LockingSetsTheSessionsToTheLockedVolume()
 	{
-		app.LockVolume(30);
+		Hold(app, 30);
 
-		Assert.IsTrue(app.IsVolumeLocked);
+		Assert.IsTrue(app.Lock.IsOn);
 		Assert.AreEqual(30, app.Volume);
 		Assert.AreEqual(30, app.Sessions[0].Volume);
 		sessionVolume.Verify(v => v.SetVolume(30, It.IsAny<Guid>()), Times.Once);
@@ -43,7 +46,7 @@ public class AppVolumeLockTests
 	[TestMethod]
 	public void ALockedVolumeCantBeSet()
 	{
-		app.LockVolume(30);
+		Hold(app, 30);
 
 		app.Volume = 80;
 		app.SetVolume(90, notify: false, Guid.Empty);
@@ -56,7 +59,7 @@ public class AppVolumeLockTests
 	[TestMethod]
 	public void AChangeMadeOutsideVolumeyIsPutBack()
 	{
-		app.LockVolume(30);
+		Hold(app, 30);
 
 		ChangeOutsideVolumey(100);
 
@@ -69,7 +72,7 @@ public class AppVolumeLockTests
 	[TestMethod]
 	public void EveryChangeIsPutBackNoMatterHowLateItComes()
 	{
-		app.LockVolume(30);
+		Hold(app, 30);
 
 		foreach(int volume in new[] { 100, 10, 77 })
 		{
@@ -82,8 +85,8 @@ public class AppVolumeLockTests
 	public void ChangesThatArriveBeforeThePassRunsAreFixedByOnePass()
 	{
 		var queued = new List<Action>();
-		app.RunLockWork = queued.Add;
-		app.LockVolume(30);
+		app.Lock.RunWork = queued.Add;
+		Hold(app, 30);
 		Assert.IsEmpty(queued, "the lock's own writes don't start a pass");
 
 		ChangeOutsideVolumey(100);
@@ -105,8 +108,8 @@ public class AppVolumeLockTests
 	public void TheLockedVolumeNeedsNoWork()
 	{
 		var queued = new List<Action>();
-		app.RunLockWork = queued.Add;
-		app.LockVolume(30);
+		app.Lock.RunWork = queued.Add;
+		Hold(app, 30);
 
 		ChangeOutsideVolumey(30);
 
@@ -118,7 +121,7 @@ public class AppVolumeLockTests
 	{
 		var secondVolume = new Mock<IAudioSessionVolume>();
 		var secondNotifications = new Mock<IAudioSessionStateNotifications>();
-		app.LockVolume(30);
+		Hold(app, 30);
 
 		app.AddSession(new AudioSessionModel(false, 100, "1", app.ProcessId, default, default, Guid.Empty, secondVolume.Object,
 			secondNotifications.Object));
@@ -133,7 +136,7 @@ public class AppVolumeLockTests
 	public void TheFirstSessionOfALockedAppIsSetToTheVolumeToo()
 	{
 		var locked = AudioProcessModelTests.GetProcessMock("locked", 50, false);
-		locked.LockVolume(20);
+		Hold(locked, 20);
 		var volume = new Mock<IAudioSessionVolume>();
 
 		locked.AddSession(new AudioSessionModel(false, 100, "0", locked.ProcessId, default, default, Guid.Empty, volume.Object,
@@ -145,12 +148,13 @@ public class AppVolumeLockTests
 	}
 
 	[TestMethod]
-	public void UnlockingFreesTheVolume()
+	public void ReleasingFreesTheVolume()
 	{
-		app.LockVolume(30);
-		app.UnlockVolume();
+		Hold(app, 30);
+		app.Lock.Release();
 
-		Assert.IsFalse(app.IsVolumeLocked);
+		Assert.IsFalse(app.Lock.IsOn);
+		Assert.AreEqual(30, app.Volume, "without restoring, the app keeps the volume it was held at");
 		app.Volume = 80;
 		Assert.AreEqual(80, app.Volume);
 
@@ -164,24 +168,13 @@ public class AppVolumeLockTests
 	[TestMethod]
 	public void RestoringGivesBackTheVolumeBeforeTheLock()
 	{
-		app.LockVolume(30);
+		Hold(app, 30, volumeBefore: 65);
 
-		app.RestoreVolumeBeforeLock();
+		app.Lock.Release(restore: true);
 
-		Assert.IsFalse(app.IsVolumeLocked);
-		Assert.AreEqual(50, app.Volume);
-		Assert.AreEqual(50, app.Sessions[0].Volume);
-	}
-
-	[TestMethod]
-	public void LockingAgainDoesNotReplaceTheVolumeBeforeTheLock()
-	{
-		app.LockVolume(30);
-		app.LockVolume(10);
-
-		app.RestoreVolumeBeforeLock();
-
-		Assert.AreEqual(50, app.Volume);
+		Assert.IsFalse(app.Lock.IsOn);
+		Assert.AreEqual(65, app.Volume);
+		Assert.AreEqual(65, app.Sessions[0].Volume);
 	}
 
 	[TestMethod]
@@ -190,7 +183,7 @@ public class AppVolumeLockTests
 		app.Volume = 70;
 		sessionVolume.Invocations.Clear();
 
-		app.RestoreVolumeBeforeLock();
+		app.Lock.Release(restore: true);
 
 		Assert.AreEqual(70, app.Volume);
 		sessionVolume.Verify(v => v.SetVolume(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
@@ -199,10 +192,10 @@ public class AppVolumeLockTests
 	[TestMethod]
 	public void ALockedVolumeIsClamped()
 	{
-		app.LockVolume(250);
+		Hold(app, 250);
 		Assert.AreEqual(100, app.Volume);
 
-		app.LockVolume(-5);
+		Hold(app, -5);
 		Assert.AreEqual(0, app.Volume);
 	}
 
@@ -210,66 +203,67 @@ public class AppVolumeLockTests
 	public void TheLockStateIsReported()
 	{
 		var changed = new List<string>();
-		app.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+		var volumeChanged = 0;
+		app.Lock.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+		app.PropertyChanged += (_, e) => volumeChanged += e.PropertyName == nameof(AudioProcessModel.Volume) ? 1 : 0;
 
-		app.LockVolume(30);
-		app.UnlockVolume();
+		Hold(app, 30);
+		app.Lock.Release();
 
-		CollectionAssert.Contains(changed, nameof(AudioProcessModel.IsVolumeLocked));
-		Assert.AreEqual(2, changed.FindAll(name => name == nameof(AudioProcessModel.IsVolumeLocked)).Count);
-		CollectionAssert.Contains(changed, nameof(AudioProcessModel.Volume));
+		Assert.AreEqual(2, changed.FindAll(name => name == nameof(AppVolumeLock.IsOn)).Count);
+		Assert.AreEqual(1, volumeChanged);
 	}
 
 	[TestMethod]
-	public void TheLockModeFollowsTheLock()
+	public void TheModeFollowsTheLock()
 	{
-		Assert.AreEqual(VolumeLockMode.None, app.LockMode);
+		Assert.AreEqual(VolumeLockMode.Off, app.Lock.Mode);
 
-		app.LockVolume(30);
-		Assert.AreEqual(VolumeLockMode.Session, app.LockMode);
+		Hold(app, 30);
+		Assert.AreEqual(VolumeLockMode.UntilClosed, app.Lock.Mode);
 
-		app.LockVolume(30, persistent: true);
-		Assert.AreEqual(VolumeLockMode.Persistent, app.LockMode);
-		Assert.IsTrue(app.IsVolumeLocked);
+		Hold(app, 30, VolumeLockMode.Always);
+		Assert.AreEqual(VolumeLockMode.Always, app.Lock.Mode);
+		Assert.IsTrue(app.Lock.IsOn);
 
-		app.UnlockVolume();
-		Assert.AreEqual(VolumeLockMode.None, app.LockMode);
+		app.Lock.Release();
+		Assert.AreEqual(VolumeLockMode.Off, app.Lock.Mode);
 	}
 
 	[TestMethod]
-	public void TheLockModeChangeIsReported()
+	public void TheModeChangeIsReported()
 	{
 		var changed = new List<string>();
-		app.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+		app.Lock.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 
-		app.LockVolume(30);
-		app.LockVolume(30, persistent: true);
-		app.UnlockVolume();
+		Hold(app, 30);
+		Hold(app, 30, VolumeLockMode.Always);
+		app.Lock.Release();
 
-		Assert.AreEqual(3, changed.FindAll(name => name == nameof(AudioProcessModel.LockMode)).Count);
+		Assert.AreEqual(3, changed.FindAll(name => name == nameof(AppVolumeLock.Mode)).Count);
 	}
 
 	[TestMethod]
-	public void PickingALockModeAsksTheOwnerOfTheLocks()
+	public void PickingAModeAsksTheOwnerOfTheLocks()
 	{
 		AudioProcessModel requested = null;
-		VolumeLockMode requestedMode = VolumeLockMode.None;
-		app.VolumeLockRequested += (model, mode) => (requested, requestedMode) = (model, mode);
+		VolumeLockMode requestedMode = VolumeLockMode.Off;
+		app.Lock.Requested += (model, mode) => (requested, requestedMode) = (model, mode);
 
-		app.LockMode = VolumeLockMode.Persistent;
+		app.Lock.Mode = VolumeLockMode.Always;
 
 		Assert.AreSame(app, requested);
-		Assert.AreEqual(VolumeLockMode.Persistent, requestedMode);
-		Assert.IsFalse(app.IsVolumeLocked, "the model doesn't lock itself: the owner keeps the list");
-		Assert.AreEqual(VolumeLockMode.None, app.LockMode);
+		Assert.AreEqual(VolumeLockMode.Always, requestedMode);
+		Assert.IsFalse(app.Lock.IsOn, "the lock doesn't hold itself: the owner keeps the list");
+		Assert.AreEqual(VolumeLockMode.Off, app.Lock.Mode);
 	}
 
 	[TestMethod]
 	public void ADisposedAppWritesNothing()
 	{
 		var queued = new List<Action>();
-		app.RunLockWork = queued.Add;
-		app.LockVolume(30);
+		app.Lock.RunWork = queued.Add;
+		Hold(app, 30);
 		ChangeOutsideVolumey(100);
 		app.Dispose();
 		sessionVolume.Invocations.Clear();

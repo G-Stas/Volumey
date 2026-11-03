@@ -1,14 +1,14 @@
 ﻿namespace Volumey.Model;
 
-/// <summary>How the volume of an app is held, the states of the lock button of the mixer's app rows</summary>
+/// <summary>How an app's volume is held, the parts of the mixer's lock bar</summary>
 public enum VolumeLockMode
 {
 	/// <summary>The volume is free</summary>
-	None,
+	Off,
 
 	/// <summary>The volume is held until the app exits or Volumey closes; nothing is saved</summary>
-	Session,
+	UntilClosed,
 
 	/// <summary>The volume is held, and held again each time the app starts: the lock is saved</summary>
-	Persistent
+	Always
 }
