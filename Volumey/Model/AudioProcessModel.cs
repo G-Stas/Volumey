@@ -186,13 +186,26 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private volatile VolumeLockMode _lockMode;
 
-	/// <summary>How the volume is locked: not at all, until the app exits, or also when it starts again</summary>
-	public VolumeLockMode LockMode => _lockMode;
+	/// <summary>
+	/// How the volume is locked: not at all, until the app exits, or also when it starts again. Setting it asks for that lock
+	/// (<see cref="VolumeLockRequested"/>); it changes once the lock is made (<see cref="LockVolume"/>, <see cref="UnlockVolume"/>)
+	/// </summary>
+	public VolumeLockMode LockMode
+	{
+		get => _lockMode;
+		set
+		{
+			if(value == _lockMode)
+				return;
+			VolumeLockRequested?.Invoke(this, value);
+			//a refused lock: the mixer goes back to the mode the app has
+			if(value != _lockMode)
+				OnPropertyChanged();
+		}
+	}
 
-	/// <summary>The lock button of the app's row was pressed</summary>
-	internal event Action<AudioProcessModel>? VolumeLockRequested;
-
-	public ICommand ToggleVolumeLockCommand { get; }
+	/// <summary>A lock mode was picked in the app's row</summary>
+	internal event Action<AudioProcessModel, VolumeLockMode>? VolumeLockRequested;
 
 	/// <summary>
 	/// Runs the work that puts a locked volume back, off the thread of the notification that reported the change: an audio
@@ -391,7 +404,6 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		Sessions = new ObservableCollection<AudioSessionModel>();
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
-		ToggleVolumeLockCommand = new ActionCommand(() => VolumeLockRequested?.Invoke(this));
 		StateNotificationMediator = stateNotificationMediator;
 	}
 

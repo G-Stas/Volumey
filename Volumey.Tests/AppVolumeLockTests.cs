@@ -250,15 +250,18 @@ public class AppVolumeLockTests
 	}
 
 	[TestMethod]
-	public void TheLockButtonAsksTheOwnerOfTheLocks()
+	public void PickingALockModeAsksTheOwnerOfTheLocks()
 	{
 		AudioProcessModel requested = null;
-		app.VolumeLockRequested += model => requested = model;
+		VolumeLockMode requestedMode = VolumeLockMode.None;
+		app.VolumeLockRequested += (model, mode) => (requested, requestedMode) = (model, mode);
 
-		app.ToggleVolumeLockCommand.Execute(null);
+		app.LockMode = VolumeLockMode.Persistent;
 
 		Assert.AreSame(app, requested);
+		Assert.AreEqual(VolumeLockMode.Persistent, requestedMode);
 		Assert.IsFalse(app.IsVolumeLocked, "the model doesn't lock itself: the owner keeps the list");
+		Assert.AreEqual(VolumeLockMode.None, app.LockMode);
 	}
 
 	[TestMethod]

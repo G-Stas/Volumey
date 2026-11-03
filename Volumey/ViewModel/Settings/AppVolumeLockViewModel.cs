@@ -10,15 +10,20 @@ using Volumey.Model;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// The apps whose volume is locked (the lock button of the mixer's app rows), saved by app name: each app that starts is set to its
-/// saved volume and held there until it exits (<see cref="AudioProcessModel.LockVolume"/>). An app's models on all devices are
-/// locked together. It only follows the devices' apps; while no app is locked nothing else runs.
+/// The apps whose volume is locked (the lock modes of the mixer's app rows). An app locked until it exits is kept by its name and
+/// processes, so its models made later (on another device, or when a device is read again) are locked too; an app locked always is
+/// saved by its name, and each time it starts it's set to its saved volume and held there (<see cref="AudioProcessModel.LockVolume"/>).
+/// An app's models on all devices are locked together. It only follows the devices' apps; while no app is locked nothing else runs.
 /// </summary>
 public sealed class AppVolumeLockViewModel
 {
+	/// <summary>An app locked until it exits: matched by its name and any of its processes, so a restarted app is free</summary>
+	private sealed record SessionLock(string AppName, HashSet<uint> ProcessIds, int Volume);
+
 	private readonly IAppRouting appRouting;
 	private readonly IDeviceProvider deviceProvider;
 	private readonly List<AppVolumeLockEntry> entries;
+	private readonly List<SessionLock> sessionLocks = new List<SessionLock>();
 	private readonly HashSet<OutputDeviceModel> watchedDevices = new HashSet<OutputDeviceModel>();
 	private readonly HashSet<AudioProcessModel> watchedApps = new HashSet<AudioProcessModel>();
 
@@ -92,7 +97,14 @@ public sealed class AppVolumeLockViewModel
 		if(!watchedApps.Add(app))
 			return;
 		app.VolumeLockRequested += OnLockRequested;
-		if(!app.IsSystemSounds && Find(app.Name) is { } entry)
+		if(app.IsSystemSounds)
+			return;
+		if(FindSessionLock(app) is { } sessionLock)
+		{
+			sessionLock.ProcessIds.UnionWith(ProcessIdsOf(app));
+			app.LockVolume(sessionLock.Volume);
+		}
+		else if(Find(app.Name) is { } entry)
 			app.LockVolume(entry.Volume, persistent: true);
 	}
 
@@ -103,13 +115,24 @@ public sealed class AppVolumeLockViewModel
 	}
 
 	private AppVolumeLockEntry? Find(string appName)
-		=> entries.FirstOrDefault(entry => string.Equals(entry.AppName, appName, StringComparison.OrdinalIgnoreCase));
+		=> entries.FirstOrDefault(entry => SameName(entry.AppName, appName));
+
+	private SessionLock? FindSessionLock(AudioProcessModel app)
+	{
+		var processIds = ProcessIdsOf(app);
+		return sessionLocks.FirstOrDefault(l => SameName(l.AppName, app.Name) && l.ProcessIds.Overlaps(processIds));
+	}
+
+	private static HashSet<uint> ProcessIdsOf(AudioProcessModel app)
+		=> app.SessionsSnapshot().Select(s => s.ProcessId).Append(app.ProcessId).Where(id => id != 0).ToHashSet();
+
+	private static bool SameName(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
 	/// <summary>
-	/// The lock button goes through three states: free, locked until the app exits (nothing is saved) and locked also when the app
-	/// starts again (the entry is saved). Its models on the other devices follow
+	/// A lock mode was picked for the app: free, locked until the app exits (nothing is saved) or locked also when the app starts
+	/// again (the entry is saved). A new lock holds the app's volume as it is now. Its models on the other devices follow
 	/// </summary>
-	private void OnLockRequested(AudioProcessModel app)
+	private void OnLockRequested(AudioProcessModel app, VolumeLockMode mode)
 	{
 		//the System Sounds' name follows the language, so it can't be matched later
 		if(app.IsSystemSounds)
@@ -119,34 +142,29 @@ public sealed class AppVolumeLockViewModel
 		if(!models.Contains(app))
 			models = models.Append(app).ToList();
 
-		switch(app.LockMode)
+		int volume = app.Volume;
+		sessionLocks.RemoveAll(l => SameName(l.AppName, app.Name) && models.Any(m => l.ProcessIds.Overlaps(ProcessIdsOf(m))));
+		bool saved = entries.RemoveAll(entry => SameName(entry.AppName, app.Name)) > 0;
+		switch(mode)
 		{
-			case VolumeLockMode.None:
-			{
-				int volume = app.Volume;
+			case VolumeLockMode.Session:
+				sessionLocks.Add(new SessionLock(app.Name, models.SelectMany(ProcessIdsOf).ToHashSet(), volume));
 				foreach(var model in models)
 					model.LockVolume(volume);
 				break;
-			}
-			case VolumeLockMode.Session:
-			{
-				int volume = app.Volume;
-				entries.RemoveAll(entry => string.Equals(entry.AppName, app.Name, StringComparison.OrdinalIgnoreCase));
+			case VolumeLockMode.Persistent:
 				entries.Add(new AppVolumeLockEntry { AppName = app.Name, Volume = volume });
+				saved = true;
 				foreach(var model in models)
 					model.LockVolume(volume, persistent: true);
-				Save();
 				break;
-			}
 			default:
-			{
-				entries.RemoveAll(entry => string.Equals(entry.AppName, app.Name, StringComparison.OrdinalIgnoreCase));
 				foreach(var model in models)
 					model.UnlockVolume();
-				Save();
 				break;
-			}
 		}
+		if(saved)
+			Save();
 	}
 
 	private void Save() => SettingsProvider.Settings.General.LockedAppVolumes = entries.ToArray();
