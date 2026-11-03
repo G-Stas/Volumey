@@ -364,6 +364,16 @@ public class DeviceProviderTests
 	}
 
 	[TestMethod]
+	public void ASwitchIsNeededUnlessTheDeviceIsOrIsAboutToBeTheDefault()
+	{
+		Assert.IsFalse(DeviceProvider.IsSwitchNeeded("a", "a", null));
+		Assert.IsTrue(DeviceProvider.IsSwitchNeeded("b", "a", null));
+		//a switch to b that Windows hasn't reported yet
+		Assert.IsFalse(DeviceProvider.IsSwitchNeeded("b", "a", "b"));
+		Assert.IsTrue(DeviceProvider.IsSwitchNeeded("a", "a", "b"));
+	}
+
+	[TestMethod]
 	public void AProviderConnectedLaterShowsTheDevicesLikeAPluggedInDevice()
 	{
 		//Windows audio couldn't be reached at start

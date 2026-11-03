@@ -127,6 +127,31 @@ public class DeviceProviderViewModelTests
 	}
 
 	[TestMethod]
+	public void WithTwoDevicesASecondSwitchBeforeWindowsReportsTheFirstGoesBack()
+	{
+		var notifMock = new Mock<IDeviceStateNotificationHandler>().Object;
+		var dev1 = OutputDeviceModelTests.GetDeviceMock("id-1", "device1", notifMock);
+		var dev2 = OutputDeviceModelTests.GetDeviceMock("id-2", "device2", notifMock);
+		var activeDevices = new ObservableCollection<OutputDeviceModel> { dev1, dev2 };
+
+		string requested = null;
+		var providerMock = new Mock<IDeviceProvider>();
+		providerMock.SetupGet(p => p.ActiveDevices).Returns(activeDevices);
+		providerMock.SetupGet(p => p.DefaultDevice).Returns(dev1);
+		providerMock.SetupGet(p => p.RequestedDefaultDeviceId).Returns(() => requested);
+		providerMock.Setup(p => p.SetDefaultDevice(It.IsAny<string>())).Callback<string>(id => requested = id);
+
+		var vm = new DeviceProviderViewModel(providerMock.Object, new Mock<IAppShell>().Object);
+
+		vm.SwitchToNextDevice();
+		vm.SwitchToNextDevice();
+
+		providerMock.Verify(p => p.SetDefaultDevice("id-2"), Times.Once);
+		//still the default as Windows reported it, but no longer where the requested switch goes
+		providerMock.Verify(p => p.SetDefaultDevice("id-1"), Times.Once);
+	}
+
+	[TestMethod]
 	public void SwitchToNextDeviceDoesNothingWhenSingleOrNoDevice()
 	{
 		var notifMock = new Mock<IDeviceStateNotificationHandler>().Object;

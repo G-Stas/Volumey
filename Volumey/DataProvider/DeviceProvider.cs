@@ -211,6 +211,13 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	public string? RequestedDefaultDeviceId
 		=> requestedDefault is { } r && DateTime.UtcNow - r.At < RequestValidity ? r.Id : null;
 
+	/// <summary>
+	/// The device isn't the one that is or is about to be the default. A switch Windows hasn't reported yet counts,
+	/// so switching back to the current default before the report still switches
+	/// </summary>
+	internal static bool IsSwitchNeeded(string id, string defaultId, string? requestedId)
+		=> !string.Equals(requestedId ?? defaultId, id, StringComparison.Ordinal);
+
 	public void SetDefaultDevice(string? id)
 	{
 		try
@@ -220,8 +227,7 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			//Check if the device to set is enabled
 			if(ActiveDevices.Any(device => device.CompareId(id)))
 			{
-				//Prevent if it's already the default device
-				if(DefaultDevice != null && !DefaultDevice.CompareId(id))
+				if(DefaultDevice != null && IsSwitchNeeded(id, DefaultDevice.Id, RequestedDefaultDeviceId))
 				{
 					requestedDefault = (id, DateTime.UtcNow);
 					PolicyClient.SetDefaultEndpointDevice(id);
