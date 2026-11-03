@@ -219,8 +219,12 @@ public class AppVolumeLockTests : UiTest
 	public void TheSystemSoundsHaveNoLock()
 	{
 		StartMixer();
-		const string systemSounds = "System Sounds";
-		if(App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(systemSounds))) == null)
+		//named in the Windows display language, which the app saves once it has read the System Sounds' session
+		string? savedName = null;
+		Eventually(() => (savedName = App.ReadSettings()["General"]?["SystemSoundsName"]?.GetValue<string>()) != null, 5000);
+		string systemSounds = savedName ?? "";
+		if(savedName == null
+		   || !Eventually(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(systemSounds))) != null))
 			Assert.Inconclusive("No System Sounds row on the default device");
 
 		var toggle = ExpandButton(systemSounds).Patterns.Toggle.Pattern;
