@@ -7,6 +7,7 @@
              xmlns:controls="clr-namespace:Volumey.Controls"
              xmlns:converters="clr-namespace:Volumey.View.Converters"
              xmlns:lc="clr-namespace:Volumey.Localization"
+             xmlns:model="clr-namespace:Volumey.Model"
              mc:Ignorable="d"
              DataContext="{Binding Devices}">
     <UserControl.Resources>
@@ -16,43 +17,130 @@
         <converters:AppCanMoveConverter x:Key="AppCanMove"/>
         <converters:AppOutputOptionConverter x:Key="OptionPart"/>
         <converters:LocalizedFormatConverter x:Key="LocalizedFormat"/>
+        <converters:AppOpensConverter x:Key="AppOpens"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
 
-        <!-- the lock button of an app's row, three states (its Tag is the app's LockMode): free, locked until the app exits, and locked also
-             when the app starts again; the System Sounds can't be locked -->
-        <Style x:Key="LockButton" TargetType="ui:Button" BasedOn="{StaticResource IconButton}">
-            <Setter Property="Margin" Value="10 0 0 0" />
-            <Setter Property="ToolTip" Value="{lc:Localization Mixer_LockVolumeOff}" />
-            <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeOff}" />
+        <!-- the lock modes, in the order of the lock bar -->
+        <x:Array x:Key="LockModes" Type="model:VolumeLockMode">
+            <model:VolumeLockMode>None</model:VolumeLockMode>
+            <model:VolumeLockMode>Session</model:VolumeLockMode>
+            <model:VolumeLockMode>Persistent</model:VolumeLockMode>
+        </x:Array>
+
+        <!-- the icon and the word of a lock mode (the data context) -->
+        <Style x:Key="LockModeIcon" TargetType="ui:SymbolIcon">
+            <Setter Property="Symbol" Value="LockOpen20" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding LockMode}" Value="Session">
-                    <Setter Property="ToolTip" Value="{lc:Localization Mixer_LockVolumeSession}" />
-                    <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeSession}" />
+                <DataTrigger Binding="{Binding}" Value="Session">
+                    <Setter Property="Symbol" Value="LockClosed20" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding LockMode}" Value="Persistent">
-                    <Setter Property="ToolTip" Value="{lc:Localization Mixer_LockVolumePersistent}" />
-                    <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumePersistent}" />
+                <DataTrigger Binding="{Binding}" Value="Persistent">
+                    <Setter Property="Symbol" Value="Pin20" />
                 </DataTrigger>
-                <DataTrigger Binding="{Binding IsSystemSounds}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="LockModeText" TargetType="TextBlock">
+            <Setter Property="Text" Value="{lc:Localization Mixer_LockVolumeOff}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding}" Value="Session">
+                    <Setter Property="Text" Value="{lc:Localization Mixer_LockVolumeSession}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding}" Value="Persistent">
+                    <Setter Property="Text" Value="{lc:Localization Mixer_LockVolumePersistent}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
-        <!-- the icon of a lock button: put the lock mode in the button's Tag -->
-        <Style x:Key="LockIcon" TargetType="ui:SymbolIcon">
-            <Setter Property="Symbol" Value="LockOpen20" />
-            <Setter Property="FontSize" Value="18" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ui:Button}}" Value="Session">
-                    <Setter Property="Symbol" Value="LockClosed20" />
-                    <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ui:Button}}" Value="Persistent">
-                    <Setter Property="Symbol" Value="LockShield20" />
-                    <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
-                </DataTrigger>
-            </Style.Triggers>
+        <!-- a badge next to an app's name: the device it plays on, its lock -->
+        <Style x:Key="NameBadge" TargetType="Border">
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Padding" Value="6 0" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+        </Style>
+
+        <!-- the lock modes as one bar of three joined parts, the picked one filled with the accent color (WPF-UI has no segmented
+             control); its parts share the width, a label that doesn't fit wraps -->
+        <Style x:Key="LockBar" TargetType="ListBox">
+            <Setter Property="ItemsSource" Value="{StaticResource LockModes}" />
+            <Setter Property="AlternationCount" Value="3" />
+            <Setter Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border CornerRadius="4" BorderThickness="1"
+                                Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                            <ItemsPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" />
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <ui:SymbolIcon DockPanel.Dock="Left" Margin="0 0 4 0" FontSize="14" Style="{StaticResource LockModeIcon}" />
+                            <TextBlock FontSize="12" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"
+                                       Style="{StaticResource LockModeText}" />
+                        </DockPanel>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="MinHeight" Value="26" />
+                        <Setter Property="Padding" Value="6 4" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeOff}" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Part" BorderThickness="1 0 0 0" Padding="{TemplateBinding Padding}"
+                                            Background="Transparent"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                                        <ContentPresenter />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                            <Setter TargetName="Part" Property="BorderThickness" Value="0" />
+                                            <Setter TargetName="Part" Property="CornerRadius" Value="3 0 0 3" />
+                                        </Trigger>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="2">
+                                            <Setter TargetName="Part" Property="CornerRadius" Value="0 3 3 0" />
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Part" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Part" Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding}" Value="Session">
+                                <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeSession}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding}" Value="Persistent">
+                                <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumePersistent}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- an item of an app's device box in the closed box: "Default device · <default>" in one line, or the device's name -->
@@ -129,7 +217,6 @@
                             <ColumnDefinition Width="32" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -152,8 +239,7 @@
                                         Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
                                         BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="1">
                                     <Border.Visibility>
-                                        <MultiBinding Converter="{StaticResource AppCanMove}">
-                                            <Binding Path="DataContext.CanMoveApps" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                        <MultiBinding Converter="{StaticResource AppOpens}">
                                             <Binding Path="IsSystemSounds" />
                                             <Binding Path="Sessions.Count" />
                                         </MultiBinding>
@@ -175,32 +261,16 @@
                             </Grid>
                         </ToggleButton>
 
-                        <StackPanel Grid.Column="1" Margin="10 0 0 0" Orientation="Horizontal">
+                        <!-- the name and its badges; badges that don't fit next to the name get a line of their own under it -->
+                        <controls:NameLinePanel Grid.Column="1" Margin="10 0 0 0">
                             <TextBlock Text="{Binding Name}"
                                        FontSize="13"
-                                       TextTrimming="CharacterEllipsis">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="MaxWidth" Value="150" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding RouteDeviceName}" Value="{x:Null}">
-                                                <Setter Property="MaxWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StackPanel}}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                                       TextTrimming="CharacterEllipsis" />
                             <!-- the device the app is set to play on, when it's not the default device -->
-                            <Border Height="18"
-                                    Margin="6 0 0 0"
-                                    Padding="6 0"
-                                    CornerRadius="9"
-                                    BorderThickness="1"
-                                    VerticalAlignment="Center"
-                                    Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}">
+                            <Border>
                                 <Border.Style>
-                                    <Style TargetType="Border">
+                                    <Style TargetType="Border" BasedOn="{StaticResource NameBadge}">
+                                        <Setter Property="MaxWidth" Value="150" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding RouteDeviceName}" Value="{x:Null}">
                                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -219,9 +289,30 @@
                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 </StackPanel>
                             </Border>
-                        </StackPanel>
+                            <!-- the app's lock, when it's locked -->
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource NameBadge}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding LockMode}" Value="None">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel Orientation="Horizontal" DataContext="{Binding LockMode}">
+                                    <ui:SymbolIcon FontSize="12" Margin="0 0 4 0" Style="{StaticResource LockModeIcon}"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock FontSize="11"
+                                               VerticalAlignment="Center"
+                                               Style="{StaticResource LockModeText}"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </controls:NameLinePanel>
 
-                        <!-- the slider, the number and the mute button share one row, so the button lines up with the slider -->
+                        <!-- the slider, the number and the mute button share one row, so the button lines up with the slider;
+                             a locked app's slider is greyed -->
                         <Grid Grid.Row="1" Grid.Column="1" Margin="10 0 0 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -234,18 +325,20 @@
                                                    Level="{Binding Level}"
                                                    AutomationProperties.Name="{Binding Name}" />
                             <TextBlock Grid.Column="1"
-                                       Style="{StaticResource VolumeValue}"
-                                       Text="{Binding Volume}" />
+                                       Text="{Binding Volume}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource VolumeValue}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsVolumeLocked}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
                         <ui:Button Grid.Row="1"
                                    Grid.Column="2"
-                                   Style="{StaticResource LockButton}"
-                                   Tag="{Binding LockMode}"
-                                   Command="{Binding ToggleVolumeLockCommand}">
-                            <ui:SymbolIcon Style="{StaticResource LockIcon}" />
-                        </ui:Button>
-                        <ui:Button Grid.Row="1"
-                                   Grid.Column="3"
                                    Style="{StaticResource IconButton}"
                                    Margin="10 0 0 0"
                                    Tag="{Binding IsMuted}"
@@ -309,6 +402,24 @@
                                     </ComboBox.ItemContainerStyle>
                                 </ComboBox>
                             </DockPanel>
+                            <!-- the app's volume lock; the System Sounds can't be locked -->
+                            <StackPanel Margin="16 2 0 6">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSystemSounds}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock x:Name="LockLabel" Style="{StaticResource Caption}" Margin="0 0 0 4"
+                                           Text="{lc:Localization Mixer_LockVolume}" />
+                                <ListBox Style="{StaticResource LockBar}"
+                                         SelectedItem="{Binding LockMode}"
+                                         AutomationProperties.AutomationId="AppVolumeLockBar"
+                                         AutomationProperties.LabeledBy="{Binding ElementName=LockLabel}" />
+                            </StackPanel>
                             <ItemsControl ItemsSource="{Binding Sessions}"
                                           Visibility="{Binding Sessions.Count, Converter={StaticResource SeveralSessionsToVisibility}}">
                                 <ItemsControl.ItemContainerStyle>

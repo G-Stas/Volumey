@@ -649,14 +649,17 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Périphérique par défaut</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Verrouiller le volume</value>
+  </data>
   <data name="Mixer_LockVolumeOff" xml:space="preserve">
-    <value>Verrouiller le volume tant que l'application est ouverte</value>
+    <value>Désactivé</value>
   </data>
   <data name="Mixer_LockVolumeSession" xml:space="preserve">
-    <value>Volume verrouillé jusqu'à la fermeture de l'application. Cliquer pour le garder aussi verrouillé après son redémarrage</value>
+    <value>Jusqu'à la fermeture</value>
   </data>
   <data name="Mixer_LockVolumePersistent" xml:space="preserve">
-    <value>Volume verrouillé, même après le redémarrage de l'application. Cliquer pour déverrouiller</value>
+    <value>Toujours</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} sera lu sur {1}</value>

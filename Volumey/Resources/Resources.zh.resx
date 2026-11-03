@@ -649,14 +649,17 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>默认设备</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>锁定音量</value>
+  </data>
   <data name="Mixer_LockVolumeOff" xml:space="preserve">
-    <value>应用运行期间锁定音量</value>
+    <value>关</value>
   </data>
   <data name="Mixer_LockVolumeSession" xml:space="preserve">
-    <value>音量已锁定,直到应用关闭。点击可在应用重启后继续保持锁定</value>
+    <value>直到关闭</value>
   </data>
   <data name="Mixer_LockVolumePersistent" xml:space="preserve">
-    <value>音量已锁定(应用重启后仍保持)。点击解锁</value>
+    <value>始终</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} 将在 {1} 上播放</value>

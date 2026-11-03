@@ -649,14 +649,17 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Dispositivo predeterminado</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Bloquear el volumen</value>
+  </data>
   <data name="Mixer_LockVolumeOff" xml:space="preserve">
-    <value>Bloquear el volumen mientras la app esté abierta</value>
+    <value>Desactivado</value>
   </data>
   <data name="Mixer_LockVolumeSession" xml:space="preserve">
-    <value>Volumen bloqueado hasta que se cierre la app. Clic para mantenerlo bloqueado también al reiniciar la app</value>
+    <value>Hasta cerrar</value>
   </data>
   <data name="Mixer_LockVolumePersistent" xml:space="preserve">
-    <value>Volumen bloqueado, también cuando la app se reinicie. Clic para desbloquear</value>
+    <value>Siempre</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} se reproducirá en {1}</value>

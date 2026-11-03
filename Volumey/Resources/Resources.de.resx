@@ -649,14 +649,17 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Standardgerät</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Lautstärke sperren</value>
+  </data>
   <data name="Mixer_LockVolumeOff" xml:space="preserve">
-    <value>Lautstärke sperren, solange die App läuft</value>
+    <value>Aus</value>
   </data>
   <data name="Mixer_LockVolumeSession" xml:space="preserve">
-    <value>Lautstärke gesperrt, bis die App beendet wird. Klicken, um sie auch nach einem Neustart der App gesperrt zu halten</value>
+    <value>Bis zum Schließen</value>
   </data>
   <data name="Mixer_LockVolumePersistent" xml:space="preserve">
-    <value>Lautstärke gesperrt, auch nach einem Neustart der App. Klicken zum Entsperren</value>
+    <value>Immer</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} wird auf {1} wiedergegeben</value>
