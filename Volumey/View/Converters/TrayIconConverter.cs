@@ -38,6 +38,8 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 	/// <summary>Reads the system glyph of a volume state; the file of Windows' own icons by default</summary>
 	private readonly Func<IconType, Icon?>? loadSystemIcon;
 	private SystemIconProvider? systemIconProvider;
+	//the same glyphs for a light taskbar
+	private SystemIconProvider? systemLightIconProvider;
 
 	internal TrayIconConverter(Func<Icon?> loadAppIcon, Func<IconType, Icon?>? loadSystemIcon = null)
 	{
@@ -70,13 +72,12 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 		if(kind == TrayIconKind.SystemIcons && type != IconType.None)
 		{
-			var systemProvider = systemIconProvider ??= loadSystemIcon == null ? new SystemIconProvider() : new SystemIconProvider(loadSystemIcon);
+			var systemProvider = GetSystemIconProvider(values[3] is AppTheme.Light);
 			//a glyph that Windows' file doesn't give is shown in Volumey's own, in the theme's color
 			if(systemProvider.GetIcon(type) != null)
 			{
 				bool newSystemProvider = currentIconProvider != systemProvider;
 				currentIconProvider = systemProvider;
-				//the system glyphs have their own colors: the theme doesn't matter
 				return GetIcon(type, systemProvider, newSystemProvider);
 			}
 		}
@@ -107,6 +108,13 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 			return GetIcon(type, currentIconProvider, newIconProvider);
 		}
 		return Binding.DoNothing;
+	}
+
+	/// <summary>The system glyphs for the taskbar's theme, one provider each so that a theme switch doesn't read them again</summary>
+	private SystemIconProvider GetSystemIconProvider(bool lightTaskbar)
+	{
+		var provider = systemIconProvider ??= loadSystemIcon == null ? new SystemIconProvider() : new SystemIconProvider(loadSystemIcon);
+		return lightTaskbar ? systemLightIconProvider ??= new SystemIconProvider(type => SystemIconProvider.ForLightTaskbar(provider.GetIcon(type))) : provider;
 	}
 
 	/// <param name="type">A volume glyph or <see cref="IconType.None"/></param>

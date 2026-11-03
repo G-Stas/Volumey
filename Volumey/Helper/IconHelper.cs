@@ -2,14 +2,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace Volumey.Helper;
 
@@ -39,6 +42,105 @@ static class IconHelper
 		var owned = (Icon)borrowed.Clone();
 		PInvoke.DestroyIcon(hIcon);
 		return owned;
+	}
+
+	/// <summary>
+	/// Like <see cref="GetFromDll"/> but at exactly <paramref name="size"/> x <paramref name="size"/>, the size a caller needs
+	/// instead of the small or large icon of the system: the file's own frame of that size, else Windows scales the nearest one
+	/// </summary>
+	public static unsafe Icon? GetFromDllOfSize(string? filePath, int resourceId, int size)
+	{
+		if(filePath == null)
+			return null;
+
+		HICON hIcon = default;
+		uint count;
+		//like in ExtractIconEx, a negative index is a resource ID
+		fixed(char* path = filePath)
+			count = PInvoke.PrivateExtractIcons(path, resourceId, size, size, &hIcon, null, 1, 0);
+		if(count != 1 || hIcon.IsNull)
+			return null;
+		//Icon.FromHandle doesn't own the handle: keep an owned copy and free the extracted one
+		using var borrowed = Icon.FromHandle(hIcon);
+		var owned = (Icon)borrowed.Clone();
+		PInvoke.DestroyIcon(hIcon);
+		return owned;
+	}
+
+	/// <summary>The lowest value of a color channel that still counts as white</summary>
+	private const byte WhiteMinimum = 0xE0;
+
+	/// <summary>Only the pixels at least this opaque decide the color: the soft edge of a glyph isn't reliable</summary>
+	private const byte OpaqueMinimum = 0x80;
+
+	/// <summary>
+	/// The icon is a white glyph: its visible pixels are all white, like the glyphs Windows draws for a dark taskbar. An icon
+	/// with colors of its own isn't
+	/// </summary>
+	public static bool IsWhiteGlyph(Icon icon)
+	{
+		using var bitmap = icon.ToBitmap();
+		byte[] pixels = ReadPixels(bitmap);
+		bool anyOpaque = false;
+		for(int i = 0; i < pixels.Length; i += 4)
+		{
+			if(pixels[i + 3] < OpaqueMinimum)
+				continue;
+			anyOpaque = true;
+			if(pixels[i] < WhiteMinimum || pixels[i + 1] < WhiteMinimum || pixels[i + 2] < WhiteMinimum)
+				return false;
+		}
+		return anyOpaque;
+	}
+
+	/// <summary>A new icon, owned by the caller, with the colors of <paramref name="icon"/> inverted and its transparency kept</summary>
+	public static Icon Inverted(Icon icon)
+	{
+		using var source = icon.ToBitmap();
+		byte[] pixels = ReadPixels(source);
+		for(int i = 0; i < pixels.Length; i += 4)
+		{
+			if(pixels[i + 3] == 0)
+				continue;
+			pixels[i] = (byte)(byte.MaxValue - pixels[i]);
+			pixels[i + 1] = (byte)(byte.MaxValue - pixels[i + 1]);
+			pixels[i + 2] = (byte)(byte.MaxValue - pixels[i + 2]);
+		}
+
+		using var inverted = new Bitmap(source.Width, source.Height, PixelFormat.Format32bppArgb);
+		var area = new Rectangle(0, 0, inverted.Width, inverted.Height);
+		var data = inverted.LockBits(area, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+		try
+		{
+			Marshal.Copy(pixels, 0, data.Scan0, pixels.Length);
+		}
+		finally
+		{
+			inverted.UnlockBits(data);
+		}
+
+		var hIcon = new HICON(inverted.GetHicon());
+		using var borrowed = Icon.FromHandle(hIcon);
+		var owned = (Icon)borrowed.Clone();
+		PInvoke.DestroyIcon(hIcon);
+		return owned;
+	}
+
+	/// <summary>The pixels as BGRA, four bytes each, row after row</summary>
+	private static byte[] ReadPixels(Bitmap bitmap)
+	{
+		var area = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+		var data = bitmap.LockBits(area, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+		try
+		{
+			byte[] pixels = new byte[bitmap.Width * bitmap.Height * 4];
+			Marshal.Copy(data.Scan0, pixels, 0, pixels.Length);
+			return pixels;
+		}
+		finally
+		{
+			bitmap.UnlockBits(data);
+		}
 	}
 
 	/// <summary>

@@ -12,8 +12,9 @@ namespace Volumey.View.Converters;
 public sealed partial class TrayIconConverter
 {
 	/// <summary>
-	/// The glyphs of Windows' own volume icon, read from the file that holds them, so a set patched on this PC shows too.
-	/// They have their colors already, so the theme doesn't matter. Each glyph is read once, also when it fails
+	/// The glyphs of Windows' own volume icon, read from the file that holds them at the tray's size, so a set patched on this PC
+	/// shows too. Windows draws them white and darkens them on a light taskbar: <see cref="ForLightTaskbar"/>.
+	/// Each glyph is read once, also when it fails
 	/// </summary>
 	internal sealed class SystemIconProvider : TrayIconProvider
 	{
@@ -36,14 +37,21 @@ public sealed partial class TrayIconConverter
 		internal static string GetResourceFilePath()
 			=> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SystemResources", ResourceFileName);
 
-		/// <summary>Null if the file or the icon isn't there (logged)</summary>
-		internal static Icon? LoadFromSystem(IconType type)
+		/// <summary>
+		/// The glyph for a light taskbar: a white glyph is inverted, as Windows does, and an icon with colors of its own (a
+		/// customized set) is shown as it is
+		/// </summary>
+		internal static Icon? ForLightTaskbar(Icon? icon)
+			=> icon != null && IconHelper.IsWhiteGlyph(icon) ? IconHelper.Inverted(icon) : icon;
+
+		/// <summary>The glyph at <paramref name="size"/> x <paramref name="size"/>; null if the file or the icon isn't there (logged)</summary>
+		internal static Icon? LoadFromSystem(IconType type, int size)
 		{
 			try
 			{
 				string file = GetResourceFilePath();
-				//a negative index of ExtractIconEx is a resource ID, not a position
-				var icon = IconHelper.GetFromDll(file, -ResourceIds[type], largeIcon: false);
+				//a negative index is a resource ID, not a position
+				var icon = IconHelper.GetFromDllOfSize(file, -ResourceIds[type], size);
 				if(icon == null)
 					Log.Warn($"The system volume icon [{type}] isn't in [{file}]");
 				return icon;
@@ -57,7 +65,7 @@ public sealed partial class TrayIconConverter
 
 		private readonly Dictionary<IconType, Lazy<Icon?>> icons;
 
-		public SystemIconProvider() : this(LoadFromSystem) { }
+		public SystemIconProvider() : this(type => LoadFromSystem(type, IconExtensions.GetTrayIconSize())) { }
 
 		internal SystemIconProvider(Func<IconType, Icon?> load)
 			=> icons = ResourceIds.Keys.ToDictionary(type => type, type => new Lazy<Icon?>(() => load(type)));

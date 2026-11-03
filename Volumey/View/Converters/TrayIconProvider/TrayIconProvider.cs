@@ -111,7 +111,8 @@ public static class IconExtensions
 		return owned;
 	}
 
-	private static int GetTrayIconSize()
+	/// <summary>The size of the tray's icons on the primary screen</summary>
+	internal static int GetTrayIconSize()
 	{
 		var primary = PInvoke.MonitorFromPoint(default, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTOPRIMARY);
 		if(PInvoke.GetDpiForMonitor(primary, MONITOR_DPI_TYPE.MDT_EFFECTIVE_DPI, out uint dpi, out _).Failed)

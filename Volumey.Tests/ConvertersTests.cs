@@ -11,11 +11,13 @@ using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
+using Volumey.Helper;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View.Converters;
 using Volumey.ViewModel;
 using Volumey.ViewModel.Settings;
+using Color = System.Drawing.Color;
 
 namespace Volumey.Tests;
 
@@ -365,8 +367,8 @@ public class ConvertersTests
 		var converter = new TrayIconConverter(() => null, type => icons[type]);
 
 		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
-		//the same glyph again, in whatever theme, doesn't update the tray
-		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 90, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
+		//the same glyph again doesn't update the tray
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 90, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
 		Assert.AreSame(icons[TrayIconConverter.IconType.Mid], Convert(converter, false, 50, false, null, TrayIconKind.SystemIcons, null));
 		Assert.AreSame(icons[TrayIconConverter.IconType.Low], Convert(converter, false, 10, false, null, TrayIconKind.SystemIcons, null));
 		Assert.AreSame(icons[TrayIconConverter.IconType.Zero], Convert(converter, false, 0, false, null, TrayIconKind.SystemIcons, null));
@@ -384,11 +386,11 @@ public class ConvertersTests
 	{
 		var converter = new TrayIconConverter(() => null, type => null);
 
-		//the volume of zero has no glyph of Volumey's: its lowest one
+		//the volume of zero has no glyph of Volumey's: its lowest one, which a volume of 10 is already
+		//(the glyphs come from the app's resources, which the test host doesn't have, so only the choice of glyph is checked)
 		var zero = Convert(converter, false, 0, false, AppTheme.Light, TrayIconKind.SystemIcons, null);
 		var low = Convert(converter, false, 10, false, AppTheme.Light, TrayIconKind.SystemIcons, null);
 
-		Assert.IsNotNull(zero);
 		Assert.AreNotEqual(Binding.DoNothing, zero);
 		Assert.AreEqual(Binding.DoNothing, low);
 	}
@@ -399,12 +401,57 @@ public class ConvertersTests
 		if(!System.IO.File.Exists(TrayIconConverter.SystemIconProvider.GetResourceFilePath()))
 			Assert.Inconclusive("This Windows has no file with the volume icons");
 
+		int size = IconExtensions.GetTrayIconSize();
 		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
 		{
-			using var icon = TrayIconConverter.SystemIconProvider.LoadFromSystem(type);
+			using var icon = TrayIconConverter.SystemIconProvider.LoadFromSystem(type, size);
 			Assert.IsNotNull(icon, type.ToString());
+			Assert.AreEqual(size, icon.Width, type.ToString());
+			Assert.AreEqual(size, icon.Height, type.ToString());
 		}
 	}
+
+	private static Icon CreateGlyph(Color color) => IconHelperTests.CreateGlyph(color);
+
+	[TestMethod]
+	public void TrayIconShowsTheSystemGlyphDarkenedOnALightTaskbar()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = CreateGlyph(Color.White);
+		var converter = new TrayIconConverter(() => null, type => icons[type]);
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+
+		var onLight = Convert(converter, false, 80, false, AppTheme.Light, TrayIconKind.SystemIcons, null) as Icon;
+		Assert.IsNotNull(onLight);
+		Assert.AreNotSame(icons[TrayIconConverter.IconType.High], onLight);
+		Assert.IsFalse(IconHelper.IsWhiteGlyph(onLight));
+		//the same glyph in the same theme doesn't update the tray
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 90, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
+
+		//the theme changes back: the white glyph again
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
+	[TestMethod]
+	public void TrayIconKeepsTheColorsOfACustomSystemGlyphOnALightTaskbar()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = CreateGlyph(Color.OrangeRed);
+		var converter = new TrayIconConverter(() => null, type => icons[type]);
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
+	[TestMethod]
+	public void ASystemGlyphThatCantBeReadStaysMissingOnALightTaskbar()
+		=> Assert.IsNull(TrayIconConverter.SystemIconProvider.ForLightTaskbar(null));
 
 	private static Icon ReadAppIcon(int size)
 	{
