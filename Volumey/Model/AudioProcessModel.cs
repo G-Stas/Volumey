@@ -350,6 +350,15 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 	}
 
+	/// <summary>The IDs of the app's processes at this moment: its own and its sessions'</summary>
+	internal uint[] ProcessIds()
+	{
+		lock(_sessionsLock)
+		{
+			return Sessions.Select(s => s.ProcessId).Append(_processId).Where(id => id != 0).Distinct().ToArray();
+		}
+	}
+
 	/// <summary>
 	/// Session of the process which is used as reference to current process state i.e. its current volume and mute state 
 	/// </summary>
@@ -656,12 +665,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	{
 		//compared by path when it's known: process IDs are reused
 		string? path = System.IO.Path.IsPathFullyQualified(FilePath) ? FilePath : null;
-		uint[] processIds;
-		lock(_sessionsLock)
-		{
-			processIds = Sessions.Select(s => s.ProcessId).Append(_processId).Where(id => id != 0).Distinct().ToArray();
-		}
-		foreach(uint processId in processIds)
+		foreach(uint processId in ProcessIds())
 		{
 			if(NativeMethods.IsProcessRunning((int)processId, path))
 				return;

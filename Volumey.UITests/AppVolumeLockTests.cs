@@ -17,10 +17,21 @@ public class AppVolumeLockTests : UiTest
 	private const string UntilClosed = "Until closed";
 	private const string Always = "Always";
 
+	private AutomationElement? FindRow(string app)
+		=> App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(app)));
+
 	private AutomationElement Row(string app)
-		=> Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(app))),
-			   TimeSpan.FromSeconds(10)).Result
-		   ?? throw new AssertFailedException($"No row for {app} in the mixer");
+		=> Retry.WhileNull(() => FindRow(app), TimeSpan.FromSeconds(10)).Result ?? throw new AssertFailedException($"No row for {app} in the mixer");
+
+	/// <summary>Picks an item of a drop-down (the mixer's device picker, an app's device box) by its name</summary>
+	private static void PickFrom(AutomationElement comboBox, string item)
+	{
+		comboBox.Patterns.ExpandCollapse.Pattern.Expand();
+		var found = Retry.WhileNull(() => comboBox.FindFirstDescendant(cf => cf.ByControlType(ControlType.ListItem).And(cf.ByName(item))),
+			            TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"{item} isn't in the list");
+		found.Patterns.SelectionItem.Pattern.Select();
+		comboBox.Patterns.ExpandCollapse.Pattern.Collapse();
+	}
 
 	private AutomationElement ExpandButton(string app)
 		=> Row(app).FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName(app)))
@@ -109,7 +120,7 @@ public class AppVolumeLockTests : UiTest
 		PickLock(app, UntilClosed);
 
 		testApp.Dispose();
-		Assert.IsTrue(Eventually(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(app))) == null, 10000),
+		Assert.IsTrue(Eventually(() => FindRow(app) == null, 10000),
 			"the row stayed after the app exited");
 		//it sets itself to 100% when it starts: a lock would put it back to 40
 		var again = Later(TestAudioApp.Start(exe));
@@ -135,9 +146,9 @@ public class AppVolumeLockTests : UiTest
 		Assert.IsNotNull(Pill(app, Always), "no pill next to the app's name");
 
 		testApp.Dispose();
-		Assert.IsTrue(Eventually(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(app))) == null, 10000),
+		Assert.IsTrue(Eventually(() => FindRow(app) == null, 10000),
 			"the row stayed after the app exited");
-		var again = Later(TestAudioApp.Start(exe, waitForFullVolume: false));
+		var again = Later(TestAudioApp.Start(exe, volume: TestAudioApp.StartVolume.FullNotWaited));
 
 		Assert.AreEqual(40, Audio.WaitFor(() => again.Volume, 40, 5000), "the restarted app wasn't set to its locked volume");
 		Assert.AreEqual(Always, LockMode(LockBar(app)));
@@ -193,11 +204,7 @@ public class AppVolumeLockTests : UiTest
 
 		var box = Retry.WhileNull(() => Row(app).FindFirstDescendant(cf => cf.ByAutomationId("AppOutputDeviceBox")), TimeSpan.FromSeconds(5)).Result
 		          ?? throw new AssertFailedException("The opened app has no device box");
-		box.Patterns.ExpandCollapse.Pattern.Expand();
-		var item = Retry.WhileNull(() => box.FindFirstDescendant(cf => cf.ByControlType(ControlType.ListItem).And(cf.ByName(other.Value.Name))),
-			           TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"{other.Value.Name} isn't in the device box");
-		item.Patterns.SelectionItem.Pattern.Select();
-		box.Patterns.ExpandCollapse.Pattern.Collapse();
+		PickFrom(box, other.Value.Name);
 		Assert.IsTrue(Eventually(() => Audio.PlaysOn(testApp.Process.Id) == other.Value.Name, 5000), "the app didn't move");
 
 		Audio.SetSessionVolumeOn(other.Value.Id, testApp.Process.Id, 80);
@@ -206,11 +213,7 @@ public class AppVolumeLockTests : UiTest
 			"a change on the new device wasn't put back");
 		var picker = App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox).And(cf.ByName("Output device")))
 		             ?? throw new AssertFailedException("The mixer has no device picker");
-		picker.Patterns.ExpandCollapse.Pattern.Expand();
-		var device = Retry.WhileNull(() => picker.FindFirstDescendant(cf => cf.ByControlType(ControlType.ListItem).And(cf.ByName(other.Value.Name))),
-			             TimeSpan.FromSeconds(5)).Result ?? throw new AssertFailedException($"{other.Value.Name} isn't in the device picker");
-		device.Patterns.SelectionItem.Pattern.Select();
-		picker.Patterns.ExpandCollapse.Pattern.Collapse();
+		PickFrom(picker, other.Value.Name);
 		Assert.IsTrue(Eventually(() => LockMode(LockBar(app)) == UntilClosed, 5000), "the moved app's row doesn't show its lock");
 	}
 
@@ -220,12 +223,10 @@ public class AppVolumeLockTests : UiTest
 	{
 		StartMixer();
 		//named in the Windows display language, which the app saves once it has read the System Sounds' session
-		string? savedName = null;
-		Eventually(() => (savedName = App.ReadSettings()["General"]?["SystemSoundsName"]?.GetValue<string>()) != null, 5000);
-		string systemSounds = savedName ?? "";
-		if(savedName == null
-		   || !Eventually(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.DataItem).And(cf.ByName(systemSounds))) != null))
+		string? SavedName() => App.ReadSettings()["General"]?["SystemSoundsName"]?.GetValue<string>();
+		if(!Eventually(() => SavedName() is { } name && FindRow(name) != null, 5000))
 			Assert.Inconclusive("No System Sounds row on the default device");
+		string systemSounds = SavedName() ?? throw new AssertFailedException("The System Sounds' name is gone from the settings");
 
 		var toggle = ExpandButton(systemSounds).Patterns.Toggle.Pattern;
 		toggle.Toggle();

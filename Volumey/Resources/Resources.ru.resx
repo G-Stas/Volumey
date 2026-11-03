@@ -652,13 +652,13 @@
   <data name="Mixer_LockVolume" xml:space="preserve">
     <value>Зафиксировать громкость</value>
   </data>
-  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+  <data name="LockMode_None" xml:space="preserve">
     <value>Выкл.</value>
   </data>
-  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+  <data name="LockMode_Session" xml:space="preserve">
     <value>До закрытия</value>
   </data>
-  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+  <data name="LockMode_Persistent" xml:space="preserve">
     <value>Всегда</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">

@@ -652,13 +652,13 @@
   <data name="Mixer_LockVolume" xml:space="preserve">
     <value>锁定音量</value>
   </data>
-  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+  <data name="LockMode_None" xml:space="preserve">
     <value>关</value>
   </data>
-  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+  <data name="LockMode_Session" xml:space="preserve">
     <value>直到关闭</value>
   </data>
-  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+  <data name="LockMode_Persistent" xml:space="preserve">
     <value>始终</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">

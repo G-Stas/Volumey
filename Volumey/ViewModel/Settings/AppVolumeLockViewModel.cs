@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.ViewModel.Settings;
@@ -17,20 +18,31 @@ namespace Volumey.ViewModel.Settings;
 /// </summary>
 public sealed class AppVolumeLockViewModel
 {
-	/// <summary>An app locked until it exits: matched by its name and any of its processes, so a restarted app is free</summary>
-	private sealed record SessionLock(string AppName, HashSet<uint> ProcessIds, int Volume);
+	/// <summary>
+	/// An app locked until it exits: matched by its name and any of its processes, so a restarted app is free. A model of the app made
+	/// later adds its processes
+	/// </summary>
+	private sealed class SessionLock(string appName, IEnumerable<uint> processIds, int volume)
+	{
+		public string AppName { get; } = appName;
+		public HashSet<uint> ProcessIds { get; } = processIds.ToHashSet();
+		public int Volume { get; } = volume;
+	}
 
 	private readonly IAppRouting appRouting;
 	private readonly IDeviceProvider deviceProvider;
+	private readonly Func<uint, bool> isProcessRunning;
 	private readonly List<AppVolumeLockEntry> entries;
 	private readonly List<SessionLock> sessionLocks = new List<SessionLock>();
 	private readonly HashSet<OutputDeviceModel> watchedDevices = new HashSet<OutputDeviceModel>();
 	private readonly HashSet<AudioProcessModel> watchedApps = new HashSet<AudioProcessModel>();
 
-	internal AppVolumeLockViewModel(IDeviceProvider deviceProvider, IAppRouting appRouting)
+	/// <param name="isProcessRunning">Whether a process runs, by its ID: a lock until the app exits ends once none of its processes does</param>
+	internal AppVolumeLockViewModel(IDeviceProvider deviceProvider, IAppRouting appRouting, Func<uint, bool>? isProcessRunning = null)
 	{
 		this.deviceProvider = deviceProvider;
 		this.appRouting = appRouting;
+		this.isProcessRunning = isProcessRunning ?? (id => NativeMethods.IsProcessRunning((int)id));
 		entries = SettingsProvider.Settings.General.LockedAppVolumes.ToList();
 
 		deviceProvider.ActiveDevices.CollectionChanged += OnDevicesChanged;
@@ -101,7 +113,7 @@ public sealed class AppVolumeLockViewModel
 			return;
 		if(FindSessionLock(app) is { } sessionLock)
 		{
-			sessionLock.ProcessIds.UnionWith(ProcessIdsOf(app));
+			sessionLock.ProcessIds.UnionWith(app.ProcessIds());
 			app.LockVolume(sessionLock.Volume);
 		}
 		else if(Find(app.Name) is { } entry)
@@ -110,8 +122,11 @@ public sealed class AppVolumeLockViewModel
 
 	private void Unwatch(AudioProcessModel app)
 	{
-		if(watchedApps.Remove(app))
-			app.VolumeLockRequested -= OnLockRequested;
+		if(!watchedApps.Remove(app))
+			return;
+		app.VolumeLockRequested -= OnLockRequested;
+		//the app exited, or its model is made again (then its processes still run)
+		sessionLocks.RemoveAll(l => !l.ProcessIds.Any(isProcessRunning));
 	}
 
 	private AppVolumeLockEntry? Find(string appName)
@@ -119,12 +134,9 @@ public sealed class AppVolumeLockViewModel
 
 	private SessionLock? FindSessionLock(AudioProcessModel app)
 	{
-		var processIds = ProcessIdsOf(app);
+		var processIds = app.ProcessIds();
 		return sessionLocks.FirstOrDefault(l => SameName(l.AppName, app.Name) && l.ProcessIds.Overlaps(processIds));
 	}
-
-	private static HashSet<uint> ProcessIdsOf(AudioProcessModel app)
-		=> app.SessionsSnapshot().Select(s => s.ProcessId).Append(app.ProcessId).Where(id => id != 0).ToHashSet();
 
 	private static bool SameName(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
@@ -143,12 +155,12 @@ public sealed class AppVolumeLockViewModel
 			models = models.Append(app).ToList();
 
 		int volume = app.Volume;
-		sessionLocks.RemoveAll(l => SameName(l.AppName, app.Name) && models.Any(m => l.ProcessIds.Overlaps(ProcessIdsOf(m))));
+		sessionLocks.RemoveAll(l => SameName(l.AppName, app.Name) && models.Any(m => l.ProcessIds.Overlaps(m.ProcessIds())));
 		bool saved = entries.RemoveAll(entry => SameName(entry.AppName, app.Name)) > 0;
 		switch(mode)
 		{
 			case VolumeLockMode.Session:
-				sessionLocks.Add(new SessionLock(app.Name, models.SelectMany(ProcessIdsOf).ToHashSet(), volume));
+				sessionLocks.Add(new SessionLock(app.Name, models.SelectMany(m => m.ProcessIds()), volume));
 				foreach(var model in models)
 					model.LockVolume(volume);
 				break;

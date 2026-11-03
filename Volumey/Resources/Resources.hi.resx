@@ -652,13 +652,13 @@
   <data name="Mixer_LockVolume" xml:space="preserve">
     <value>वॉल्यूम लॉक करें</value>
   </data>
-  <data name="Mixer_LockVolumeOff" xml:space="preserve">
+  <data name="LockMode_None" xml:space="preserve">
     <value>बंद</value>
   </data>
-  <data name="Mixer_LockVolumeSession" xml:space="preserve">
+  <data name="LockMode_Session" xml:space="preserve">
     <value>बंद होने तक</value>
   </data>
-  <data name="Mixer_LockVolumePersistent" xml:space="preserve">
+  <data name="LockMode_Persistent" xml:space="preserve">
     <value>हमेशा</value>
   </data>
   <data name="Mixer_MovedTo" xml:space="preserve">

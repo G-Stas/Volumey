@@ -12,6 +12,20 @@ namespace Volumey.UITests.Infrastructure;
 /// </summary>
 internal sealed class TestAudioApp : IDisposable
 {
+	/// <summary>The volume a test app starts at</summary>
+	public enum StartVolume
+	{
+		/// <summary>It sets itself to 100%, which is waited for</summary>
+		Full,
+
+		/// <summary>It sets itself to 100%, but only its session is waited for (a locked volume is put back right away)</summary>
+		FullNotWaited,
+
+		/// <summary>It keeps the volume Windows remembers for its exe; only its session is waited for (Volumey's volume limit lowers
+		/// a new app right away)</summary>
+		Remembered
+	}
+
 	private static readonly string BuildDir = Path.Combine(AppContext.BaseDirectory, "audio-app");
 
 	public Process Process { get; }
@@ -50,15 +64,13 @@ internal sealed class TestAudioApp : IDisposable
 	/// Starts one and waits until its session exists (at 100%: the app sets its own volume when it starts).
 	/// <paramref name="window"/> also shows a small window (<see cref="BringToFront"/>).
 	/// </summary>
-	/// <param name="atFullVolume">false: only wait for the session (Volumey's volume limit lowers a new app right away)</param>
+	/// <param name="volume">the volume it starts at, and whether it's waited for</param>
 	/// <param name="routing">it plays through Windows' stream routing and moves at once when Windows sends it to another device</param>
-	/// <param name="waitForFullVolume">false: the app still sets itself to 100%, but only its session is waited for (a locked
-	/// volume is put back right away)</param>
-	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, bool atFullVolume = true, bool routing = false,
-		bool waitForFullVolume = true)
+	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, StartVolume volume = StartVolume.Full,
+		bool routing = false)
 	{
-		var app = new TestAudioApp(name, window, reset: atFullVolume, routing);
-		if(!atFullVolume || !waitForFullVolume)
+		var app = new TestAudioApp(name, window, reset: volume != StartVolume.Remembered, routing);
+		if(volume != StartVolume.Full)
 		{
 			if(!FlaUI.Core.Tools.Retry.WhileFalse(() => Audio.SessionVolume(app.Process.Id) != null, TimeSpan.FromSeconds(10)).Result)
 			{

@@ -14,27 +14,15 @@ namespace Volumey.Controls;
 public sealed class NameLinePanel : Panel
 {
 	/// <summary>The space between the name and a badge, and between two badges</summary>
-	public static readonly DependencyProperty SpacingProperty = DependencyProperty.Register(nameof(Spacing), typeof(double),
-		typeof(NameLinePanel), new FrameworkPropertyMetadata(6.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
+	private const double Spacing = 6;
 
 	/// <summary>The space between the name and the badges' own line</summary>
-	public static readonly DependencyProperty LineSpacingProperty = DependencyProperty.Register(nameof(LineSpacing), typeof(double),
-		typeof(NameLinePanel), new FrameworkPropertyMetadata(2.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
-
-	public double Spacing
-	{
-		get => (double)GetValue(SpacingProperty);
-		set => SetValue(SpacingProperty, value);
-	}
-
-	public double LineSpacing
-	{
-		get => (double)GetValue(LineSpacingProperty);
-		set => SetValue(LineSpacingProperty, value);
-	}
+	private const double LineSpacing = 2;
 
 	/// <summary>The badges are on their own line</summary>
 	internal bool BadgesBelow { get; private set; }
+
+	private double badgesHeight;
 
 	private UIElement[] Badges() => InternalChildren.Cast<UIElement>().Skip(1).Where(c => c.Visibility != Visibility.Collapsed).ToArray();
 
@@ -49,7 +37,7 @@ public sealed class NameLinePanel : Panel
 
 		name.Measure(new Size(double.PositiveInfinity, availableSize.Height));
 		double badgesWidth = badges.Sum(b => b.DesiredSize.Width + Spacing);
-		double badgesHeight = badges.Length == 0 ? 0 : badges.Max(b => b.DesiredSize.Height);
+		badgesHeight = badges.Length == 0 ? 0 : badges.Max(b => b.DesiredSize.Height);
 
 		BadgesBelow = badges.Length > 0 && name.DesiredSize.Width + badgesWidth > availableSize.Width;
 		if(!BadgesBelow)
@@ -70,9 +58,7 @@ public sealed class NameLinePanel : Panel
 		if(InternalChildren.Count == 0)
 			return finalSize;
 		var name = InternalChildren[0];
-		var badges = Badges();
 		double nameHeight = name.DesiredSize.Height;
-		double badgesHeight = badges.Length == 0 ? 0 : badges.Max(b => b.DesiredSize.Height);
 
 		double x;
 		double lineTop;
@@ -92,7 +78,7 @@ public sealed class NameLinePanel : Panel
 			x = nameWidth + Spacing;
 			lineTop = 0;
 		}
-		foreach(var badge in badges)
+		foreach(var badge in Badges())
 		{
 			var size = badge.DesiredSize;
 			badge.Arrange(new Rect(x, lineTop + (lineHeight - size.Height) / 2, size.Width, size.Height));

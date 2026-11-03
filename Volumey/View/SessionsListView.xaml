@@ -19,6 +19,7 @@
         <converters:LocalizedFormatConverter x:Key="LocalizedFormat"/>
         <converters:AppOpensConverter x:Key="AppOpens"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
+        <converters:EnumNameConverter x:Key="EnumName"/>
 
         <!-- the lock modes, in the order of the lock bar -->
         <x:Array x:Key="LockModes" Type="model:VolumeLockMode">
@@ -40,15 +41,14 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="LockModeText" TargetType="TextBlock">
-            <Setter Property="Text" Value="{lc:Localization Mixer_LockVolumeOff}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding}" Value="Session">
-                    <Setter Property="Text" Value="{lc:Localization Mixer_LockVolumeSession}" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding}" Value="Persistent">
-                    <Setter Property="Text" Value="{lc:Localization Mixer_LockVolumePersistent}" />
-                </DataTrigger>
-            </Style.Triggers>
+            <Setter Property="Text">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EnumName}" ConverterParameter="LockMode_">
+                        <Binding />
+                        <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- a badge next to an app's name: the device it plays on, its lock -->
@@ -102,7 +102,14 @@
                         <Setter Property="MinHeight" Value="26" />
                         <Setter Property="Padding" Value="6 4" />
                         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                        <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeOff}" />
+                        <Setter Property="AutomationProperties.Name">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource EnumName}" ConverterParameter="LockMode_">
+                                    <Binding />
+                                    <Binding Source="{x:Static lc:TranslationSource.Instance}" Path="CurrentCulture" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ListBoxItem">
@@ -130,14 +137,6 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding}" Value="Session">
-                                <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumeSession}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding}" Value="Persistent">
-                                <Setter Property="AutomationProperties.Name" Value="{lc:Localization Mixer_LockVolumePersistent}" />
-                            </DataTrigger>
-                        </Style.Triggers>
                     </Style>
                 </Setter.Value>
             </Setter>
@@ -265,7 +264,8 @@
                         <controls:NameLinePanel Grid.Column="1" Margin="10 0 0 0">
                             <TextBlock Text="{Binding Name}"
                                        FontSize="13"
-                                       TextTrimming="CharacterEllipsis" />
+                                       TextTrimming="CharacterEllipsis"
+                                       controls:TrimmedTextToolTip.IsEnabled="True" />
                             <!-- the device the app is set to play on, when it's not the default device -->
                             <Border>
                                 <Border.Style>
@@ -285,6 +285,7 @@
                                                FontSize="11"
                                                VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis"
+                                               controls:TrimmedTextToolTip.IsEnabled="True"
                                                MaxWidth="130"
                                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 </StackPanel>
