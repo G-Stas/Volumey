@@ -236,4 +236,67 @@ public class AppVolumeLockTests : UiTest
 		if(toggle.ToggleState.Value == ToggleState.On)
 			toggle.Toggle();
 	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void EverySessionOfALockedAppIsHeldAndANewOneStartsAtTheLockedVolume()
+	{
+		//processes of one exe: Volumey groups their sessions into one app (by the exe's path)
+		const string exe = "VolumeyUiLockedSessions";
+		var first = Later(TestAudioApp.Start(exe));
+		var second = Later(TestAudioApp.Start(exe));
+		StartMixer();
+		string app = first.DisplayName;
+		SetAppVolume(app, 40);
+		Assert.IsTrue(Eventually(() => first.Volume == 40 && second.Volume == 40), $"the slider didn't set both sessions: {first.Volume}, {second.Volume}");
+		PickLock(app, UntilClosed);
+
+		Audio.SetSessionVolume(second.Process.Id, 80);
+
+		Assert.AreEqual(40, Audio.WaitFor(() => second.Volume, 40, 5000), "a change to the second session wasn't put back");
+		Assert.AreEqual(40, first.Volume, "the first session moved");
+
+		//it sets itself to 100% when it starts
+		var third = Later(TestAudioApp.Start(exe, volume: TestAudioApp.StartVolume.FullNotWaited));
+
+		Assert.AreEqual(40, Audio.WaitFor(() => third.Volume, 40, 5000), "a session added to the locked app isn't at the locked volume");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void AlwaysHoldsTheAppAgainAfterVolumeyRestarts()
+	{
+		var testApp = Later(TestAudioApp.Start("VolumeyUiLockedRestart"));
+		StartMixer();
+		string app = testApp.DisplayName;
+		SetAppVolume(app, 40);
+		Assert.AreEqual(40, Audio.WaitFor(() => testApp.Volume, 40));
+		PickLock(app, Always);
+		App.WaitForSettings(s => SavedLock(s, app) != null, "the lock saved");
+
+		App.Restart();
+
+		Assert.AreEqual(Always, LockMode(LockBar(app)), "the lock didn't come back after the restart");
+		Audio.SetSessionVolume(testApp.Process.Id, 80);
+		Assert.AreEqual(40, Audio.WaitFor(() => testApp.Volume, 40, 5000), "a change from outside wasn't put back after the restart");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void UntilClosedEndsWhenVolumeyRestarts()
+	{
+		var testApp = Later(TestAudioApp.Start("VolumeyUiLockedUntilRestart"));
+		StartMixer();
+		string app = testApp.DisplayName;
+		SetAppVolume(app, 40);
+		Assert.AreEqual(40, Audio.WaitFor(() => testApp.Volume, 40));
+		PickLock(app, UntilClosed);
+
+		App.Restart();
+
+		Assert.AreEqual(Off, LockMode(LockBar(app)), "the app is still locked after the restart");
+		Assert.IsTrue(Slider(app).IsEnabled, "the slider is still greyed after the restart");
+		Audio.SetSessionVolume(testApp.Process.Id, 80);
+		Assert.AreEqual(80, Audio.WaitFor(() => testApp.Volume, 80, 2000), "a change from outside was put back after the restart");
+	}
 }
