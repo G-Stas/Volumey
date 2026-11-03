@@ -925,6 +925,9 @@ public sealed partial class MainView
 			//not marked as handled: Windows needs its default processing of raw input
 			return IntPtr.Zero;
 		}
+		//a scale change of the primary screen changes the tray's icon size: the converter loads the icon again at the new size
+		if(msg is (int)PInvoke.WM_DISPLAYCHANGE or (int)PInvoke.WM_SETTINGCHANGE or (int)PInvoke.WM_DPICHANGED)
+			Dispatcher.InvokeAsync(() => BindingOperations.GetMultiBindingExpression(this, TrayIconImageProperty)?.UpdateTarget());
 		messages.Handle(msg, wParam, lParam);
 		return IntPtr.Zero;
 	}
