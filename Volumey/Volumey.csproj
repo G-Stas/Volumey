@@ -262,12 +262,6 @@
     <Resource Include="Resources\Icons\TrayLight\mute.ico" />
     <Resource Include="Resources\Icons\TrayLight\no-device.ico" />
     <Resource Include="Resources\Icons\icon.ico" />
-    <Resource Include="Resources\Icons\ButtonIcon\github.png" />
-    <Resource Include="Resources\Icons\ButtonIcon\github-dark.png" />
-    <Resource Include="Resources\Icons\ButtonIcon\mug.png" />
-    <Resource Include="Resources\Icons\ButtonIcon\mug-dark.png" />
-    <Resource Include="Resources\Icons\ButtonIcon\mugEmpty.png" />
-    <Resource Include="Resources\Icons\ButtonIcon\mugEmpty-dark.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -303,6 +297,5 @@
   </Target>
 
   <ItemGroup>
-    <Resource Include="Resources\Icons\ButtonIcon\boosty.png" />
   </ItemGroup>
 </Project>
