@@ -649,6 +649,18 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Устройство по умолчанию</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Зафиксировать громкость</value>
+  </data>
+  <data name="LockMode_Off" xml:space="preserve">
+    <value>Выкл.</value>
+  </data>
+  <data name="LockMode_UntilClosed" xml:space="preserve">
+    <value>До закрытия</value>
+  </data>
+  <data name="LockMode_Always" xml:space="preserve">
+    <value>Всегда</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} будет воспроизводиться на {1}</value>
   </data>

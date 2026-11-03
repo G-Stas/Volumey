@@ -125,7 +125,7 @@ public class MixerPageTests : UiTest
 			"the volume limit saved");
 
 		//a new exe name: Windows starts a session it doesn't know at 100%, and the app leaves it there (--no-reset)
-		using var testApp = Later(TestAudioApp.Start("VolumeyUiLimit" + Guid.NewGuid().ToString("N")[..8], atFullVolume: false));
+		using var testApp = Later(TestAudioApp.Start("VolumeyUiLimit" + Guid.NewGuid().ToString("N")[..8], volume: TestAudioApp.StartVolume.Remembered));
 
 		Assert.AreEqual(30, Audio.WaitFor(() => testApp.Volume, 30, 5000), "a new app at 100% wasn't lowered to the limit");
 	}

@@ -146,11 +146,16 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	}
 
 	private int _volume;
+	/// <summary>
+	/// The app's volume. While it's locked (<see cref="Lock"/>) it can't be set, by the slider, a hotkey or anything else
+	/// </summary>
 	public int Volume
 	{
 		get => _volume;
 		set
 		{
+			if(Lock.IsOn)
+				return;
 			if(_volume != value)
 			{
 				if(value < 0)
@@ -167,6 +172,19 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 				}
 				OnPropertyChanged();
 			}
+		}
+	}
+
+	/// <summary>The lock that can hold the app's volume</summary>
+	public AppVolumeLock Lock { get; }
+
+	/// <summary>The app is held at <paramref name="volume"/> (<see cref="Lock"/>): the model shows it</summary>
+	internal void ShowHeldVolume(int volume)
+	{
+		if(_volume != volume)
+		{
+			_volume = volume;
+			OnPropertyChanged(nameof(Volume));
 		}
 	}
 
@@ -206,6 +224,15 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		lock(_sessionsLock)
 		{
 			return Sessions.ToArray();
+		}
+	}
+
+	/// <summary>The IDs of the app's processes at this moment: its own and its sessions'</summary>
+	internal uint[] ProcessIds()
+	{
+		lock(_sessionsLock)
+		{
+			return Sessions.Select(s => s.ProcessId).Append(_processId).Where(id => id != 0).Distinct().ToArray();
 		}
 	}
 
@@ -261,6 +288,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		}
 
 		Sessions = new ObservableCollection<AudioSessionModel>();
+		Lock = new AppVolumeLock(this, _sessionsLock);
 
 		MuteCommand = new ActionCommand(() => IsMuted = !IsMuted);
 		StateNotificationMediator = stateNotificationMediator;
@@ -293,6 +321,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 					newSession.Volume = Volume;
 					newSession.IsMuted = IsMuted;
 				}
+				Lock.Attach(newSession);
 			}
 		}
 		if(addedPlaying)
@@ -317,6 +346,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private void OnTrackedSessionVolumeChanged(int volume, Guid context)
 	{
+		//a locked volume doesn't follow the session: it's put back
+		if(Lock.IsOn)
+			return;
 		if(_volume != volume)
 		{
 			_volume = volume;
@@ -507,12 +539,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	{
 		//compared by path when it's known: process IDs are reused
 		string? path = System.IO.Path.IsPathFullyQualified(FilePath) ? FilePath : null;
-		uint[] processIds;
-		lock(_sessionsLock)
-		{
-			processIds = Sessions.Select(s => s.ProcessId).Append(_processId).Where(id => id != 0).Distinct().ToArray();
-		}
-		foreach(uint processId in processIds)
+		foreach(uint processId in ProcessIds())
 		{
 			if(NativeMethods.IsProcessRunning((int)processId, path))
 				return;
@@ -531,6 +558,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		endedSession.SessionEnded -= OnSessionEnded;
 		endedSession.Deactivated -= OnSessionDeactivated;
 		endedSession.ActivityChanged -= OnSessionActivityChanged;
+		Lock.Detach(endedSession);
 		if(endedSession.IsActive)
 			ActivityChanged?.Invoke(this);
 		if(endedSession.EndedByFormatChange)

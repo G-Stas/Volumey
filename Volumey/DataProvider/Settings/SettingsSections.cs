@@ -17,6 +17,8 @@ public sealed class GeneralSettings : SettingsSection
 	public bool VolumeLimitEnabled { get; set; }
 	public int VolumeLimit { get; set; } = 50;
 	public bool AppVolumeSyncEnabled { get; set; }
+	/// <summary>The apps whose volume is locked. Lists are only saved when the whole list is replaced, so always assign a new list.</summary>
+	public IReadOnlyList<AppVolumeLockEntry> LockedAppVolumes { get; set; } = Array.Empty<AppVolumeLockEntry>();
 	/// <summary>Localized name of the system sounds session and the system language it was resolved for.</summary>
 	public string? SystemSoundsName { get; set; }
 	public string? SystemSoundsLanguage { get; set; }

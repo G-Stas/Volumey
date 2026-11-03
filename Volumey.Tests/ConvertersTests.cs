@@ -390,13 +390,20 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
-	public void AnAppOpensWhenItCanBeMovedOrHasSeveralSessions()
+	public void AnAppCanBeMovedWithWindowsSupportUnlessItIsTheSystemSounds()
 	{
 		var converter = new AppCanMoveConverter();
-		Assert.AreEqual(Visibility.Visible, Convert(converter, true, false, 1));
-		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true, 1), "System Sounds can't be moved");
-		Assert.AreEqual(Visibility.Visible, Convert(converter, true, true, 2));
-		Assert.AreEqual(Visibility.Collapsed, Convert(converter, false, false, 1), "without Windows support");
-		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true));
+		Assert.AreEqual(Visibility.Visible, Convert(converter, true, false));
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true), "System Sounds can't be moved");
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, false, false), "without Windows support");
+	}
+
+	[TestMethod]
+	public void AnAppOpensUnlessItIsTheSystemSoundsWithOneSession()
+	{
+		var converter = new AppOpensConverter();
+		Assert.AreEqual(Visibility.Visible, Convert(converter, false, 1));
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, 1), "System Sounds can be neither locked nor moved");
+		Assert.AreEqual(Visibility.Visible, Convert(converter, true, 2));
 	}
 }
