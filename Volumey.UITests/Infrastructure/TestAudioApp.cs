@@ -52,10 +52,13 @@ internal sealed class TestAudioApp : IDisposable
 	/// </summary>
 	/// <param name="atFullVolume">false: only wait for the session (Volumey's volume limit lowers a new app right away)</param>
 	/// <param name="routing">it plays through Windows' stream routing and moves at once when Windows sends it to another device</param>
-	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, bool atFullVolume = true, bool routing = false)
+	/// <param name="waitForFullVolume">false: the app still sets itself to 100%, but only its session is waited for (a locked
+	/// volume is put back right away)</param>
+	public static TestAudioApp Start(string name = "VolumeyUiTestApp", bool window = false, bool atFullVolume = true, bool routing = false,
+		bool waitForFullVolume = true)
 	{
 		var app = new TestAudioApp(name, window, reset: atFullVolume, routing);
-		if(!atFullVolume)
+		if(!atFullVolume || !waitForFullVolume)
 		{
 			if(!FlaUI.Core.Tools.Retry.WhileFalse(() => Audio.SessionVolume(app.Process.Id) != null, TimeSpan.FromSeconds(10)).Result)
 			{
