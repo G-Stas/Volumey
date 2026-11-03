@@ -190,10 +190,17 @@ public class AudioLayerTests
 		Assert.IsNotNull(format);
 		Assert.IsGreaterThan(0, (int)format.Value.Channels);
 		Assert.IsGreaterThan(0u, format.Value.SamplesPerSec);
-		//the format list (what Windows' sound settings offer) has the format the device runs at
+		//the format list (what Windows' sound settings offer) has the format the device runs at; it's empty by design while
+		//"Allow apps to take exclusive control" is off: Windows refuses every check then
 		var supported = device.GetSupportedFormats();
-		Assert.IsNotEmpty(supported);
-		Assert.IsTrue(supported.Any(option => option.Matches(format.Value)), $"{format} isn't in the supported formats");
+		bool exclusiveAllowed = new DeviceFeatures(new PolicyClient()).Read(id).AllowExclusive != false;
+		if(exclusiveAllowed)
+		{
+			Assert.IsNotEmpty(supported);
+			Assert.IsTrue(supported.Any(option => option.Matches(format.Value)), $"{format} isn't in the supported formats");
+		}
+		else
+			Assert.IsEmpty(supported, "formats were listed while exclusive mode isn't allowed");
 		//the balance: one level per channel, the loudest one is the device volume
 		var channels = device.GetChannelVolumes();
 		Assert.IsNotEmpty(channels);

@@ -1,8 +1,9 @@
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.Controls;
@@ -38,29 +39,39 @@ public class AudioProcessModelTests
 	[TestMethod]
 	public void TrackedSessionMustChangeToAnotherSession()
 	{
-		//arrange
 		var trackedSession = proc.Sessions[0];
-		Assert.ContainsSingle(proc.Sessions);
+		var otherNotifications = new Mock<IAudioSessionStateNotifications>();
+		proc.AddSession(new AudioSessionModel(true, 12, "1", proc.ProcessId, default, default, Guid.Empty,
+			new Mock<IAudioSessionVolume>().Object, otherNotifications.Object));
 
-		var additionalSession = GetSessionMock(12, true, proc.ProcessId.ToString());
-		proc.AddSession(additionalSession);
-
-		MethodInfo endedSessionHandler = typeof(OutputDeviceModel).GetMethod("ProcessEndedSession",
-																			 BindingFlags.NonPublic | BindingFlags.Instance);
-
-		//act
-
-		//Simulate that the handler was called from the background thread because normally it invokes by events
-		Task.Run(() =>
-					 {
-						 var task = (Task)endedSessionHandler.Invoke(proc, new object[] { trackedSession });
-						 task.Wait();
-					 }).ContinueWith(t =>
+		trackedSessionStateNotif.Raise(n => n.SessionEnded += null);
+		//the session leaves the list on the dispatcher, then the tracked session changes and the ended one is disposed
+		RunQueuedDispatcherWork();
+		Assert.IsTrue(SpinWait.SpinUntil(() =>
 		{
-			//assert
-			Assert.DoesNotContain(trackedSession, proc.Sessions);
-			trackedSessionStateNotif.Verify(n => n.Dispose(), Times.Once);
-		});
+			try
+			{
+				trackedSessionStateNotif.Verify(n => n.Dispose(), Times.Once);
+				return true;
+			}
+			catch(MockException)
+			{
+				return false;
+			}
+		}, TimeSpan.FromSeconds(5)), "the ended session wasn't disposed");
+
+		Assert.DoesNotContain(trackedSession, proc.Sessions);
+		Assert.ContainsSingle(proc.Sessions);
+		//the app's volume now follows the other session
+		otherNotifications.Raise(n => n.VolumeChanged += null, new VolumeChangedEventArgs(77, false));
+		Assert.AreEqual(77, proc.Volume);
+	}
+
+	private static void RunQueuedDispatcherWork()
+	{
+		var frame = new DispatcherFrame();
+		Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, () => frame.Continue = false);
+		Dispatcher.PushFrame(frame);
 	}
 
 	[TestMethod]

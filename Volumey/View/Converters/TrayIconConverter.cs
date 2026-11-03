@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
@@ -29,12 +30,20 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 	private LightIconProvider? lightIconProvider;
 	private DarkIconProvider? darkIconProvider;
 
-	//read once, also when it fails: it's part of the app and won't appear later
-	private readonly Lazy<Icon?> appIcon;
+	private readonly Func<int, Icon?> loadAppIcon;
+	private readonly Func<int> getTraySize;
+	//read once per size, also when it fails: it's part of the app and won't appear later
+	private readonly Dictionary<int, Icon?> appIcons = new();
+	//the tray's icon size the app icon was sent for: a scale change needs it again at the new size
+	private int appIconSize;
 
-	public TrayIconConverter() : this(IconExtensions.LoadAppTrayIcon) { }
+	public TrayIconConverter() : this(IconExtensions.LoadAppTrayIcon, IconExtensions.GetTrayIconSize) { }
 
-	internal TrayIconConverter(Func<Icon?> loadAppIcon) => appIcon = new Lazy<Icon?>(loadAppIcon);
+	internal TrayIconConverter(Func<int, Icon?> loadAppIcon, Func<int> getTraySize)
+	{
+		this.loadAppIcon = loadAppIcon;
+		this.getTraySize = getTraySize;
+	}
 
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
 	{
@@ -43,8 +52,14 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 		if(type == IconType.AppIcon)
 		{
-			if(currentIconType == IconType.AppIcon || appIcon.Value is not { } icon)
+			int size = getTraySize();
+			if(currentIconType == IconType.AppIcon && appIconSize == size)
 				return Binding.DoNothing;
+			if(!appIcons.TryGetValue(size, out var icon))
+				appIcons[size] = icon = loadAppIcon(size);
+			if(icon == null)
+				return Binding.DoNothing;
+			appIconSize = size;
 			currentIconType = IconType.AppIcon;
 			return icon;
 		}

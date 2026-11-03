@@ -170,9 +170,7 @@ public sealed partial class DeviceProviderViewModel : ObservableObject
 		if(string.IsNullOrEmpty(deviceId))
 			return;
 
-		if(DeviceProvider.DefaultDevice != null && DeviceProvider.DefaultDevice.CompareId(deviceId))
-			return;
-
+		//DeviceProvider skips the device that is or is about to be the default
 		DeviceProvider.SetDefaultDevice(deviceId);
 	}
 

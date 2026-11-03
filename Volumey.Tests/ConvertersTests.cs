@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -298,7 +299,7 @@ public class ConvertersTests
 	{
 		using var appIcon = (Icon)SystemIcons.Application.Clone();
 		using var deviceIcon = (Icon)SystemIcons.Information.Clone();
-		var converter = new TrayIconConverter(() => appIcon);
+		var converter = new TrayIconConverter(_ => appIcon, () => 16);
 
 		Assert.AreSame(deviceIcon, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, deviceIcon));
 		//the same icon again doesn't update the tray
@@ -315,16 +316,42 @@ public class ConvertersTests
 		//back to the volume glyph, in the theme that came in while the app icon showed
 		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Light, TrayIconKind.VolumeLevel, deviceIcon));
 		//without a theme there is no volume icon to show
-		Assert.AreEqual(Binding.DoNothing, Convert(new TrayIconConverter(() => appIcon), false, 50, false, null, TrayIconKind.VolumeLevel, deviceIcon));
+		Assert.AreEqual(Binding.DoNothing, Convert(new TrayIconConverter(_ => appIcon, () => 16), false, 50, false, null, TrayIconKind.VolumeLevel, deviceIcon));
 	}
 
 	// U4
 	[TestMethod]
 	public void TrayIconKeepsItsIconWhenTheAppIconCantBeRead()
 	{
-		var converter = new TrayIconConverter(() => null);
+		var converter = new TrayIconConverter(_ => null, () => 16);
 
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.AppIcon, null));
+	}
+
+	[TestMethod]
+	public void TrayAppIconIsSentAgainAtTheNewSizeAfterAScaleChange()
+	{
+		using var small = (Icon)SystemIcons.Application.Clone();
+		using var large = (Icon)SystemIcons.Information.Clone();
+		int traySize = 16;
+		var loaded = new List<int>();
+		var converter = new TrayIconConverter(size =>
+		{
+			loaded.Add(size);
+			return size == 16 ? small : large;
+		}, () => traySize);
+
+		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+
+		traySize = 28;
+		Assert.AreSame(large, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+
+		//back at the first size the icon read before is sent again
+		traySize = 16;
+		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+		CollectionAssert.AreEqual(new[] { 16, 28 }, loaded);
 	}
 
 	private static Icon ReadAppIcon(int size)

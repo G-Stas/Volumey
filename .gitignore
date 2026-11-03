@@ -24,3 +24,5 @@ TestResults/
 # release zips (scripts/build-release.ps1)
 artifacts/
 Volumey.Package/Volumey.Package.assets.cache
+# local dev folder (notes, spikes, tools), never committed
+/dev/
