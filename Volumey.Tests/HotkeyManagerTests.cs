@@ -233,6 +233,12 @@ public class HotkeyManagerTests
 			Thread.Sleep(10);
 	}
 
+	/// <summary>
+	/// Waits until the second hook runs: the host reports its type before the hook's thread calls Run
+	/// </summary>
+	private static void WaitForSecondHookRunning(InputHookHost host, List<Mock<IGlobalHook>> hooks)
+		=> WaitFor(() => host.Running == GlobalHookType.All && hooks.Count == 2 && hooks[1].Object.IsRunning);
+
 	[TestMethod]
 	public void AHookThatFailsToStopIsStoppedOnTheNextTry()
 	{
@@ -247,7 +253,7 @@ public class HotkeyManagerTests
 		WaitFor(() => host.Running == GlobalHookType.Keyboard);
 
 		using var mouse = new MouseHotkeyManager(host);
-		WaitFor(() => host.Running == GlobalHookType.All);
+		WaitForSecondHookRunning(host, hooks);
 
 		Assert.AreEqual(GlobalHookType.All, host.Running);
 		hooks[0].Verify(h => h.Stop(), Times.Exactly(3));
@@ -269,7 +275,7 @@ public class HotkeyManagerTests
 		WaitFor(() => host.Running == GlobalHookType.Keyboard);
 
 		using var mouse = new MouseHotkeyManager(host);
-		WaitFor(() => host.Running == GlobalHookType.All);
+		WaitForSecondHookRunning(host, hooks);
 
 		Assert.AreEqual(GlobalHookType.All, host.Running);
 		hooks[1].Verify(h => h.Run(GlobalHookType.All), Times.Once);
