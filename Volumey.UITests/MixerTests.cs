@@ -1,5 +1,7 @@
+using System.Drawing;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Input;
 using FlaUI.Core.Tools;
 using Volumey.UITests.Infrastructure;
 
@@ -91,6 +93,33 @@ public class MixerTests : UiTest
 		//like the Windows volume mixer
 		Audio.SetSessionVolume(testApp.Process.Id, 60);
 		Assert.IsTrue(Eventually(() => SliderValue(slider) == 60), $"the slider didn't follow an outside change: {SliderValue(slider)}");
+	}
+
+	[TestMethod]
+	[TestCategory("Audio")]
+	public void TheWheelChangesAnAppsVolumeAnywhereInItsSlidersBoxButNotOnItsName()
+	{
+		using var testApp = Later(TestAudioApp.Start());
+		StartMixer();
+		var slider = AppSlider(testApp.DisplayName);
+		SetSlider(slider, 50);
+		Assert.AreEqual(50, Audio.WaitFor(() => testApp.Volume, 50), "the slider didn't set the app's volume");
+
+		//near the box's top edge: off the 4 px bar and right of the thumb
+		var box = slider.BoundingRectangle;
+		Mouse.MoveTo(new Point(box.Left + box.Width * 4 / 5, box.Top + 3));
+		Mouse.Scroll(1);
+		Assert.AreEqual(51, Audio.WaitFor(() => testApp.Volume, 51), "the wheel off the bar didn't change the app's volume");
+
+		var name = Retry.WhileNull(() => App.Mixer.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text).And(cf.ByName(testApp.DisplayName))),
+			           TimeSpan.FromSeconds(5)).Result
+		           ?? throw new AssertFailedException($"No name for {testApp.DisplayName} in the mixer");
+		var nameRect = name.BoundingRectangle;
+		Mouse.MoveTo(new Point(nameRect.Left + nameRect.Width / 2, nameRect.Top + nameRect.Height / 2));
+		Mouse.Scroll(1);
+		Thread.Sleep(500);
+		Assert.AreEqual(51, testApp.Volume, "the wheel on the app's name changed its volume");
+		Assert.AreEqual(51, SliderValue(slider), "the wheel on the app's name moved its slider");
 	}
 
 	[TestMethod]

@@ -125,9 +125,10 @@
         </Setter>
     </Style>
 
-    <!-- WPF-UI's horizontal slider template plus the fill and the Windows 11 thumb -->
+    <!-- WPF-UI's horizontal slider template plus the fill and the Windows 11 thumb;
+         the transparent background makes the whole box take the pointer (wheel, click, hover), not only the 4 px bar and the thumb -->
     <ControlTemplate x:Key="VolumeSliderTemplate" TargetType="controls:VolumeSlider">
-        <Grid>
+        <Grid Background="Transparent">
             <Track x:Name="PART_Track">
                 <Track.DecreaseRepeatButton>
                     <RepeatButton x:Name="Fill" Command="Slider.DecreaseLarge" Style="{StaticResource VolumeSliderFillButton}" />
