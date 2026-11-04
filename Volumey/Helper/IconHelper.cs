@@ -1,15 +1,19 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace Volumey.Helper;
 
@@ -39,6 +43,167 @@ static class IconHelper
 		var owned = (Icon)borrowed.Clone();
 		PInvoke.DestroyIcon(hIcon);
 		return owned;
+	}
+
+	/// <summary>
+	/// Like <see cref="GetFromDll"/> but at exactly <paramref name="size"/> x <paramref name="size"/>, the size a caller needs
+	/// instead of the small or large icon of the system: the file's own frame of that size, else Windows scales the nearest one
+	/// </summary>
+	public static unsafe Icon? GetFromDllOfSize(string? filePath, int resourceId, int size)
+	{
+		if(filePath == null)
+			return null;
+
+		HICON hIcon = default;
+		uint count;
+		//like in ExtractIconEx, a negative index is a resource ID
+		fixed(char* path = filePath)
+			count = PInvoke.PrivateExtractIcons(path, resourceId, size, size, &hIcon, null, 1, 0);
+		if(count != 1 || hIcon.IsNull)
+			return null;
+		//Icon.FromHandle doesn't own the handle: keep an owned copy and free the extracted one
+		using var borrowed = Icon.FromHandle(hIcon);
+		var owned = (Icon)borrowed.Clone();
+		PInvoke.DestroyIcon(hIcon);
+		return owned;
+	}
+
+	/// <summary>The lowest value of a color channel that still counts as white</summary>
+	private const byte WhiteMinimum = 0xE0;
+
+	/// <summary>Only the pixels at least this opaque decide the color: the soft edge of a glyph isn't reliable</summary>
+	private const byte OpaqueMinimum = 0x80;
+
+	/// <summary>A pixel whose color channels differ by at least this much has a color of its own, it isn't white, gray or black</summary>
+	private const byte ColorSpread = 0x40;
+
+	/// <summary>
+	/// The icon is a white glyph, like the glyphs Windows draws for a dark taskbar: what can be reached from its edge without
+	/// crossing a part that has a color of its own (like the red badge of the no-device icon) is white. An icon with colors of
+	/// its own isn't
+	/// </summary>
+	public static bool IsWhiteGlyph(Icon icon)
+	{
+		using var bitmap = icon.ToBitmap();
+		byte[] pixels = ReadPixels(bitmap);
+		bool[] glyph = ReachFromEdge(pixels, bitmap.Width, bitmap.Height);
+		bool anyOpaque = false;
+		for(int pixel = 0; pixel < glyph.Length; pixel++)
+		{
+			int i = pixel * 4;
+			if(!glyph[pixel] || pixels[i + 3] < OpaqueMinimum)
+				continue;
+			anyOpaque = true;
+			if(pixels[i] < WhiteMinimum || pixels[i + 1] < WhiteMinimum || pixels[i + 2] < WhiteMinimum)
+				return false;
+		}
+		return anyOpaque;
+	}
+
+	/// <summary>
+	/// A new icon, owned by the caller, with the colors of the glyph of <paramref name="icon"/> inverted and its transparency kept.
+	/// Only what can be reached from the edge without crossing a part with a color of its own is inverted: that part, and whatever
+	/// it encloses, stay as they are
+	/// </summary>
+	public static Icon Inverted(Icon icon)
+	{
+		using var source = icon.ToBitmap();
+		byte[] pixels = ReadPixels(source);
+		bool[] glyph = ReachFromEdge(pixels, source.Width, source.Height);
+		for(int pixel = 0; pixel < glyph.Length; pixel++)
+		{
+			int i = pixel * 4;
+			if(!glyph[pixel] || pixels[i + 3] == 0)
+				continue;
+			pixels[i] = (byte)(byte.MaxValue - pixels[i]);
+			pixels[i + 1] = (byte)(byte.MaxValue - pixels[i + 1]);
+			pixels[i + 2] = (byte)(byte.MaxValue - pixels[i + 2]);
+		}
+
+		using var inverted = new Bitmap(source.Width, source.Height, PixelFormat.Format32bppArgb);
+		var area = new Rectangle(0, 0, inverted.Width, inverted.Height);
+		var data = inverted.LockBits(area, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+		try
+		{
+			Marshal.Copy(pixels, 0, data.Scan0, pixels.Length);
+		}
+		finally
+		{
+			inverted.UnlockBits(data);
+		}
+
+		var hIcon = new HICON(inverted.GetHicon());
+		using var borrowed = Icon.FromHandle(hIcon);
+		var owned = (Icon)borrowed.Clone();
+		PInvoke.DestroyIcon(hIcon);
+		return owned;
+	}
+
+	/// <summary>
+	/// The pixels (one flag each, row after row) that a flood fill reaches from the edge of the image through the pixels
+	/// without a color of its own (transparent ones included), moving up, down, left and right
+	/// </summary>
+	private static bool[] ReachFromEdge(byte[] pixels, int width, int height)
+	{
+		var reached = new bool[width * height];
+		var pending = new Stack<int>();
+
+		void Visit(int x, int y)
+		{
+			int pixel = y * width + x;
+			if(reached[pixel])
+				return;
+			int i = pixel * 4;
+			byte brightest = Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2]));
+			byte darkest = Math.Min(pixels[i], Math.Min(pixels[i + 1], pixels[i + 2]));
+			if(brightest - darkest >= ColorSpread)
+				return;
+			reached[pixel] = true;
+			pending.Push(pixel);
+		}
+
+		for(int x = 0; x < width; x++)
+		{
+			Visit(x, 0);
+			Visit(x, height - 1);
+		}
+		for(int y = 0; y < height; y++)
+		{
+			Visit(0, y);
+			Visit(width - 1, y);
+		}
+		while(pending.Count > 0)
+		{
+			int pixel = pending.Pop();
+			int x = pixel % width;
+			int y = pixel / width;
+			if(x > 0)
+				Visit(x - 1, y);
+			if(x < width - 1)
+				Visit(x + 1, y);
+			if(y > 0)
+				Visit(x, y - 1);
+			if(y < height - 1)
+				Visit(x, y + 1);
+		}
+		return reached;
+	}
+
+	/// <summary>The pixels as BGRA, four bytes each, row after row</summary>
+	private static byte[] ReadPixels(Bitmap bitmap)
+	{
+		var area = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+		var data = bitmap.LockBits(area, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+		try
+		{
+			byte[] pixels = new byte[bitmap.Width * bitmap.Height * 4];
+			Marshal.Copy(data.Scan0, pixels, 0, pixels.Length);
+			return pixels;
+		}
+		finally
+		{
+			bitmap.UnlockBits(data);
+		}
 	}
 
 	/// <summary>

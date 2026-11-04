@@ -1,4 +1,5 @@
 ExtractIconEx
+PrivateExtractIcons
 DestroyIcon
 PostMessage
 RegisterWindowMessage
