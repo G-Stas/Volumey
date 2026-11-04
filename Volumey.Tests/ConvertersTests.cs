@@ -450,6 +450,20 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
+	public void TheBadgeOfASystemGlyphKeepsItsColorOnALightTaskbar()
+	{
+		using var badged = IconHelperTests.CreateBadgedGlyph();
+
+		using var forLight = TrayIconConverter.SystemIconProvider.ForLightTaskbar(badged);
+
+		Assert.IsNotNull(forLight);
+		Assert.AreNotSame(badged, forLight);
+		using var bitmap = forLight.ToBitmap();
+		Assert.AreEqual(0, bitmap.GetPixel(IconHelperTests.BadgedGlyphX, IconHelperTests.BadgedGlyphY).R);
+		Assert.AreEqual(Color.Red.ToArgb(), bitmap.GetPixel(IconHelperTests.BadgeX, IconHelperTests.BadgeY).ToArgb());
+	}
+
+	[TestMethod]
 	public void ASystemGlyphThatCantBeReadStaysMissingOnALightTaskbar()
 		=> Assert.IsNull(TrayIconConverter.SystemIconProvider.ForLightTaskbar(null));
 

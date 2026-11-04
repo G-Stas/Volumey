@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
@@ -73,18 +74,24 @@ static class IconHelper
 	/// <summary>Only the pixels at least this opaque decide the color: the soft edge of a glyph isn't reliable</summary>
 	private const byte OpaqueMinimum = 0x80;
 
+	/// <summary>A pixel whose color channels differ by at least this much has a color of its own, it isn't white, gray or black</summary>
+	private const byte ColorSpread = 0x40;
+
 	/// <summary>
-	/// The icon is a white glyph: its visible pixels are all white, like the glyphs Windows draws for a dark taskbar. An icon
-	/// with colors of its own isn't
+	/// The icon is a white glyph, like the glyphs Windows draws for a dark taskbar: what can be reached from its edge without
+	/// crossing a part that has a color of its own (like the red badge of the no-device icon) is white. An icon with colors of
+	/// its own isn't
 	/// </summary>
 	public static bool IsWhiteGlyph(Icon icon)
 	{
 		using var bitmap = icon.ToBitmap();
 		byte[] pixels = ReadPixels(bitmap);
+		bool[] glyph = ReachFromEdge(pixels, bitmap.Width, bitmap.Height);
 		bool anyOpaque = false;
-		for(int i = 0; i < pixels.Length; i += 4)
+		for(int pixel = 0; pixel < glyph.Length; pixel++)
 		{
-			if(pixels[i + 3] < OpaqueMinimum)
+			int i = pixel * 4;
+			if(!glyph[pixel] || pixels[i + 3] < OpaqueMinimum)
 				continue;
 			anyOpaque = true;
 			if(pixels[i] < WhiteMinimum || pixels[i + 1] < WhiteMinimum || pixels[i + 2] < WhiteMinimum)
@@ -93,14 +100,20 @@ static class IconHelper
 		return anyOpaque;
 	}
 
-	/// <summary>A new icon, owned by the caller, with the colors of <paramref name="icon"/> inverted and its transparency kept</summary>
+	/// <summary>
+	/// A new icon, owned by the caller, with the colors of the glyph of <paramref name="icon"/> inverted and its transparency kept.
+	/// Only what can be reached from the edge without crossing a part with a color of its own is inverted: that part, and whatever
+	/// it encloses, stay as they are
+	/// </summary>
 	public static Icon Inverted(Icon icon)
 	{
 		using var source = icon.ToBitmap();
 		byte[] pixels = ReadPixels(source);
-		for(int i = 0; i < pixels.Length; i += 4)
+		bool[] glyph = ReachFromEdge(pixels, source.Width, source.Height);
+		for(int pixel = 0; pixel < glyph.Length; pixel++)
 		{
-			if(pixels[i + 3] == 0)
+			int i = pixel * 4;
+			if(!glyph[pixel] || pixels[i + 3] == 0)
 				continue;
 			pixels[i] = (byte)(byte.MaxValue - pixels[i]);
 			pixels[i + 1] = (byte)(byte.MaxValue - pixels[i + 1]);
@@ -124,6 +137,56 @@ static class IconHelper
 		var owned = (Icon)borrowed.Clone();
 		PInvoke.DestroyIcon(hIcon);
 		return owned;
+	}
+
+	/// <summary>
+	/// The pixels (one flag each, row after row) that a flood fill reaches from the edge of the image through the pixels
+	/// without a color of its own (transparent ones included), moving up, down, left and right
+	/// </summary>
+	private static bool[] ReachFromEdge(byte[] pixels, int width, int height)
+	{
+		var reached = new bool[width * height];
+		var pending = new Stack<int>();
+
+		void Visit(int x, int y)
+		{
+			int pixel = y * width + x;
+			if(reached[pixel])
+				return;
+			int i = pixel * 4;
+			byte brightest = Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2]));
+			byte darkest = Math.Min(pixels[i], Math.Min(pixels[i + 1], pixels[i + 2]));
+			if(brightest - darkest >= ColorSpread)
+				return;
+			reached[pixel] = true;
+			pending.Push(pixel);
+		}
+
+		for(int x = 0; x < width; x++)
+		{
+			Visit(x, 0);
+			Visit(x, height - 1);
+		}
+		for(int y = 0; y < height; y++)
+		{
+			Visit(0, y);
+			Visit(width - 1, y);
+		}
+		while(pending.Count > 0)
+		{
+			int pixel = pending.Pop();
+			int x = pixel % width;
+			int y = pixel / width;
+			if(x > 0)
+				Visit(x - 1, y);
+			if(x < width - 1)
+				Visit(x + 1, y);
+			if(y > 0)
+				Visit(x, y - 1);
+			if(y < height - 1)
+				Visit(x, y + 1);
+		}
+		return reached;
 	}
 
 	/// <summary>The pixels as BGRA, four bytes each, row after row</summary>

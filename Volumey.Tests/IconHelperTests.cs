@@ -120,6 +120,60 @@ public class IconHelperTests
 		return owned;
 	}
 
+	/// <summary>The geometry of <see cref="CreateBadgedGlyph"/>: a white round glyph, and a red badge with a white dot in it at the corner</summary>
+	internal const int BadgedGlyphX = 4;
+	internal const int BadgedGlyphY = 4;
+	internal const int BadgeX = 10;
+	internal const int BadgeY = 12;
+	internal const int BadgeDotX = 12;
+	internal const int BadgeDotY = 12;
+
+	/// <summary>A white glyph with a red badge that encloses a white dot, like the no-device icon of Windows</summary>
+	internal static Icon CreateBadgedGlyph()
+	{
+		using var bitmap = new Bitmap(GlyphSize, GlyphSize, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+		using(var graphics = Graphics.FromImage(bitmap))
+		using(var white = new SolidBrush(Color.White))
+		using(var red = new SolidBrush(Color.Red))
+		{
+			graphics.SmoothingMode = SmoothingMode.None;
+			graphics.FillEllipse(white, 0, 0, 8, 8);
+			graphics.FillEllipse(red, 9, 9, 7, 7);
+			graphics.FillRectangle(white, BadgeDotX - 1, BadgeDotY - 1, 3, 3);
+		}
+		var handle = new HICON(bitmap.GetHicon());
+		using var borrowed = Icon.FromHandle(handle);
+		var owned = (Icon)borrowed.Clone();
+		PInvoke.DestroyIcon(handle);
+		return owned;
+	}
+
+	[TestMethod]
+	public void AWhiteGlyphWithABadgeOfColorIsAWhiteGlyph()
+	{
+		using var badged = CreateBadgedGlyph();
+
+		Assert.IsTrue(IconHelper.IsWhiteGlyph(badged));
+	}
+
+	[TestMethod]
+	public void InvertingAGlyphKeepsTheBadgeAndWhatItEncloses()
+	{
+		using var badged = CreateBadgedGlyph();
+
+		using var inverted = IconHelper.Inverted(badged);
+
+		using var bitmap = inverted.ToBitmap();
+		var glyph = bitmap.GetPixel(BadgedGlyphX, BadgedGlyphY);
+		Assert.AreEqual(0, glyph.R);
+		Assert.AreEqual(0, glyph.G);
+		Assert.AreEqual(0, glyph.B);
+		var badge = bitmap.GetPixel(BadgeX, BadgeY);
+		Assert.AreEqual(Color.Red.ToArgb(), badge.ToArgb(), "the badge keeps its color");
+		var dot = bitmap.GetPixel(BadgeDotX, BadgeDotY);
+		Assert.AreEqual(Color.White.ToArgb(), dot.ToArgb(), "what the badge encloses stays white");
+	}
+
 	[TestMethod]
 	public void OnlyAnIconOfWhiteIsAWhiteGlyph()
 	{
