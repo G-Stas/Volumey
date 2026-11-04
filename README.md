@@ -14,7 +14,7 @@
   <br>
   <br>
   <a href="https://get.microsoft.com/installer/download/9mzcq03mx0s3?referrer=appbadge&cid=GithubBadge" target="_self" >
-  	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+  	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="250"/>
   </a>
   <br>
 </h4>
