@@ -21,11 +21,11 @@
 
 Windows lets you change an app's volume only with the mouse, in a mixer buried in Settings. Volumey gives every app and device its own hotkeys, so you can turn the game down and Discord up without leaving the game.
 
+## Features
 <p align="center">
   <img width="420" src=".github/images/preview.png" alt="The mixer pop-up with an on-screen volume notification above it, in the dark and the light theme">
 </p>
 
-## Features
 ### Hotkeys
 - **Any app:** turn a chosen app's volume up or down, or mute it
 - **Foreground app:** control or mute whichever app is in focus
@@ -66,6 +66,7 @@ Windows lets you change an app's volume only with the mouse, in a mixer buried i
 - **Start volume:** apps that start at 100% start at your preferred volume instead
 - **Volume sync:** keep app volumes in step with the device volume
 - **Tray icon:** scroll over it to change the device volume, choose what a middle click does and pick its icon
+
 ## Download
 - [Microsoft Store](https://www.microsoft.com/store/apps/9mzcq03mx0s3)
 - [GitHub Releases](https://github.com/G-Stas/Volumey/releases)
