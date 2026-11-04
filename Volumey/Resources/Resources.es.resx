@@ -652,6 +652,18 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Dispositivo predeterminado</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Bloquear el volumen</value>
+  </data>
+  <data name="LockMode_Off" xml:space="preserve">
+    <value>Desactivado</value>
+  </data>
+  <data name="LockMode_UntilClosed" xml:space="preserve">
+    <value>Hasta cerrar</value>
+  </data>
+  <data name="LockMode_Always" xml:space="preserve">
+    <value>Siempre</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} se reproducirá en {1}</value>
   </data>

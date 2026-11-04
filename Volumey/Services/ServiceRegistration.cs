@@ -23,7 +23,7 @@ internal static class ServiceRegistration
 	/// <summary>
 	/// The settings features the app creates at startup, in this order, not when their page first opens: the language is applied,
 	/// the hotkey features register their saved hotkeys (in this order) once the hotkey service gets a manager, the volume limit,
-	/// app volume sync and the OSD start following the devices, and the support links are read
+	/// app volume sync, the app volume locks and the OSD start following the devices, and the support links are read
 	/// </summary>
 	internal static readonly Type[] Features =
 	[
@@ -33,6 +33,7 @@ internal static class ServiceRegistration
 		typeof(OpenHotkeyViewModel),
 		typeof(VolumeLimitViewModel),
 		typeof(AppVolumeSyncViewModel),
+		typeof(AppVolumeLockViewModel),
 		typeof(DefaultDeviceHotkeysViewModel),
 		typeof(ForegroundWindowVolumeViewModel),
 		typeof(NotificationViewModel),
@@ -58,7 +59,7 @@ internal static class ServiceRegistration
 
 		services.AddSingleton<ThemeViewModel>();
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
-			sp.Get<IAppShell>(), sp.Get<ISystemIntegration>()));
+			sp.Get<IAppShell>(), sp.Get<ISystemIntegration>(), sp.Get<AppVolumeLockViewModel>()));
 		services.AddSingleton(sp => new DeviceProviderViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppShell>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new HotkeyModeViewModel(sp.Get<IHotkeyService>()));
 
@@ -68,6 +69,7 @@ internal static class ServiceRegistration
 		services.AddSingleton(sp => new OpenHotkeyViewModel(sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new VolumeLimitViewModel(sp.Get<IDeviceProvider>()));
 		services.AddSingleton(sp => new AppVolumeSyncViewModel(sp.Get<IDeviceProvider>()));
+		services.AddSingleton(sp => new AppVolumeLockViewModel(sp.Get<IDeviceProvider>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new DefaultDeviceHotkeysViewModel(sp.Get<IDeviceProvider>(), sp.Get<IHotkeyService>()));
 		services.AddSingleton(sp => new ForegroundWindowVolumeViewModel(sp.Get<IHotkeyService>(), sp.Get<INotificationService>(), sp.Get<IAppRouting>()));
 		services.AddSingleton(sp => new NotificationViewModel(sp.Get<IDeviceProvider>(), sp.Get<INotificationService>(), sp.Get<IScreenInfoProvider>()));

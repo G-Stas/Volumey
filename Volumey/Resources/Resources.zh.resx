@@ -652,6 +652,18 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>默认设备</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>锁定音量</value>
+  </data>
+  <data name="LockMode_Off" xml:space="preserve">
+    <value>关</value>
+  </data>
+  <data name="LockMode_UntilClosed" xml:space="preserve">
+    <value>直到关闭</value>
+  </data>
+  <data name="LockMode_Always" xml:space="preserve">
+    <value>始终</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} 将在 {1} 上播放</value>
   </data>

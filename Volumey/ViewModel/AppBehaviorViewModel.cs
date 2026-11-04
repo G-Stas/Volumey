@@ -201,6 +201,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	public ObservableCollection<ScreenInfo> AllScreens => screens.All;
 
 	private readonly IHotkeyService hotkeys;
+	private readonly AppVolumeLockViewModel volumeLocks;
 	private readonly IAppShell shell;
 	private readonly ISystemIntegration systemIntegration;
 
@@ -228,9 +229,10 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AppBehaviorViewModel));
 
 	internal AppBehaviorViewModel(IHotkeyService hotkeys, IScreenInfoProvider screenInfoProvider, IAppShell shell,
-		ISystemIntegration systemIntegration)
+		ISystemIntegration systemIntegration, AppVolumeLockViewModel volumeLocks)
 	{
 		this.hotkeys = hotkeys;
+		this.volumeLocks = volumeLocks;
 		screens = new ScreenSelection(screenInfoProvider, () => SettingsProvider.Settings.Window.ScreenName,
 			name => SettingsProvider.Settings.Window.ScreenName = name, () => shell.Dispatcher,
 			_ => OnPropertyChanged(nameof(SelectedScreen)), Logger);
@@ -293,6 +295,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		SettingsProvider.Settings.Window.PopupLeft = PopupLeft;
 		SettingsProvider.Settings.Window.PopupTop = PopupTop;
 		//logging shuts down last, in App.OnExit, so errors while releasing hotkeys and devices are still logged
+		volumeLocks.ReleaseAll();
 		hotkeys.Dispose();
 		shell.Shutdown();
 	}

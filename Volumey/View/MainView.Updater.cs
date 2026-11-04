@@ -34,6 +34,12 @@ public sealed partial class MainView
 #if(!STORE)
 	private void CheckForUpdate()
 	{
+		//AutoUpdater.NET shows its update form as a modal dialog, which throws outside an interactive session
+		if(!Environment.UserInteractive)
+		{
+			Logger.Info("Not checking for update: the app isn't running in an interactive session");
+			return;
+		}
 		try
 		{
 			UpdateHelper.StartAutoUpdater(userAsked: false);

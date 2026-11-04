@@ -201,6 +201,20 @@ internal static class Audio
 		return null;
 	}
 
+	/// <summary>Changes the volume (0–100) of the process's session on the device from outside the app</summary>
+	public static void SetSessionVolumeOn(string deviceId, int processId, int volume)
+	{
+		using var enumerator = new MMDeviceEnumerator();
+		using var device = enumerator.GetDevice(deviceId);
+		var sessions = device.AudioSessionManager.Sessions;
+		for(int i = 0; i < sessions.Count; i++)
+		{
+			using var session = sessions[i];
+			if(session.GetProcessID == processId)
+				session.SimpleAudioVolume.Volume = volume / 100f;
+		}
+	}
+
 	/// <summary>The names of the active output devices</summary>
 	public static List<string> OutputDeviceNames()
 	{

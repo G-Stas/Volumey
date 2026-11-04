@@ -89,6 +89,32 @@ public class VolumeySettingsTests
 		Assert.AreEqual(new HotKey(Key.M, ModifierKeys.Control), reloaded.Hotkeys.DeviceMute);
 	}
 
+	[TestMethod]
+	public void TheLockedAppVolumesAreSavedAndLoaded()
+	{
+		var settings = Load().EnableAutosave();
+
+		settings.General.LockedAppVolumes = new[]
+		{
+			new AppVolumeLockEntry { AppName = "Spotify", Volume = 30 },
+			new AppVolumeLockEntry { AppName = "WhatsApp", Volume = 0 }
+		};
+		settings.Flush();
+
+		var reloaded = Load().General.LockedAppVolumes;
+		Assert.HasCount(2, reloaded);
+		Assert.AreEqual("Spotify", reloaded[0].AppName);
+		Assert.AreEqual(30, reloaded[0].Volume);
+		Assert.AreEqual("WhatsApp", reloaded[1].AppName);
+		Assert.AreEqual(0, reloaded[1].Volume);
+	}
+
+	[TestMethod]
+	public void NoAppVolumeIsLockedByDefault()
+	{
+		Assert.IsEmpty(Load().General.LockedAppVolumes);
+	}
+
 	// U5
 	[TestMethod]
 	[DataRow("\"DisplayDeviceIconAtTray\": true", TrayIconKind.DeviceIcon)]

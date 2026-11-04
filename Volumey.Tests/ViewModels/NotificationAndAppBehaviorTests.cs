@@ -33,8 +33,9 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 	private NotificationViewModel CreateNotifications()
 		=> new NotificationViewModel(DeviceProvider.Object, Notifications.Object, screens.Object);
 
-	private AppBehaviorViewModel CreateAppBehavior(IHotkeyService hotkeys = null)
-		=> new AppBehaviorViewModel(hotkeys ?? Hotkeys, screens.Object, shell.Object, systemIntegration.Object);
+	private AppBehaviorViewModel CreateAppBehavior(IHotkeyService hotkeys = null, AppVolumeLockViewModel volumeLocks = null)
+		=> new AppBehaviorViewModel(hotkeys ?? Hotkeys, screens.Object, shell.Object, systemIntegration.Object,
+			volumeLocks ?? new AppVolumeLockViewModel(DeviceProvider.Object, new Mock<IAppRouting>().Object));
 
 	[TestMethod]
 	[DataRow(true)]
@@ -552,6 +553,23 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 		Assert.AreEqual(300, Settings.Window.PopupLeft);
 		Assert.AreEqual(200, Settings.Window.PopupTop);
 		hotkeys.Verify(m => m.Dispose(), Times.Once);
+		shell.Verify(m => m.Shutdown(), Times.Once);
+	}
+
+	[TestMethod]
+	public void SessionEndingGivesBackTheLockedVolumesBeforeShuttingDown()
+	{
+		Settings.General.LockedAppVolumes = new[] { new AppVolumeLockEntry { AppName = "Spotify", Volume = 25 } };
+		var spotify = new AudioProcessModel(100, false, "Spotify", 100u, string.Empty, null, null, Hotkeys);
+		SetDefaultDevice(CreateDevice("1", "Speakers", spotify));
+		var locks = new AppVolumeLockViewModel(DeviceProvider.Object, new Mock<IAppRouting>().Object);
+		Assert.AreEqual(25, spotify.Volume);
+		CreateAppBehavior(new Mock<IHotkeyService>().Object, locks);
+
+		shell.Raise(m => m.SessionEnding += null);
+
+		Assert.IsFalse(spotify.Lock.IsOn);
+		Assert.AreEqual(100, spotify.Volume);
 		shell.Verify(m => m.Shutdown(), Times.Once);
 	}
 

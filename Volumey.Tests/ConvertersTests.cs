@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -301,7 +301,7 @@ public class ConvertersTests
 	{
 		using var appIcon = (Icon)SystemIcons.Application.Clone();
 		using var deviceIcon = (Icon)SystemIcons.Information.Clone();
-		var converter = new TrayIconConverter(() => appIcon);
+		var converter = new TrayIconConverter(_ => appIcon, () => 16);
 
 		Assert.AreSame(deviceIcon, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, deviceIcon));
 		//the same icon again doesn't update the tray
@@ -318,14 +318,14 @@ public class ConvertersTests
 		//back to the volume glyph, in the theme that came in while the app icon showed
 		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Light, TrayIconKind.VolumeLevel, deviceIcon));
 		//without a theme there is no volume icon to show
-		Assert.AreEqual(Binding.DoNothing, Convert(new TrayIconConverter(() => appIcon), false, 50, false, null, TrayIconKind.VolumeLevel, deviceIcon));
+		Assert.AreEqual(Binding.DoNothing, Convert(new TrayIconConverter(_ => appIcon, () => 16), false, 50, false, null, TrayIconKind.VolumeLevel, deviceIcon));
 	}
 
 	// U4
 	[TestMethod]
 	public void TrayIconKeepsItsIconWhenTheAppIconCantBeRead()
 	{
-		var converter = new TrayIconConverter(() => null);
+		var converter = new TrayIconConverter(_ => null, () => 16);
 
 		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.AppIcon, null));
 	}
@@ -364,7 +364,7 @@ public class ConvertersTests
 		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
 		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
 			icons[type] = (Icon)SystemIcons.Application.Clone();
-		var converter = new TrayIconConverter(() => null, type => icons[type]);
+		var converter = new TrayIconConverter(_ => null, () => 16, type => icons[type]);
 
 		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
 		//the same glyph again doesn't update the tray
@@ -384,7 +384,7 @@ public class ConvertersTests
 	[TestMethod]
 	public void TrayIconShowsVolumeysGlyphWhenTheSystemOneIsMissing()
 	{
-		var converter = new TrayIconConverter(() => null, type => null);
+		var converter = new TrayIconConverter(_ => null, () => 16, type => null);
 
 		//the volume of zero has no glyph of Volumey's: its lowest one, which a volume of 10 is already
 		//(the glyphs come from the app's resources, which the test host doesn't have, so only the choice of glyph is checked)
@@ -419,7 +419,7 @@ public class ConvertersTests
 		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
 		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
 			icons[type] = CreateGlyph(Color.White);
-		var converter = new TrayIconConverter(() => null, type => icons[type]);
+		var converter = new TrayIconConverter(_ => null, () => 16, type => icons[type]);
 
 		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
 
@@ -442,7 +442,7 @@ public class ConvertersTests
 		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
 		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
 			icons[type] = CreateGlyph(Color.OrangeRed);
-		var converter = new TrayIconConverter(() => null, type => icons[type]);
+		var converter = new TrayIconConverter(_ => null, () => 16, type => icons[type]);
 
 		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
 		foreach(var icon in icons.Values)
@@ -466,6 +466,32 @@ public class ConvertersTests
 	[TestMethod]
 	public void ASystemGlyphThatCantBeReadStaysMissingOnALightTaskbar()
 		=> Assert.IsNull(TrayIconConverter.SystemIconProvider.ForLightTaskbar(null));
+
+	[TestMethod]
+	public void TrayAppIconIsSentAgainAtTheNewSizeAfterAScaleChange()
+	{
+		using var small = (Icon)SystemIcons.Application.Clone();
+		using var large = (Icon)SystemIcons.Information.Clone();
+		int traySize = 16;
+		var loaded = new List<int>();
+		var converter = new TrayIconConverter(size =>
+		{
+			loaded.Add(size);
+			return size == 16 ? small : large;
+		}, () => traySize);
+
+		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+
+		traySize = 28;
+		Assert.AreSame(large, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+
+		//back at the first size the icon read before is sent again
+		traySize = 16;
+		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
+		CollectionAssert.AreEqual(new[] { 16, 28 }, loaded);
+	}
 
 	private static Icon ReadAppIcon(int size)
 	{
@@ -530,13 +556,20 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
-	public void AnAppOpensWhenItCanBeMovedOrHasSeveralSessions()
+	public void AnAppCanBeMovedWithWindowsSupportUnlessItIsTheSystemSounds()
 	{
 		var converter = new AppCanMoveConverter();
-		Assert.AreEqual(Visibility.Visible, Convert(converter, true, false, 1));
-		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true, 1), "System Sounds can't be moved");
-		Assert.AreEqual(Visibility.Visible, Convert(converter, true, true, 2));
-		Assert.AreEqual(Visibility.Collapsed, Convert(converter, false, false, 1), "without Windows support");
-		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true));
+		Assert.AreEqual(Visibility.Visible, Convert(converter, true, false));
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true), "System Sounds can't be moved");
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, false, false), "without Windows support");
+	}
+  
+	[TestMethod]
+	public void AnAppOpensUnlessItIsTheSystemSoundsWithOneSession()
+	{
+		var converter = new AppOpensConverter();
+		Assert.AreEqual(Visibility.Visible, Convert(converter, false, 1));
+		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, 1), "System Sounds can be neither locked nor moved");
+		Assert.AreEqual(Visibility.Visible, Convert(converter, true, 2));
 	}
 }

@@ -57,7 +57,8 @@ public static class IconExtensions
 	/// The app icon at the tray's size for the primary screen's scale (the notification area is on the primary taskbar),
 	/// so Windows doesn't have to scale a bigger frame down. Null if it can't be read (logged)
 	/// </summary>
-	internal static Icon? LoadAppTrayIcon()
+	/// <param name="size">The tray's icon size in pixels, from <see cref="GetTrayIconSize"/></param>
+	internal static Icon? LoadAppTrayIcon(int size)
 	{
 		try
 		{
@@ -65,7 +66,6 @@ public static class IconExtensions
 			if(streamInfo == null)
 				throw new InvalidOperationException("The app icon isn't in the resources");
 			using var stream = streamInfo.Stream;
-			int size = GetTrayIconSize();
 			return ReadIconOfSize(stream, size);
 		}
 		catch(Exception e)
@@ -111,7 +111,10 @@ public static class IconExtensions
 		return owned;
 	}
 
-	/// <summary>The size of the tray's icons on the primary screen</summary>
+	/// <summary>
+	/// The tray's icon size in pixels for the primary screen's scale (the notification area is on the primary taskbar):
+	/// Explorer shows an icon of that size pixel for pixel and stretches any other size
+	/// </summary>
 	internal static int GetTrayIconSize()
 	{
 		var primary = PInvoke.MonitorFromPoint(default, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTOPRIMARY);

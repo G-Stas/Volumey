@@ -210,4 +210,72 @@ public class ControlsTests
 		Assert.AreEqual("MediaPlayPause\tF5", playPause.ToString());
 		Assert.AreEqual("MediaPlayPause", new SystemHotkey(Key.MediaPlayPause).ToString());
 	}
+
+	//a name 100 wide and 18 high, then badges 80 wide and 18 high
+	private static NameLinePanel NameLine(params UIElement[] badges)
+	{
+		var panel = new NameLinePanel();
+		panel.Children.Add(new Border { Width = 100, Height = 18 });
+		foreach(var badge in badges)
+			panel.Children.Add(badge);
+		return panel;
+	}
+
+	private static Border Badge() => new Border { Width = 80, Height = 18 };
+
+	private static void Layout(FrameworkElement element, double width)
+	{
+		element.Measure(new Size(width, double.PositiveInfinity));
+		element.Arrange(new Rect(0, 0, width, element.DesiredSize.Height));
+	}
+
+	[STATestMethod]
+	public void BadgesThatFitStayNextToTheName()
+	{
+		var badge = Badge();
+		var panel = NameLine(badge);
+
+		Layout(panel, 260);
+
+		Assert.IsFalse(panel.BadgesBelow);
+		Assert.AreEqual(18, panel.DesiredSize.Height);
+		Assert.AreEqual(106, badge.TranslatePoint(new Point(), panel).X);
+	}
+
+	[STATestMethod]
+	public void BadgesThatDontFitGoUnderTheName()
+	{
+		var first = Badge();
+		var second = Badge();
+		var panel = NameLine(first, second);
+
+		Layout(panel, 260);
+
+		Assert.IsTrue(panel.BadgesBelow);
+		Assert.AreEqual(18 + 2 + 18, panel.DesiredSize.Height);
+		Assert.AreEqual(new Point(0, 20), first.TranslatePoint(new Point(), panel));
+		Assert.AreEqual(new Point(86, 20), second.TranslatePoint(new Point(), panel));
+	}
+
+	[STATestMethod]
+	public void HiddenBadgesTakeNoRoom()
+	{
+		var panel = NameLine(Badge(), new Border { Width = 200, Height = 18, Visibility = Visibility.Collapsed });
+
+		Layout(panel, 260);
+
+		Assert.IsFalse(panel.BadgesBelow);
+		Assert.AreEqual(18, panel.DesiredSize.Height);
+	}
+
+	[STATestMethod]
+	public void ANameAloneGetsTheWholeLine()
+	{
+		var panel = NameLine();
+
+		Layout(panel, 60);
+
+		Assert.IsFalse(panel.BadgesBelow);
+		Assert.AreEqual(60, panel.DesiredSize.Width);
+	}
 }

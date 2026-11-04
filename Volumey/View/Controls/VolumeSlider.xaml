@@ -150,6 +150,12 @@
                 <Setter TargetName="Fill" Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
                 <Setter TargetName="Thumb" Property="Foreground" Value="{DynamicResource AccentFillColorDisabledBrush}" />
             </Trigger>
+            <!-- disabled (a locked app): greyed like WPF-UI's disabled slider -->
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Fill" Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+                <Setter TargetName="Thumb" Property="Foreground" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+                <Setter TargetName="TrackBackground" Property="Background" Value="{DynamicResource ControlStrongFillColorDisabledBrush}" />
+            </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
 

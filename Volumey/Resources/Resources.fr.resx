@@ -652,6 +652,18 @@
   <data name="Mixer_DefaultDevice" xml:space="preserve">
     <value>Périphérique par défaut</value>
   </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Verrouiller le volume</value>
+  </data>
+  <data name="LockMode_Off" xml:space="preserve">
+    <value>Désactivé</value>
+  </data>
+  <data name="LockMode_UntilClosed" xml:space="preserve">
+    <value>Jusqu'à la fermeture</value>
+  </data>
+  <data name="LockMode_Always" xml:space="preserve">
+    <value>Toujours</value>
+  </data>
   <data name="Mixer_MovedTo" xml:space="preserve">
     <value>{0} sera lu sur {1}</value>
   </data>
