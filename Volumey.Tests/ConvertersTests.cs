@@ -1,5 +1,5 @@
-﻿using System.Drawing;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -11,11 +11,13 @@ using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
+using Volumey.Helper;
 using Volumey.Localization;
 using Volumey.Model;
 using Volumey.View.Converters;
 using Volumey.ViewModel;
 using Volumey.ViewModel.Settings;
+using Color = System.Drawing.Color;
 
 namespace Volumey.Tests;
 
@@ -329,6 +331,143 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
+	public void TrayIconPicksTheSameGlyphForTheSystemIconsExceptForAVolumeOfZero()
+	{
+		foreach(bool noOutputDevices in new[] { false, true })
+		foreach(bool muted in new[] { false, true })
+		foreach(int? volume in new int?[] { null, 0, 1, 34, 35, 65, 66, 100 })
+		{
+			var expected = volume == 0 && !noOutputDevices && !muted
+				? TrayIconConverter.IconType.Zero
+				: TrayIconConverter.Pick(TrayIconKind.VolumeLevel, noOutputDevices, volume, muted, false);
+			Assert.AreEqual(expected, TrayIconConverter.Pick(TrayIconKind.SystemIcons, noOutputDevices, volume, muted, true));
+		}
+	}
+
+	[TestMethod]
+	public void EveryVolumeStateHasASystemIconResource()
+	{
+		var ids = TrayIconConverter.SystemIconProvider.ResourceIds;
+		var glyphs = new[]
+		{
+			TrayIconConverter.IconType.High, TrayIconConverter.IconType.Mid, TrayIconConverter.IconType.Low,
+			TrayIconConverter.IconType.Zero, TrayIconConverter.IconType.Mute, TrayIconConverter.IconType.NoDevice
+		};
+
+		CollectionAssert.AreEquivalent(glyphs, ids.Keys.ToArray());
+		Assert.AreEqual(glyphs.Length, ids.Values.Distinct().Count());
+	}
+
+	[TestMethod]
+	public void TrayIconShowsTheSystemGlyphOfTheVolumeState()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = (Icon)SystemIcons.Application.Clone();
+		var converter = new TrayIconConverter(_ => null, () => 16, type => icons[type]);
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		//the same glyph again doesn't update the tray
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 90, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Mid], Convert(converter, false, 50, false, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Low], Convert(converter, false, 10, false, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Zero], Convert(converter, false, 0, false, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.Mute], Convert(converter, false, 0, true, null, TrayIconKind.SystemIcons, null));
+		Assert.AreSame(icons[TrayIconConverter.IconType.NoDevice], Convert(converter, true, null, false, null, TrayIconKind.SystemIcons, null));
+
+		//back to Volumey's glyph for the same state: the tray gets it again
+		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, true, null, false, AppTheme.Light, TrayIconKind.VolumeLevel, null));
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
+	[TestMethod]
+	public void TrayIconShowsVolumeysGlyphWhenTheSystemOneIsMissing()
+	{
+		var converter = new TrayIconConverter(_ => null, () => 16, type => null);
+
+		//the volume of zero has no glyph of Volumey's: its lowest one, which a volume of 10 is already
+		//(the glyphs come from the app's resources, which the test host doesn't have, so only the choice of glyph is checked)
+		var zero = Convert(converter, false, 0, false, AppTheme.Light, TrayIconKind.SystemIcons, null);
+		var low = Convert(converter, false, 10, false, AppTheme.Light, TrayIconKind.SystemIcons, null);
+
+		Assert.AreNotEqual(Binding.DoNothing, zero);
+		Assert.AreEqual(Binding.DoNothing, low);
+	}
+
+	[TestMethod]
+	public void TheSystemIconsAreReadFromWindowsFile()
+	{
+		if(!System.IO.File.Exists(TrayIconConverter.SystemIconProvider.GetResourceFilePath()))
+			Assert.Inconclusive("This Windows has no file with the volume icons");
+
+		int size = IconExtensions.GetTrayIconSize();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+		{
+			using var icon = TrayIconConverter.SystemIconProvider.LoadFromSystem(type, size);
+			Assert.IsNotNull(icon, type.ToString());
+			Assert.AreEqual(size, icon.Width, type.ToString());
+			Assert.AreEqual(size, icon.Height, type.ToString());
+		}
+	}
+
+	private static Icon CreateGlyph(Color color) => IconHelperTests.CreateGlyph(color);
+
+	[TestMethod]
+	public void TrayIconShowsTheSystemGlyphDarkenedOnALightTaskbar()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = CreateGlyph(Color.White);
+		var converter = new TrayIconConverter(_ => null, () => 16, type => icons[type]);
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+
+		var onLight = Convert(converter, false, 80, false, AppTheme.Light, TrayIconKind.SystemIcons, null) as Icon;
+		Assert.IsNotNull(onLight);
+		Assert.AreNotSame(icons[TrayIconConverter.IconType.High], onLight);
+		Assert.IsFalse(IconHelper.IsWhiteGlyph(onLight));
+		//the same glyph in the same theme doesn't update the tray
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 90, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
+
+		//the theme changes back: the white glyph again
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
+	[TestMethod]
+	public void TrayIconKeepsTheColorsOfACustomSystemGlyphOnALightTaskbar()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = CreateGlyph(Color.OrangeRed);
+		var converter = new TrayIconConverter(_ => null, () => 16, type => icons[type]);
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High], Convert(converter, false, 80, false, AppTheme.Light, TrayIconKind.SystemIcons, null));
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
+	[TestMethod]
+	public void TheBadgeOfASystemGlyphKeepsItsColorOnALightTaskbar()
+	{
+		using var badged = IconHelperTests.CreateBadgedGlyph();
+
+		using var forLight = TrayIconConverter.SystemIconProvider.ForLightTaskbar(badged);
+
+		Assert.IsNotNull(forLight);
+		Assert.AreNotSame(badged, forLight);
+		using var bitmap = forLight.ToBitmap();
+		Assert.AreEqual(0, bitmap.GetPixel(IconHelperTests.BadgedGlyphX, IconHelperTests.BadgedGlyphY).R);
+		Assert.AreEqual(Color.Red.ToArgb(), bitmap.GetPixel(IconHelperTests.BadgeX, IconHelperTests.BadgeY).ToArgb());
+	}
+
+	[TestMethod]
+	public void ASystemGlyphThatCantBeReadStaysMissingOnALightTaskbar()
+		=> Assert.IsNull(TrayIconConverter.SystemIconProvider.ForLightTaskbar(null));
+
+	[TestMethod]
 	public void TrayAppIconIsSentAgainAtTheNewSizeAfterAScaleChange()
 	{
 		using var small = (Icon)SystemIcons.Application.Clone();
@@ -352,6 +491,47 @@ public class ConvertersTests
 		traySize = 16;
 		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.AppIcon, null));
 		CollectionAssert.AreEqual(new[] { 16, 28 }, loaded);
+	}
+
+	[TestMethod]
+	public void TraySystemIconsAreCachedPerTraySize()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = (Icon)SystemIcons.Application.Clone();
+
+		int traySize = 16;
+		int loadCount = 0;
+
+		var converter = new TrayIconConverter(_ => null, () => traySize, type =>
+		{
+			loadCount++;
+			return icons[type];
+		});
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High],
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(1, loadCount);
+
+		//the same size and glyph don't load or send the icon again
+		Assert.AreEqual(Binding.DoNothing,
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(1, loadCount);
+
+		//a new size uses a new provider and loads its own glyph
+		traySize = 24;
+		Assert.AreSame(icons[TrayIconConverter.IconType.High],
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(2, loadCount);
+
+		//returning to the first size reuses its cached provider
+		traySize = 16;
+		Assert.AreSame(icons[TrayIconConverter.IconType.High],
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(2, loadCount);
+
+		foreach(var icon in icons.Values)
+			icon.Dispose();
 	}
 
 	private static Icon ReadAppIcon(int size)
@@ -424,7 +604,7 @@ public class ConvertersTests
 		Assert.AreEqual(Visibility.Collapsed, Convert(converter, true, true), "System Sounds can't be moved");
 		Assert.AreEqual(Visibility.Collapsed, Convert(converter, false, false), "without Windows support");
 	}
-
+  
 	[TestMethod]
 	public void AnAppOpensUnlessItIsTheSystemSoundsWithOneSession()
 	{

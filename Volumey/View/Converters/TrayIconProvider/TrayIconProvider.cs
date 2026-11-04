@@ -20,6 +20,7 @@ public sealed partial class TrayIconConverter
 		protected virtual Icon? High => null;
 		protected virtual Icon? Mid => null;
 		protected virtual Icon? Low => null;
+		protected virtual Icon? Zero => null;
 		protected virtual Icon? Mute => null;
 		protected virtual Icon? NoDevice => null;
 		protected virtual ILog? Logger => null;
@@ -33,6 +34,7 @@ public sealed partial class TrayIconConverter
 					IconType.High => High,
 					IconType.Mid => Mid,
 					IconType.Low => Low,
+					IconType.Zero => Zero,
 					IconType.Mute => Mute,
 					IconType.NoDevice => NoDevice,
 					_ => null

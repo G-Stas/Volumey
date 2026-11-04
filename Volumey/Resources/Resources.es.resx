@@ -193,6 +193,9 @@
   <data name="TrayIcon_AppIcon" xml:space="preserve">
     <value>Icono de Volumey</value>
   </data>
+  <data name="TrayIcon_SystemIcons" xml:space="preserve">
+    <value>Iconos de volumen de Windows</value>
+  </data>
   <data name="General_Startup" xml:space="preserve">
     <value>Inicio</value>
   </data>

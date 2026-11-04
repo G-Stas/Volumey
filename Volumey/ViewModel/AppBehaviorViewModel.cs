@@ -100,7 +100,7 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 
 	partial void OnShowDevicePickerChanged(bool value) => SettingsProvider.Settings.Window.ShowDevicePicker = value;
 
-	public TrayIconKind[] TrayIcons { get; } = { TrayIconKind.VolumeLevel, TrayIconKind.DeviceIcon, TrayIconKind.AppIcon };
+	public TrayIconKind[] TrayIcons { get; } = { TrayIconKind.VolumeLevel, TrayIconKind.DeviceIcon, TrayIconKind.AppIcon, TrayIconKind.SystemIcons };
 
 	[ObservableProperty]
 	public partial TrayIconKind TrayIcon { get; set; }
