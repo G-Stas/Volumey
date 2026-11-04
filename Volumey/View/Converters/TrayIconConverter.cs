@@ -42,9 +42,9 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 	/// <summary>Reads the system glyph of a volume state; the file of Windows' own icons by default</summary>
 	private readonly Func<IconType, Icon?>? loadSystemIcon;
-	private SystemIconProvider? systemIconProvider;
-	//the same glyphs for a light taskbar
-	private SystemIconProvider? systemLightIconProvider;
+
+	//one dark/light provider pair per tray size
+	private readonly Dictionary<int, (SystemIconProvider Dark, SystemIconProvider Light)> systemIconProviders = new();
 
 	internal TrayIconConverter(Func<int, Icon?> loadAppIcon, Func<int> getTraySize, Func<IconType, Icon?>? loadSystemIcon = null)
 	{
@@ -122,11 +122,25 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 		return Binding.DoNothing;
 	}
 
-	/// <summary>The system glyphs for the taskbar's theme, one provider each so that a theme switch doesn't read them again</summary>
+	/// <summary>The system glyphs for each tray size and taskbar theme</summary>
 	private SystemIconProvider GetSystemIconProvider(bool lightTaskbar)
 	{
-		var provider = systemIconProvider ??= loadSystemIcon == null ? new SystemIconProvider() : new SystemIconProvider(loadSystemIcon);
-		return lightTaskbar ? systemLightIconProvider ??= new SystemIconProvider(type => SystemIconProvider.ForLightTaskbar(provider.GetIcon(type))) : provider;
+		int size = getTraySize();
+
+		if(!systemIconProviders.TryGetValue(size, out var providers))
+		{
+			var darkProvider = loadSystemIcon == null
+				? new SystemIconProvider(type => SystemIconProvider.LoadFromSystem(type, size))
+				: new SystemIconProvider(loadSystemIcon);
+
+			var lightProvider = new SystemIconProvider(
+				type => SystemIconProvider.ForLightTaskbar(darkProvider.GetIcon(type)));
+
+			providers = (darkProvider, lightProvider);
+			systemIconProviders.Add(size, providers);
+		}
+
+		return lightTaskbar ? providers.Light : providers.Dark;
 	}
 
 	/// <param name="type">A volume glyph or <see cref="IconType.None"/></param>

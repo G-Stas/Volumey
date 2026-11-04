@@ -493,6 +493,47 @@ public class ConvertersTests
 		CollectionAssert.AreEqual(new[] { 16, 28 }, loaded);
 	}
 
+	[TestMethod]
+	public void TraySystemIconsAreCachedPerTraySize()
+	{
+		var icons = new Dictionary<TrayIconConverter.IconType, Icon>();
+		foreach(var type in TrayIconConverter.SystemIconProvider.ResourceIds.Keys)
+			icons[type] = (Icon)SystemIcons.Application.Clone();
+
+		int traySize = 16;
+		int loadCount = 0;
+
+		var converter = new TrayIconConverter(_ => null, () => traySize, type =>
+		{
+			loadCount++;
+			return icons[type];
+		});
+
+		Assert.AreSame(icons[TrayIconConverter.IconType.High],
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(1, loadCount);
+
+		//the same size and glyph don't load or send the icon again
+		Assert.AreEqual(Binding.DoNothing,
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(1, loadCount);
+
+		//a new size uses a new provider and loads its own glyph
+		traySize = 24;
+		Assert.AreSame(icons[TrayIconConverter.IconType.High],
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(2, loadCount);
+
+		//returning to the first size reuses its cached provider
+		traySize = 16;
+		Assert.AreSame(icons[TrayIconConverter.IconType.High],
+			Convert(converter, false, 80, false, AppTheme.Dark, TrayIconKind.SystemIcons, null));
+		Assert.AreEqual(2, loadCount);
+
+		foreach(var icon in icons.Values)
+			icon.Dispose();
+	}
+
 	private static Icon ReadAppIcon(int size)
 	{
 		using var file = System.IO.File.OpenRead(System.IO.Path.Combine(System.AppContext.BaseDirectory, "TestData", "icon.ico"));
