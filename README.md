@@ -34,11 +34,14 @@
 - Opens from the tray icon or by a hotkey
 - A compact pop-up next to the tray or a resizable window
 - Volume and mute for every app, each of its audio sessions and the output device
+- **Volume lock:** keep an app's volume fixed until it closes, or also when it starts again
+- **Output device per app:** choose which device each app plays on
 
 ### More
 - **On-screen notifications** in the corner of the screen you choose
 - **Volume limit:** apps that start at 100% start at your preferred volume instead
 - **Volume sync:** keep app volumes in step with the device volume
+- **Tray icon:** scroll over it to change the device volume, choose what a middle click does and pick its icon
 
 ## Preview
 <p>
