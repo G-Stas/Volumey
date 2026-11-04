@@ -38,7 +38,7 @@ Windows lets you change an app's volume only with the mouse, in a mixer buried i
 - **Your step:** pick how much each press changes the volume
 
 <details>
-<summary>See the hotkeys in action</summary>
+<summary><b>▶️ See the hotkeys in action</b></summary>
 <br>
 <p align="center">
   <img src=".github/images/demo-hotkeys.gif" alt="Hotkeys turn Spotify down and up, mute the output device and switch the default device, each shown by an on-screen notification">
@@ -54,7 +54,7 @@ Windows lets you change an app's volume only with the mouse, in a mixer buried i
 - **Output device per app:** choose which device each app plays on
 
 <details>
-<summary>See the mixer in action</summary>
+<summary><b>▶️ See the mixer in action</b></summary>
 <br>
 <p align="center">
   <img src=".github/images/demo-mixer.gif" alt="The mixer opens from the tray, Spotify's volume is locked and the app is moved to the speakers">
@@ -66,8 +66,6 @@ Windows lets you change an app's volume only with the mouse, in a mixer buried i
 - **Start volume:** apps that start at 100% start at your preferred volume instead
 - **Volume sync:** keep app volumes in step with the device volume
 - **Tray icon:** scroll over it to change the device volume, choose what a middle click does and pick its icon
-- **12 languages**, switched on the fly
-
 ## Download
 - [Microsoft Store](https://www.microsoft.com/store/apps/9mzcq03mx0s3)
 - [GitHub Releases](https://github.com/G-Stas/Volumey/releases)
