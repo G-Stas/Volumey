@@ -109,10 +109,27 @@ public sealed class AppRouting : IAppRouting, IDisposable
 	public event Action? AppsChanged;
 
 	/// <summary>Reads every app again, e.g. when the mixer opens: Windows tells nobody about routes changed outside Volumey</summary>
-	public void RefreshAll()
+	public void RefreshAll() => RefreshAll([]);
+
+	//the returned devices go in with the reads that act on them: a worker going idle in between would forget them
+	private void RefreshAll(IReadOnlyList<string> returned)
 	{
-		foreach(var member in AllModels())
-			MarkWaiting(member.App);
+		var apps = AllModels();
+		lock(gate)
+		{
+			if(stopped)
+				return;
+			foreach(string id in returned)
+			{
+				returnedDevices.Add(id);
+				//a device that went away and came back again: its apps are sent back again
+				sentBack.RemoveWhere(s => s.DeviceId == id.ToUpperInvariant());
+			}
+			foreach(var member in apps)
+				waiting.Add(member.App);
+			if(apps.Count > 0)
+				StartWorker();
+		}
 	}
 
 	/// <summary>
@@ -418,19 +435,14 @@ public sealed class AppRouting : IAppRouting, IDisposable
 	{
 		foreach(var device in e.OldItems?.OfType<OutputDeviceModel>() ?? [])
 			Unwatch(device);
-		foreach(var device in e.NewItems?.OfType<OutputDeviceModel>() ?? [])
+		var added = e.NewItems?.OfType<OutputDeviceModel>().ToList() ?? [];
+		foreach(var device in added)
 		{
 			inactiveDeviceNames.TryRemove(device.Id, out _);
-			lock(gate)
-			{
-				returnedDevices.Add(device.Id);
-				//a device that went away and came back again: its apps are sent back again
-				sentBack.RemoveWhere(s => s.DeviceId == device.Id.ToUpperInvariant());
-			}
 			Watch(device);
 		}
 		//whether a pinned device is active changes the rows of its apps everywhere
-		RefreshAll();
+		RefreshAll(added.Select(d => d.Id).ToList());
 		ReportHomes();
 	}
 
