@@ -19,7 +19,7 @@ public sealed class AudioDevice : IDevice
 	internal MMDevice Device { get; }
 
 	private readonly Lock propertiesLock = new Lock();
-	private bool disposed;
+	private volatile bool disposed;
 
 	private static readonly ILog Logger = LogManager.GetLogger(typeof(AudioDevice));
 
@@ -218,6 +218,8 @@ public sealed class AudioDevice : IDevice
 	{
 		lock(propertiesLock)
 		{
+			if(disposed)
+				return null;
 			try
 			{
 				Device.Properties.Dispose();
@@ -226,6 +228,9 @@ public sealed class AudioDevice : IDevice
 			}
 			catch(Exception e)
 			{
+				//the device was disposed while the store was being opened: NAudio's native pointer is already null
+				if(disposed)
+					return null;
 				Logger.Error($"Failed to read device property {key.formatId},{key.propertyId}", e);
 				return null;
 			}
