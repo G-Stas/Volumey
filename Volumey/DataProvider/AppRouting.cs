@@ -170,7 +170,7 @@ public sealed class AppRouting : IAppRouting, IDisposable
 			AudioProcessModel? app = null;
 			lock(gate)
 			{
-				if(stopped || !available)
+				if(IsStopped || !available)
 				{
 					foreach(var pending in moves)
 						pending.Result.TrySetResult(new MoveOutcome.Refused());
@@ -212,10 +212,13 @@ public sealed class AppRouting : IAppRouting, IDisposable
 		}
 	}
 
+	/// <summary>Set once this is disposed or the UI dispatcher is shutting down, which cancels its pending <c>InvokeAsync</c> calls</summary>
 	private bool IsStopped
 	{
 		get
 		{
+			if(ui.HasShutdownStarted)
+				return true;
 			lock(gate)
 				return stopped;
 		}
