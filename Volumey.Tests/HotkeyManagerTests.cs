@@ -323,12 +323,32 @@ public class HotkeyManagerTests
 		var down = new HotKey(Key.Down, ModifierKeys.Control);
 		first.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { up, down });
 		hotkeys.SetHotkeyManager(first.Object);
+		hotkeys.RegisterHotkeysPair(up, down);
 		var second = new Mock<IHotkeyManager>();
 		second.Setup(m => m.RegisterHotkey(up)).Throws(new InvalidOperationException("taken by another app"));
 
 		hotkeys.SetHotkeyManager(second.Object);
 
 		second.Verify(m => m.RegisterHotkey(down), Times.Once);
+	}
+
+	[TestMethod]
+	public void AHotkeyThatFailedToMoveIsRegisteredOnTheNextSwitch()
+	{
+		var up = new HotKey(Key.Up, ModifierKeys.Control);
+		var down = new HotKey(Key.Down, ModifierKeys.Control);
+		hotkeys.SetHotkeyManager(new Mock<IHotkeyManager>().Object);
+		hotkeys.RegisterHotkeysPair(up, down);
+		var blocking = new Mock<IHotkeyManager>();
+		blocking.Setup(m => m.RegisterHotkey(up)).Throws(new InvalidOperationException("taken by another app"));
+		blocking.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { down });
+		hotkeys.SetHotkeyManager(blocking.Object);
+
+		var hook = new Mock<IHotkeyManager>();
+		hotkeys.SetHotkeyManager(hook.Object);
+
+		hook.Verify(m => m.RegisterHotkey(up), Times.Once);
+		hook.Verify(m => m.RegisterHotkey(down), Times.Once);
 	}
 
 	[TestMethod]
