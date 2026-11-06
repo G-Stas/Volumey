@@ -125,6 +125,9 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	internal bool IsDisposed => _disposed;
 
+	/// <summary>Whether <see cref="Exited"/> was raised: the model is about to be removed and disposed</summary>
+	internal bool HasExited => System.Threading.Volatile.Read(ref _exitedInvoked) == 1;
+
 	private bool _isMuted;
 	public bool IsMuted
 	{
