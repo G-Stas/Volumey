@@ -240,6 +240,26 @@ public class HotkeyManagerTests
 		=> WaitFor(() => host.Running == GlobalHookType.All && hooks.Count == 2 && hooks[1].Object.IsRunning);
 
 	[TestMethod]
+	public void AHookThatFailsIsStartedAgain()
+	{
+		var hooks = new List<Mock<IGlobalHook>>();
+		var host = new InputHookHost(() =>
+		{
+			var hook = RunningHook(failedStops: 0);
+			if(hooks.Count == 0)
+				hook.Setup(h => h.Run(It.IsAny<GlobalHookType>())).Throws(new HookException(UioHookResult.Failure, "Failed to start"));
+			hooks.Add(hook);
+			return hook.Object;
+		}, start: true);
+
+		using var keyboard = new SharpHookHotkeyManager(host);
+		WaitFor(() => hooks.Count == 2 && hooks[1].Object.IsRunning);
+
+		Assert.AreEqual(GlobalHookType.Keyboard, host.Running);
+		hooks[1].Verify(h => h.Run(GlobalHookType.Keyboard), Times.Once);
+	}
+
+	[TestMethod]
 	public void AHookThatFailsToStopIsStoppedOnTheNextTry()
 	{
 		var hooks = new List<Mock<IGlobalHook>>();
