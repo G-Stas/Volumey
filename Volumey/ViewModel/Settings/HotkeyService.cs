@@ -318,9 +318,9 @@ public sealed class HotkeyService : IHotkeyService
 	}
 
 	/// <summary>
-	/// Sets the keyboard hotkey manager. On a later call the registered keyboard hotkeys move from the previous manager to the new one,
-	/// and the previous manager is disposed. The user counts stay as they are. Mouse hotkeys stay with the mouse manager:
-	/// the hotkey mode only decides how keys are taken.
+	/// Sets the keyboard hotkey manager. On a later call every keyboard hotkey that has users is registered with the new manager,
+	/// also one the previous manager refused, and the previous manager is disposed. The user counts stay as they are.
+	/// Mouse hotkeys stay with the mouse manager: the hotkey mode only decides how keys are taken.
 	/// </summary>
 	public void SetHotkeyManager(IHotkeyManager hm)
 	{
@@ -341,6 +341,9 @@ public sealed class HotkeyService : IHotkeyService
 		{
 			try { previous.UnregisterHotkey(hotkey); }
 			catch { }
+		}
+		foreach(var hotkey in HotkeysUserCount.Keys.Where(h => h.Source != InputSource.Mouse))
+		{
 			try { hm.RegisterHotkey(hotkey); }
 			catch(Exception e)
 			{
