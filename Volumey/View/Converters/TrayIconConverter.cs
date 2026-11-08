@@ -148,7 +148,14 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 	/// <param name="newIconProvider">The theme changed, so the current glyph has to be sent again in the new color</param>
 	private object? GetIcon(IconType type, TrayIconProvider iconProvider, bool newIconProvider)
 	{
-		if((currentIconType == type || type == IconType.None) && !newIconProvider)
+		if(type == IconType.None)
+		{
+			//the tray keeps its icon; after a theme change that icon is in the old color, so the next glyph is sent even if it's the same
+			if(newIconProvider)
+				currentIconType = IconType.None;
+			return Binding.DoNothing;
+		}
+		if(currentIconType == type && !newIconProvider)
 			return Binding.DoNothing;
 		currentIconType = type;
 		return iconProvider.GetIcon(type);
