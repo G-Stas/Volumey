@@ -321,6 +321,18 @@ public class ConvertersTests
 		Assert.AreEqual(Binding.DoNothing, Convert(new TrayIconConverter(_ => appIcon, () => 16), false, 50, false, null, TrayIconKind.VolumeLevel, deviceIcon));
 	}
 
+	[TestMethod]
+	public void ATrayIconThemeChangeWithoutAVolumeKeepsTheIconAndSendsTheNextGlyph()
+	{
+		var converter = new TrayIconConverter(_ => null, () => 16);
+		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Dark, TrayIconKind.VolumeLevel, null));
+
+		//not a null icon, which would leave the tray blank
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, null, false, AppTheme.Light, TrayIconKind.VolumeLevel, null));
+		//the same glyph as before, now in the new theme's color
+		Assert.AreNotEqual(Binding.DoNothing, Convert(converter, false, 50, false, AppTheme.Light, TrayIconKind.VolumeLevel, null));
+	}
+
 	// U4
 	[TestMethod]
 	public void TrayIconKeepsItsIconWhenTheAppIconCantBeRead()
