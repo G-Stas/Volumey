@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel;
+using System.Reflection;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.DataProvider;
@@ -342,6 +344,34 @@ public class NotificationAndAppBehaviorTests : ViewModelTestBase
 
 		vm.ReactToAllVolumeChanges = false;
 		WaitFor(() => app.StateNotificationMediator == null, "the mediator wasn't removed");
+	}
+
+	[TestMethod]
+	public void ReactingToAllChangesTurnedOffAndOnQuicklyKeepsWatchingAndStopsOnTheNextTurnOff()
+	{
+		var app = CreateProcess("app");
+		var device = CreateDevice("1", "Speakers", app);
+		SetDefaultDevice(device);
+		var vm = CreateNotifications();
+		//the device's app list is busy: every toggle waits for it, and they all go on once it's free
+		const BindingFlags field = BindingFlags.Instance | BindingFlags.NonPublic;
+		typeof(OutputDeviceModel).GetField("_cachedImmutableProcesses", field)!.SetValue(device, null);
+		var processesLock = (SemaphoreSlim)typeof(OutputDeviceModel).GetField("_processesSemaphore", field)!.GetValue(device)!;
+		processesLock.Wait();
+
+		vm.ReactToAllVolumeChanges = true;
+		vm.ReactToAllVolumeChanges = false;
+		vm.ReactToAllVolumeChanges = true;
+		processesLock.Release();
+
+		WaitFor(() => processesLock.CurrentCount == 1, "the toggles didn't finish");
+		Thread.Sleep(100);
+		WaitFor(() => app.StateNotificationMediator != null, "the default device's apps didn't get the notification mediator");
+		Assert.IsNotNull(device.Master.StateNotificationMediator);
+
+		vm.ReactToAllVolumeChanges = false;
+		WaitFor(() => app.StateNotificationMediator == null, "the mediator wasn't removed");
+		Assert.IsNull(device.Master.StateNotificationMediator);
 	}
 
 	[TestMethod]
