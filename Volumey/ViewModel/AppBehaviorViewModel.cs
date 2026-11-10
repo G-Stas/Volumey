@@ -287,8 +287,14 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		trayBlockTimer.Start();
 	}
 
+	//the tray's Exit and the end of the Windows session can both come before the app has ended
+	private bool exiting;
+
 	private void OnExit()
 	{
+		if(exiting)
+			return;
+		exiting = true;
 		SettingsProvider.Settings.Window.Left = WindowLeft;
 		SettingsProvider.Settings.Window.Top = WindowTop;
 		SettingsProvider.Settings.Window.Width = WindowWidth;
