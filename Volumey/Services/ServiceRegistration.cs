@@ -56,6 +56,8 @@ internal static class ServiceRegistration
 		services.AddSingleton<IAppShell>(_ => new AppShell(application));
 		services.AddSingleton<ISystemIntegration, SystemIntegration>();
 		services.AddSingleton(_ => new SupportLinks());
+		services.AddSingleton<ISupportStore, SupportStore>();
+		services.AddSingleton(sp => new SupportViewModel(sp.Get<ISupportStore>()));
 
 		services.AddSingleton<ThemeViewModel>();
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
@@ -100,7 +102,7 @@ internal static class ServiceRegistration
 		services.AddSingleton<Func<SettingsWindow>>(sp => () => sp.Get<SettingsWindow>());
 		services.AddSingleton(sp => new LevelMeters(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>()));
 		services.AddSingleton(sp => new MainViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>(), sp.Get<ThemeViewModel>(),
-			sp.Get<LevelMeters>()));
+			sp.Get<LevelMeters>(), sp.Get<SupportViewModel>()));
 		services.AddSingleton(sp => new MainView(sp.Get<MainViewModel>(), sp.Get<HotkeyModeViewModel>(), sp.Get<Func<SettingsWindow>>(), sp.Get<INotificationService>()));
 		return services;
 	}

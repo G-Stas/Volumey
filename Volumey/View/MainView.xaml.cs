@@ -19,6 +19,7 @@ using Volumey.DataProvider.Settings;
 using Volumey.Helper;
 using Volumey.Model;
 using Volumey.Services;
+using Volumey.View.DialogContent;
 using Volumey.ViewModel;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -69,6 +70,7 @@ public sealed partial class MainView
 	private SettingsWindow? settingsWindow;
 
 	private readonly DeviceProviderViewModel devices;
+	private readonly SupportViewModel support;
 	private readonly TrayWheelInput trayWheel;
 	private readonly INotificationService notifications;
 
@@ -131,6 +133,9 @@ public sealed partial class MainView
 		ContentRendered += (s, a) => ActivateIfLoaded(windowIsVisible: false, isPopupMode: vm.DisplayMinimalistic);
 		vm.DisplayAppRequested += ActivateIfLoaded;
 		vm.SettingsRequested += ShowSettings;
+		support = main.Support;
+		support.Attach(Hwnd);
+		support.DialogRequested += ShowSupportDialog;
 		vm.PropertyChanged += OnViewModelPropertyChanged;
 
 		SizeChanged += (s, a) => SaveWindowPlacement();
@@ -872,6 +877,29 @@ public sealed partial class MainView
 	{
 		if(IsLoaded && IsVisible)
 			Activate();
+	}
+
+	private void ShowSupportDialog()
+	{
+		//a hidden window would show the dialog where nobody sees it
+		if(!vm.WindowIsVisible)
+			vm.TrayMixerCommand.Execute(null);
+		ShowSupportDialogAsync().Forget(Logger, "Failed to show the support dialog");
+	}
+
+	private async Task ShowSupportDialogAsync()
+	{
+		vm.KeepsPopupOpen = true;
+		try
+		{
+			await DisplayContentDialog(new SupportDialog(support));
+		}
+		finally
+		{
+			vm.KeepsPopupOpen = false;
+			//the popup hides again when its focus is lost
+			Activate();
+		}
 	}
 
 	private void ShowSettings()

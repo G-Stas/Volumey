@@ -685,4 +685,25 @@
   <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
     <value>Перемкнутися на наступний пристрій виводу</value>
   </data>
+  <data name="Support_Title" xml:space="preserve">
+    <value>Підтримати Volumey</value>
+  </data>
+  <data name="Support_Text" xml:space="preserve">
+    <value>Volumey безкоштовна, я роблю її у вільний час. Якщо вона вам допомагає, ви можете її підтримати.</value>
+  </data>
+  <data name="Support_NotNow" xml:space="preserve">
+    <value>Не зараз</value>
+  </data>
+  <data name="Support_ThanksTitle" xml:space="preserve">
+    <value>Дякую!</value>
+  </data>
+  <data name="Support_ThanksText" xml:space="preserve">
+    <value>Ваша підтримка допомагає Volumey розвиватися. Повертайтеся будь-коли.</value>
+  </data>
+  <data name="Support_Close" xml:space="preserve">
+    <value>Закрити</value>
+  </data>
+  <data name="Support_Failed" xml:space="preserve">
+    <value>Покупку не вдалося завершити. Спробуйте пізніше.</value>
+  </data>
 </root>

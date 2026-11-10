@@ -368,10 +368,15 @@ public sealed partial class AppBehaviorViewModel : ObservableObject
 		trayBlocked = false;
 	}
 
+	/// <summary>
+	/// Set while a dialog of the window is open: the popup stays when its focus moves to a dialog of Windows (the Store's purchase dialog)
+	/// </summary>
+	internal bool KeepsPopupOpen { get; set; }
+
 	[RelayCommand]
 	private void LostFocus()
 	{
-		if(popupEnabled && displayedAsPopup)
+		if(popupEnabled && displayedAsPopup && !KeepsPopupOpen)
 		{
 			//If the window was displayed as popup, and it lost its focus we block tray icon left clicking for some time
 			//to prevent the situation when focus was lost because of the clicking on the tray icon in which case the window would disappear and instantly show up again.
