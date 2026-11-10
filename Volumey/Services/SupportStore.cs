@@ -92,12 +92,18 @@ internal sealed class SupportStore : ISupportStore
 		switch(result.Status)
 		{
 			case StorePurchaseStatus.Succeeded:
-				await FulfillAsync(context, tier.StoreId);
-				return SupportPurchaseResult.Succeeded;
+			//an earlier purchase of the tier that was never reported: it was paid, so it counts as this one
 			case StorePurchaseStatus.AlreadyPurchased:
-				//an earlier purchase wasn't used up; it is now, so the next click can buy
-				await FulfillAsync(context, tier.StoreId);
-				return SupportPurchaseResult.Failed;
+				//the payment went through whatever happens to the report; an unreported one is reported at the next launch
+				try
+				{
+					await FulfillAsync(context, tier.StoreId);
+				}
+				catch(Exception e)
+				{
+					Logger.Warn($"Failed to report the purchase of {tier.StoreId} as used up", e);
+				}
+				return SupportPurchaseResult.Succeeded;
 			case StorePurchaseStatus.NotPurchased:
 				return SupportPurchaseResult.Cancelled;
 			default:
