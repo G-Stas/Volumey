@@ -66,10 +66,13 @@ public class SupportViewModelTests
 	}
 
 	[TestMethod]
-	public async Task UnusedPurchasesAreReportedWhenTheAddOnsAreRead()
+	public async Task UnusedPurchasesAreReportedOnceTheAddOnsAreRead()
 	{
-		var store = new FakeStore { Tiers = [Small] };
+		var store = new FakeStore { Tiers = [Small], ReadFailures = 1 };
 		var vm = new SupportViewModel(store, read: false);
+		await vm.ReadWithRetriesAsync([TimeSpan.Zero]);
+		Assert.AreEqual(1, store.Fulfilled);
+		//reading the add-ons again doesn't report again
 		await vm.RefreshAsync();
 		Assert.AreEqual(1, store.Fulfilled);
 	}
@@ -78,7 +81,7 @@ public class SupportViewModelTests
 	public async Task AFailedReportDoesNotHideTheHeart()
 	{
 		var vm = new SupportViewModel(new FakeStore { Tiers = [Small], FulfillThrows = true }, read: false);
-		await vm.RefreshAsync();
+		await vm.ReadWithRetriesAsync([]);
 		Assert.IsTrue(vm.IsAvailable);
 	}
 

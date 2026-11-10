@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -52,7 +53,8 @@ public sealed partial class SupportViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Reads the add-ons and tries again after each delay while the Store can't be reached. A Store that answers with no add-ons isn't retried. Resumes on the UI thread
+	/// Reads the add-ons and tries again after each delay while the Store can't be reached. A Store that answers with no add-ons isn't retried.
+	/// Once they're read, reports the purchases that were left unreported. Resumes on the UI thread
 	/// </summary>
 	internal async Task ReadWithRetriesAsync(IReadOnlyList<TimeSpan> retryDelays)
 	{
@@ -61,7 +63,6 @@ public sealed partial class SupportViewModel : ObservableObject
 			try
 			{
 				await RefreshAsync();
-				return;
 			}
 			catch(Exception e)
 			{
@@ -71,8 +72,20 @@ public sealed partial class SupportViewModel : ObservableObject
 					return;
 				}
 				Logger.Info($"The Store didn't return the support add-ons, trying again in {retryDelays[attempt]}: {e.Message}");
+				await Task.Delay(retryDelays[attempt]);
+				continue;
 			}
-			await Task.Delay(retryDelays[attempt]);
+			//a purchase the app never reported as used up (it closed during the purchase) would keep the Store from selling that tier again
+			try
+			{
+				var tiers = Tiers.ToList();
+				await Task.Run(() => store.FulfillPendingAsync(tiers));
+			}
+			catch(Exception e)
+			{
+				Logger.Warn("Failed to report the unused support purchases", e);
+			}
+			return;
 		}
 	}
 
@@ -91,15 +104,6 @@ public sealed partial class SupportViewModel : ObservableObject
 		for(int i = 0; i < tiers.Count; i++)
 			Tiers.Add(tiers[i] with { IsHighlighted = i == suggested });
 		IsAvailable = tiers.Count > 0;
-		//a purchase the app never reported as used up (it closed during the purchase) would keep the Store from selling that tier again
-		try
-		{
-			await Task.Run(() => store.FulfillPendingAsync(tiers));
-		}
-		catch(Exception e)
-		{
-			Logger.Warn("Failed to report the unused support purchases", e);
-		}
 	}
 
 	[RelayCommand]
