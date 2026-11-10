@@ -29,9 +29,12 @@ public sealed partial class OsdWindow
 		public required FrameworkElement Pill;
 		public DispatcherTimer? Timer;
 		public bool Closing;
+		//the order the pills were shown in: a dictionary doesn't keep it once entries were removed
+		public long Shown;
 	}
 
 	private readonly Dictionary<string, Entry> entries = new();
+	private long shownCount;
 	private NotificationPosition position;
 	private int horizontalIndent;
 	private int verticalIndent;
@@ -136,13 +139,13 @@ public sealed partial class OsdWindow
 
 		while(entries.Count(e => !e.Value.Closing) >= MaxPills)
 		{
-			var oldest = entries.First(e => !e.Value.Closing);
+			var oldest = entries.Where(e => !e.Value.Closing).MinBy(e => e.Value.Shown);
 			Close(oldest.Key);
 		}
 
 		var pill = createPill();
 		pill.Opacity = 0;
-		entry = new Entry { Pill = pill };
+		entry = new Entry { Pill = pill, Shown = ++shownCount };
 		if(displayTime is { } time)
 		{
 			entry.Timer = new DispatcherTimer { Interval = time };

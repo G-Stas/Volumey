@@ -28,6 +28,10 @@ internal sealed class InputHookHost
 	private const int StopAttempts = 5;
 	private static readonly TimeSpan StopRetryDelay = TimeSpan.FromMilliseconds(50);
 
+	/// <summary>A hook that failed is started again after this delay, doubled with each failure up to <see cref="MaxRestartDelay"/></summary>
+	private static readonly TimeSpan RestartDelay = TimeSpan.FromSeconds(1);
+	private static readonly TimeSpan MaxRestartDelay = TimeSpan.FromMinutes(1);
+
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(InputHookHost));
 
@@ -39,11 +43,14 @@ internal sealed class InputHookHost
 	private int keyboardUsers;
 	private int mouseUsers;
 
-	//only the worker (or Apply when not starting hooks) changes these
+	//only the worker (or Apply when not starting hooks) changes these; hook and running are changed under sync,
+	//where the hook's thread also clears running when its hook fails
 	private IGlobalHook? hook;
 	private Thread? hookThread;
 	private ManualResetEventSlim? hookEnabled;
 	private GlobalHookType? running;
+	//failures since the last hook that started; under sync
+	private int failures;
 
 	/// <summary>Raised on the hook's thread</summary>
 	public event EventHandler<KeyboardHookEventArgs>? KeyPressed;
@@ -143,8 +150,21 @@ internal sealed class InputHookHost
 			catch(Exception e)
 			{
 				Logger.Error("Failed to change the input hook", e);
+				RestartLater();
 			}
 		}
+	}
+
+	/// <summary>The hook is missing although it's wanted: it's tried again after a while</summary>
+	private void RestartLater()
+	{
+		TimeSpan delay;
+		lock(sync)
+		{
+			delay = TimeSpan.FromTicks(Math.Min(RestartDelay.Ticks << Math.Min(failures, 16), MaxRestartDelay.Ticks));
+			failures++;
+		}
+		Task.Delay(delay).ContinueWith(_ => Changed(), TaskScheduler.Default);
 	}
 
 	private void Apply(GlobalHookType? wanted)
@@ -159,14 +179,21 @@ internal sealed class InputHookHost
 		newHook.KeyPressed += OnKeyPressed;
 		newHook.MousePressed += OnMousePressed;
 		newHook.MouseWheel += OnMouseWheel;
-		hook = newHook;
 		lock(sync)
+		{
+			hook = newHook;
 			running = type;
+		}
 		if(!start)
 			return;
 
 		var enabled = new ManualResetEventSlim();
-		newHook.HookEnabled += (_, _) => enabled.Set();
+		newHook.HookEnabled += (_, _) =>
+		{
+			enabled.Set();
+			lock(sync)
+				failures = 0;
+		};
 		hookEnabled = enabled;
 		//Run on an own thread, not RunAsync: RunAsync's task completes before its thread unsets the hook's callback in libuiohook,
 		//which is one for the whole process, so a hook started right after it would lose its callback and get no input
@@ -179,6 +206,19 @@ internal sealed class InputHookHost
 			catch(Exception e)
 			{
 				Logger.Error($"The input hook ({type}) failed", e);
+				//nothing waits for a start that won't come
+				try { enabled.Set(); }
+				catch(ObjectDisposedException) { }
+				//not stopped by Stop, which takes the hook first: the hook is gone and a new one is started
+				bool current;
+				lock(sync)
+				{
+					current = hook == newHook;
+					if(current)
+						running = null;
+				}
+				if(current)
+					RestartLater();
 			}
 		})
 		{
@@ -197,18 +237,24 @@ internal sealed class InputHookHost
 	/// </summary>
 	private void Stop()
 	{
-		if(hook == null)
+		IGlobalHook? stopping;
+		lock(sync)
+		{
+			stopping = hook;
+			hook = null;
+		}
+		if(stopping == null)
 			return;
-		hook.KeyPressed -= OnKeyPressed;
-		hook.MousePressed -= OnMousePressed;
-		hook.MouseWheel -= OnMouseWheel;
+		stopping.KeyPressed -= OnKeyPressed;
+		stopping.MousePressed -= OnMousePressed;
+		stopping.MouseWheel -= OnMouseWheel;
 		hookEnabled?.Wait(HookTimeout);
 		try
 		{
-			StopRunning(hook);
+			StopRunning(stopping);
 			if(hookThread != null && !hookThread.Join(HookTimeout))
 				Logger.Warn("The input hook didn't stop in time");
-			hook.Dispose();
+			stopping.Dispose();
 		}
 		catch(HookException e)
 		{
@@ -216,7 +262,6 @@ internal sealed class InputHookHost
 		}
 		finally
 		{
-			hook = null;
 			hookThread = null;
 			hookEnabled?.Dispose();
 			hookEnabled = null;

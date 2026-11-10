@@ -349,7 +349,8 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 			if(disposed)
 				return;
 
-			if(Processes.FirstOrDefault(p => AppRoutingRules.SameApp(p.Identity, session.Identity)) is AudioProcessModel process)
+			//an exited app's model is about to be disposed with its sessions: a restarted app's session gets a new model
+			if(Processes.FirstOrDefault(p => !p.HasExited && AppRoutingRules.SameApp(p.Identity, session.Identity)) is AudioProcessModel process)
 			{
 				await dispatcher.InvokeAsync(() =>
 				{

@@ -236,17 +236,23 @@ public class VolumeySettingsTests
 			var settings = Load().EnableAutosave();
 			settings.SaveNow();
 			string before = File.ReadAllText(file);
-			using(new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
+			using(var held = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None))
 			{
 				settings.General.Theme = AppTheme.Dark;
 				var flush = System.Threading.Tasks.Task.Run(settings.Flush);
 				Assert.IsTrue(flush.Wait(VolumeySettings.SaveRetryDelay * VolumeySettings.SaveAttempts * 5), "Flush didn't give up");
+				using var reader = new StreamReader(held);
+				Assert.AreEqual(before, reader.ReadToEnd());
 			}
 
-			Assert.AreEqual(before, File.ReadAllText(file));
-			var error = Assert.ContainsSingle(log.GetEvents());
+			//the save timer may try again too, and write the file once it's free
+			var error = log.GetEvents()[0];
 			Assert.AreEqual("Failed to save the settings", error.RenderedMessage);
 			Assert.IsInstanceOfType<IOException>(error.ExceptionObject.InnerException ?? error.ExceptionObject);
+
+			//the change is still to be written: once the file is free, the next flush writes it
+			settings.Flush();
+			Assert.AreEqual(AppTheme.Dark, Load().General.Theme);
 		}
 		finally
 		{
