@@ -23,7 +23,7 @@ internal static class ServiceRegistration
 	/// <summary>
 	/// The settings features the app creates at startup, in this order, not when their page first opens: the language is applied,
 	/// the hotkey features register their saved hotkeys (in this order) once the hotkey service gets a manager, the volume limit,
-	/// app volume sync, the app volume locks and the OSD start following the devices, and the support links are read
+	/// app volume sync, the app volume locks and the OSD start following the devices, and the support links are read (not in the Store build)
 	/// </summary>
 	internal static readonly Type[] Features =
 	[
