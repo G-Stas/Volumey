@@ -36,13 +36,13 @@ internal sealed class SupportStore : ISupportStore
 	internal sealed record StoreItem(string? ProductId, string StoreId, string Title, string Price, string? BasePrice);
 
 	/// <summary>
-	/// The donation add-ons among the app's add-ons, cheapest first, at most <see cref="MaxTiers"/>
+	/// The donation add-ons among the app's add-ons, cheapest first (the same price by product ID), at most <see cref="MaxTiers"/>
 	/// </summary>
 	internal static IReadOnlyList<SupportTier> PickTiers(IEnumerable<StoreItem> items)
 		=> items
 			.Where(i => i.ProductId?.StartsWith(DonationPrefix, StringComparison.OrdinalIgnoreCase) == true)
 			.OrderBy(i => ParsePrice(i.BasePrice))
-			.ThenBy(i => i.Title, StringComparer.CurrentCulture)
+			.ThenBy(i => i.ProductId, StringComparer.Ordinal)
 			.Take(MaxTiers)
 			.Select(i => new SupportTier(i.StoreId, i.Title, i.Price))
 			.ToList();

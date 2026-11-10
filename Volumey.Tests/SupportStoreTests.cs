@@ -59,4 +59,11 @@ public class SupportStoreTests
 		Assert.AreEqual(SupportStore.MaxTiers, tiers.Count);
 		Assert.AreEqual("Tier 1", tiers[0].Title);
 	}
+
+	[TestMethod]
+	public void TiersOfTheSamePriceAreOrderedByProductId()
+	{
+		var tiers = SupportStore.PickTiers([Item("DonationB", "Alpha", "$5"), Item("DonationA", "Zulu", "$5")]);
+		CollectionAssert.AreEqual(new[] { "Zulu", "Alpha" }, tiers.Select(t => t.Title).ToArray());
+	}
 }
