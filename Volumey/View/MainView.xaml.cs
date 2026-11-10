@@ -768,8 +768,14 @@ public sealed partial class MainView
 
 		//the gap is only added to the target: the cap above is a limit on the content, not on the window frame
 		applyingPlacement = true;
-		Height = Math.Clamp(targetHeight, MinHeight, max);
-		applyingPlacement = false;
+		try
+		{
+			Height = Math.Clamp(targetHeight, MinHeight, max);
+		}
+		finally
+		{
+			applyingPlacement = false;
+		}
 	}
 
 	/// <summary>
