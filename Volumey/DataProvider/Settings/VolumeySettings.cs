@@ -93,6 +93,9 @@ public sealed class VolumeySettings : NotifiyingJsonSettings
 					//also runs on a timer thread, where an exception would end the app
 					log4net.LogManager.GetLogger(typeof(VolumeySettings)).Error("Failed to save the settings", e);
 					SettingsSaveStatus.Report(e);
+					//still to be written: by the next change's save or by the flush on exit
+					lock(saveLock)
+						pendingFile ??= file;
 					return;
 				}
 			}
