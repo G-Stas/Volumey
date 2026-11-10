@@ -274,14 +274,18 @@ public sealed partial class NotificationViewModel : ObservableObject
 
 		_deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 
-		_currentDefaultDevice = _deviceProvider.DefaultDevice;
-		if(_currentDefaultDevice == null)
+		var device = _currentDefaultDevice = _deviceProvider.DefaultDevice;
+		if(device == null)
 			return;
 
-		_currentDefaultDevice.ProcessCreated += OnProcessCreated;
-		_currentDefaultDevice.SetStateNotificationMediator(_notifications);
+		device.ProcessCreated += OnProcessCreated;
+		device.SetStateNotificationMediator(_notifications);
 
-		foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
+		var processes = await device.GetImmutableProcessesAsync();
+		//turned off or moved to another device meanwhile: that has taken over the apps
+		if(!_reactToAllChanges || _currentDefaultDevice != device)
+			return;
+		foreach(AudioProcessModel proc in processes)
 			proc.SetStateMediator(_notifications);
 	}
 
@@ -290,20 +294,22 @@ public sealed partial class NotificationViewModel : ObservableObject
 
 		_deviceProvider.DefaultDeviceChanged -= OnDefaultDeviceChanged;
 
-		if(_currentDefaultDevice == null)
+		//cleared before the await: turning it on again meanwhile sets its own device
+		var device = _currentDefaultDevice;
+		_currentDefaultDevice = null;
+		if(device == null)
 			return;
 
-		if(!_currentDefaultDevice.Master.AnyHotkeyRegistered)
-			_currentDefaultDevice.ResetStateNotificationMediator();
-		_currentDefaultDevice.ProcessCreated -= OnProcessCreated;
+		if(!device.Master.AnyHotkeyRegistered)
+			device.ResetStateNotificationMediator();
+		device.ProcessCreated -= OnProcessCreated;
 
-		foreach(AudioProcessModel proc in await _currentDefaultDevice.GetImmutableProcessesAsync())
+		//an app keeps its OSD while the setting is on again (ResetStateMediator checks it)
+		foreach(AudioProcessModel proc in await device.GetImmutableProcessesAsync())
 		{
 			if(!proc.AnyHotkeyRegistered)
 				proc.ResetStateMediator();
 		}
-
-		_currentDefaultDevice = null;
 	}
 
 	private void OnDefaultDeviceChanged(OutputDeviceModel? newDevice)
