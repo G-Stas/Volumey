@@ -52,6 +52,8 @@ public sealed partial class SupportDialog
 	{
 		isBuying = true;
 		TierList.IsEnabled = false;
+		//the dialog stays while the Store's purchase window is open
+		SetCloseButtonEnabled(false);
 		try
 		{
 			var result = await vm.PurchaseAsync(tier);
@@ -68,7 +70,21 @@ public sealed partial class SupportDialog
 		finally
 		{
 			TierList.IsEnabled = true;
+			SetCloseButtonEnabled(true);
 			isBuying = false;
 		}
+	}
+
+	private void SetCloseButtonEnabled(bool enabled)
+	{
+		if(GetTemplateChild("CloseButton") is UIElement close)
+			close.IsEnabled = enabled;
+	}
+
+	//the dialog doesn't close while a purchase is in progress
+	protected override void OnButtonClick(ContentDialogButton button)
+	{
+		if(!isBuying)
+			base.OnButtonClick(button);
 	}
 }
