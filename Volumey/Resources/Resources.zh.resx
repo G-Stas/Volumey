@@ -685,4 +685,25 @@
   <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
     <value>切换到下一个输出设备</value>
   </data>
+  <data name="Support_Title" xml:space="preserve">
+    <value>支持 Volumey</value>
+  </data>
+  <data name="Support_Text" xml:space="preserve">
+    <value>Volumey 是免费的，由我利用业余时间开发。如果它对你有帮助，欢迎支持它。</value>
+  </data>
+  <data name="Support_NotNow" xml:space="preserve">
+    <value>暂不</value>
+  </data>
+  <data name="Support_ThanksTitle" xml:space="preserve">
+    <value>谢谢！</value>
+  </data>
+  <data name="Support_ThanksText" xml:space="preserve">
+    <value>你的支持让 Volumey 得以继续发展。欢迎随时再来。</value>
+  </data>
+  <data name="Support_Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Support_Failed" xml:space="preserve">
+    <value>购买未能完成，请稍后重试。</value>
+  </data>
 </root>

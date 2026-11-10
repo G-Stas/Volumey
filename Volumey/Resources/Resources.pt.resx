@@ -685,4 +685,25 @@
   <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
     <value>Alternar para o próximo dispositivo de saída</value>
   </data>
+  <data name="Support_Title" xml:space="preserve">
+    <value>Apoiar o Volumey</value>
+  </data>
+  <data name="Support_Text" xml:space="preserve">
+    <value>O Volumey é gratuito e eu o faço no meu tempo livre. Se ele te ajuda, você pode apoiá-lo.</value>
+  </data>
+  <data name="Support_NotNow" xml:space="preserve">
+    <value>Agora não</value>
+  </data>
+  <data name="Support_ThanksTitle" xml:space="preserve">
+    <value>Obrigado!</value>
+  </data>
+  <data name="Support_ThanksText" xml:space="preserve">
+    <value>Seu apoio mantém o Volumey vivo. Volte quando quiser.</value>
+  </data>
+  <data name="Support_Close" xml:space="preserve">
+    <value>Fechar</value>
+  </data>
+  <data name="Support_Failed" xml:space="preserve">
+    <value>A compra não foi concluída. Tente novamente mais tarde.</value>
+  </data>
 </root>

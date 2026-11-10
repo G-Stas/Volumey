@@ -370,9 +370,7 @@ internal sealed class VolumeyApp : IDisposable
 	/// </summary>
 	public AutomationElement TrayMenuItem(string name)
 	{
-		AutomationElement? Item() => app!.GetAllTopLevelWindows(Automation)
-		                                 .Select(w => w.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuItem).And(cf.ByName(name))))
-		                                 .FirstOrDefault(i => i != null);
+		AutomationElement? Item() => FindOpenMenuItem(name);
 		for(int attempt = 0; attempt < 2; attempt++)
 		{
 			var icon = TrayIcon();
@@ -384,6 +382,14 @@ internal sealed class VolumeyApp : IDisposable
 		}
 		throw new InvalidOperationException($"No \"{name}\" in the tray menu");
 	}
+
+	/// <summary>
+	/// The item of the app's open menu, or null: a hidden item isn't there
+	/// </summary>
+	public AutomationElement? FindOpenMenuItem(string name)
+		=> app!.GetAllTopLevelWindows(Automation)
+		       .Select(w => w.FindFirstDescendant(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuItem).And(cf.ByName(name))))
+		       .FirstOrDefault(i => i != null);
 
 	/// <summary>Exits the app with the tray menu, the way a person quits it (it saves the window's place and size then)</summary>
 	public void ExitByTray()

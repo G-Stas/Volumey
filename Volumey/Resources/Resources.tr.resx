@@ -685,4 +685,25 @@
   <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
     <value>Sonraki çıkış cihazına geç</value>
   </data>
+  <data name="Support_Title" xml:space="preserve">
+    <value>Volumey'i destekle</value>
+  </data>
+  <data name="Support_Text" xml:space="preserve">
+    <value>Volumey ücretsizdir ve boş zamanlarımda geliştiriyorum. İşinize yarıyorsa onu destekleyebilirsiniz.</value>
+  </data>
+  <data name="Support_NotNow" xml:space="preserve">
+    <value>Şimdi değil</value>
+  </data>
+  <data name="Support_ThanksTitle" xml:space="preserve">
+    <value>Teşekkürler!</value>
+  </data>
+  <data name="Support_ThanksText" xml:space="preserve">
+    <value>Desteğiniz Volumey'in gelişmeye devam etmesini sağlıyor. İstediğiniz zaman tekrar gelebilirsiniz.</value>
+  </data>
+  <data name="Support_Close" xml:space="preserve">
+    <value>Kapat</value>
+  </data>
+  <data name="Support_Failed" xml:space="preserve">
+    <value>Satın alma tamamlanamadı. Lütfen daha sonra tekrar deneyin.</value>
+  </data>
 </root>

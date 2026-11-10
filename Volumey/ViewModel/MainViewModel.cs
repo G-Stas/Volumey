@@ -11,13 +11,15 @@ public sealed class MainViewModel
 	public DeviceProviderViewModel Devices { get; }
 	public ThemeViewModel Theme { get; }
 	public LevelMeters Meters { get; }
+	public SupportViewModel Support { get; }
 
-	internal MainViewModel(AppBehaviorViewModel window, DeviceProviderViewModel devices, ThemeViewModel theme, LevelMeters meters)
+	internal MainViewModel(AppBehaviorViewModel window, DeviceProviderViewModel devices, ThemeViewModel theme, LevelMeters meters, SupportViewModel support)
 	{
 		Window = window;
 		Devices = devices;
 		Theme = theme;
 		Meters = meters;
+		Support = support;
 		//without the picker there's no way to leave another device: the mixer goes back to the default one
 		window.PropertyChanged += (_, e) =>
 		{

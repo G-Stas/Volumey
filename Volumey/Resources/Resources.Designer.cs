@@ -230,5 +230,68 @@ namespace Volumey.Resources {
                 return ResourceManager.GetString("TrayMenu_SoundSettings", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_Title {
+            get {
+                return ResourceManager.GetString("Support_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_Text {
+            get {
+                return ResourceManager.GetString("Support_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_NotNow {
+            get {
+                return ResourceManager.GetString("Support_NotNow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_ThanksTitle {
+            get {
+                return ResourceManager.GetString("Support_ThanksTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_ThanksText {
+            get {
+                return ResourceManager.GetString("Support_ThanksText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_Close {
+            get {
+                return ResourceManager.GetString("Support_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string Support_Failed {
+            get {
+                return ResourceManager.GetString("Support_Failed", resourceCulture);
+            }
+        }
     }
 }
