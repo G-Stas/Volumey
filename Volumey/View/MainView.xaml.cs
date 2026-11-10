@@ -897,8 +897,6 @@ public sealed partial class MainView
 		finally
 		{
 			vm.KeepsPopupOpen = false;
-			//the popup hides again when its focus is lost
-			Activate();
 		}
 	}
 
