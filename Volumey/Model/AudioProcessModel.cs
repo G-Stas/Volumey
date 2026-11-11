@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -150,7 +151,8 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 
 	private int _volume;
 	/// <summary>
-	/// The app's volume. While it's locked (<see cref="Lock"/>) it can't be set, by the slider, a hotkey or anything else
+	/// The app's volume: its loudest session's. Setting it sets every session to the value. While it's locked (<see cref="Lock"/>) it can't be
+	/// set, by the slider or anything else
 	/// </summary>
 	public int Volume
 	{
@@ -168,13 +170,80 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 				else
 					_volume = value;
 
-				lock(_sessionsLock)
+				//the sessions report each change: the app's volume is the new value once all of them have it, not before
+				_settingSessions = this;
+				try
 				{
-					foreach(AudioSessionModel session in Sessions)
-						session.Volume = _volume;
+					lock(_sessionsLock)
+					{
+						foreach(AudioSessionModel session in Sessions)
+							session.Volume = _volume;
+					}
+				}
+				finally
+				{
+					_settingSessions = null;
 				}
 				OnPropertyChanged();
 			}
+		}
+	}
+
+	//the model that is setting its sessions on this thread
+	[ThreadStatic]
+	private static AudioProcessModel? _settingSessions;
+
+	private sealed class SessionVolume(Action<int, Guid> handler)
+	{
+		public volatile int Volume;
+		public readonly Action<int, Guid> Handler = handler;
+	}
+
+	//each session's volume and the handler that follows it. Windows reports a session's change on a COM thread, which mustn't wait for the
+	//sessions' lock while another thread holds it for a call into Windows
+	private readonly ConcurrentDictionary<AudioSessionModel, SessionVolume> _sessionVolumes = new();
+
+	private void WatchSessionVolume(AudioSessionModel session)
+	{
+		var watched = new SessionVolume((volume, context) => OnSessionVolumeChanged(session, volume, context)) { Volume = session.Volume };
+		_sessionVolumes[session] = watched;
+		session.VolumeChanged += watched.Handler;
+	}
+
+	private void StopWatchingSessionVolume(AudioSessionModel session)
+	{
+		if(_sessionVolumes.TryRemove(session, out var watched))
+			session.VolumeChanged -= watched.Handler;
+	}
+
+	//also raised when this model's own setter changes the sessions, and by a session's own slider
+	private void OnSessionVolumeChanged(AudioSessionModel session, int volume, Guid context)
+	{
+		if(_sessionVolumes.TryGetValue(session, out var watched))
+			watched.Volume = volume;
+		if(ReferenceEquals(_settingSessions, this))
+			return;
+		//a locked volume doesn't follow the sessions: it's put back
+		if(Lock.IsOn)
+			return;
+		FollowSessionVolumes();
+
+		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
+		{
+			if(!context.Equals(GuidValue.Internal.VolumeGUID))
+				StateNotificationMediator?.NotifyAudioStateChange(this);
+		}
+	}
+
+	private void FollowSessionVolumes()
+	{
+		int loudest = -1;
+		foreach(SessionVolume watched in _sessionVolumes.Values)
+			loudest = Math.Max(loudest, watched.Volume);
+		if(loudest >= 0 && _volume != loudest)
+		{
+			_volume = loudest;
+			OnPropertyChanged(nameof(Volume));
 		}
 	}
 
@@ -240,7 +309,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	}
 
 	/// <summary>
-	/// Session of the process which is used as reference to current process state i.e. its current volume and mute state 
+	/// Session of the process which is used as reference to the app's mute state
 	/// </summary>
 	private AudioSessionModel? _trackedSession;
 
@@ -316,7 +385,6 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 					IsMuted = newSession.IsMuted;
 					GroupingParam = newSession.GroupingParam;
 					_trackedSession = newSession;
-					_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
 					_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
 				}
 				else
@@ -325,6 +393,7 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 					newSession.IsMuted = IsMuted;
 				}
 				Lock.Attach(newSession);
+				WatchSessionVolume(newSession);
 			}
 		}
 		if(addedPlaying)
@@ -338,24 +407,6 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		{
 			_isMuted = muteState;
 			OnPropertyChanged(nameof(IsMuted));
-		}
-
-		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
-		{
-			if(!context.Equals(GuidValue.Internal.VolumeGUID))
-				StateNotificationMediator?.NotifyAudioStateChange(this);
-		}
-	}
-
-	private void OnTrackedSessionVolumeChanged(int volume, Guid context)
-	{
-		//a locked volume doesn't follow the session: it's put back
-		if(Lock.IsOn)
-			return;
-		if(_volume != volume)
-		{
-			_volume = volume;
-			OnPropertyChanged(nameof(Volume));
 		}
 
 		if(SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges)
@@ -477,15 +528,20 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	}
 
 	/// <summary>
-	/// A hotkey press: the volume by the volume step (<paramref name="direction"/> 1 or -1) or the mute toggled (0), with the OSD for this
-	/// model; the app's other models (<paramref name="sameApp"/>, on other devices) get the same volume or mute
+	/// A hotkey press: every session's volume by the volume step (<paramref name="direction"/> 1 or -1), each on its own, or the mute
+	/// toggled (0), with the OSD for this model; the app's other models (<paramref name="sameApp"/>, on other devices) get the same step or
+	/// mute
 	/// </summary>
 	internal void ApplyHotkey(int direction, IReadOnlyList<AudioProcessModel> sameApp)
 	{
+		int step = direction * _hotkeys.VolumeStep;
 		if(direction == 0)
 			SetMute(!IsMuted, notify: true, GuidValue.Internal.Empty);
 		else
-			SetVolume(Volume + direction * _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+		{
+			StepSessions(step);
+			StateNotificationMediator?.NotifyAudioStateChange(this);
+		}
 		foreach(var other in sameApp)
 		{
 			if(other == this || other.IsDisposed)
@@ -493,7 +549,19 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			if(direction == 0)
 				other.IsMuted = IsMuted;
 			else
-				other.Volume = Volume;
+				other.StepSessions(step);
+		}
+	}
+
+	/// <summary>Changes each session's volume by <paramref name="step"/>, so sessions that differ keep their difference; does nothing while locked</summary>
+	private void StepSessions(int step)
+	{
+		if(Lock.IsOn)
+			return;
+		lock(_sessionsLock)
+		{
+			foreach(AudioSessionModel session in Sessions)
+				session.Volume += step;
 		}
 	}
 
@@ -561,7 +629,11 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		endedSession.SessionEnded -= OnSessionEnded;
 		endedSession.Deactivated -= OnSessionDeactivated;
 		endedSession.ActivityChanged -= OnSessionActivityChanged;
+		StopWatchingSessionVolume(endedSession);
 		Lock.Detach(endedSession);
+		//the app's volume is its loudest session's: without this one it can be lower
+		if(!Lock.IsOn)
+			FollowSessionVolumes();
 		if(endedSession.IsActive)
 			ActivityChanged?.Invoke(this);
 		if(endedSession.EndedByFormatChange)
@@ -581,14 +653,10 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			{
 				if(_trackedSession == endedSession)
 				{
-					endedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
 					endedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
 					_trackedSession = Sessions.FirstOrDefault();
 					if(_trackedSession != null)
-					{
-						_trackedSession.VolumeChanged += OnTrackedSessionVolumeChanged;
 						_trackedSession.MuteStateChanged += OnTrackedSessionStateChanged;
-					}
 				}
 			}
 			endedSession.Dispose();
@@ -631,13 +699,13 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 		{
 			if(_trackedSession != null)
 			{
-				_trackedSession.VolumeChanged -= OnTrackedSessionVolumeChanged;
 				_trackedSession.MuteStateChanged -= OnTrackedSessionStateChanged;
 				_trackedSession = null;
 			}
 			foreach(AudioSessionModel session in Sessions)
 			{
 				session.ActivityChanged -= OnSessionActivityChanged;
+				StopWatchingSessionVolume(session);
 				session.Dispose();
 			}
 		}

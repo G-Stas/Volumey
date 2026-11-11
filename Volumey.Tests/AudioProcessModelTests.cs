@@ -67,6 +67,195 @@ public class AudioProcessModelTests
 		Assert.AreEqual(77, proc.Volume);
 	}
 
+	//sessions of one app, each set to its own volume like the sub-sliders do (a session that joins takes the app's volume first)
+	private (AudioProcessModel app, AudioSessionModel[] sessions, Mock<IAudioSessionStateNotifications>[] notifications) AppWithSessions(params int[] volumes)
+	{
+		var app = GetProcessMock("app", volumes[0], false, hotkeys);
+		var sessions = new AudioSessionModel[volumes.Length];
+		var notifications = new Mock<IAudioSessionStateNotifications>[volumes.Length];
+		for(int i = 0; i < volumes.Length; i++)
+		{
+			notifications[i] = new Mock<IAudioSessionStateNotifications>();
+			sessions[i] = new AudioSessionModel(false, volumes[i], i.ToString(), app.ProcessId, default, default, Guid.Empty,
+				new Mock<IAudioSessionVolume>().Object, notifications[i].Object);
+			app.AddSession(sessions[i]);
+		}
+		for(int i = 0; i < volumes.Length; i++)
+			sessions[i].Volume = volumes[i];
+		return (app, sessions, notifications);
+	}
+
+	[TestMethod]
+	public void TheAppsVolumeIsTheLoudestSession()
+	{
+		var (app, _, _) = AppWithSessions(20, 70, 50);
+
+		Assert.AreEqual(70, app.Volume);
+	}
+
+	[TestMethod]
+	public void TheOwnSliderOfAnySessionMovesTheAppsVolumeWhenItIsTheLoudest()
+	{
+		var (app, sessions, _) = AppWithSessions(70, 20);
+
+		sessions[1].Volume = 90;
+		Assert.AreEqual(90, app.Volume);
+
+		sessions[1].Volume = 30;
+		Assert.AreEqual(70, app.Volume);
+	}
+
+	[TestMethod]
+	public void AChangeFromOutsideInAnySessionReachesTheApp()
+	{
+		var (app, _, notifications) = AppWithSessions(70, 20);
+
+		notifications[1].Raise(n => n.VolumeChanged += null, new VolumeChangedEventArgs(85, false));
+
+		Assert.AreEqual(85, app.Volume);
+	}
+
+	[TestMethod]
+	public void WhenTheLoudestSessionEndsTheAppFollowsTheNextOne()
+	{
+		var (app, sessions, notifications) = AppWithSessions(70, 20, 50);
+
+		notifications[0].Raise(n => n.SessionEnded += null);
+		RunQueuedDispatcherWork();
+		Assert.IsTrue(SpinWait.SpinUntil(() =>
+		{
+			try
+			{
+				notifications[0].Verify(n => n.Dispose(), Times.Once);
+				return true;
+			}
+			catch(MockException)
+			{
+				return false;
+			}
+		}, TimeSpan.FromSeconds(5)), "the ended session wasn't disposed");
+
+		Assert.AreEqual(50, app.Volume);
+	}
+
+	[TestMethod]
+	public void SettingTheAppsVolumeSetsEverySessionAndIsReportedOnceWithTheNewValue()
+	{
+		var (app, sessions, _) = AppWithSessions(70, 20);
+		var reported = new System.Collections.Generic.List<int>();
+		app.PropertyChanged += (_, e) =>
+		{
+			if(e.PropertyName == nameof(AudioProcessModel.Volume))
+				reported.Add(app.Volume);
+		};
+
+		app.Volume = 40;
+
+		Assert.AreEqual(40, sessions[0].Volume);
+		Assert.AreEqual(40, sessions[1].Volume);
+		CollectionAssert.AreEqual(new[] { 40 }, reported);
+	}
+
+	private Mock<IHotkeyManager> RegisterApp(AudioProcessModel app, HotKey up, HotKey down, HotKey mute = null,
+		System.Collections.Generic.IReadOnlyList<AudioProcessModel> sameApp = null)
+	{
+		var manager = new Mock<IHotkeyManager>();
+		hotkeys.SetHotkeyManager(manager.Object);
+		app.SetHotkeys(up, down, mute, out _, sameApp == null ? null : () => sameApp);
+		return manager;
+	}
+
+	[TestMethod]
+	public void AVolumeHotkeyStepsEverySessionOnItsOwn()
+	{
+		var (app, sessions, _) = AppWithSessions(70, 20);
+		var up = new HotKey(Key.A);
+		var manager = RegisterApp(app, up, new HotKey(Key.B));
+		int step = hotkeys.VolumeStep;
+
+		manager.Raise(m => m.HotkeyPressed += null, up);
+
+		Assert.AreEqual(70 + step, sessions[0].Volume);
+		Assert.AreEqual(20 + step, sessions[1].Volume);
+		Assert.AreEqual(70 + step, app.Volume);
+	}
+
+	[TestMethod]
+	public void AVolumeHotkeyStopsEachSessionAtItsOwnLimit()
+	{
+		var (app, sessions, _) = AppWithSessions(100, 1);
+		var down = new HotKey(Key.B);
+		var manager = RegisterApp(app, new HotKey(Key.A), down);
+		int step = hotkeys.VolumeStep;
+
+		manager.Raise(m => m.HotkeyPressed += null, down);
+
+		Assert.AreEqual(100 - step, sessions[0].Volume);
+		Assert.AreEqual(Math.Max(0, 1 - step), sessions[1].Volume);
+	}
+
+	[TestMethod]
+	public void AVolumeHotkeyShowsTheOsdWithTheNewLoudestVolume()
+	{
+		SettingsProvider.Settings.Notifications.ReactToAllVolumeChanges = false;
+		var (app, _, _) = AppWithSessions(70, 20);
+		var shown = new System.Collections.Generic.List<int>();
+		var mediator = new Mock<IAudioProcessStateMediator>();
+		mediator.Setup(m => m.NotifyAudioStateChange(It.IsAny<IManagedMasterAudioSession>())).Callback(() => shown.Add(app.Volume));
+		app.SetStateMediator(mediator.Object);
+		var up = new HotKey(Key.A);
+		var manager = RegisterApp(app, up, new HotKey(Key.B));
+
+		manager.Raise(m => m.HotkeyPressed += null, up);
+
+		CollectionAssert.AreEqual(new[] { 70 + hotkeys.VolumeStep }, shown);
+	}
+
+	[TestMethod]
+	public void AVolumeHotkeyLeavesALockedAppAsItIs()
+	{
+		var (app, sessions, _) = AppWithSessions(70, 20);
+		app.Lock.Hold(new VolumeLock(VolumeLockMode.UntilClosed, 40, 50));
+		var up = new HotKey(Key.A);
+		var manager = RegisterApp(app, up, new HotKey(Key.B));
+
+		manager.Raise(m => m.HotkeyPressed += null, up);
+
+		Assert.AreEqual(40, sessions[0].Volume);
+		Assert.AreEqual(40, sessions[1].Volume);
+		Assert.AreEqual(40, app.Volume);
+	}
+
+	[TestMethod]
+	public void AVolumeHotkeyStepsTheSessionsOfTheAppsOtherModelsOnTheirOwnToo()
+	{
+		var (app, sessions, _) = AppWithSessions(70, 20);
+		var (other, otherSessions, _) = AppWithSessions(50, 10);
+		var up = new HotKey(Key.A);
+		var manager = RegisterApp(app, up, new HotKey(Key.B), sameApp: [app, other]);
+		int step = hotkeys.VolumeStep;
+
+		manager.Raise(m => m.HotkeyPressed += null, up);
+
+		Assert.AreEqual(70 + step, sessions[0].Volume);
+		Assert.AreEqual(20 + step, sessions[1].Volume);
+		Assert.AreEqual(50 + step, otherSessions[0].Volume);
+		Assert.AreEqual(10 + step, otherSessions[1].Volume);
+	}
+
+	[TestMethod]
+	public void AMuteHotkeyTogglesEverySession()
+	{
+		var (app, sessions, _) = AppWithSessions(70, 20);
+		var mute = new HotKey(Key.M);
+		var manager = RegisterApp(app, new HotKey(Key.A), new HotKey(Key.B), mute);
+
+		manager.Raise(m => m.HotkeyPressed += null, mute);
+
+		Assert.IsTrue(sessions[0].IsMuted);
+		Assert.IsTrue(sessions[1].IsMuted);
+	}
+
 	private static void RunQueuedDispatcherWork()
 	{
 		var frame = new DispatcherFrame();

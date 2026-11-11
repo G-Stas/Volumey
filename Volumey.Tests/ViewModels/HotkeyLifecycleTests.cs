@@ -37,7 +37,7 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 		Settings.Notifications.ReactToAllVolumeChanges = true;
 		var sessionVolume = new Mock<IAudioSessionVolume>();
 		var sessionEvents = new Mock<IAudioSessionStateNotifications>();
-		var process = CreateProcess("Spotify", 50);
+		var process = CreateProcess("Spotify", 50, withSession: false);
 		process.AddSession(new Volumey.Model.AudioSessionModel(false, 50, "1", default, default, default, Guid.Empty, sessionVolume.Object, sessionEvents.Object));
 		var shown = new System.Collections.Generic.List<int>();
 		var mediator = new Mock<IAudioProcessStateMediator>();

@@ -118,8 +118,17 @@ public abstract class ViewModelTestBase
 	private uint nextProcessId = 1000;
 
 	/// <summary>An app's model as a device makes it: its own process, the executable by name (models with one name are one app)</summary>
-	protected AudioProcessModel CreateProcess(string name, int volume = 50)
-		=> new AudioProcessModel(volume, false, name, nextProcessId += 4, $@"C:\Apps\{name}.exe", null, null, Hotkeys);
+	/// <param name="withSession">An app always has a session: its volume is the sessions', and a hotkey changes them. False for a test that adds its own</param>
+	protected AudioProcessModel CreateProcess(string name, int volume = 50, bool withSession = true)
+	{
+		uint processId = nextProcessId += 4;
+		string path = $@"C:\Apps\{name}.exe";
+		var app = new AudioProcessModel(volume, false, name, processId, path, null, null, Hotkeys);
+		if(withSession)
+			app.AddSession(new AudioSessionModel(false, volume, name, processId, name, path, Guid.Empty,
+				new Mock<IAudioSessionVolume>().Object, new Mock<IAudioSessionStateNotifications>().Object));
+		return app;
+	}
 
 	private AppRouting appRouting;
 

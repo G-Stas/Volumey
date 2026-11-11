@@ -275,10 +275,10 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		PressHotkey(Up);
 		Assert.AreEqual(50, first.Volume);
 		Assert.AreEqual(30, second.Volume);
-		//the app gets the same volume wherever Windows plays it: the new volume of its home model (on the default device)
+		//the app's volume moves by the step wherever Windows plays it, each model from its own volume
 		PressHotkey(newUp);
 		Assert.AreEqual(50 + Hotkeys.VolumeStep, first.Volume);
-		Assert.AreEqual(50 + Hotkeys.VolumeStep, second.Volume);
+		Assert.AreEqual(30 + Hotkeys.VolumeStep, second.Volume);
 	}
 
 	[TestMethod]
@@ -302,7 +302,7 @@ public class AppAndDefaultDeviceHotkeysTests : ViewModelTestBase
 		Assert.AreEqual(Up, Settings.Hotkeys.Apps.Single().VolumeUp);
 		PressHotkey(Up);
 		Assert.AreEqual(50 + Hotkeys.VolumeStep, first.Volume);
-		Assert.AreEqual(50 + Hotkeys.VolumeStep, second.Volume);
+		Assert.AreEqual(30 + Hotkeys.VolumeStep, second.Volume);
 	}
 
 	[TestMethod]
