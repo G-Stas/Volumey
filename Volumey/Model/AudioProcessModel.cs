@@ -528,15 +528,20 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 	}
 
 	/// <summary>
-	/// A hotkey press: the volume by the volume step (<paramref name="direction"/> 1 or -1) or the mute toggled (0), with the OSD for this
-	/// model; the app's other models (<paramref name="sameApp"/>, on other devices) get the same volume or mute
+	/// A hotkey press: every session's volume by the volume step (<paramref name="direction"/> 1 or -1), each on its own, or the mute
+	/// toggled (0), with the OSD for this model; the app's other models (<paramref name="sameApp"/>, on other devices) get the same step or
+	/// mute
 	/// </summary>
 	internal void ApplyHotkey(int direction, IReadOnlyList<AudioProcessModel> sameApp)
 	{
+		int step = direction * _hotkeys.VolumeStep;
 		if(direction == 0)
 			SetMute(!IsMuted, notify: true, GuidValue.Internal.Empty);
 		else
-			SetVolume(Volume + direction * _hotkeys.VolumeStep, notify: true, GuidValue.Internal.Empty);
+		{
+			StepSessions(step);
+			StateNotificationMediator?.NotifyAudioStateChange(this);
+		}
 		foreach(var other in sameApp)
 		{
 			if(other == this || other.IsDisposed)
@@ -544,7 +549,19 @@ public sealed class AudioProcessModel : IManagedMasterAudioSession
 			if(direction == 0)
 				other.IsMuted = IsMuted;
 			else
-				other.Volume = Volume;
+				other.StepSessions(step);
+		}
+	}
+
+	/// <summary>Changes each session's volume by <paramref name="step"/>, so sessions that differ keep their difference; does nothing while locked</summary>
+	private void StepSessions(int step)
+	{
+		if(Lock.IsOn)
+			return;
+		lock(_sessionsLock)
+		{
+			foreach(AudioSessionModel session in Sessions)
+				session.Volume += step;
 		}
 	}
 
