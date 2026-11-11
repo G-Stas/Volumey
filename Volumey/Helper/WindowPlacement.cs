@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Drawing;
 
 namespace Volumey.Helper;
@@ -27,4 +28,11 @@ internal static class WindowPlacement
 			top = workArea.Top;
 		return new Point(left, top);
 	}
+
+	/// <summary>
+	/// Where a window of this size lies centered in the work area; a window bigger than the work area is aligned to its top left corner
+	/// </summary>
+	public static Point CenterIn(Size window, Rectangle workArea)
+		=> new(workArea.Left + Math.Max(0, (workArea.Width - window.Width) / 2),
+			   workArea.Top + Math.Max(0, (workArea.Height - window.Height) / 2));
 }
