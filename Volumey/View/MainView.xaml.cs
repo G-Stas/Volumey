@@ -896,7 +896,8 @@ public sealed partial class MainView
 		if(!PInvoke.GetMonitorInfo(PInvoke.MonitorFromWindow((HWND)Hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST), ref monitor))
 			return;
 		var work = monitor.rcWork;
-		//the target screen's scale gives the window's size there; the window's current DPI converts physical pixels to its Left/Top
+		//the target screen's scale gives the window's size there. The position is set in physical pixels:
+		//WPF converts Left/Top with the scale of the screen the window lands on, which on mixed scales isn't known before the move
 		double targetScale = 1;
 		foreach(var screen in vm.AllScreens)
 			if((int)screen.WorkingAreaLeft == work.left && (int)screen.WorkingAreaTop == work.top)
@@ -907,12 +908,12 @@ public sealed partial class MainView
 			window.MinWidth = workWidth;
 		window.Width = Math.Min(window.Width, workWidth);
 		window.Height = Math.Min(window.Height, workHeight);
-		double currentScale = VisualTreeHelper.GetDpi(window).DpiScaleX;
-		double width = window.Width * targetScale;
-		double height = window.Height * targetScale;
+		var size = new System.Drawing.Size((int)Math.Round(window.Width * targetScale), (int)Math.Round(window.Height * targetScale));
+		var position = WindowPlacement.CenterIn(size, System.Drawing.Rectangle.FromLTRB(work.left, work.top, work.right, work.bottom));
 		window.WindowStartupLocation = WindowStartupLocation.Manual;
-		window.Left = (work.left + Math.Max(0, (work.right - work.left - width) / 2)) / currentScale;
-		window.Top = (work.top + Math.Max(0, (work.bottom - work.top - height) / 2)) / currentScale;
+		var hwnd = (HWND)new WindowInteropHelper(window).EnsureHandle();
+		PInvoke.SetWindowPos(hwnd, default, position.X, position.Y, 0, 0,
+							 SET_WINDOW_POS_FLAGS.SWP_NOSIZE | SET_WINDOW_POS_FLAGS.SWP_NOZORDER | SET_WINDOW_POS_FLAGS.SWP_NOACTIVATE);
 	}
 
 	private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

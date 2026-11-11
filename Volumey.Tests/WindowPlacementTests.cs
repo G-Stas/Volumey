@@ -29,4 +29,12 @@ public class WindowPlacementTests
 	[TestMethod]
 	public void AWindowBiggerThanTheWorkAreaIsAlignedToItsTopLeftCorner()
 		=> Assert.AreEqual(new Point(2560, 0), WindowPlacement.KeepInside(new Rectangle(3000, 200, 2000, 1200), WorkArea));
+
+	[TestMethod]
+	public void AWindowIsCenteredInTheWorkArea()
+		=> Assert.AreEqual(new Point(3020, 116), WindowPlacement.CenterIn(new Size(1000, 800), WorkArea));
+
+	[TestMethod]
+	public void AWindowBiggerThanTheWorkAreaIsCenteredAtItsTopLeftCorner()
+		=> Assert.AreEqual(new Point(2560, 0), WindowPlacement.CenterIn(new Size(2000, 1200), WorkArea));
 }
