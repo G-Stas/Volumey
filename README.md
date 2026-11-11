@@ -68,7 +68,7 @@ Windows lets you change an app's volume only with the mouse, in a mixer buried i
 </p>
 
 ## Download
-- [Microsoft Store](https://www.microsoft.com/store/apps/9mzcq03mx0s3)
+- [Microsoft Store](https://apps.microsoft.com/store/detail/9MZCQ03MX0S3?cid=github)
 - [GitHub Releases](https://github.com/G-Stas/Volumey/releases)
 
 ## Supported OS
