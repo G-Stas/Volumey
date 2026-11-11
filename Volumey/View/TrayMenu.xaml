@@ -224,6 +224,15 @@
             Command="{Binding Window.SoundSettingsCommand}"
             Visibility="{Binding Window.CanOpenSoundSettings, Converter={StaticResource BoolToVisibility}}"
             Icon="{ui:SymbolIcon Open24}" />
+        <Separator Visibility="{Binding Support.IsAvailable, Converter={StaticResource BoolToVisibility}}" />
+        <MenuItem
+            Header="{lc:Localization Support_Title}"
+            Command="{Binding Support.OpenDialogCommand}"
+            Visibility="{Binding Support.IsAvailable, Converter={StaticResource BoolToVisibility}}">
+            <MenuItem.Icon>
+                <ui:SymbolIcon Symbol="Heart24" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+            </MenuItem.Icon>
+        </MenuItem>
         <Separator />
         <MenuItem
             Header="{lc:Localization TrayMenu_Exit}"

@@ -240,6 +240,26 @@ public class HotkeyManagerTests
 		=> WaitFor(() => host.Running == GlobalHookType.All && hooks.Count == 2 && hooks[1].Object.IsRunning);
 
 	[TestMethod]
+	public void AHookThatFailsIsStartedAgain()
+	{
+		var hooks = new List<Mock<IGlobalHook>>();
+		var host = new InputHookHost(() =>
+		{
+			var hook = RunningHook(failedStops: 0);
+			if(hooks.Count == 0)
+				hook.Setup(h => h.Run(It.IsAny<GlobalHookType>())).Throws(new HookException(UioHookResult.Failure, "Failed to start"));
+			hooks.Add(hook);
+			return hook.Object;
+		}, start: true);
+
+		using var keyboard = new SharpHookHotkeyManager(host);
+		WaitFor(() => hooks.Count == 2 && hooks[1].Object.IsRunning);
+
+		Assert.AreEqual(GlobalHookType.Keyboard, host.Running);
+		hooks[1].Verify(h => h.Run(GlobalHookType.Keyboard), Times.Once);
+	}
+
+	[TestMethod]
 	public void AHookThatFailsToStopIsStoppedOnTheNextTry()
 	{
 		var hooks = new List<Mock<IGlobalHook>>();
@@ -323,12 +343,32 @@ public class HotkeyManagerTests
 		var down = new HotKey(Key.Down, ModifierKeys.Control);
 		first.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { up, down });
 		hotkeys.SetHotkeyManager(first.Object);
+		hotkeys.RegisterHotkeysPair(up, down);
 		var second = new Mock<IHotkeyManager>();
 		second.Setup(m => m.RegisterHotkey(up)).Throws(new InvalidOperationException("taken by another app"));
 
 		hotkeys.SetHotkeyManager(second.Object);
 
 		second.Verify(m => m.RegisterHotkey(down), Times.Once);
+	}
+
+	[TestMethod]
+	public void AHotkeyThatFailedToMoveIsRegisteredOnTheNextSwitch()
+	{
+		var up = new HotKey(Key.Up, ModifierKeys.Control);
+		var down = new HotKey(Key.Down, ModifierKeys.Control);
+		hotkeys.SetHotkeyManager(new Mock<IHotkeyManager>().Object);
+		hotkeys.RegisterHotkeysPair(up, down);
+		var blocking = new Mock<IHotkeyManager>();
+		blocking.Setup(m => m.RegisterHotkey(up)).Throws(new InvalidOperationException("taken by another app"));
+		blocking.Setup(m => m.GetRegisteredHotkeys()).Returns(new[] { down });
+		hotkeys.SetHotkeyManager(blocking.Object);
+
+		var hook = new Mock<IHotkeyManager>();
+		hotkeys.SetHotkeyManager(hook.Object);
+
+		hook.Verify(m => m.RegisterHotkey(up), Times.Once);
+		hook.Verify(m => m.RegisterHotkey(down), Times.Once);
 	}
 
 	[TestMethod]

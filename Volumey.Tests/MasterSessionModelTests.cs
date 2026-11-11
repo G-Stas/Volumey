@@ -530,6 +530,53 @@ public class MasterSessionModelTests
 	}
 
 	[TestMethod]
+	public void AChangeReportedOnAnotherThreadIsTakenOverOnTheModelsThread()
+	{
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, new Mock<IAudioSessionVolume>().Object, handlerMock.Object, new HotkeyService());
+		var changedOn = new List<int>();
+		master.PropertyChanged += (_, _) => changedOn.Add(Environment.CurrentManagedThreadId);
+
+		RaiseOnAnotherThread(handlerMock, new VolumeChangedEventArgs(30, true));
+
+		//nothing changes on the COM thread
+		Assert.AreEqual(50, master.Volume);
+		Assert.IsFalse(master.IsMuted);
+		RunQueuedDispatcherWork();
+		Assert.AreEqual(30, master.Volume);
+		Assert.IsTrue(master.IsMuted);
+		CollectionAssert.AreEqual(new[] { Environment.CurrentManagedThreadId, Environment.CurrentManagedThreadId }, changedOn);
+	}
+
+	[TestMethod]
+	public void AChangeReportedOnAnotherThreadIsDroppedOnceTheModelIsDisposed()
+	{
+		var handlerMock = new Mock<IMasterVolumeNotificationHandler>();
+		var master = new MasterSessionModel("dev", "desc", 50, false, "id", null, new Mock<IAudioSessionVolume>().Object, handlerMock.Object, new HotkeyService());
+
+		RaiseOnAnotherThread(handlerMock, new VolumeChangedEventArgs(30, false));
+		master.Dispose();
+		RunQueuedDispatcherWork();
+
+		Assert.AreEqual(50, master.Volume);
+	}
+
+	//a thread of its own: a task waited on may run on the waiting thread
+	private static void RaiseOnAnotherThread(Mock<IMasterVolumeNotificationHandler> handler, VolumeChangedEventArgs e)
+	{
+		var thread = new Thread(() => handler.Raise(h => h.VolumeChanged += null, e));
+		thread.Start();
+		thread.Join();
+	}
+
+	private static void RunQueuedDispatcherWork()
+	{
+		var frame = new System.Windows.Threading.DispatcherFrame();
+		System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, () => frame.Continue = false);
+		System.Windows.Threading.Dispatcher.PushFrame(frame);
+	}
+
+	[TestMethod]
 	public void ChangeVolumeByStepMustUseTheHotkeysStep()
 	{
 		var expected = model.Volume + hotkeys.VolumeStep;

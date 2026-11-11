@@ -229,8 +229,18 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			{
 				if(DefaultDevice != null && IsSwitchNeeded(id, DefaultDevice.Id, RequestedDefaultDeviceId))
 				{
+					var previous = requestedDefault;
 					requestedDefault = (id, DateTime.UtcNow);
-					PolicyClient.SetDefaultEndpointDevice(id);
+					try
+					{
+						PolicyClient.SetDefaultEndpointDevice(id);
+					}
+					catch
+					{
+						//a refused switch isn't about to happen: the next one counts from the default (or an earlier request)
+						requestedDefault = previous;
+						throw;
+					}
 				}
 			}
 		}

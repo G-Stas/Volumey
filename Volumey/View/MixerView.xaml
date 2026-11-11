@@ -38,6 +38,27 @@
                            Command="{Binding Window.TraySettingsCommand}">
                     <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
                 </ui:Button>
+                <!-- Store build, while the Store offers the donation add-ons -->
+                <ui:Button DockPanel.Dock="Right"
+                           Style="{StaticResource IconButton}"
+                           ToolTip="{lc:Localization Support_Title}"
+                           AutomationProperties.Name="{lc:Localization Support_Title}"
+                           AutomationProperties.AutomationId="SupportButton"
+                           Visibility="{Binding Support.IsAvailable, Converter={StaticResource BoolToVisibility}}"
+                           Command="{Binding Support.OpenDialogCommand}">
+                    <ui:SymbolIcon Symbol="Heart24" FontSize="18">
+                        <ui:SymbolIcon.Style>
+                            <Style TargetType="ui:SymbolIcon">
+                                <Style.Triggers>
+                                    <!-- the heart is red when the pointer is over the button -->
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ui:Button}}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:SymbolIcon.Style>
+                    </ui:SymbolIcon>
+                </ui:Button>
             </DockPanel>
         </Border>
 

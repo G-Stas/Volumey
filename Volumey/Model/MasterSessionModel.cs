@@ -154,7 +154,8 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 	private readonly IHotkeyService hotkeys;
 	private IAudioSessionVolume masterVolume { get; }
 	private IMasterVolumeNotificationHandler notificationHandler { get; }
-	private static Dispatcher dispatcher => App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+	//the thread the volume and mute state belong to: the hotkeys, the slider and the bindings use them there
+	private readonly Dispatcher dispatcher = App.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(MasterSessionModel));
 
@@ -358,8 +359,19 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
+	//raised on a COM thread for a device built off the UI thread, which must not wait for the UI thread
 	private void OnVolumeChanged(VolumeChangedEventArgs e)
 	{
+		if(dispatcher.CheckAccess())
+			TakeOverDeviceChange(e);
+		else
+			dispatcher.InvokeAsync(() => TakeOverDeviceChange(e));
+	}
+
+	private void TakeOverDeviceChange(VolumeChangedEventArgs e)
+	{
+		if(disposed)
+			return;
 		//a write of ours is queued or running: this is the echo of an older write (or one about to be superseded), and applying it
 		//would undo newer steps. The UI already shows the latest requested value
 		if(masterVolume.HasPendingWrites)

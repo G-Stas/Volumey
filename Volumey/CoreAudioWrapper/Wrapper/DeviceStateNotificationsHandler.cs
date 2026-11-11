@@ -144,6 +144,8 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 
 	//the devices being read again; on the UI thread
 	private readonly HashSet<string> notReadyDevices = new HashSet<string>();
+	//asked for again while being read again: read once more if those attempts end without the device; on the UI thread
+	private readonly HashSet<string> requestedAgain = new HashSet<string>();
 	private volatile bool disposed;
 
 	/// <summary>On the UI thread</summary>
@@ -151,6 +153,16 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 	{
 		if(notReadyDevices.Add(deviceId))
 			RetryAddAsync(deviceId, atStart).Forget(Logger, "Failed to read a device again");
+		else
+			requestedAgain.Add(deviceId);
+	}
+
+	/// <summary>On the UI thread, once the attempts for the device are over</summary>
+	private void EndRetries(string deviceId, bool listed)
+	{
+		notReadyDevices.Remove(deviceId);
+		if(requestedAgain.Remove(deviceId) && !listed && !disposed)
+			AddWhenReady(deviceId);
 	}
 
 	public bool IsAddingStartDevice { get; private set; }
@@ -158,6 +170,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 	private async Task RetryAddAsync(string deviceId, bool atStart)
 	{
 		Exception? lastError = null;
+		bool listed = false;
 		try
 		{
 			foreach(var delay in NotReadyDelays)
@@ -183,7 +196,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 				}
 				if(model == null)
 					return;
-				bool listed = await dispatcher.InvokeAsync(() =>
+				listed = await dispatcher.InvokeAsync(() =>
 				{
 					if(!List(model, atStart))
 						return false;
@@ -199,7 +212,7 @@ public sealed class DeviceStateNotificationsHandler : IDeviceStateNotificationHa
 		finally
 		{
 			if(App.Current?.Dispatcher is { } dispatcher)
-				_ = dispatcher.InvokeAsync(() => notReadyDevices.Remove(deviceId));
+				_ = dispatcher.InvokeAsync(() => EndRetries(deviceId, listed));
 		}
 	}
 

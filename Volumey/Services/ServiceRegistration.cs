@@ -23,7 +23,7 @@ internal static class ServiceRegistration
 	/// <summary>
 	/// The settings features the app creates at startup, in this order, not when their page first opens: the language is applied,
 	/// the hotkey features register their saved hotkeys (in this order) once the hotkey service gets a manager, the volume limit,
-	/// app volume sync, the app volume locks and the OSD start following the devices, and the support links are read
+	/// app volume sync, the app volume locks and the OSD start following the devices, and the support links are read (not in the Store build)
 	/// </summary>
 	internal static readonly Type[] Features =
 	[
@@ -56,6 +56,8 @@ internal static class ServiceRegistration
 		services.AddSingleton<IAppShell>(_ => new AppShell(application));
 		services.AddSingleton<ISystemIntegration, SystemIntegration>();
 		services.AddSingleton(_ => new SupportLinks());
+		services.AddSingleton<ISupportStore, SupportStore>();
+		services.AddSingleton(sp => new SupportViewModel(sp.Get<ISupportStore>()));
 
 		services.AddSingleton<ThemeViewModel>();
 		services.AddSingleton(sp => new AppBehaviorViewModel(sp.Get<IHotkeyService>(), sp.Get<IScreenInfoProvider>(),
@@ -100,7 +102,7 @@ internal static class ServiceRegistration
 		services.AddSingleton<Func<SettingsWindow>>(sp => () => sp.Get<SettingsWindow>());
 		services.AddSingleton(sp => new LevelMeters(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>()));
 		services.AddSingleton(sp => new MainViewModel(sp.Get<AppBehaviorViewModel>(), sp.Get<DeviceProviderViewModel>(), sp.Get<ThemeViewModel>(),
-			sp.Get<LevelMeters>()));
+			sp.Get<LevelMeters>(), sp.Get<SupportViewModel>()));
 		services.AddSingleton(sp => new MainView(sp.Get<MainViewModel>(), sp.Get<HotkeyModeViewModel>(), sp.Get<Func<SettingsWindow>>(), sp.Get<INotificationService>()));
 		return services;
 	}

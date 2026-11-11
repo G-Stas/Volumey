@@ -28,6 +28,9 @@ public sealed class AppVolumeLock : INotifyPropertyChanged
 
 	private int passQueued;
 
+	//taken for a put-back write and for changing the held lock: a write can't follow a release or a new volume
+	private readonly object putBackLock = new();
+
 	/// <param name="sessionsLock">The lock the app's <see cref="AudioProcessModel.Sessions"/> are changed under</param>
 	internal AppVolumeLock(AudioProcessModel app, object sessionsLock)
 	{
@@ -75,7 +78,8 @@ public sealed class AppVolumeLock : INotifyPropertyChanged
 		VolumeLockMode oldMode = Mode;
 		lock(sessionsLock)
 		{
-			held = volumeLock;
+			lock(putBackLock)
+				held = volumeLock;
 			foreach(AudioSessionModel session in app.Sessions)
 				Subscribe(session);
 		}
@@ -93,8 +97,11 @@ public sealed class AppVolumeLock : INotifyPropertyChanged
 		VolumeLock? released;
 		lock(sessionsLock)
 		{
-			released = held;
-			held = null;
+			lock(putBackLock)
+			{
+				released = held;
+				held = null;
+			}
 			foreach(AudioSessionModel session in app.Sessions)
 				Detach(session);
 		}
@@ -146,11 +153,14 @@ public sealed class AppVolumeLock : INotifyPropertyChanged
 			return;
 		foreach(AudioSessionModel session in app.SessionsSnapshot())
 		{
-			//released or held at another volume while this pass was running
-			if(held?.Volume != current.Volume)
-				return;
-			if(session.Volume != current.Volume)
-				session.Volume = current.Volume;
+			lock(putBackLock)
+			{
+				//released or held at another volume while this pass was running
+				if(held?.Volume != current.Volume)
+					return;
+				if(session.Volume != current.Volume)
+					session.Volume = current.Volume;
+			}
 		}
 	}
 

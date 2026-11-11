@@ -12,7 +12,7 @@ using Volumey.Localization;
 namespace Volumey.ViewModel.Settings;
 
 /// <summary>
-/// The About page: the version and build, the update check, and the links (the support links come from GitHub, <see cref="DataProvider.SupportLinks"/>)
+/// The About page: the version and build, the update check, and the links (the support links come from GitHub, <see cref="DataProvider.SupportLinks"/>; not in the Store build)
 /// </summary>
 public sealed partial class AboutViewModel : ObservableObject
 {
@@ -42,7 +42,14 @@ public sealed partial class AboutViewModel : ObservableObject
 	/// </summary>
 	public string BuildName => TranslationSource.Instance[BuildKey] ?? string.Empty;
 
+	/// <summary>
+	/// The support links; none in the Store build, which offers its own donation add-ons
+	/// </summary>
+#if(STORE)
+	public ObservableCollection<SupportLink> SupportLinks { get; } = [];
+#else
 	public ObservableCollection<SupportLink> SupportLinks => supportLinks.Links;
+#endif
 
 	/// <summary>
 	/// What the update check found (Store build; the GitHub build's updater has its own window), empty otherwise
@@ -55,7 +62,9 @@ public sealed partial class AboutViewModel : ObservableObject
 	internal AboutViewModel(SupportLinks supportLinks)
 	{
 		this.supportLinks = supportLinks;
+#if(!STORE)
 		supportLinks.RefreshAsync().Forget(Logger, "Failed to read the support links");
+#endif
 		TranslationSource.Instance.PropertyChanged += (_, _) =>
 		{
 			SetUpdateStatus(updateStatusKey);
