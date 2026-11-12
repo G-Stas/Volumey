@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.CoreAudioWrapper.Wrapper;
 using Volumey.DataProvider;
+using Volumey.Helper;
 using Volumey.Model;
 
 namespace Volumey.Tests;
@@ -355,12 +356,23 @@ public class DeviceProviderTests
 	[TestMethod]
 	public void RetryDelaysDoubleUpToTheMaximum()
 	{
-		Assert.AreEqual(TimeSpan.FromSeconds(1), DeviceProvider.RetryDelay(0));
-		Assert.AreEqual(TimeSpan.FromSeconds(2), DeviceProvider.RetryDelay(1));
-		Assert.AreEqual(TimeSpan.FromSeconds(4), DeviceProvider.RetryDelay(2));
-		Assert.AreEqual(TimeSpan.FromSeconds(256), DeviceProvider.RetryDelay(8));
-		Assert.AreEqual(DeviceProvider.MaxRetryDelay, DeviceProvider.RetryDelay(9));
-		Assert.AreEqual(DeviceProvider.MaxRetryDelay, DeviceProvider.RetryDelay(1000));
+		Assert.AreEqual(TimeSpan.FromSeconds(1), RetryBackoff.Delay(0));
+		Assert.AreEqual(TimeSpan.FromSeconds(2), RetryBackoff.Delay(1));
+		Assert.AreEqual(TimeSpan.FromSeconds(4), RetryBackoff.Delay(2));
+		Assert.AreEqual(TimeSpan.FromSeconds(256), RetryBackoff.Delay(8));
+		Assert.AreEqual(RetryBackoff.MaxDelay, RetryBackoff.Delay(9));
+		Assert.AreEqual(RetryBackoff.MaxDelay, RetryBackoff.Delay(1000));
+	}
+
+	[TestMethod]
+	public void ARebuildIsTriedQuicklyThenWithGrowingDelaysForever()
+	{
+		Assert.AreEqual(TimeSpan.FromMilliseconds(300), DeviceProvider.RebuildDelay(0));
+		Assert.AreEqual(TimeSpan.FromSeconds(4), DeviceProvider.RebuildDelay(DeviceProvider.QuickRebuildAttempts - 1));
+		Assert.AreEqual(TimeSpan.FromSeconds(8), DeviceProvider.RebuildDelay(DeviceProvider.QuickRebuildAttempts));
+		Assert.AreEqual(TimeSpan.FromSeconds(16), DeviceProvider.RebuildDelay(DeviceProvider.QuickRebuildAttempts + 1));
+		Assert.AreEqual(RetryBackoff.MaxDelay, DeviceProvider.RebuildDelay(100));
+		Assert.AreEqual(RetryBackoff.MaxDelay, DeviceProvider.RebuildDelay(int.MaxValue));
 	}
 
 	[TestMethod]
