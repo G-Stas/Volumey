@@ -23,13 +23,31 @@ public abstract partial class HotkeyViewModel : ObservableObject
 	protected HotkeyViewModel(IHotkeyService hotkeys)
 	{
 		this.hotkeys = hotkeys;
-		ErrorDictionary.LanguageChanged += () => SetErrorMessage(CurrentErrorType);
+		ErrorDictionary.LanguageChanged += () => ShowError(CurrentErrorType);
 	}
 
 	protected void SetErrorMessage(ErrorMessageType type)
 	{
+		errorIsRefusal = false;
+		ShowError(type);
+	}
+
+	private void ShowError(ErrorMessageType type)
+	{
 		CurrentErrorType = type;
 		ErrorMessage = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
+	}
+
+	private bool errorIsRefusal;
+
+	/// <summary>
+	/// Shows <paramref name="error"/> while the system refuses the hotkey (see <see cref="RefusalError"/>)
+	/// </summary>
+	protected void ShowRefusal(bool refused, ErrorMessageType error)
+	{
+		(var type, errorIsRefusal) = RefusalError.Next(CurrentErrorType, errorIsRefusal, refused, error);
+		if(type != CurrentErrorType)
+			ShowError(type);
 	}
 
 	/// <summary>

@@ -52,6 +52,7 @@
                 <Binding Path="Theme.WindowsTheme" />
                 <Binding Path="Window.TrayIcon"/>
                 <Binding Path="Devices.DefaultDevice.Master.Icon" />
+                <Binding Path="Devices.DefaultDevice.Master.IconPath" />
             </MultiBinding>
 
             <MultiBinding x:Key="TrayTextTooltip"

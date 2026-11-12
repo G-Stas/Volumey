@@ -82,19 +82,25 @@ public sealed partial class ForegroundWindowVolumeViewModel : HotkeyViewModel
 			MuteHotkey = saved.ForegroundMute;
 			RegisterWhenHotkeysActive(RegisterLoadedHotkeys);
 		}
+		hotkeys.RefusedHotkeysChanged += ShowRefused;
 	}
+
+	private void ShowRefused()
+		=> Errors.ShowRefused(hotkey => _hotkeysRegistered && hotkeys.IsRefused(hotkey), VolumeUpHotkey, VolumeDownHotkey, MuteHotkey,
+			ErrorMessageType.VolumeReg);
 
 	/// <summary>The hotkeys registered now, released when it's turned off</summary>
 	private HotKey?[] registered = Array.Empty<HotKey?>();
 
 	private void RegisterLoadedHotkeys()
 	{
-		//each on its own: a saved hotkey that fails now (e.g. another app took the combination) shows an error under its box
-		//and doesn't keep the others from working; it stays saved and is tried again on the next start
+		//each on its own: a saved hotkey another app holds shows an error under its box and doesn't keep the others from working;
+		//it stays saved and is tried again
 		var failed = AllHotkeys.Where(hotkey => hotkey != null && !hotkeys.RegisterHotkey(hotkey)).Select(hotkey => hotkey!).ToList();
 		registered = AllHotkeys.Where(hotkey => hotkey != null && !failed.Contains(hotkey)).ToArray();
 		hotkeys.HotkeyPressed += OnHotkeyPressed;
 		Errors.SetFailed(failed, VolumeUpHotkey, VolumeDownHotkey, MuteHotkey, ErrorMessageType.VolumeReg);
+		ShowRefused();
 	}
 
 	private bool SaveHotkeys()

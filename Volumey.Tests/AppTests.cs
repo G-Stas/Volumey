@@ -139,6 +139,30 @@ public class AppTests
 		Assert.AreEqual(0, guard.CountFailure());
 	}
 
+	[TestMethod]
+	public void FailuresHeldBackAreReportedOnceTheIntervalPassedEvenIfNoneFollows()
+	{
+		var time = new System.DateTime(2026, 10, 9, 12, 0, 0);
+		var guard = new Volumey.Helper.WindowUpdateFailureGuard(() => time);
+		Assert.IsNull(guard.UntilReportDue());
+
+		Assert.AreEqual(1, guard.CountFailure());
+		time += System.TimeSpan.FromSeconds(20);
+		Assert.AreEqual(0, guard.CountFailure());
+		Assert.AreEqual(0, guard.CountFailure());
+
+		//the failures stopped
+		Assert.AreEqual(System.TimeSpan.FromSeconds(40), guard.UntilReportDue());
+		Assert.AreEqual(0, guard.TakeDueFailures(), "not before the interval");
+		time += System.TimeSpan.FromSeconds(40);
+		Assert.AreEqual(2, guard.TakeDueFailures());
+		Assert.IsNull(guard.UntilReportDue());
+
+		//taking them was a report: the next failure waits for the interval again
+		time += System.TimeSpan.FromSeconds(1);
+		Assert.AreEqual(0, guard.CountFailure());
+	}
+
 	[STATestMethod]
 	public void RefreshingAWindowDoesntMoveOrResizeIt()
 	{

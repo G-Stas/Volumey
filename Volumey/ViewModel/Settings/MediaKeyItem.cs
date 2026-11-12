@@ -67,6 +67,21 @@ public sealed partial class MediaKeyItem : ObservableObject
 	{
 		errorType = type;
 		rejected = rejectedHotkey;
+		errorIsRefusal = false;
+		RefreshError();
+	}
+
+	private bool errorIsRefusal;
+
+	/// <summary>
+	/// Shows an error while the system refuses the hotkey (see <see cref="RefusalError"/>)
+	/// </summary>
+	internal void ShowRefusal(bool refused)
+	{
+		var (type, isRefusal) = RefusalError.Next(errorType, errorIsRefusal, refused, ErrorMessageType.OpenReg);
+		if(isRefusal != errorIsRefusal)
+			rejected = null;
+		(errorType, errorIsRefusal) = (type, isRefusal);
 		RefreshError();
 	}
 

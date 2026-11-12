@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
+using System.Windows.Threading;
 using log4net;
 using Volumey.Controls;
 using Volumey.DataProvider;
@@ -143,9 +144,10 @@ public sealed class HotkeyService : IHotkeyService
 	}
 
 	/// <summary>
-	/// Registers the hotkey and counts this user. False, with nothing counted, if there's no manager yet or it refuses the hotkey
-	/// (e.g. another app owns the combination in blocking mode). The managers accept a combination that is already registered,
-	/// so several features can share one.
+	/// Registers the hotkey and counts this user. The managers accept a combination that is already registered, so several features
+	/// can share one. When the manager refuses it (e.g. another app owns the combination in blocking mode):
+	/// a hotkey saved in the settings is counted anyway and tried again until it works (<see cref="IsRefused"/>, true is returned);
+	/// a new one is refused (false, nothing counted). False also if there's no manager yet or it's an unusable mouse hotkey.
 	/// </summary>
 	public bool RegisterHotkey(HotKey? hotkey)
 	{
@@ -156,21 +158,126 @@ public sealed class HotkeyService : IHotkeyService
 			Logger.Warn($"Refused the mouse hotkey [{hotkey}]: an unknown button, or a click or the wheel without a modifier");
 			return false;
 		}
-		var manager = ManagerFor(hotkey, create: true);
-		if(manager == null)
+		//without mouse support a mouse hotkey can never work
+		if(hotkey.Source == InputSource.Mouse && createMouseManager == null)
 			return false;
-		try
+		Exception? error = null;
+		var manager = ManagerFor(hotkey, create: true);
+		if(manager != null)
 		{
-			manager.RegisterHotkey(hotkey);
+			try
+			{
+				manager.RegisterHotkey(hotkey);
+				IncrementHotkeyUserCounter(hotkey);
+				if(refused.Remove(hotkey))
+				{
+					ScheduleRetry();
+					RefusedHotkeysChanged?.Invoke();
+				}
+				return true;
+			}
+			catch(Exception e)
+			{
+				error = e;
+			}
 		}
-		catch(Exception e)
+		ReleaseIdleMouseManager();
+		if(!isSaved(hotkey))
 		{
-			Logger.Warn($"Failed to register hotkey [{hotkey}]", e);
-			ReleaseIdleMouseManager();
+			Logger.Warn($"Failed to register hotkey [{hotkey}]", error);
 			return false;
 		}
 		IncrementHotkeyUserCounter(hotkey);
+		AddRefused(hotkey, error);
 		return true;
+	}
+
+	/// <summary>
+	/// The hotkeys that have users but that their manager refused (another app holds the combination): each is tried again,
+	/// 1 s after the refusal and with doubling delays up to every 5 minutes, until it's registered or its last user releases it
+	/// </summary>
+	private readonly HashSet<HotKey> refused = new HashSet<HotKey>();
+
+	public event Action? RefusedHotkeysChanged;
+
+	public bool IsRefused(HotKey? hotkey) => hotkey != null && refused.Contains(hotkey);
+
+	private int retry;
+	private IDisposable? retryTimer;
+	private readonly Func<HotKey, bool> isSaved;
+	private readonly Func<TimeSpan, Action, IDisposable> schedule;
+
+	private void AddRefused(HotKey hotkey, Exception? error)
+	{
+		if(!refused.Add(hotkey))
+			return;
+		Logger.Warn($"Failed to register hotkey [{hotkey}], trying again later", error);
+		//a new refusal starts again with short delays
+		retry = 0;
+		ScheduleRetry();
+		RefusedHotkeysChanged?.Invoke();
+	}
+
+	private void ScheduleRetry()
+	{
+		retryTimer?.Dispose();
+		retryTimer = refused.Count > 0 ? schedule(RetryBackoff.Delay(retry), RetryRefused) : null;
+	}
+
+	/// <summary>Tries to register the refused hotkeys again; on the UI thread</summary>
+	internal void RetryRefused()
+	{
+		retryTimer = null;
+		if(hotkeyManager == null || refused.Count == 0)
+			return;
+		Exception? lastError = null;
+		var registered = new List<HotKey>();
+		foreach(var hotkey in refused)
+		{
+			var manager = ManagerFor(hotkey, create: true);
+			if(manager == null)
+				continue;
+			try
+			{
+				manager.RegisterHotkey(hotkey);
+				registered.Add(hotkey);
+			}
+			catch(Exception e)
+			{
+				lastError = e;
+			}
+		}
+		retry++;
+		foreach(var hotkey in registered)
+		{
+			refused.Remove(hotkey);
+			Logger.Info($"Registered hotkey [{hotkey}] after {retry} retries");
+		}
+		//once an hour at the longest delay, so a lasting conflict can't flood Loggly
+		if(refused.Count > 0 && retry % RetryBackoff.RetriesPerHour == 0)
+			Logger.Warn($"Still can't register hotkeys after {retry} retries: [{string.Join("], [", refused)}]", lastError);
+		ReleaseIdleMouseManager();
+		ScheduleRetry();
+		if(registered.Count > 0)
+			RefusedHotkeysChanged?.Invoke();
+	}
+
+	/// <summary>Calls <paramref name="action"/> once on the UI thread after <paramref name="delay"/>; disposing the result cancels it</summary>
+	private static IDisposable ScheduleOnUiThread(TimeSpan delay, Action action)
+	{
+		var timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = delay };
+		timer.Tick += (s, e) =>
+		{
+			timer.Stop();
+			action();
+		};
+		timer.Start();
+		return new TimerCancellation(timer);
+	}
+
+	private sealed class TimerCancellation(DispatcherTimer timer) : IDisposable
+	{
+		public void Dispose() => timer.Stop();
 	}
 
 	/// <summary>A known button; clicks and the wheel only with a modifier (they are used all the time), side buttons also alone</summary>
@@ -220,6 +327,13 @@ public sealed class HotkeyService : IHotkeyService
 		DecrementHotkeyUserCounter(hotkey, out bool lastUser);
 		if(!lastUser)
 			return;
+		//the manager never took it
+		if(refused.Remove(hotkey))
+		{
+			ScheduleRetry();
+			RefusedHotkeysChanged?.Invoke();
+			return;
+		}
 		var manager = ManagerFor(hotkey, create: false);
 		if(manager == null)
 			return;
@@ -319,7 +433,8 @@ public sealed class HotkeyService : IHotkeyService
 
 	/// <summary>
 	/// Sets the keyboard hotkey manager. On a later call every keyboard hotkey that has users is registered with the new manager,
-	/// also one the previous manager refused, and the previous manager is disposed. The user counts stay as they are.
+	/// also one the previous manager refused, and the previous manager is disposed. The user counts stay as they are; a hotkey
+	/// the new manager refuses is tried again until it works (<see cref="IsRefused"/>).
 	/// Mouse hotkeys stay with the mouse manager: the hotkey mode only decides how keys are taken.
 	/// </summary>
 	public void SetHotkeyManager(IHotkeyManager hm)
@@ -342,16 +457,31 @@ public sealed class HotkeyService : IHotkeyService
 			try { previous.UnregisterHotkey(hotkey); }
 			catch { }
 		}
+		bool changed = false;
 		foreach(var hotkey in HotkeysUserCount.Keys.Where(h => h.Source != InputSource.Mouse))
 		{
-			try { hm.RegisterHotkey(hotkey); }
+			try
+			{
+				hm.RegisterHotkey(hotkey);
+				changed |= refused.Remove(hotkey);
+			}
 			catch(Exception e)
 			{
 				//e.g. another app uses the combination when moving to the blocking manager
-				Logger.Error($"Failed to move hotkey [{hotkey}] to the new hotkey manager", e);
+				if(refused.Add(hotkey))
+				{
+					Logger.Warn($"Failed to move hotkey [{hotkey}] to the new hotkey manager, trying again later", e);
+					changed = true;
+				}
 			}
 		}
 		previous.Dispose();
+		if(changed)
+		{
+			retry = 0;
+			ScheduleRetry();
+			RefusedHotkeysChanged?.Invoke();
+		}
 	}
 
 	/// <summary>
@@ -366,10 +496,15 @@ public sealed class HotkeyService : IHotkeyService
 
 	/// <param name="isRegisteredElsewhere">Whether Windows refuses to register the combination because it's taken (tests pass a fake)</param>
 	/// <param name="createMouseManager">Starts listening to the mouse for mouse hotkeys; null: mouse hotkeys are refused</param>
-	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere, Func<IHotkeyManager>? createMouseManager = null)
+	/// <param name="isSaved">Whether a hotkey is saved in the settings (kept and tried again when refused); null: the settings</param>
+	/// <param name="schedule">Calls an action once after a delay on the UI thread, cancelled by disposing the result; null: a dispatcher timer</param>
+	internal HotkeyService(Func<HotKey, bool> isRegisteredElsewhere, Func<IHotkeyManager>? createMouseManager = null,
+		Func<HotKey, bool>? isSaved = null, Func<TimeSpan, Action, IDisposable>? schedule = null)
 	{
 		this.isRegisteredElsewhere = isRegisteredElsewhere;
 		this.createMouseManager = createMouseManager;
+		this.isSaved = isSaved ?? SettingsProvider.HotkeyExists;
+		this.schedule = schedule ?? ScheduleOnUiThread;
 	}
 
 	/// <summary>
@@ -397,6 +532,9 @@ public sealed class HotkeyService : IHotkeyService
 	public void Dispose()
 	{
 		//called again when the container is disposed on exit
+		retryTimer?.Dispose();
+		retryTimer = null;
+		refused.Clear();
 		hotkeyManager?.Dispose();
 		hotkeyManager = null;
 		mouseManager?.Dispose();

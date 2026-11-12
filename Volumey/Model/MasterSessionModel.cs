@@ -121,6 +121,20 @@ public sealed class MasterSessionModel : IManagedMasterAudioSession
 		}
 	}
 
+	private string? _iconPath;
+	/// <summary>
+	/// Where <see cref="Icon"/> comes from, so the tray can read it at its own size; null if unknown
+	/// </summary>
+	public string? IconPath
+	{
+		get => _iconPath;
+		set
+		{
+			_iconPath = value;
+			OnPropertyChanged();
+		}
+	}
+
 	private double _level;
 	/// <summary>
 	/// How loud the device plays (0..1, before the device volume): the loudest app at its volume; set by the mixer's level meters

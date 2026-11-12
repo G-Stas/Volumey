@@ -110,8 +110,28 @@ public sealed partial class DeviceEntry : ObservableObject
 
 	internal void SetError(ErrorMessageType type)
 	{
+		errorIsRefusal = false;
+		ShowError(type);
+	}
+
+	/// <summary>Reads the error message again after the language changed</summary>
+	internal void RefreshError() => ShowError(ErrorType);
+
+	private void ShowError(ErrorMessageType type)
+	{
 		ErrorType = type;
 		ErrorMessage = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
+	}
+
+	private bool errorIsRefusal;
+
+	/// <summary>
+	/// Shows an error while the system refuses the hotkey (see <see cref="RefusalError"/>)
+	/// </summary>
+	internal void ShowRefusal(bool refused)
+	{
+		(var type, errorIsRefusal) = RefusalError.Next(ErrorType, errorIsRefusal, refused, ErrorMessageType.OpenReg);
+		ShowError(type);
 	}
 
 	internal DeviceEntry(DefaultDeviceHotkeysViewModel owner, string? id, string? name)

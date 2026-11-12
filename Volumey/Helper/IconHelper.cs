@@ -225,6 +225,32 @@ static class IconHelper
 		return GetFromFilePath(Environment.ExpandEnvironmentVariables(iconPath));
 	}
 
+	/// <summary>
+	/// Like <see cref="GetFromResourcePath"/> but at exactly <paramref name="size"/> x <paramref name="size"/> (see <see cref="GetFromDllOfSize"/>);
+	/// null if the path doesn't name an icon resource or a .ico file
+	/// </summary>
+	public static Icon? GetFromResourcePathOfSize(string? iconPath, int size)
+	{
+		if(string.IsNullOrEmpty(iconPath))
+			return null;
+
+		int comma = iconPath.LastIndexOf(',');
+		if(comma > 0 && int.TryParse(iconPath.AsSpan(comma + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int resourceId))
+			return GetFromDllOfSize(Environment.ExpandEnvironmentVariables(iconPath[..comma]), resourceId, size);
+		string path = Environment.ExpandEnvironmentVariables(iconPath);
+		if(!path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) || !File.Exists(path))
+			return null;
+		try
+		{
+			//the file's frame closest to the size
+			return new Icon(path, size, size);
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
 	public static ImageSource? GetAsImageSource(this Icon icon)
 	{
 		try { return ToImageSource(icon.Handle); }

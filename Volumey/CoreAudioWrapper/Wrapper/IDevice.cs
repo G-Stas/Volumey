@@ -18,6 +18,11 @@ public interface IDevice : IDisposable
 	/// </summary>
 	Icon? GetIcon();
 
+	/// <summary>
+	/// Where the device's icon is (a resource of a file, "path,id"), or null
+	/// </summary>
+	string? GetIconPath();
+
 	DeviceFormat? GetDeviceFormat();
 
 	/// <summary>

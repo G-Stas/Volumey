@@ -50,7 +50,8 @@ internal static class RemoteLogging
 	internal static IAppender[] CreatePipeline(IAppender target)
 	{
 		var gate = new ForwardingAppender { Name = "RemoteGate" };
-		gate.AddFilter(new MessageRateFilter());
+		rateFilter = new MessageRateFilter();
+		gate.AddFilter(rateFilter);
 		//repeated messages (e.g. one failure per audio callback) are sent once
 		gate.AddFilter(new DuplicateLogMessageFilter());
 		gate.AddAppender(target);
@@ -85,6 +86,26 @@ internal static class RemoteLogging
 		context.ActivateOptions();
 
 		return [direct, context];
+	}
+
+	//the pipeline's, null without remote logging
+	private static MessageRateFilter? rateFilter;
+
+	/// <summary>The most dropped messages one summary names</summary>
+	internal const int MaxDroppedInSummary = 10;
+
+	/// <summary>
+	/// The messages <see cref="MessageRateFilter"/> dropped since their last one was sent, in one line; null if none.
+	/// For the end of the run: a dropped count is otherwise only sent with the next message like it
+	/// </summary>
+	internal static string? TakeDroppedSummary()
+	{
+		var dropped = rateFilter?.TakeDropped();
+		if(dropped == null || dropped.Count == 0)
+			return null;
+		var named = dropped.Take(MaxDroppedInSummary).Select(d => $"{d.Dropped} x [{d.Message}]");
+		string more = dropped.Count > MaxDroppedInSummary ? $" and {dropped.Count - MaxDroppedInSummary} more" : string.Empty;
+		return $"Messages dropped by the rate limit since their last report: {string.Join(", ", named)}{more}";
 	}
 
 	/// <summary>

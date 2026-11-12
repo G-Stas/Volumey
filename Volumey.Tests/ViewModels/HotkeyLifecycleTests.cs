@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Volumey.Controls;
 using Volumey.CoreAudioWrapper.Wrapper;
+using Volumey.Helper;
 using Volumey.ViewModel.Settings;
 
 namespace Volumey.Tests.ViewModels;
@@ -92,12 +93,108 @@ public class HotkeyLifecycleTests : ViewModelTestBase
 		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.VolumeErrors.VolumeDown);
 		Assert.AreEqual(string.Empty, vm.VolumeErrors.VolumeUp);
 		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.OpenReg], vm.MuteError);
-		//the first hotkey of the pair isn't left registered
-		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Once);
-		//they stay on and saved for the next start
+		//the free one keeps working
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Never);
+		//they stay on and saved
 		Assert.IsTrue(vm.VolumeHotkeysRegistered);
 		Assert.IsTrue(vm.MuteHotkeyRegistered);
 		Assert.AreEqual(mute, Settings.Hotkeys.DeviceMute);
+
+		//still taken at the first retry
+		Retries.RunPending();
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.VolumeErrors.VolumeDown);
+
+		//the other app let them go: the next retry takes them and the errors go away
+		HotkeyManager.Setup(m => m.RegisterHotkey(Down));
+		HotkeyManager.Setup(m => m.RegisterHotkey(mute));
+		Retries.RunPending();
+		Assert.IsFalse(vm.VolumeErrors.Any);
+		Assert.AreEqual(string.Empty, vm.MuteError);
+		Assert.IsFalse(Retries.HasPending, "nothing left to retry");
+		HotkeyManager.Verify(m => m.RegisterHotkey(Down), Times.Exactly(3));
+	}
+
+	[TestMethod]
+	public void ASavedHotkeyIsRetriedWithGrowingDelaysUpToEveryFiveMinutes()
+	{
+		Settings.Hotkeys.OpenMixer = Up;
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
+		var vm = new OpenHotkeyViewModel(Hotkeys);
+		ActivateHotkeys();
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.OpenReg], vm.ErrorMessage);
+		Assert.IsTrue(vm.IsOn);
+
+		for(int i = 0; i < 12; i++)
+			Retries.RunPending();
+
+		var seconds = Retries.Delays.ConvertAll(d => (int)d.TotalSeconds);
+		CollectionAssert.AreEqual(new[] { 1, 2, 4, 8, 16, 32, 64, 128, 256, 300, 300, 300, 300 }, seconds);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.OpenReg], vm.ErrorMessage);
+
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up));
+		Retries.RunPending();
+		Assert.AreEqual(string.Empty, vm.ErrorMessage);
+		int opened = 0;
+		Hotkeys.OpenHotkeyPressed += () => opened++;
+		PressHotkey(Up);
+		Assert.AreEqual(1, opened);
+	}
+
+	[TestMethod]
+	public void AHotkeyRefusedOnAModeSwitchShowsAnErrorUntilARetryTakesIt()
+	{
+		ActivateHotkeys();
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { VolumeUp = Up, VolumeDown = Down, VolumeHotkeysRegistered = true };
+		Assert.IsFalse(vm.VolumeErrors.Any);
+
+		//another app holds Up: the blocking manager refuses it
+		var blocking = new Mock<IHotkeyManager>();
+		blocking.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
+		Hotkeys.SetHotkeyManager(blocking.Object);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.VolumeReg], vm.VolumeErrors.VolumeUp);
+		Assert.AreEqual(string.Empty, vm.VolumeErrors.VolumeDown);
+		Assert.IsTrue(Hotkeys.IsRefused(Up));
+
+		blocking.Setup(m => m.RegisterHotkey(Up));
+		Retries.RunPending();
+		Assert.IsFalse(vm.VolumeErrors.Any);
+		Assert.IsFalse(Hotkeys.IsRefused(Up));
+	}
+
+	[TestMethod]
+	public void TurningOffARefusedHotkeyStopsItsRetries()
+	{
+		Settings.Hotkeys.DeviceMute = Up;
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object);
+		ActivateHotkeys();
+		Assert.IsTrue(Retries.HasPending);
+
+		vm.MuteHotkeyRegistered = false;
+
+		Assert.IsFalse(Retries.HasPending);
+		Assert.IsFalse(Hotkeys.IsRefused(Up));
+		Assert.AreEqual(string.Empty, vm.MuteError);
+		//the manager never held it
+		HotkeyManager.Verify(m => m.UnregisterHotkey(Up), Times.Never);
+	}
+
+	[TestMethod]
+	public void ANewHotkeyThatIsTakenIsRejectedNotRetried()
+	{
+		ActivateHotkeys();
+		SetDefaultDevice(CreateDevice("1", "Speakers"));
+		HotkeyManager.Setup(m => m.RegisterHotkey(Up)).Throws(new Win32Exception(1409));
+		var vm = new DeviceVolumeHotkeysViewModel(DeviceProvider.Object, Hotkeys, Notifications.Object) { MuteKey = Up };
+
+		vm.MuteHotkeyRegistered = true;
+
+		Assert.IsFalse(vm.MuteHotkeyRegistered);
+		Assert.AreEqual(ErrorDictionary.Instance[ErrorMessageType.OpenReg], vm.MuteError);
+		Assert.IsFalse(Retries.HasPending);
+		Assert.IsNull(Settings.Hotkeys.DeviceMute);
 	}
 
 	[TestMethod]

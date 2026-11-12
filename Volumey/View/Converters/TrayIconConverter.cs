@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Windows.Data;
 using Volumey.DataProvider;
 using Volumey.DataProvider.Settings;
+using Volumey.Helper;
 
 namespace Volumey.View.Converters;
 
@@ -40,17 +41,34 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 	public TrayIconConverter() : this(IconExtensions.LoadAppTrayIcon, IconExtensions.GetTrayIconSize) { }
 
+	/// <summary>Reads a device's icon from its path at a size</summary>
+	private readonly Func<string, int, Icon?> loadDeviceIcon;
+
+	//read once per icon path and size, also when it fails: the file won't change while the app runs. Devices are few
+	private readonly Dictionary<(string Path, int Size), Icon?> deviceIcons = new();
+
+	private Icon? GetDeviceIcon(string? path, int size)
+	{
+		if(path == null)
+			return null;
+		if(!deviceIcons.TryGetValue((path, size), out var icon))
+			deviceIcons[(path, size)] = icon = loadDeviceIcon(path, size);
+		return icon;
+	}
+
 	/// <summary>Reads the system glyph of a volume state; the file of Windows' own icons by default</summary>
 	private readonly Func<IconType, Icon?>? loadSystemIcon;
 
 	//one dark/light provider pair per tray size
 	private readonly Dictionary<int, (SystemIconProvider Dark, SystemIconProvider Light)> systemIconProviders = new();
 
-	internal TrayIconConverter(Func<int, Icon?> loadAppIcon, Func<int> getTraySize, Func<IconType, Icon?>? loadSystemIcon = null)
+	internal TrayIconConverter(Func<int, Icon?> loadAppIcon, Func<int> getTraySize, Func<IconType, Icon?>? loadSystemIcon = null,
+		Func<string, int, Icon?>? loadDeviceIcon = null)
 	{
 		this.loadAppIcon = loadAppIcon;
 		this.getTraySize = getTraySize;
 		this.loadSystemIcon = loadSystemIcon;
+		this.loadDeviceIcon = loadDeviceIcon ?? IconHelper.GetFromResourcePathOfSize;
 	}
 
 	public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
@@ -75,11 +93,13 @@ public sealed partial class TrayIconConverter : IMultiValueConverter
 
 		if(type == IconType.DeviceIcon)
 		{
-			if(currentIconType == IconType.DeviceIcon && curDeviceIcon == defaultDeviceIcon)
+			//the device's icon at the tray's size; the one read at the system's icon size if that fails
+			var icon = GetDeviceIcon(values.Length > 6 ? values[6] as string : null, getTraySize()) ?? defaultDeviceIcon;
+			if(currentIconType == IconType.DeviceIcon && curDeviceIcon == icon)
 				return Binding.DoNothing;
 			currentIconType = IconType.DeviceIcon;
-			curDeviceIcon = defaultDeviceIcon;
-			return defaultDeviceIcon;
+			curDeviceIcon = icon;
+			return icon;
 		}
 
 		if(kind == TrayIconKind.SystemIcons && type != IconType.None)

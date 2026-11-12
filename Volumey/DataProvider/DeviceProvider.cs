@@ -52,9 +52,19 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	private IDeviceStateNotificationHandler? deviceStateNotificationHandler;
 	private IDeviceEnumerator? deviceEnumerator;
 
-	/// <summary>Delays of the attempts to rebuild a reconfigured device: Windows may still be busy right after the notification</summary>
-	private static readonly TimeSpan[] RebuildDelays =
+	/// <summary>
+	/// Delays of the first attempts to rebuild a reconfigured device: Windows may still be busy right after the notification.
+	/// After them it's tried with growing delays until it works (<see cref="RebuildDelay"/>)
+	/// </summary>
+	private static readonly TimeSpan[] QuickRebuildDelays =
 		{ TimeSpan.FromMilliseconds(300), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4) };
+
+	/// <summary>The delay before rebuild attempt number <paramref name="attempt"/> (0-based): the quick ones, then doubling up to every 5 minutes</summary>
+	internal static TimeSpan RebuildDelay(int attempt)
+		=> attempt < QuickRebuildDelays.Length ? QuickRebuildDelays[attempt] : RetryBackoff.Delay(attempt - 1);
+
+	internal static int QuickRebuildAttempts => QuickRebuildDelays.Length;
+
 	private volatile bool disposed;
 	private static ILog? logger;
 	private static ILog Logger => logger ??= LogManager.GetLogger(typeof(DeviceProvider));
@@ -125,17 +135,11 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	/// <summary>Attempts at start, one right after the other (on the UI thread), before the app starts without devices</summary>
 	internal const int QuickAttempts = 3;
 	private static readonly TimeSpan QuickAttemptPause = TimeSpan.FromMilliseconds(200);
-	private static readonly TimeSpan FirstRetryDelay = TimeSpan.FromSeconds(1);
-	internal static readonly TimeSpan MaxRetryDelay = TimeSpan.FromMinutes(5);
-
-	/// <summary>The delay before background retry number <paramref name="retry"/> (0-based): 1 s, doubling, at most <see cref="MaxRetryDelay"/></summary>
-	internal static TimeSpan RetryDelay(int retry)
-		=> retry >= 20 ? MaxRetryDelay : TimeSpan.FromTicks(Math.Min(FirstRetryDelay.Ticks << retry, MaxRetryDelay.Ticks));
 
 	/// <summary>
 	/// Creates the provider of the app's audio devices. Windows audio can refuse at start for a moment (the device
 	/// enumerator's class factory can fail with 0x80070020, "the file is in use"), so it's tried <see cref="QuickAttempts"/>
-	/// times; after that the app starts without devices and keeps trying in the background with growing delays (<see cref="RetryDelay"/>).
+	/// times; after that the app starts without devices and keeps trying in the background with growing delays (<see cref="RetryBackoff"/>).
 	/// </summary>
 	internal static IDeviceProvider Create(IHotkeyService hotkeys)
 	{
@@ -169,7 +173,7 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 		Exception? lastError = null;
 		for(int retry = 0; ; retry++)
 		{
-			await Task.Delay(RetryDelay(retry)).ConfigureAwait(false);
+			await Task.Delay(RetryBackoff.Delay(retry)).ConfigureAwait(false);
 			if(disposed)
 				return;
 			bool connected = await dispatcher.InvokeAsync(() =>
@@ -191,9 +195,9 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 			});
 			if(connected)
 				return;
-			//every 12th retry (once an hour after the delay reached 5 minutes), so a lasting failure can't flood Loggly.
+			//once an hour after the delay reached its maximum, so a lasting failure can't flood Loggly.
 			//Without the audio service the start's error said it all: it won't change while the app runs
-			if((retry + 1) % 12 == 0 && !IsAudioServiceMissing(lastError))
+			if((retry + 1) % RetryBackoff.RetriesPerHour == 0 && !IsAudioServiceMissing(lastError))
 				Logger.Error($"Still can't reach Windows audio after {QuickAttempts + retry + 1} attempts", lastError);
 		}
 	}
@@ -396,21 +400,29 @@ public sealed class DeviceProvider : IDeviceProvider, INotifyPropertyChanged
 	/// <summary>
 	/// Builds the new model on the thread pool: reading a device and its apps takes Windows calls per app (and seconds for a busy
 	/// Bluetooth device), which would freeze the UI. Only the swap runs on the UI thread, the only one that changes <see cref="ActiveDevices"/>.
+	/// Tried until it works, the old model is removed (the device was disabled) or the app exits.
 	/// </summary>
-	private async System.Threading.Tasks.Task RebuildAsync(OutputDeviceModel invalid)
+	private async Task RebuildAsync(OutputDeviceModel invalid)
 	{
-		foreach(var delay in RebuildDelays)
+		for(int attempt = 0; ; attempt++)
 		{
-			await System.Threading.Tasks.Task.Delay(delay).ConfigureAwait(false);
+			await Task.Delay(RebuildDelay(attempt)).ConfigureAwait(false);
 			if(disposed)
 				return;
 			var fresh = BuildDeviceModel(invalid.Id);
 			bool done = false;
 			dispatcher.Invoke(() => done = TryReplaceDevice(invalid, fresh));
 			if(done)
+			{
+				if(attempt >= QuickRebuildAttempts)
+					Logger.Info($"Rebuilt the reconfigured device after {attempt + 1} attempts");
 				return;
+			}
+			//after the quick attempts, then every 12th (once an hour at the longest delay), so a lasting failure can't flood Loggly
+			int late = attempt + 1 - QuickRebuildAttempts;
+			if(late == 0 || (late > 0 && late % RetryBackoff.RetriesPerHour == 0))
+				Logger.Error($"Can't rebuild the reconfigured device after {attempt + 1} attempts, trying again: [{invalid.Master.DeviceFriendlyName}]");
 		}
-		Logger.Error($"Failed to rebuild the reconfigured device: [{invalid.Master.DeviceFriendlyName}]");
 	}
 
 	/// <returns>Null if the device can't be read yet</returns>

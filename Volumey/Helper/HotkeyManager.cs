@@ -68,7 +68,7 @@ internal sealed class HotkeyManager : IHotkeyManager
 				keyId++;
 				return;
 			}
-			Logger.Error($"Failed to register hotkey: [{hotkey}], id: [{id.ToString()}], error code: [{error.ToString()}]");
+			//the hotkey service logs it: a refused saved hotkey is tried again for as long as the app runs
 			throw new Win32Exception(error);
 		}
 	}

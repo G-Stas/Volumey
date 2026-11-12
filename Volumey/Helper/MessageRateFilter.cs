@@ -71,6 +71,27 @@ public sealed partial class MessageRateFilter : FilterSkeleton
 		}
 	}
 
+	/// <summary>
+	/// The messages dropped since their last one was let through, most dropped first, as "LEVEL|logger|message" with numbers as #;
+	/// they count as reported. For the end of the run, when no later message would carry the counts
+	/// </summary>
+	public IReadOnlyList<(string Message, int Dropped)> TakeDropped()
+	{
+		lock(entries)
+		{
+			var dropped = new List<(string Message, int Dropped)>();
+			foreach(var (key, entry) in entries)
+			{
+				if(entry.Dropped == 0)
+					continue;
+				dropped.Add((key, entry.Dropped));
+				entry.Dropped = 0;
+			}
+			dropped.Sort((a, b) => b.Dropped.CompareTo(a.Dropped));
+			return dropped;
+		}
+	}
+
 	private void Prune(DateTime time)
 	{
 		var expired = new List<string>();
