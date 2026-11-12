@@ -152,6 +152,24 @@ public class RemoteLoggingTests
 		StringAssert.EndsWith(writer.ToString(), "[2 more like it dropped]");
 	}
 
+	[TestMethod]
+	public void TheDropsLeftAtTheEndAreSummedUpInOneLine()
+	{
+		var (repository, _) = CreatePipeline();
+		var log = LogManager.GetLogger(repository.Name, "test");
+		Assert.IsNull(RemoteLogging.TakeDroppedSummary());
+
+		for(int i = 0; i < MessageRateFilter.MaxPerWindow + 3; i++)
+			log.Warn($"retry {i}");
+		for(int i = 0; i < MessageRateFilter.MaxPerWindow + 1; i++)
+			log.Error($"failed {i} times");
+
+		Assert.AreEqual("Messages dropped by the rate limit since their last report: 3 x [WARN|test|retry #], 1 x [ERROR|test|failed # times]",
+			RemoteLogging.TakeDroppedSummary());
+		Assert.IsNull(RemoteLogging.TakeDroppedSummary(), "taken once");
+		repository.Shutdown();
+	}
+
 	/// <summary>
 	/// Reads one HTTP request (headers and the body of its Content-Length) and answers 200
 	/// </summary>

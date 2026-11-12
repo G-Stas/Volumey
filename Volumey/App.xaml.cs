@@ -62,6 +62,8 @@ public sealed partial class App
 		//raises Exit: its handlers release the devices and write pending settings
 		base.OnExit(e);
 		services?.Dispose();
+		if(RemoteLogging.TakeDroppedSummary() is { } dropped)
+			Logger.Warn(dropped);
 		//last, so errors of those are still logged (Release builds send their last logs to Loggly here)
 		LogManager.Shutdown();
 	}
@@ -113,6 +115,8 @@ public sealed partial class App
 		int count = guard.CountFailure();
 		if(count > 0)
 			Logger.Warn($"Ignored {count} {failure} since the last report", e.Exception);
+		else
+			guard.ScheduleReport(Dispatcher, held => Logger.Warn($"Ignored {held} {failure} since the last report"));
 		guard.ScheduleRefresh(Dispatcher);
 	}
 

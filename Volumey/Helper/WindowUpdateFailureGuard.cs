@@ -14,7 +14,8 @@ namespace Volumey.Helper;
 /// <summary>
 /// Follows up on a WPF window update failure that <see cref="App"/> ignores ("not enough quota",
 /// "desktop composition disabled"), one instance per kind of failure:
-/// reports it at most once per <see cref="LogInterval"/>, so a lasting failure can't flood the log (or Loggly),
+/// reports it at most once per <see cref="LogInterval"/>, so a lasting failure can't flood the log (or Loggly), with the count held back
+/// since the last report (also once the failures stop),
 /// and refreshes the app's windows once the failures stop, so a skipped update doesn't leave a window stale until it's moved.
 /// </summary>
 internal sealed class WindowUpdateFailureGuard
@@ -42,6 +43,55 @@ internal sealed class WindowUpdateFailureGuard
 		int count = unreported;
 		unreported = 0;
 		return count;
+	}
+
+	/// <summary>
+	/// The failures held back since the last report once <see cref="LogInterval"/> has passed since it, else 0.
+	/// Taking them counts as a report
+	/// </summary>
+	internal int TakeDueFailures()
+	{
+		var time = now();
+		if(unreported == 0 || (lastReport is DateTime last && time - last < LogInterval))
+			return 0;
+		lastReport = time;
+		int count = unreported;
+		unreported = 0;
+		return count;
+	}
+
+	/// <summary>How long until the held-back failures can be reported; null if there are none</summary>
+	internal TimeSpan? UntilReportDue()
+	{
+		if(unreported == 0)
+			return null;
+		var due = lastReport is DateTime last ? last + LogInterval - now() : TimeSpan.Zero;
+		return due > TimeSpan.Zero ? due : TimeSpan.Zero;
+	}
+
+	private DispatcherTimer? reportTimer;
+
+	/// <summary>
+	/// Reports the failures held back by <see cref="CountFailure"/> once the interval since the last report has passed, so the last
+	/// ones aren't lost when the failures stop. One pending report at a time.
+	/// </summary>
+	internal void ScheduleReport(Dispatcher dispatcher, Action<int> report)
+	{
+		if(UntilReportDue() is not TimeSpan due || reportTimer?.IsEnabled == true)
+			return;
+		var timer = reportTimer ??= new DispatcherTimer(DispatcherPriority.Background, dispatcher);
+		timer.Interval = due;
+		EventHandler? onTick = null;
+		onTick = (s, e) =>
+		{
+			timer.Stop();
+			timer.Tick -= onTick;
+			int count = TakeDueFailures();
+			if(count > 0)
+				report(count);
+		};
+		timer.Tick += onTick;
+		timer.Start();
 	}
 
 	/// <summary>
