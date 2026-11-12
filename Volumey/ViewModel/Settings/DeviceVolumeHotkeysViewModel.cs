@@ -41,8 +41,28 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 
 	private void SetMuteError(ErrorMessageType type)
 	{
+		muteErrorIsRefusal = false;
+		ShowMuteError(type);
+	}
+
+	private void ShowMuteError(ErrorMessageType type)
+	{
 		muteErrorType = type;
 		MuteError = type == ErrorMessageType.None ? string.Empty : ErrorDictionary.Instance[type];
+	}
+
+	private bool muteErrorIsRefusal;
+
+	/// <summary>
+	/// Shows an error under each box whose hotkey the system refuses for now (see <see cref="RefusalError"/>)
+	/// </summary>
+	private void ShowRefused()
+	{
+		VolumeErrors.ShowRefused(hotkey => volumeHotkeysRegistered && hotkeys.IsRefused(hotkey), VolumeUp, VolumeDown, null,
+			ErrorMessageType.VolumeReg);
+		(var type, muteErrorIsRefusal) = RefusalError.Next(muteErrorType, muteErrorIsRefusal,
+			muteHotkeyRegistered && hotkeys.IsRefused(MuteKey), ErrorMessageType.OpenReg);
+		ShowMuteError(type);
 	}
 
 	partial void OnMuteKeyChanged(HotKey value) => SetMuteError(ErrorMessageType.None);
@@ -101,8 +121,9 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		ErrorDictionary.LanguageChanged += () =>
 		{
 			VolumeErrors.Refresh();
-			SetMuteError(muteErrorType);
+			ShowMuteError(muteErrorType);
 		};
+		hotkeys.RefusedHotkeysChanged += ShowRefused;
 		deviceProvider.DefaultDeviceChanged += OnDefaultDeviceChanged;
 		defaultDevice = deviceProvider.DefaultDevice;
 
@@ -141,8 +162,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 
 	/// <summary>
 	/// Registers the saved hotkeys for <paramref name="device"/> (on start and when the default device changes).
-	/// A hotkey that fails now (e.g. another app took the combination) shows an error instead of silently doing nothing;
-	/// it stays on and saved, and is tried again with the next default device or start.
+	/// A hotkey another app holds shows an error instead of silently doing nothing; it stays on and saved, and is tried again.
 	/// </summary>
 	private void ApplyHotkeys(OutputDeviceModel device)
 	{
@@ -155,6 +175,7 @@ public sealed partial class DeviceVolumeHotkeysViewModel : HotkeyViewModel
 		}
 		if(muteHotkeyRegistered)
 			SetMuteError(device.SetMuteHotkey(MuteKey) ? ErrorMessageType.None : ErrorMessageType.OpenReg);
+		ShowRefused();
 		if((volumeHotkeysRegistered || muteHotkeyRegistered) && SettingsProvider.Settings.Notifications.Enabled)
 			device.SetStateNotificationMediator(notifications);
 		device.Disabled += OnDefaultDeviceDisabled;

@@ -41,14 +41,18 @@ public sealed partial class OpenHotkeyViewModel : HotkeyViewModel
 			Hotkey = openHotkey;
 			RegisterWhenHotkeysActive(RegisterLoadedHotkey);
 		}
+		hotkeys.RefusedHotkeysChanged += ShowRefused;
 	}
 
 	private void RegisterLoadedHotkey()
 	{
-		//shows an error instead of silently doing nothing; it stays saved and is tried again on the next start
+		//shows an error instead of silently doing nothing while another app holds it; it stays saved and is tried again
 		if(!hotkeys.RegisterOpenMixerHotkey(Hotkey))
 			SetErrorMessage(ErrorMessageType.OpenReg);
+		ShowRefused();
 	}
+
+	private void ShowRefused() => ShowRefusal(hotkeyRegistered && hotkeys.IsRefused(Hotkey), ErrorMessageType.OpenReg);
 
 	private bool SaveHotkey()
 	{

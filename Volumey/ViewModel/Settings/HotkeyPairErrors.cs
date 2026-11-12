@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -31,12 +32,37 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 
 	public bool Any => upType != ErrorMessageType.None || downType != ErrorMessageType.None || muteType != ErrorMessageType.None;
 
+	//the box's error shows that the system refuses its hotkey (see ShowRefused)
+	private bool refusedUp;
+	private bool refusedDown;
+	private bool refusedMute;
+
 	public void Set(ErrorMessageType up, ErrorMessageType down, ErrorMessageType mute = ErrorMessageType.None)
 	{
 		upType = up;
 		downType = down;
 		muteType = mute;
 		rejectedUp = rejectedDown = rejectedMute = null;
+		refusedUp = refusedDown = refusedMute = false;
+		Refresh();
+	}
+
+	/// <summary>
+	/// Shows <paramref name="error"/> under each box whose hotkey the system refuses for now, and removes it from the boxes
+	/// whose hotkey was registered since (see <see cref="RefusalError"/>)
+	/// </summary>
+	public void ShowRefused(Func<HotKey?, bool> isRefused, HotKey? up, HotKey? down, HotKey? mute, ErrorMessageType error)
+	{
+		var (newUp, newRefusedUp) = RefusalError.Next(upType, refusedUp, isRefused(up), error);
+		var (newDown, newRefusedDown) = RefusalError.Next(downType, refusedDown, isRefused(down), error);
+		var (newMute, newRefusedMute) = RefusalError.Next(muteType, refusedMute, isRefused(mute), error);
+		if(newRefusedUp != refusedUp)
+			rejectedUp = null;
+		if(newRefusedDown != refusedDown)
+			rejectedDown = null;
+		if(newRefusedMute != refusedMute)
+			rejectedMute = null;
+		(upType, refusedUp, downType, refusedDown, muteType, refusedMute) = (newUp, newRefusedUp, newDown, newRefusedDown, newMute, newRefusedMute);
 		Refresh();
 	}
 
@@ -91,11 +117,29 @@ public sealed partial class HotkeyPairErrors : ObservableObject
 
 	public void Clear() => Set(ErrorMessageType.None, ErrorMessageType.None);
 
-	public void ClearUp() => Set(ErrorMessageType.None, downType, muteType);
+	public void ClearUp()
+	{
+		upType = ErrorMessageType.None;
+		rejectedUp = null;
+		refusedUp = false;
+		Refresh();
+	}
 
-	public void ClearDown() => Set(upType, ErrorMessageType.None, muteType);
+	public void ClearDown()
+	{
+		downType = ErrorMessageType.None;
+		rejectedDown = null;
+		refusedDown = false;
+		Refresh();
+	}
 
-	public void ClearMute() => Set(upType, downType);
+	public void ClearMute()
+	{
+		muteType = ErrorMessageType.None;
+		rejectedMute = null;
+		refusedMute = false;
+		Refresh();
+	}
 
 	/// <summary>
 	/// Reads the messages again, e.g. after the language changed

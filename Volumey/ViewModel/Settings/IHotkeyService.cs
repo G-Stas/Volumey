@@ -59,7 +59,20 @@ public interface IHotkeyService : IDisposable
 
 	void UnregisterHotkeys(IReadOnlyList<HotKey?> hotkeys);
 
+	/// <summary>
+	/// Registers the hotkey and counts this user; a saved hotkey the system refuses is kept and tried again (see <see cref="HotkeyService.RegisterHotkey"/>)
+	/// </summary>
 	bool RegisterHotkey(HotKey? hotkey);
+
+	/// <summary>
+	/// The hotkey has users but the system refused it (another app holds the combination): it's tried again until it works
+	/// </summary>
+	bool IsRefused(HotKey? hotkey);
+
+	/// <summary>
+	/// Raised on the UI thread when a hotkey was refused, or a refused one was registered or released (see <see cref="IsRefused"/>)
+	/// </summary>
+	event Action RefusedHotkeysChanged;
 
 	void UnregisterHotkey(HotKey? hotkey);
 

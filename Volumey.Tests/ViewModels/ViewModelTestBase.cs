@@ -25,6 +25,8 @@ public abstract class ViewModelTestBase
 {
 	protected VolumeySettings Settings { get; private set; }
 	protected HotkeyService Hotkeys { get; private set; }
+	/// <summary>The hotkey service's retries of refused hotkeys, run by hand</summary>
+	internal FakeRetrySchedule Retries { get; private set; }
 	protected Mock<IHotkeyManager> HotkeyManager { get; private set; }
 	protected Mock<INotificationService> Notifications { get; private set; }
 	protected Mock<IDeviceProvider> DeviceProvider { get; private set; }
@@ -44,7 +46,8 @@ public abstract class ViewModelTestBase
 		SettingsProvider.UseSettings(Settings);
 		ErrorDictionary.UpdateErrorDictionary();
 
-		Hotkeys = new HotkeyService();
+		Retries = new FakeRetrySchedule();
+		Hotkeys = new HotkeyService(_ => false, () => new MouseHotkeyManager(), schedule: Retries.Schedule);
 		HotkeyManager = new Mock<IHotkeyManager>();
 		Notifications = new Mock<INotificationService>();
 		ActiveDevices = new ObservableCollection<OutputDeviceModel>();

@@ -36,11 +36,12 @@ public sealed class SystemHotkeysViewModel : HotkeyViewModel
 
 		if(Keys.Any(k => k.Hotkey != null))
 			RegisterWhenHotkeysActive(RegisterHotkeys);
+		hotkeys.RefusedHotkeysChanged += ShowRefused;
 	}
 
 	private void RegisterHotkeys()
 	{
-		//shows an error instead of silently doing nothing; the hotkeys stay saved and are tried again on the next start
+		//a hotkey another app holds shows an error instead of silently doing nothing; it stays saved and is tried again
 		foreach(var item in Keys.Where(k => k.Hotkey != null))
 		{
 			item.IsRegistered = hotkeys.RegisterHotkey(item.Hotkey);
@@ -48,6 +49,13 @@ public sealed class SystemHotkeysViewModel : HotkeyViewModel
 			if(!item.IsRegistered)
 				item.SetError(ErrorMessageType.OpenReg);
 		}
+		ShowRefused();
+	}
+
+	private void ShowRefused()
+	{
+		foreach(var item in Keys)
+			item.ShowRefusal(item.IsRegistered && hotkeys.IsRefused(item.Hotkey));
 	}
 
 	/// <summary>

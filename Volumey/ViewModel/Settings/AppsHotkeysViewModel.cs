@@ -123,6 +123,22 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			foreach(var app in Apps)
 				app.Errors.Refresh();
 		};
+		hotkeys.RefusedHotkeysChanged += ShowRefused;
+	}
+
+	/// <summary>
+	/// Shows an error under each box of a running app whose hotkey the system refuses for now (see <see cref="RefusalError"/>)
+	/// </summary>
+	private void ShowRefused()
+	{
+		foreach(var app in Apps)
+			ShowRefused(app);
+	}
+
+	private void ShowRefused(AppHotkeysItem app)
+	{
+		bool running = LaunchedProcesses.Any(p => p.Name == app.ProcessName);
+		app.Errors.ShowRefused(hotkey => running && hotkeys.IsRefused(hotkey), app.VolumeUp, app.VolumeDown, app.Mute, ErrorMessageType.VolumeReg);
 	}
 
 	/// <summary>
@@ -148,13 +164,14 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 	private AppHotkeysItem? FindApp(string processName) => Apps.FirstOrDefault(app => app.ProcessName == processName);
 
 	/// <summary>
-	/// Registers a saved app's hotkeys for a running process. If they fail (e.g. another app took the combination),
-	/// the error shows under the app's box instead of the hotkeys silently doing nothing; they stay saved.
+	/// Registers a saved app's hotkeys for a running process. If another app holds one, the error shows under its box
+	/// instead of the hotkey silently doing nothing; it stays saved and is tried again.
 	/// </summary>
 	private void SetUpSaved(AudioProcessModel process, AppHotkeysItem app)
 	{
 		SetUp(process, app, out var failed);
 		app.Errors.SetFailed(failed, app.VolumeUp, app.VolumeDown, app.Mute, ErrorMessageType.VolumeReg);
+		ShowRefused(app);
 	}
 
 	/// <summary>
@@ -299,11 +316,13 @@ public sealed partial class AppsHotkeysViewModel : HotkeyViewModel
 			//the box shows the old hotkey again, so the error names the rejected one
 			app.Errors.SetRejected(kind, changed, error);
 			app.SetHotkeys(app.VolumeUp, app.VolumeDown, app.Mute);
+			ShowRefused(app);
 			return;
 		}
 		//an unchanged hotkey that another app holds keeps its error
 		app.Errors.SetFailed(refused, up, down, mute, ErrorMessageType.VolumeReg);
 		app.SetHotkeys(up, down, mute);
+		ShowRefused(app);
 		Logger.Info($"Changed app hotkeys. App: [{app.ProcessName}] +vol: [{up}] -vol: [{down}] mute: [{mute}]");
 		SaveApps();
 	}

@@ -56,10 +56,11 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 		{
 			foreach(var entry in Devices)
 			{
-				entry.SetError(entry.ErrorType);
+				entry.RefreshError();
 				entry.Settings?.RefreshTexts();
 			}
 		};
+		hotkeys.RefusedHotkeysChanged += ShowRefused;
 
 		SelectedDevice = Devices.FirstOrDefault(d => d.IsDefault) ?? Devices.FirstOrDefault();
 
@@ -70,12 +71,19 @@ public sealed partial class DefaultDeviceHotkeysViewModel : HotkeyViewModel
 	private void RegisterLoadedHotkeys()
 	{
 		hotkeys.HotkeyPressed += OnHotkeyPressed;
-		//a hotkey that fails now shows an error instead of silently doing nothing; it stays saved and is tried again on the next start
+		//a hotkey another app holds now shows an error instead of silently doing nothing; it stays saved and is tried again
 		foreach(var entry in Devices.Where(d => d.HotkeyRegistered))
 		{
 			if(!hotkeys.RegisterHotkey(entry.Hotkey))
 				entry.SetError(ErrorMessageType.OpenReg);
 		}
+		ShowRefused();
+	}
+
+	private void ShowRefused()
+	{
+		foreach(var entry in Devices)
+			entry.ShowRefusal(entry.HotkeyRegistered && hotkeys.IsRefused(entry.Hotkey));
 	}
 
 	/// <summary>
