@@ -322,6 +322,43 @@ public class ConvertersTests
 	}
 
 	[TestMethod]
+	public void TheDeviceTrayIconIsReadAtTheTraySizeAgainAfterAScaleChange()
+	{
+		using var systemSize = (Icon)SystemIcons.Information.Clone();
+		using var small = (Icon)SystemIcons.Warning.Clone();
+		using var large = (Icon)SystemIcons.Error.Clone();
+		int traySize = 16;
+		var reads = new List<(string, int)>();
+		var converter = new TrayIconConverter(_ => null, () => traySize, loadDeviceIcon: (path, size) =>
+		{
+			reads.Add((path, size));
+			return size == 16 ? small : large;
+		});
+		const string path = @"%windir%\system32\mmres.dll,-3011";
+
+		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, systemSize, path));
+		Assert.AreEqual(Binding.DoNothing, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, systemSize, path));
+
+		//the display scale changed: the tray's icons are bigger now
+		traySize = 24;
+		Assert.AreSame(large, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, systemSize, path));
+		//each size is read once
+		traySize = 16;
+		Assert.AreSame(small, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, systemSize, path));
+		CollectionAssert.AreEqual(new[] { (path, 16), (path, 24) }, reads);
+	}
+
+	[TestMethod]
+	public void TheDeviceTrayIconFallsBackToTheOneReadAtTheSystemSize()
+	{
+		using var systemSize = (Icon)SystemIcons.Information.Clone();
+		var converter = new TrayIconConverter(_ => null, () => 16, loadDeviceIcon: (_, _) => null);
+
+		Assert.AreSame(systemSize, Convert(converter, false, 50, false, null, TrayIconKind.DeviceIcon, systemSize, "broken"));
+		Assert.AreSame(systemSize, Convert(new TrayIconConverter(_ => null, () => 16), false, 50, false, null, TrayIconKind.DeviceIcon, systemSize, null));
+	}
+
+	[TestMethod]
 	public void ATrayIconThemeChangeWithoutAVolumeKeepsTheIconAndSendsTheNextGlyph()
 	{
 		var converter = new TrayIconConverter(_ => null, () => 16);

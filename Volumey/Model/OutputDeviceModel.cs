@@ -230,6 +230,7 @@ public sealed class OutputDeviceModel : INotifyPropertyChanged, IDisposable
 				{
 					//switch to the new icon before releasing the old one, which the tray may still show
 					var oldIcon = Master.Icon;
+					Master.IconPath = device.GetIconPath();
 					Master.Icon = device.GetIcon();
 					Master.IconSource = Master.Icon?.GetAsImageSource();
 					oldIcon?.Dispose();

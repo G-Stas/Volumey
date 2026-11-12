@@ -75,7 +75,7 @@ internal static class AudioModelFactory
 			return new MasterSessionModel(deviceName, deviceDesc, VolumePercent.FromScalar(volume), muteState, id, icon,
 										  masterVolume,
 										  volumeHandler,
-										  hotkeys);
+										  hotkeys) { IconPath = device.GetIconPath() };
 		}
 		catch(Exception e) when(!DeviceNotReadyException.IsTransient(e))
 		{

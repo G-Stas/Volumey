@@ -41,9 +41,11 @@ public sealed class AudioDevice : IDevice
 	/// <summary>
 	/// A new icon owned by the caller, or null
 	/// </summary>
+	public string? GetIconPath() => GetProperty<string>(PropertyKeys.PKEY_Device_IconPath);
+
 	public Icon? GetIcon()
 	{
-		string? iconPath = GetProperty<string>(PropertyKeys.PKEY_Device_IconPath);
+		string? iconPath = GetIconPath();
 		try
 		{
 			return IconHelper.GetFromResourcePath(iconPath);
