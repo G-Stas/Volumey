@@ -70,7 +70,7 @@ jobs:
           $notes += ''
           $notes += "- **Volumey_${version}_x64.zip**: everything included, starts on any Windows 10/11 PC (64-bit). The in-app update uses this one."
           $notes += "- **Volumey_${version}_x64_framework-dependent.zip**: smaller, but **requires the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) (x64)**. Without it, Windows asks you to install it before Volumey starts."
-          $notes += '- Or get it from the [Microsoft Store](https://apps.microsoft.com/detail/9mzcq03mx0s3), which keeps it up to date.'
+          $notes += '- Or get it from the [Microsoft Store](https://get.microsoft.com/installer/download/9mzcq03mx0s3?referrer=appbadge&cid=GithubBadge), which keeps it up to date.'
           $notes += ''
           $notes += 'SHA-256:'
           $notes += '```'
