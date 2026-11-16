@@ -21,6 +21,8 @@ internal static class SystemIntegrationHelper
 #if(!STORE)
 
 	private static readonly string StartupRegistryPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+	//where Task Manager's Startup apps page and Settings > Apps > Startup keep a Run entry turned off; Windows skips such an entry at sign-in
+	private static readonly string StartupApprovedRegistryPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
 	//a debug build has its own names, so a dev run never re-points the autostart entry or the shortcut of the installed app
 	private static readonly string StartupRegistryKeyName = "Volumey" + Startup.InstanceSuffix;
 	private static readonly string StartMenuLinkName = "Volumey" + Startup.InstanceSuffix + ".lnk";
@@ -58,6 +60,12 @@ internal static class SystemIntegrationHelper
 		return StartupCommandLine(exePath, EnvironmentArgs.FindIn(commandLine));
 	}
 
+	/// <summary>
+	/// Whether a StartupApproved value turns its Run entry off: the first byte's lowest bit is set when it's disabled (03, 07),
+	/// clear when it's enabled (02, 06). No value means enabled.
+	/// </summary>
+	internal static bool IsTurnedOffByWindows(byte[]? approval) => approval is { Length: > 0 } && (approval[0] & 1) != 0;
+
 	private static readonly string StartMenuProgramsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu), "Programs");
 
 	internal static bool EnableLaunchAtStartup()
@@ -75,6 +83,8 @@ internal static class SystemIntegrationHelper
 					return false;
 
 				key.SetValue(StartupRegistryKeyName, StartupRegistryValue);
+				//turning it on in the app overrides an earlier "disabled" from Task Manager, which would keep Windows from starting it
+				ClearStartupApproval();
 				return true;
 			}
 		}
@@ -95,11 +105,27 @@ internal static class SystemIntegrationHelper
 			{
 				key?.DeleteValue(StartupRegistryKeyName, throwOnMissingValue: false);
 			}
+			ClearStartupApproval();
 		}
 		catch(Exception e)
 		{
 			Logger.Error("Failed to disable launch at startup", e);
 		}
+	}
+
+	/// <summary>Removes the entry's StartupApproved value, so Windows treats the entry as enabled</summary>
+	private static void ClearStartupApproval()
+	{
+		using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+		using var key = baseKey.OpenSubKey(StartupApprovedRegistryPath, true);
+		key?.DeleteValue(StartupRegistryKeyName, throwOnMissingValue: false);
+	}
+
+	private static bool IsStartupTurnedOffByWindows()
+	{
+		using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+		using var key = baseKey.OpenSubKey(StartupApprovedRegistryPath);
+		return IsTurnedOffByWindows(key?.GetValue(StartupRegistryKeyName) as byte[]);
 	}
 
 	internal static bool CheckIfStartupRegistryKeyExists()
@@ -115,7 +141,7 @@ internal static class SystemIntegrationHelper
 					//points the entry at the running exe, so a moved build keeps starting
 					if(!string.IsNullOrEmpty(ExePath) && RepointStartupCommandLine(value, ExePath) is string repointed)
 						key.SetValue(StartupRegistryKeyName, repointed);
-					return true;
+					return !IsStartupTurnedOffByWindows();
 				}
 				return false;
 			}
