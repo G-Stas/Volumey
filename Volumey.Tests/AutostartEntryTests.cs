@@ -45,4 +45,22 @@ public class AutostartEntryTests
 	{
 		Assert.AreEqual($"\"{Exe}\" -minimized", SystemIntegrationHelper.RepointStartupCommandLine(entry, Exe));
 	}
+
+	[TestMethod]
+	[DataRow(new byte[] { 3, 0, 0, 0, 0xAF, 0x4C, 0x3E, 0x5D, 0xD2, 0x72, 0xDD, 0x01 })]
+	[DataRow(new byte[] { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
+	public void AnEntryTurnedOffInTaskManagerCountsAsOff(byte[] approval)
+	{
+		Assert.IsTrue(SystemIntegrationHelper.IsTurnedOffByWindows(approval));
+	}
+
+	[TestMethod]
+	[DataRow(null)]
+	[DataRow(new byte[0])]
+	[DataRow(new byte[] { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
+	[DataRow(new byte[] { 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })]
+	public void AnEntryWithoutAnApprovalOrApprovedCountsAsOn(byte[] approval)
+	{
+		Assert.IsFalse(SystemIntegrationHelper.IsTurnedOffByWindows(approval));
+	}
 }

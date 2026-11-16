@@ -16,6 +16,7 @@ namespace Volumey.UITests;
 public class GeneralPageTests : UiTest
 {
 	private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
+	private const string ApprovalKey = @"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run";
 	private const string DevEntry = "Volumey-dev";
 
 	private static readonly string StartMenuLink =
@@ -93,25 +94,40 @@ public class GeneralPageTests : UiTest
 		return index;
 	}
 
-	/// <summary>Puts the dev build's autostart entry back as it was</summary>
+	/// <summary>Puts the dev build's autostart entry and its Task Manager state back as they were</summary>
 	private sealed class KeepRunEntry : IDisposable
 	{
 		private readonly object? value;
+		private readonly object? approval;
 
 		public KeepRunEntry()
 		{
-			using var key = Registry.CurrentUser.OpenSubKey(RunKey);
-			value = key?.GetValue(DevEntry);
+			using(var key = Registry.CurrentUser.OpenSubKey(RunKey))
+				value = key?.GetValue(DevEntry);
+			using(var key = Registry.CurrentUser.OpenSubKey(ApprovalKey))
+				approval = key?.GetValue(DevEntry);
 		}
 
 		public void Dispose()
 		{
-			using var key = Registry.CurrentUser.CreateSubKey(RunKey);
-			if(value == null)
+			Restore(RunKey, value, RegistryValueKind.String);
+			Restore(ApprovalKey, approval, RegistryValueKind.Binary);
+		}
+
+		private static void Restore(string path, object? old, RegistryValueKind kind)
+		{
+			using var key = Registry.CurrentUser.CreateSubKey(path);
+			if(old == null)
 				key.DeleteValue(DevEntry, false);
 			else
-				key.SetValue(DevEntry, value);
+				key.SetValue(DevEntry, old, kind);
 		}
+	}
+
+	private static byte[]? Approval()
+	{
+		using var key = Registry.CurrentUser.OpenSubKey(ApprovalKey);
+		return key?.GetValue(DevEntry) as byte[];
 	}
 
 	/// <summary>Puts the dev build's Start menu shortcut back as it was</summary>
@@ -149,6 +165,23 @@ public class GeneralPageTests : UiTest
 
 		Settings.SetSwitch("StartWithWindowsToggle", false);
 		Assert.IsTrue(Eventually(() => RunEntry() == null), "the autostart entry is still there");
+	}
+
+	[TestMethod]
+	public void AnEntryTurnedOffInTaskManagerShowsOffAndTurningItOnEnablesIt()
+	{
+		Later(new KeepRunEntry());
+		using(var key = Registry.CurrentUser.CreateSubKey(RunKey))
+			key.SetValue(DevEntry, $"\"{VolumeyApp.ExePath}\" -minimized");
+		using(var key = Registry.CurrentUser.CreateSubKey(ApprovalKey))
+			key.SetValue(DevEntry, new byte[] { 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, RegistryValueKind.Binary);
+		OpenPage();
+
+		Assert.IsFalse(Settings.IsOn("StartWithWindowsToggle"), "an entry Windows doesn't start shows as on");
+
+		Settings.SetSwitch("StartWithWindowsToggle", true);
+		Assert.IsTrue(Eventually(() => Approval() == null), "Task Manager's \"disabled\" is still there");
+		Assert.IsNotNull(RunEntry(), "no autostart entry");
 	}
 
 	[TestMethod]
