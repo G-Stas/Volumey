@@ -154,6 +154,9 @@ public class GeneralPageTests : UiTest
 	public void StartWithWindowsAddsAndRemovesTheAutostartEntry()
 	{
 		Later(new KeepRunEntry());
+		//an existing dev entry would show the switch on already, so turning it on would write nothing
+		using(var key = Registry.CurrentUser.CreateSubKey(RunKey))
+			key.DeleteValue(DevEntry, false);
 		OpenPage();
 
 		Settings.SetSwitch("StartWithWindowsToggle", true);
