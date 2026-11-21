@@ -1,0 +1,709 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TrayMenu_SoundPanel" xml:space="preserve">
+    <value>Panel sterowania dźwiękiem</value>
+  </data>
+  <data name="TrayMenu_SoundSettings" xml:space="preserve">
+    <value>Ustawienia dźwięku</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+  <data name="TabHeader_Settings" xml:space="preserve">
+    <value>Ustawienia</value>
+  </data>
+  <data name="Error_Diff" xml:space="preserve">
+    <value>Ustaw różne skróty klawiszowe</value>
+  </data>
+  <data name="Error_VolumeReg" xml:space="preserve">
+    <value>Nie udało się zarejestrować skrótów klawiszowych</value>
+  </data>
+  <data name="Error_OpenReg" xml:space="preserve">
+    <value>Nie udało się zarejestrować skrótu klawiszowego</value>
+  </data>
+  <data name="Notification_Yes" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Notification_Later" xml:space="preserve">
+    <value>Później</value>
+  </data>
+  <data name="NotificationMessage_Update" xml:space="preserve">
+    <value>Dostępna jest aktualizacja. Czy chcesz zaktualizować aplikację?</value>
+  </data>
+  <data name="Error_NoDevice" xml:space="preserve">
+    <value>Nie wykryto urządzenia wyjściowego</value>
+  </data>
+  <data name="Error_F12" xml:space="preserve">
+    <value>Klawisz F12 jest zarezerwowany przez system operacyjny</value>
+  </data>
+  <data name="Error_HotkeyExists" xml:space="preserve">
+    <value>Ten skrót klawiszowy został już dodany</value>
+  </data>
+  <data name="Status_Muted" xml:space="preserve">
+    <value>Wyciszono</value>
+  </data>
+  <data name="Notifications_Horizontal" xml:space="preserve">
+    <value>Odstęp w poziomie</value>
+  </data>
+  <data name="Notifications_Position" xml:space="preserve">
+    <value>Położenie</value>
+  </data>
+  <data name="Notifications_Preview" xml:space="preserve">
+    <value>Podgląd powiadomienia</value>
+  </data>
+  <data name="Notifications_Vertical" xml:space="preserve">
+    <value>Odstęp w pionie</value>
+  </data>
+  <data name="Notifications_ReactAll" xml:space="preserve">
+    <value>Wyświetlaj przy każdej zmianie głośności</value>
+  </data>
+  <data name="Mixer_OutputDevice" xml:space="preserve">
+    <value>Urządzenie wyjściowe</value>
+  </data>
+  <data name="Mixer_Apps" xml:space="preserve">
+    <value>Aplikacje</value>
+  </data>
+  <data name="Mixer_OpenSettings" xml:space="preserve">
+    <value>Ustawienia Volumey</value>
+  </data>
+  <data name="Mixer_MakeDefault" xml:space="preserve">
+    <value>Ustaw jako urządzenie domyślne</value>
+  </data>
+  <data name="SettingsWindow_Title" xml:space="preserve">
+    <value>Ustawienia Volumey</value>
+  </data>
+  <data name="Nav_General" xml:space="preserve">
+    <value>Ogólne</value>
+  </data>
+  <data name="Nav_Mixer" xml:space="preserve">
+    <value>Mikser głośności</value>
+  </data>
+  <data name="Nav_AppHotkeys" xml:space="preserve">
+    <value>Skróty aplikacji</value>
+  </data>
+  <data name="Nav_Devices" xml:space="preserve">
+    <value>Urządzenia</value>
+  </data>
+  <data name="Nav_MediaKeys" xml:space="preserve">
+    <value>Klawisze multimedialne</value>
+  </data>
+  <data name="Nav_Notifications" xml:space="preserve">
+    <value>Powiadomienia</value>
+  </data>
+  <data name="Nav_About" xml:space="preserve">
+    <value>Informacje</value>
+  </data>
+  <data name="Nav_SourceCode" xml:space="preserve">
+    <value>Kod źródłowy</value>
+  </data>
+  <data name="Nav_Support" xml:space="preserve">
+    <value>Wesprzyj projekt</value>
+  </data>
+  <data name="Settings_PageNotDone" xml:space="preserve">
+    <value>Ta strona nie została jeszcze przeprojektowana.</value>
+  </data>
+  <data name="General_Description" xml:space="preserve">
+    <value>Język, motyw, uruchamianie i skróty klawiszowe.</value>
+  </data>
+  <data name="General_Appearance" xml:space="preserve">
+    <value>Wygląd</value>
+  </data>
+  <data name="General_Language" xml:space="preserve">
+    <value>Język</value>
+  </data>
+  <data name="General_Theme" xml:space="preserve">
+    <value>Motyw</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Jasny</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Ciemny</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>Użyj ustawień systemowych</value>
+  </data>
+  <data name="General_TrayIcon" xml:space="preserve">
+    <value>Ikona w obszarze powiadomień</value>
+  </data>
+  <data name="TrayIcon_VolumeLevel" xml:space="preserve">
+    <value>Poziom głośności</value>
+  </data>
+  <data name="TrayIcon_DeviceIcon" xml:space="preserve">
+    <value>Ikona urządzenia domyślnego</value>
+  </data>
+  <data name="TrayIcon_AppIcon" xml:space="preserve">
+    <value>Ikona Volumey</value>
+  </data>
+  <data name="TrayIcon_SystemIcons" xml:space="preserve">
+    <value>Systemowe ikony głośności Windows</value>
+  </data>
+  <data name="General_Startup" xml:space="preserve">
+    <value>Uruchamianie</value>
+  </data>
+  <data name="General_StartWithWindows" xml:space="preserve">
+    <value>Uruchamiaj wraz z systemem Windows</value>
+  </data>
+  <data name="General_StartWithWindowsHint" xml:space="preserve">
+    <value>Po zalogowaniu uruchamia się w obszarze powiadomień</value>
+  </data>
+  <data name="General_StartMenu" xml:space="preserve">
+    <value>Pokaż w menu Start</value>
+  </data>
+  <data name="General_Hotkeys" xml:space="preserve">
+    <value>Skróty klawiszowe</value>
+  </data>
+  <data name="General_HotkeyMode" xml:space="preserve">
+    <value>Co zrobić po naciśnięciu skrótu Volumey</value>
+  </data>
+  <data name="General_KeepKeys" xml:space="preserve">
+    <value>Przechwytuj klawisze na wyłączność</value>
+  </data>
+  <data name="General_KeepKeysHint" xml:space="preserve">
+    <value>Inne aplikacje nie otrzymują tych klawiszy. Działa również wtedy, gdy aktywna jest aplikacja uruchomiona jako administrator.</value>
+  </data>
+  <data name="General_ShareKeys" xml:space="preserve">
+    <value>Udostępniaj klawisze innym aplikacjom</value>
+  </data>
+  <data name="General_ShareKeysHint" xml:space="preserve">
+    <value>Dla gier korzystających z tych samych klawiszy. Nie działa, gdy aktywna jest aplikacja uruchomiona jako administrator.</value>
+  </data>
+  <data name="General_VolumeStep" xml:space="preserve">
+    <value>Krok zmiany głośności</value>
+  </data>
+  <data name="General_VolumeStepHint" xml:space="preserve">
+    <value>Przy każdym naciśnięciu skrótu</value>
+  </data>
+  <data name="Toggle_On" xml:space="preserve">
+    <value>Wł.</value>
+  </data>
+  <data name="Toggle_Off" xml:space="preserve">
+    <value>Wył.</value>
+  </data>
+  <data name="Mixer_Mute" xml:space="preserve">
+    <value>Wycisz: {0}</value>
+  </data>
+  <data name="Mixer_Unmute" xml:space="preserve">
+    <value>Wyłącz wyciszenie: {0}</value>
+  </data>
+  <data name="Tray_OpenMixer" xml:space="preserve">
+    <value>Otwórz mikser</value>
+  </data>
+  <data name="MixerPage_Description" xml:space="preserve">
+    <value>Sposób otwierania miksera i wyświetlane w nim informacje.</value>
+  </data>
+  <data name="MixerPage_Opening" xml:space="preserve">
+    <value>Otwieranie miksera</value>
+  </data>
+  <data name="MixerPage_OpenHotkey" xml:space="preserve">
+    <value>Skrót klawiszowy otwierający mikser</value>
+  </data>
+  <data name="MixerPage_OpenHotkeyHint" xml:space="preserve">
+    <value>Naciśnij ponownie, aby zamknąć</value>
+  </data>
+  <data name="MixerPage_Popup" xml:space="preserve">
+    <value>Tryb wyskakującego okna</value>
+  </data>
+  <data name="MixerPage_PopupHint" xml:space="preserve">
+    <value>Otwiera się nad obszarem powiadomień i znika po kliknięciu poza oknem. Gdy wyłączony: zwykłe okno.</value>
+  </data>
+  <data name="MixerPage_AlwaysOnTop" xml:space="preserve">
+    <value>Zawsze na wierzchu</value>
+  </data>
+  <data name="MixerPage_Screen" xml:space="preserve">
+    <value>Ekran</value>
+  </data>
+  <data name="MixerPage_MainScreen" xml:space="preserve">
+    <value>(główny)</value>
+  </data>
+  <data name="MixerPage_Layout" xml:space="preserve">
+    <value>Układ</value>
+  </data>
+  <data name="MixerPage_DeviceBottom" xml:space="preserve">
+    <value>Pokaż urządzenie na dole</value>
+  </data>
+  <data name="MixerPage_DevicePicker" xml:space="preserve">
+    <value>Pokaż wybór urządzenia</value>
+  </data>
+  <data name="MixerPage_DevicePickerHint" xml:space="preserve">
+    <value>Po wyłączeniu mikser pokazuje urządzenie domyślne</value>
+  </data>
+  <data name="MixerPage_AppVolumes" xml:space="preserve">
+    <value>Głośność aplikacji</value>
+  </data>
+  <data name="MixerPage_VolumeLimit" xml:space="preserve">
+    <value>Ogranicz głośność aplikacji uruchamianych z pełną głośnością</value>
+  </data>
+  <data name="MixerPage_VolumeLimitHint" xml:space="preserve">
+    <value>Aplikacje będą uruchamiane z ustawioną tutaj głośnością</value>
+  </data>
+  <data name="MixerPage_Sync" xml:space="preserve">
+    <value>Synchronizuj głośność aplikacji z urządzeniem</value>
+  </data>
+  <data name="MixerPage_SyncHint" xml:space="preserve">
+    <value>Zmiana głośności urządzenia ustawia taką samą głośność we wszystkich aplikacjach</value>
+  </data>
+  <data name="Error_Missing" xml:space="preserve">
+    <value>Ustaw skrót klawiszowy</value>
+  </data>
+  <data name="AppHotkeys_Description" xml:space="preserve">
+    <value>Zmieniaj głośność aplikacji z dowolnego miejsca.</value>
+  </data>
+  <data name="AppHotkeys_Foreground" xml:space="preserve">
+    <value>Aktywna aplikacja</value>
+  </data>
+  <data name="AppHotkeys_ForegroundTitle" xml:space="preserve">
+    <value>Steruj aplikacją, która jest na pierwszym planie</value>
+  </data>
+  <data name="AppHotkeys_VolumeUp" xml:space="preserve">
+    <value>Zwiększ głośność</value>
+  </data>
+  <data name="AppHotkeys_VolumeDown" xml:space="preserve">
+    <value>Zmniejsz głośność</value>
+  </data>
+  <data name="AppHotkeys_Apps" xml:space="preserve">
+    <value>Aplikacje</value>
+  </data>
+  <data name="AppHotkeys_AddApp" xml:space="preserve">
+    <value>Dodaj aplikację</value>
+  </data>
+  <data name="AppHotkeys_NoApps" xml:space="preserve">
+    <value>Nie dodano jeszcze żadnych aplikacji.</value>
+  </data>
+  <data name="AppHotkeys_Remove" xml:space="preserve">
+    <value>Usuń</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeUp" xml:space="preserve">
+    <value>Zwiększ głośność: {0}</value>
+  </data>
+  <data name="AppHotkeys_AppVolumeDown" xml:space="preserve">
+    <value>Zmniejsz głośność: {0}</value>
+  </data>
+  <data name="AppHotkeys_Mute" xml:space="preserve">
+    <value>Wycisz / wyłącz wyciszenie</value>
+  </data>
+  <data name="AppHotkeys_AppMute" xml:space="preserve">
+    <value>Wycisz / wyłącz wyciszenie: {0}</value>
+  </data>
+  <data name="AppHotkeys_RemoveApp" xml:space="preserve">
+    <value>Usuń aplikację: {0}</value>
+  </data>
+  <data name="AppHotkeys_AddTitle" xml:space="preserve">
+    <value>Dodaj aplikację</value>
+  </data>
+  <data name="AppHotkeys_App" xml:space="preserve">
+    <value>Aplikacja</value>
+  </data>
+  <data name="AppHotkeys_NoRunningApps" xml:space="preserve">
+    <value>Żadne inne aplikacje nie odtwarzają dźwięku przez urządzenie domyślne.</value>
+  </data>
+  <data name="AppHotkeys_Add" xml:space="preserve">
+    <value>Dodaj</value>
+  </data>
+  <data name="AppHotkeys_Cancel" xml:space="preserve">
+    <value>Anuluj</value>
+  </data>
+  <data name="Hotkeys_BlockedInfo" xml:space="preserve">
+    <value>Inne aplikacje nie otrzymują tych klawiszy, ale zawsze otrzymują sygnały z przycisków myszy. Możesz to zmienić w sekcji Ogólne.</value>
+  </data>
+  <data name="Hotkeys_SharedInfo" xml:space="preserve">
+    <value>Inne aplikacje również otrzymują te klawisze. Skróty nie działają, gdy aktywna jest aplikacja uruchomiona jako administrator.</value>
+  </data>
+  <data name="Hotkeys_OpenGeneral" xml:space="preserve">
+    <value>Otwórz ustawienia ogólne</value>
+  </data>
+  <data name="Error_NeedsBoth" xml:space="preserve">
+    <value>Aplikacja wymaga ustawienia obu skrótów klawiszowych</value>
+  </data>
+  <data name="Error_RejectedHotkey" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="Devices_Description" xml:space="preserve">
+    <value>Skróty klawiszowe i ustawienia urządzeń.</value>
+  </data>
+  <data name="Devices_VolumeSection" xml:space="preserve">
+    <value>Skróty głośności dla urządzenia domyślnego</value>
+  </data>
+  <data name="Devices_VolumeHotkeys" xml:space="preserve">
+    <value>Zwiększanie i zmniejszanie głośności</value>
+  </data>
+  <data name="Devices_Mute" xml:space="preserve">
+    <value>Wyciszanie i wyłączanie wyciszenia</value>
+  </data>
+  <data name="Devices_KeepBalance" xml:space="preserve">
+    <value>Wycisz zamiast zmniejszać głośność do 0</value>
+  </data>
+  <data name="Devices_KeepBalanceHint" xml:space="preserve">
+    <value>Zachowuje balans kanałów, który Windows resetuje przy poziomie 0</value>
+  </data>
+  <data name="Devices_YourDevices" xml:space="preserve">
+    <value>Twoje urządzenia</value>
+  </data>
+  <data name="Devices_Device" xml:space="preserve">
+    <value>Urządzenie</value>
+  </data>
+  <data name="Devices_DefaultTag" xml:space="preserve">
+    <value>Domyślne</value>
+  </data>
+  <data name="Devices_NotConnected" xml:space="preserve">
+    <value>Niepodłączone</value>
+  </data>
+  <data name="Devices_SetAsDefault" xml:space="preserve">
+    <value>Ustaw jako domyślne</value>
+  </data>
+  <data name="Devices_Hotkey" xml:space="preserve">
+    <value>Skrót klawiszowy ustawiający to urządzenie jako domyślne</value>
+  </data>
+  <data name="Devices_Features" xml:space="preserve">
+    <value>Funkcje audio</value>
+  </data>
+  <data name="Devices_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="Devices_FormatHint" xml:space="preserve">
+    <value>Głębia bitowa i częstotliwość próbkowania</value>
+  </data>
+  <data name="Error_FormatRefused" xml:space="preserve">
+    <value>Nie udało się zmienić formatu</value>
+  </data>
+  <data name="Devices_FormatName" xml:space="preserve">
+    <value>{0} bit, {1} Hz</value>
+  </data>
+  <data name="Error_SettingFailed" xml:space="preserve">
+    <value>Nie udało się zmienić tego ustawienia</value>
+  </data>
+  <data name="Devices_AllowExclusive" xml:space="preserve">
+    <value>Zezwalaj aplikacjom na przejmowanie wyłącznej kontroli</value>
+  </data>
+  <data name="Devices_AllowExclusiveHint" xml:space="preserve">
+    <value>Aplikacja może korzystać z urządzenia samodzielnie</value>
+  </data>
+  <data name="Devices_ExclusivePriority" xml:space="preserve">
+    <value>Przyznaj tym aplikacjom priorytet</value>
+  </data>
+  <data name="Devices_ExclusivePriorityHint" xml:space="preserve">
+    <value>Mogą przejąć urządzenie, gdy inne aplikacje odtwarzają dźwięk</value>
+  </data>
+  <data name="Devices_Balance" xml:space="preserve">
+    <value>Balans</value>
+  </data>
+  <data name="Devices_Left" xml:space="preserve">
+    <value>Lewy</value>
+  </data>
+  <data name="Devices_Right" xml:space="preserve">
+    <value>Prawy</value>
+  </data>
+  <data name="Media_Description" xml:space="preserve">
+    <value>Własne skróty klawiszowe do odtwarzania, pauzowania i pomijania utworów.</value>
+  </data>
+  <data name="Media_Hotkeys" xml:space="preserve">
+    <value>Skróty klawiszowe</value>
+  </data>
+  <data name="Media_PlayPause" xml:space="preserve">
+    <value>Odtwarzaj / wstrzymaj</value>
+  </data>
+  <data name="Media_Previous" xml:space="preserve">
+    <value>Poprzedni utwór</value>
+  </data>
+  <data name="Media_Next" xml:space="preserve">
+    <value>Następny utwór</value>
+  </data>
+  <data name="Media_Stop" xml:space="preserve">
+    <value>Zatrzymaj</value>
+  </data>
+  <data name="Media_Clear" xml:space="preserve">
+    <value>Wyczyść skrót klawiszowy dla: {0}</value>
+  </data>
+  <data name="HotkeyBox_Placeholder" xml:space="preserve">
+    <value>Naciśnij klawisz na klawiaturze lub przycisk myszy</value>
+  </data>
+  <data name="HotkeyBox_Or" xml:space="preserve">
+    <value>lub</value>
+  </data>
+  <data name="MouseButton_Left" xml:space="preserve">
+    <value>Lewy przycisk myszy</value>
+  </data>
+  <data name="MouseButton_Right" xml:space="preserve">
+    <value>Prawy przycisk myszy</value>
+  </data>
+  <data name="MouseButton_Middle" xml:space="preserve">
+    <value>Środkowy przycisk myszy</value>
+  </data>
+  <data name="MouseButton_XButton1" xml:space="preserve">
+    <value>Wstecz</value>
+  </data>
+  <data name="MouseButton_XButton2" xml:space="preserve">
+    <value>Dalej</value>
+  </data>
+  <data name="MouseButton_WheelUp" xml:space="preserve">
+    <value>Przewinięcie kółkiem w górę</value>
+  </data>
+  <data name="MouseButton_WheelDown" xml:space="preserve">
+    <value>Przewinięcie kółkiem w dół</value>
+  </data>
+  <data name="MouseButton_WheelLeft" xml:space="preserve">
+    <value>Przewinięcie kółkiem w lewo</value>
+  </data>
+  <data name="MouseButton_WheelRight" xml:space="preserve">
+    <value>Przewinięcie kółkiem w prawo</value>
+  </data>
+  <data name="Notifications_Description" xml:space="preserve">
+    <value>Wyświetlaj na ekranie informacje o zmianach głośności.</value>
+  </data>
+  <data name="Notifications_Osd" xml:space="preserve">
+    <value>Powiadomienia ekranowe</value>
+  </data>
+  <data name="Notifications_OsdHint" xml:space="preserve">
+    <value>Dla zmian dokonanych za pomocą skrótów Volumey</value>
+  </data>
+  <data name="Notifications_ReactAllTitle" xml:space="preserve">
+    <value>Reaguj na wszystkie zmiany głośności</value>
+  </data>
+  <data name="Notifications_ReactAllHint" xml:space="preserve">
+    <value>Uwzględniaj również zmiany wprowadzane przez inne aplikacje i system Windows</value>
+  </data>
+  <data name="Notifications_DefaultDeviceTitle" xml:space="preserve">
+    <value>Zmiana urządzenia domyślnego</value>
+  </data>
+  <data name="Notifications_DefaultDeviceHint" xml:space="preserve">
+    <value>Pokaż nowe urządzenie wyjściowe po zmianie urządzenia domyślnego</value>
+  </data>
+  <data name="Notifications_PositionHeader" xml:space="preserve">
+    <value>Położenie</value>
+  </data>
+  <data name="Notifications_Corner" xml:space="preserve">
+    <value>Róg ekranu</value>
+  </data>
+  <data name="Position_TopLeft" xml:space="preserve">
+    <value>Lewy górny</value>
+  </data>
+  <data name="Position_TopCenter" xml:space="preserve">
+    <value>Górny środek</value>
+  </data>
+  <data name="Position_TopRight" xml:space="preserve">
+    <value>Prawy górny</value>
+  </data>
+  <data name="Position_BottomLeft" xml:space="preserve">
+    <value>Lewy dolny</value>
+  </data>
+  <data name="Position_BottomCenter" xml:space="preserve">
+    <value>Dolny środek</value>
+  </data>
+  <data name="Position_BottomRight" xml:space="preserve">
+    <value>Prawy dolny</value>
+  </data>
+  <data name="Notifications_Distance" xml:space="preserve">
+    <value>Odległość od krawędzi</value>
+  </data>
+  <data name="Notifications_DistanceHint" xml:space="preserve">
+    <value>W pikselach przy skalowaniu 100%</value>
+  </data>
+  <data name="Notifications_HorizontalShort" xml:space="preserve">
+    <value>Poziomo</value>
+  </data>
+  <data name="Notifications_VerticalShort" xml:space="preserve">
+    <value>Pionowo</value>
+  </data>
+  <data name="Notifications_DisplayTime" xml:space="preserve">
+    <value>Czas wyświetlania</value>
+  </data>
+  <data name="Notifications_OneSecond" xml:space="preserve">
+    <value>1 sekunda</value>
+  </data>
+  <data name="Notifications_Seconds" xml:space="preserve">
+    <value>{0} sekund</value>
+  </data>
+  <data name="Notifications_PreviewHeader" xml:space="preserve">
+    <value>Podgląd</value>
+  </data>
+  <data name="Notifications_ShowOnScreen" xml:space="preserve">
+    <value>Pokaż na ekranie</value>
+  </data>
+  <data name="About_Version" xml:space="preserve">
+    <value>Wersja {0} · {1}</value>
+  </data>
+  <data name="About_GitHubBuild" xml:space="preserve">
+    <value>Wydanie GitHub</value>
+  </data>
+  <data name="About_StoreBuild" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="About_DevBuild" xml:space="preserve">
+    <value>Wersja deweloperska</value>
+  </data>
+  <data name="About_CheckUpdates" xml:space="preserve">
+    <value>Sprawdź dostępność aktualizacji</value>
+  </data>
+  <data name="About_Checking" xml:space="preserve">
+    <value>Sprawdzanie dostępności aktualizacji…</value>
+  </data>
+  <data name="About_UpToDate" xml:space="preserve">
+    <value>Masz najnowszą wersję</value>
+  </data>
+  <data name="About_UpdateInStore" xml:space="preserve">
+    <value>Aktualizacja jest dostępna w Microsoft Store</value>
+  </data>
+  <data name="About_UpdateFailed" xml:space="preserve">
+    <value>Nie udało się sprawdzić dostępności aktualizacji</value>
+  </data>
+  <data name="About_Links" xml:space="preserve">
+    <value>Linki</value>
+  </data>
+  <data name="About_SourceCodeHint" xml:space="preserve">
+    <value>github.com/G-Stas/Volumey</value>
+  </data>
+  <data name="About_Report" xml:space="preserve">
+    <value>Zgłoś problem lub zaproponuj funkcję</value>
+  </data>
+  <data name="About_ReportHint" xml:space="preserve">
+    <value>Zgłoszenia w GitHub</value>
+  </data>
+  <data name="Notifications_ExampleApp" xml:space="preserve">
+    <value>Aplikacja</value>
+  </data>
+  <data name="MixerPage_RememberPosition" xml:space="preserve">
+    <value>Zapamiętuj położenie miksera</value>
+  </data>
+  <data name="MixerPage_RememberPositionHint" xml:space="preserve">
+    <value>Otwiera się w miejscu, w którym został zamknięty. Po wyłączeniu: obok obszaru powiadomień.</value>
+  </data>
+  <data name="Hotkeys_TakenInVolumey" xml:space="preserve">
+    <value>Ten skrót jest już używany w Volumey</value>
+  </data>
+  <data name="Hotkeys_TakenByAnotherApp" xml:space="preserve">
+    <value>Ten skrót jest używany przez inną aplikację</value>
+  </data>
+  <data name="General_StartupBlocked" xml:space="preserve">
+    <value>Uruchamianie zostało zablokowane przez system Windows lub oprogramowanie zabezpieczające.</value>
+  </data>
+  <data name="Settings_SaveFailedDiskFull" xml:space="preserve">
+    <value>Nie można zapisać ustawień: dysk jest pełny.</value>
+  </data>
+  <data name="Settings_SaveFailedAccessDenied" xml:space="preserve">
+    <value>Nie można zapisać ustawień: odmowa dostępu.</value>
+  </data>
+  <data name="Settings_SaveFailedInUse" xml:space="preserve">
+    <value>Nie można zapisać ustawień: plik jest używany.</value>
+  </data>
+  <data name="Settings_SaveFailed" xml:space="preserve">
+    <value>Nie można zapisać ustawień.</value>
+  </data>
+  <data name="Mixer_PlayOn" xml:space="preserve">
+    <value>Odtwarzaj {0} przez</value>
+  </data>
+  <data name="Mixer_DefaultDevice" xml:space="preserve">
+    <value>Urządzenie domyślne</value>
+  </data>
+  <data name="Mixer_LockVolume" xml:space="preserve">
+    <value>Zablokuj głośność</value>
+  </data>
+  <data name="LockMode_Off" xml:space="preserve">
+    <value>Wyłączone</value>
+  </data>
+  <data name="LockMode_UntilClosed" xml:space="preserve">
+    <value>Do zamknięcia</value>
+  </data>
+  <data name="LockMode_Always" xml:space="preserve">
+    <value>Zawsze</value>
+  </data>
+  <data name="Mixer_MovedTo" xml:space="preserve">
+    <value>Ustawiono odtwarzanie {0} przez {1}</value>
+  </data>
+  <data name="Mixer_Undo" xml:space="preserve">
+    <value>Cofnij</value>
+  </data>
+  <data name="Mixer_MoveFailed" xml:space="preserve">
+    <value>Nie udało się przełączyć {0} na {1}</value>
+  </data>
+  <data name="General_TrayMiddleClick" xml:space="preserve">
+    <value>Kliknięcie środkowym przyciskiem ikony w obszarze powiadomień</value>
+  </data>
+  <data name="TrayMiddleClick_None" xml:space="preserve">
+    <value>Nie rób nic</value>
+  </data>
+  <data name="TrayMiddleClick_ToggleMute" xml:space="preserve">
+    <value>Wycisz lub włącz dźwięk urządzenia domyślnego</value>
+  </data>
+  <data name="TrayMiddleClick_SwitchDevice" xml:space="preserve">
+    <value>Przełącz na następne urządzenie wyjściowe</value>
+  </data>
+  <data name="Support_Title" xml:space="preserve">
+    <value>Wesprzyj Volumey</value>
+  </data>
+  <data name="Support_Text" xml:space="preserve">
+    <value>Volumey jest darmowy i powstaje w moim wolnym czasie. Jeśli Ci się przydaje, możesz wesprzeć jego rozwój.</value>
+  </data>
+  <data name="Support_NotNow" xml:space="preserve">
+    <value>Nie teraz</value>
+  </data>
+  <data name="Support_ThanksTitle" xml:space="preserve">
+    <value>Dziękuję!</value>
+  </data>
+  <data name="Support_ThanksText" xml:space="preserve">
+    <value>Twoje wsparcie pozwala rozwijać Volumey. W każdej chwili możesz tu wrócić.</value>
+  </data>
+  <data name="Support_Close" xml:space="preserve">
+    <value>Zamknij</value>
+  </data>
+  <data name="Support_Failed" xml:space="preserve">
+    <value>Płatność nie powiodła się. Spróbuj ponownie później.</value>
+  </data>
+</root>
