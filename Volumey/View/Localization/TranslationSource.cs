@@ -32,7 +32,7 @@ public sealed class TranslationSource : INotifyPropertyChanged
 	private static readonly Dictionary<string, string> CultureDictionary = new Dictionary<string, string>
 	{
 		{Languages[0], "en"},
-		{Language[1], "pl"}
+		{Languages[1], "pl"},
 		{Languages[2], "ru"},
 		{Languages[3], "de"},
 		{Languages[4], "it"},
