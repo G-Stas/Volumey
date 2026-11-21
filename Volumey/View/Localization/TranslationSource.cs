@@ -14,6 +14,7 @@ public sealed class TranslationSource : INotifyPropertyChanged
 	public static readonly List<string> Languages = new List<string>
 	{
 		new CultureInfo("en").NativeName,
+		new CultureInfo("pl").NativeName,
 		new CultureInfo("ru").NativeName,
 		new CultureInfo("de").NativeName,
 		new CultureInfo("it").NativeName,
@@ -31,17 +32,18 @@ public sealed class TranslationSource : INotifyPropertyChanged
 	private static readonly Dictionary<string, string> CultureDictionary = new Dictionary<string, string>
 	{
 		{Languages[0], "en"},
-		{Languages[1], "ru"},
-		{Languages[2], "de"},
-		{Languages[3], "it"},
-		{Languages[4], "fr"},
-		{Languages[5], "es"},
-			{Languages[6], "pt"},
-		{Languages[7], "ja"},
-		{Languages[8], "zh"},
-		{Languages[9], "hi"},
-		{Languages[10], "tr"},
-		{Languages[11], "uk-ua"}
+		{Languages[1], "pl"},
+		{Languages[2], "ru"},
+		{Languages[3], "de"},
+		{Languages[4], "it"},
+		{Languages[5], "fr"},
+		{Languages[6], "es"},
+		{Languages[7], "pt"},
+		{Languages[8], "ja"},
+		{Languages[9], "zh"},
+		{Languages[10], "hi"},
+		{Languages[11], "tr"},
+		{Languages[12], "uk-ua"}
 	};
 
 	private static readonly TranslationSource instance = new TranslationSource();
